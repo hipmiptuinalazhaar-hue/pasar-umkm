@@ -1,4 +1,112 @@
-body {
+* {
     margin: 0;
-    font-family: Arial, sans-serif;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+body {
+    background: #F8FAFC;
+    color: #1E293B;
+}
+
+header {
+    background: white;
+    padding: 20px 8%;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 26px;
+    font-weight: 800;
+    color: #064E3B;
+}
+
+.menu {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.menu a {
+    text-decoration: none;
+    color: #334155;
+}
+
+button {
+    background: #D4AF37;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 30px;
+    cursor: pointer;
+}
+
+
+.hero {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 60px 8%;
+}
+
+
+.hero-text {
+    width: 50%;
+}
+
+
+.hero-text h1 {
+    font-size: 50px;
+    color: #064E3B;
+    line-height: 1.2;
+}
+
+
+.hero-text p {
+    margin: 25px 0;
+    font-size: 18px;
+    color: #64748B;
+}
+
+
+.hero-image {
+    width: 350px;
+    height: 350px;
+    background: #047857;
+    border-radius: 50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-size:30px;
+}
+
+
+.about,
+.founder {
+    padding: 70px 8%;
+    text-align:center;
+}
+
+
+.about h2,
+.founder h2 {
+    color:#064E3B;
+    margin-bottom:20px;
+}
+
+
+footer {
+    background:#064E3B;
+    color:white;
+    padding:30px;
+    text-align:center;
 }
