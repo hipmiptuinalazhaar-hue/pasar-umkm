@@ -8,7 +8,7 @@
 
 <title>Pasar UMKM | Marketplace UMKM Lokal</title>
 
-<meta name="description" content="Pasar UMKM adalah marketplace digital untuk membantu UMKM lokal berkembang.">
+<meta name="description" content="Pasar UMKM adalah marketplace digital untuk UMKM lokal Indonesia.">
 
 <link rel="stylesheet" href="css/style.css">
 
@@ -33,7 +33,7 @@
 
 <div class="search">
 
-<input type="text" placeholder="Cari produk UMKM...">
+<input type="text" placeholder="Cari produk atau UMKM...">
 
 </div>
 
@@ -41,8 +41,13 @@
 
 <div class="nav-icons">
 
-<a href="#">🛒</a>
-<a href="#">💬</a>
+<a href="#" aria-label="Keranjang">
+🛒
+</a>
+
+<a href="#" aria-label="Chat">
+💬
+</a>
 
 </div>
 
@@ -56,7 +61,6 @@
 
 
 <!-- HERO -->
-
 
 <section class="hero">
 
@@ -76,9 +80,10 @@ Dalam Satu Platform
 
 
 <p>
-Belanja produk pilihan UMKM
+Belanja produk terbaik dari UMKM pilihan
 Lubuklinggau dan Sumatera Selatan.
 </p>
+
 
 
 <button>
@@ -93,9 +98,10 @@ Mulai Belanja
 
 <div class="hero-right">
 
-<img src="assets/images/hero.png">
+<img src="assets/images/hero.png" alt="Pasar UMKM">
 
 </div>
+
 
 
 </section>
@@ -106,8 +112,7 @@ Mulai Belanja
 
 
 
-
-<!-- CATEGORY -->
+<!-- KATEGORI -->
 
 
 <section class="container">
@@ -119,11 +124,14 @@ Mulai Belanja
 Kategori Pilihan
 </h2>
 
+
 <a href="#">
 Lihat Semua
 </a>
 
+
 </div>
+
 
 
 
@@ -132,48 +140,57 @@ Lihat Semua
 
 
 <div class="category">
-
 <img src="assets/icons/food.png">
-
-<p>
-Kuliner
-</p>
-
+<p>Kuliner</p>
 </div>
 
 
-<div class="category">
 
+<div class="category">
 <img src="assets/icons/fashion.png">
-
-<p>
-Fashion
-</p>
-
+<p>Fashion</p>
 </div>
 
 
 
 <div class="category">
-
 <img src="assets/icons/beauty.png">
-
-<p>
-Kecantikan
-</p>
-
+<p>Kecantikan</p>
 </div>
 
 
 
 <div class="category">
-
 <img src="assets/icons/digital.png">
+<p>Digital</p>
+</div>
 
-<p>
-Digital
-</p>
 
+
+<div class="category">
+<img src="assets/icons/electronic.png">
+<p>Elektronik</p>
+</div>
+
+
+
+<div class="category">
+<img src="assets/icons/property.png">
+<p>Property</p>
+</div>
+
+
+
+<div class="category">
+<img src="assets/icons/finance.png">
+<p>Finance</p>
+</div>
+
+
+
+<div class="category">
+<img src="assets/icons/service.png">
+<p>Jasa</p>
 </div>
 
 
@@ -190,7 +207,7 @@ Digital
 
 
 
-<!-- PRODUCT -->
+<!-- PRODUK -->
 
 
 <section class="container">
@@ -199,8 +216,9 @@ Digital
 <div class="heading">
 
 <h2>
-Produk Terbaru
+Produk Pilihan
 </h2>
+
 
 <a href="#">
 Lihat Semua
@@ -214,6 +232,8 @@ Lihat Semua
 
 
 <div class="products">
+
+
 
 
 
@@ -231,14 +251,22 @@ Kopi Lokal Premium
 </h3>
 
 
-<p>
+<p class="location">
 📍 Lubuklinggau
 </p>
 
 
+
 <div class="rating">
-★★★★★
+★★★★★ <span>4.9</span>
 </div>
+
+
+
+<p class="sold">
+1,2 rb terjual
+</p>
+
 
 
 <h4>
@@ -246,7 +274,8 @@ Rp25.000
 </h4>
 
 
-<button>
+
+<button class="buy-btn">
 Beli
 </button>
 
@@ -255,6 +284,8 @@ Beli
 
 
 </div>
+
+
 
 
 
@@ -271,18 +302,26 @@ Beli
 
 
 <h3>
-Fashion Lokal
+Fashion Lokal Premium
 </h3>
 
 
-<p>
+<p class="location">
 📍 Lubuklinggau
 </p>
 
 
+
 <div class="rating">
-★★★★★
+★★★★★ <span>4.8</span>
 </div>
+
+
+
+<p class="sold">
+850 terjual
+</p>
+
 
 
 <h4>
@@ -290,7 +329,8 @@ Rp75.000
 </h4>
 
 
-<button>
+
+<button class="buy-btn">
 Beli
 </button>
 
@@ -299,6 +339,8 @@ Beli
 
 
 </div>
+
+
 
 
 
@@ -319,14 +361,22 @@ Kerajinan UMKM
 </h3>
 
 
-<p>
+<p class="location">
 📍 Sumatera Selatan
 </p>
 
 
+
 <div class="rating">
-★★★★★
+★★★★★ <span>5.0</span>
 </div>
+
+
+
+<p class="sold">
+500 terjual
+</p>
+
 
 
 <h4>
@@ -334,7 +384,8 @@ Rp50.000
 </h4>
 
 
-<button>
+
+<button class="buy-btn">
 Beli
 </button>
 
@@ -343,6 +394,7 @@ Beli
 
 
 </div>
+
 
 
 
@@ -364,13 +416,15 @@ Beli
 
 
 <h2>
-Kembangkan Bisnis Bersama Kami
+Punya Usaha?
 </h2>
 
 
 <p>
-Daftarkan usaha kamu dan masuk ke ekosistem digital UMKM.
+Gabung menjadi mitra Pasar UMKM
+dan kembangkan bisnis kamu secara digital.
 </p>
+
 
 
 <button>
@@ -386,19 +440,24 @@ Daftar UMKM
 
 
 
+
 <!-- FOOTER -->
 
 
 <footer class="footer">
 
 
-<div class="footer-logo">
+<div class="footer-brand">
+
 
 <img src="assets/logo.png">
 
+
 <p>
-Platform digital yang menghubungkan UMKM lokal dengan pasar yang lebih luas.
+Platform digital yang menghubungkan UMKM lokal
+dengan pasar yang lebih luas.
 </p>
+
 
 </div>
 
@@ -415,6 +474,76 @@ Platform digital yang menghubungkan UMKM lokal dengan pasar yang lebih luas.
 
 <p>
 Inisiatif HIPMI PT UIN Al Azhaar Lubuklinggau
+</p>
+
+
+<p class="founder">
+Founder: Capryan Agusto
+</p>
+
+
+</div>
+
+
+
+</footer>
+
+
+
+
+
+
+
+<!-- MOBILE NAV -->
+
+
+<nav class="mobile-nav">
+
+
+<a href="#">
+🏠
+<span>
+Home
+</span>
+</a>
+
+
+
+<a href="#">
+🗂
+<span>
+Kategori
+</span>
+</a>
+
+
+
+<a href="#">
+🛒
+<span>
+Keranjang
+</span>
+</a>
+
+
+
+<a href="#">
+👤
+<span>
+Akun
+</span>
+</a>
+
+
+</nav>
+
+
+
+
+
+</body>
+
+</html>
 </p>
 
 
