@@ -2,45 +2,27 @@
     margin:0;
     padding:0;
     box-sizing:border-box;
-    font-family:"Inter","Segoe UI",Arial,sans-serif;
+    font-family:"Segoe UI",Arial,sans-serif;
 }
 
 
 body{
-
     background:#f8fafc;
     color:#1e293b;
     padding-bottom:90px;
-
 }
 
 
 img{
-
     max-width:100%;
     display:block;
-
 }
-
 
 
 button{
-
     border:none;
     cursor:pointer;
-    background:#064e3b;
-    color:white;
-    padding:12px 28px;
-    border-radius:25px;
     font-weight:600;
-
-}
-
-
-button:hover{
-
-    background:#047857;
-
 }
 
 
@@ -55,14 +37,14 @@ button:hover{
     background:white;
 
     position:sticky;
+
     top:0;
 
     z-index:100;
 
     padding:12px 6%;
 
-    box-shadow:
-    0 2px 15px rgba(0,0,0,.06);
+    box-shadow:0 3px 15px rgba(0,0,0,.06);
 
 }
 
@@ -82,7 +64,7 @@ button:hover{
 
 .logo img{
 
-    width:100px;
+    width:105px;
 
 }
 
@@ -118,7 +100,6 @@ button:hover{
 
 
 
-
 .nav-icons{
 
     display:flex;
@@ -131,25 +112,26 @@ button:hover{
 
 .nav-icons a{
 
-    text-decoration:none;
-
     width:38px;
 
     height:38px;
 
-    border-radius:50%;
-
     background:#f1f5f9;
+
+    border-radius:50%;
 
     display:flex;
 
+    align-items:center;
+
     justify-content:center;
 
-    align-items:center;
+    text-decoration:none;
 
     font-size:18px;
 
 }
+
 
 
 
@@ -161,25 +143,23 @@ button:hover{
 
 .hero{
 
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-    gap:40px;
-
-    padding:60px 6%;
-
-    background:
-
-    linear-gradient(
+    background:linear-gradient(
     135deg,
     #064e3b,
     #0f766e
     );
 
     color:white;
+
+    padding:60px 6%;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    gap:40px;
 
 }
 
@@ -197,7 +177,7 @@ button:hover{
 
     background:#d4af37;
 
-    padding:7px 16px;
+    padding:7px 15px;
 
     border-radius:20px;
 
@@ -233,7 +213,13 @@ button:hover{
 
     margin-top:25px;
 
+    padding:12px 28px;
+
     background:#d4af37;
+
+    color:white;
+
+    border-radius:25px;
 
 }
 
@@ -253,7 +239,7 @@ button:hover{
 
 
 
-/* ================= GENERAL ================= */
+/* ================= SECTION ================= */
 
 
 .container{
@@ -280,7 +266,7 @@ button:hover{
 
 .heading h2{
 
-    font-size:26px;
+    font-size:25px;
 
     color:#064e3b;
 
@@ -303,6 +289,7 @@ button:hover{
 
 
 
+
 /* ================= CATEGORY ================= */
 
 
@@ -310,9 +297,9 @@ button:hover{
 
     display:grid;
 
-    grid-template-columns:repeat(4,1fr);
+    grid-template-columns:repeat(8,1fr);
 
-    gap:20px;
+    gap:15px;
 
 }
 
@@ -322,14 +309,23 @@ button:hover{
 
     background:white;
 
-    padding:25px;
+    padding:20px 10px;
 
     border-radius:18px;
 
     text-align:center;
 
-    box-shadow:
-    0 5px 20px rgba(0,0,0,.05);
+    box-shadow:0 5px 20px rgba(0,0,0,.05);
+
+    transition:.3s;
+
+}
+
+
+
+.category:hover{
+
+    transform:translateY(-5px);
 
 }
 
@@ -349,9 +345,9 @@ button:hover{
 
 .category p{
 
-    margin-top:12px;
+    margin-top:10px;
 
-    font-size:14px;
+    font-size:13px;
 
 }
 
@@ -370,7 +366,7 @@ button:hover{
 
     grid-template-columns:repeat(3,1fr);
 
-    gap:25px;
+    gap:22px;
 
 }
 
@@ -384,8 +380,7 @@ button:hover{
 
     overflow:hidden;
 
-    box-shadow:
-    0 5px 20px rgba(0,0,0,.06);
+    box-shadow:0 5px 20px rgba(0,0,0,.06);
 
 }
 
@@ -417,17 +412,17 @@ button:hover{
 
     font-size:17px;
 
+    margin-bottom:8px;
+
 }
 
 
 
-.product-detail p{
-
-    margin-top:8px;
+.location{
 
     color:#64748b;
 
-    font-size:14px;
+    font-size:13px;
 
 }
 
@@ -445,11 +440,60 @@ button:hover{
 
 
 
+.rating span{
+
+    color:#64748b;
+
+}
+
+
+
+.sold{
+
+    font-size:13px;
+
+    color:#94a3b8;
+
+}
+
+
+
 .product-detail h4{
 
     color:#d4af37;
 
     font-size:22px;
+
+    margin-top:8px;
+
+}
+
+
+
+
+.buy-btn{
+
+    width:100%;
+
+    height:36px;
+
+    margin-top:15px;
+
+    background:#064e3b;
+
+    color:white;
+
+    border-radius:10px;
+
+    font-size:13px;
+
+}
+
+
+
+.buy-btn:hover{
+
+    background:#047857;
 
 }
 
@@ -466,13 +510,13 @@ button:hover{
 
     margin:20px 6%;
 
-    padding:45px 20px;
-
     background:#064e3b;
 
-    border-radius:25px;
-
     color:white;
+
+    padding:45px 20px;
+
+    border-radius:25px;
 
     text-align:center;
 
@@ -480,9 +524,9 @@ button:hover{
 
 
 
-.partner h2{
+.partner p{
 
-    margin-bottom:12px;
+    margin-top:10px;
 
 }
 
@@ -493,6 +537,12 @@ button:hover{
     margin-top:20px;
 
     background:#d4af37;
+
+    color:white;
+
+    padding:12px 25px;
+
+    border-radius:25px;
 
 }
 
@@ -517,7 +567,7 @@ button:hover{
 
 
 
-.footer-logo img{
+.footer-brand img{
 
     width:100px;
 
@@ -525,17 +575,17 @@ button:hover{
 
 
 
-.footer-logo p{
+.footer-brand p{
 
     max-width:400px;
 
     color:#64748b;
 
-    font-size:14px;
-
     line-height:1.7;
 
     margin-top:15px;
+
+    font-size:14px;
 
 }
 
@@ -627,11 +677,9 @@ body{
 
 .search input{
 
-    height:35px;
+    height:34px;
 
     font-size:12px;
-
-    padding:0 12px;
 
 }
 
@@ -651,9 +699,10 @@ body{
 
     height:32px;
 
-    font-size:15px;
+    font-size:14px;
 
 }
+
 
 
 
@@ -665,7 +714,7 @@ body{
 
     text-align:center;
 
-    padding:40px 20px;
+    padding:35px 20px;
 
 }
 
@@ -689,10 +738,9 @@ body{
 
 .hero-right img{
 
-    width:270px;
+    width:260px;
 
 }
-
 
 
 
@@ -700,9 +748,13 @@ body{
 
 .categories{
 
-    grid-template-columns:repeat(4,1fr);
+    display:flex;
 
-    gap:10px;
+    overflow-x:auto;
+
+    gap:12px;
+
+    padding-bottom:10px;
 
 }
 
@@ -710,28 +762,9 @@ body{
 
 .category{
 
-    padding:15px 5px;
+    min-width:85px;
 
 }
-
-
-
-.category img{
-
-    width:32px;
-
-    height:32px;
-
-}
-
-
-
-.category p{
-
-    font-size:11px;
-
-}
-
 
 
 
@@ -779,6 +812,16 @@ body{
 
 
 
+.buy-btn{
+
+    height:34px;
+
+    font-size:12px;
+
+}
+
+
+
 
 
 .partner{
@@ -801,9 +844,6 @@ body{
 
 
 
-
-/* MOBILE BOTTOM */
-
 .mobile-nav{
 
     display:flex;
@@ -824,8 +864,7 @@ body{
 
     border-radius:22px;
 
-    box-shadow:
-    0 8px 25px rgba(0,0,0,.15);
+    box-shadow:0 8px 25px rgba(0,0,0,.15);
 
     justify-content:space-around;
 
@@ -851,24 +890,15 @@ body{
 
 
 
-.mobile-nav a:first-child{
-
-    color:#064e3b;
-
-}
-
-
-
 .mobile-nav span{
 
     display:block;
 
-    margin-top:2px;
-
     font-size:10px;
 
-}
+    margin-top:3px;
 
+}
 
 
 }
