@@ -10,9 +10,9 @@ body{
 
     background:#f8fafc;
     color:#1e293b;
+    padding-bottom:80px;
 
 }
-
 
 
 img{
@@ -23,13 +23,13 @@ img{
 }
 
 
-/* NAVBAR */
+/* ================= NAVBAR ================= */
 
 
 header{
 
     background:white;
-    padding:15px 6%;
+    padding:12px 6%;
     box-shadow:0 4px 20px rgba(0,0,0,.08);
     position:sticky;
     top:0;
@@ -38,19 +38,21 @@ header{
 }
 
 
-nav{
+
+.top-nav{
 
     display:flex;
     align-items:center;
     justify-content:space-between;
-    gap:30px;
+    gap:25px;
 
 }
 
 
+
 .logo img{
 
-    width:200px;
+    width:120px;
     height:auto;
 
 }
@@ -60,17 +62,21 @@ nav{
 .search-box{
 
     flex:1;
-    max-width:600px;
+    max-width:650px;
 
 }
+
 
 
 .search-box input{
 
     width:100%;
-    padding:14px 20px;
+    height:45px;
+    padding:0 20px;
+
     border-radius:30px;
     border:1px solid #ddd;
+
     outline:none;
     font-size:15px;
 
@@ -78,36 +84,69 @@ nav{
 
 
 
-.menu{
+
+.nav-icons{
 
     display:flex;
-    gap:25px;
+    gap:15px;
+
+}
+
+
+
+.nav-icons a{
+
+    width:42px;
+    height:42px;
+
+    background:#f1f5f9;
+    border-radius:50%;
+
+    display:flex;
     align-items:center;
+    justify-content:center;
 
-}
-
-
-.menu a{
-
-    text-decoration:none;
-    color:#334155;
-    font-weight:600;
+    position:relative;
 
 }
 
 
 
-.menu a:hover{
+.nav-icons svg{
 
-    color:#047857;
+    width:22px;
+    height:22px;
+    fill:#064E3B;
 
 }
 
 
 
+.badge{
+
+    position:absolute;
+    top:-5px;
+    right:-5px;
+
+    background:red;
+    color:white;
+
+    width:18px;
+    height:18px;
+
+    border-radius:50%;
+
+    font-size:11px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+}
 
 
-/* HERO */
+
+/* ================= HERO ================= */
 
 
 .market-hero{
@@ -115,8 +154,11 @@ nav{
     display:flex;
     align-items:center;
     justify-content:space-between;
+
     padding:70px 6%;
-    background:linear-gradient(
+
+    background:
+    linear-gradient(
         135deg,
         #064E3B,
         #047857
@@ -139,8 +181,11 @@ nav{
 .hero-content span{
 
     background:#D4AF37;
+
     padding:8px 18px;
+
     border-radius:30px;
+
     font-size:14px;
 
 }
@@ -150,7 +195,9 @@ nav{
 .hero-content h1{
 
     font-size:52px;
+
     margin:25px 0;
+
     line-height:1.2;
 
 }
@@ -160,8 +207,8 @@ nav{
 .hero-content p{
 
     font-size:18px;
+
     line-height:1.7;
-    opacity:.9;
 
 }
 
@@ -170,13 +217,18 @@ nav{
 button{
 
     margin-top:25px;
+
     padding:13px 30px;
+
     border:none;
+
     border-radius:30px;
+
     background:#D4AF37;
+
     color:white;
+
     font-weight:700;
-    cursor:pointer;
 
 }
 
@@ -185,6 +237,7 @@ button{
 .hero-banner img{
 
     width:420px;
+
     border-radius:30px;
 
 }
@@ -193,8 +246,7 @@ button{
 
 
 
-
-/* CATEGORY */
+/* ================= CATEGORY ================= */
 
 
 .market-category{
@@ -208,7 +260,9 @@ button{
 .market-category h2{
 
     text-align:center;
+
     color:#064E3B;
+
     margin-bottom:40px;
 
 }
@@ -218,7 +272,9 @@ button{
 .category-grid{
 
     display:grid;
+
     grid-template-columns:repeat(4,1fr);
+
     gap:25px;
 
 }
@@ -228,13 +284,20 @@ button{
 .category-item{
 
     background:white;
+
     padding:30px;
+
     border-radius:20px;
+
     text-align:center;
-    box-shadow:0 8px 25px rgba(0,0,0,.06);
+
+    box-shadow:
+    0 8px 25px rgba(0,0,0,.06);
+
     transition:.3s;
 
 }
+
 
 
 .category-item:hover{
@@ -248,7 +311,9 @@ button{
 .category-item img{
 
     width:60px;
+
     height:60px;
+
     margin:auto;
 
 }
@@ -258,6 +323,7 @@ button{
 .category-item h3{
 
     margin-top:15px;
+
     color:#064E3B;
 
 }
@@ -266,8 +332,7 @@ button{
 
 
 
-
-/* PRODUCT */
+/* ================= PRODUCT ================= */
 
 
 .product-section{
@@ -281,8 +346,11 @@ button{
 .section-title{
 
     display:flex;
+
     justify-content:space-between;
+
     align-items:center;
+
     margin-bottom:30px;
 
 }
@@ -300,6 +368,7 @@ button{
 .section-title a{
 
     color:#047857;
+
     text-decoration:none;
 
 }
@@ -309,7 +378,9 @@ button{
 .product-grid{
 
     display:grid;
+
     grid-template-columns:repeat(3,1fr);
+
     gap:25px;
 
 }
@@ -319,17 +390,13 @@ button{
 .product-card{
 
     background:white;
+
     border-radius:20px;
+
     overflow:hidden;
-    box-shadow:0 8px 25px rgba(0,0,0,.08);
-    transition:.3s;
 
-}
-
-
-.product-card:hover{
-
-    transform:translateY(-8px);
+    box-shadow:
+    0 8px 25px rgba(0,0,0,.08);
 
 }
 
@@ -337,8 +404,10 @@ button{
 
 .product-card img{
 
-    height:220px;
     width:100%;
+
+    height:220px;
+
     object-fit:cover;
 
 }
@@ -356,7 +425,6 @@ button{
 .product-info h3{
 
     color:#064E3B;
-    margin-bottom:10px;
 
 }
 
@@ -365,6 +433,8 @@ button{
 .location{
 
     color:#64748b;
+
+    margin-top:10px;
 
 }
 
@@ -380,8 +450,9 @@ button{
 
 .product-info h4{
 
-    font-size:22px;
     color:#D4AF37;
+
+    font-size:22px;
 
 }
 
@@ -389,17 +460,21 @@ button{
 
 
 
-
-/* MITRA */
+/* ================= MITRA ================= */
 
 
 .partner{
 
     margin:40px 6%;
+
     padding:60px;
+
     text-align:center;
+
     background:#064E3B;
+
     border-radius:30px;
+
     color:white;
 
 }
@@ -414,25 +489,19 @@ button{
 
 
 
-.partner p{
-
-    margin-top:15px;
-
-}
 
 
-
-
-
-
-/* FOOTER */
+/* ================= FOOTER ================= */
 
 
 footer{
 
     background:#022c22;
+
     color:white;
+
     text-align:center;
+
     padding:40px;
 
 }
@@ -442,7 +511,6 @@ footer{
 footer h3{
 
     color:#D4AF37;
-    margin-bottom:15px;
 
 }
 
@@ -450,25 +518,98 @@ footer h3{
 
 
 
-/* MOBILE */
+/* ================= MOBILE NAV ================= */
+
+
+.bottom-nav{
+
+    display:none;
+
+}
+
+
+
+
+
+/* ================= MOBILE ================= */
 
 
 @media(max-width:768px){
 
 
-nav{
+header{
 
-    flex-direction:column;
+    padding:10px 15px;
 
 }
+
+
+.top-nav{
+
+    gap:10px;
+
+}
+
+
+
+.logo img{
+
+    width:75px;
+
+}
+
+
+
+.search-box input{
+
+    height:38px;
+
+    font-size:12px;
+
+    padding:0 12px;
+
+}
+
+
+
+.nav-icons{
+
+    gap:5px;
+
+}
+
+
+
+.nav-icons a{
+
+    width:34px;
+
+    height:34px;
+
+}
+
+
+
+.nav-icons svg{
+
+    width:18px;
+
+}
+
 
 
 .market-hero{
 
     flex-direction:column;
+
     text-align:center;
 
+    gap:40px;
+
+    padding:50px 20px;
+
 }
+
 
 
 .hero-content{
@@ -478,11 +619,21 @@ nav{
 }
 
 
+
 .hero-content h1{
 
-    font-size:35px;
+    font-size:36px;
 
 }
+
+
+
+.hero-banner img{
+
+    width:300px;
+
+}
+
 
 
 .category-grid,
@@ -493,12 +644,71 @@ nav{
 }
 
 
-.menu{
 
-    flex-wrap:wrap;
-    justify-content:center;
+.partner{
+
+    padding:40px 20px;
 
 }
+
+
+
+
+
+/* BOTTOM NAV */
+
+
+.bottom-nav{
+
+    display:flex;
+
+    position:fixed;
+
+    bottom:0;
+
+    left:0;
+
+    width:100%;
+
+    height:70px;
+
+    background:white;
+
+    box-shadow:
+    0 -5px 20px rgba(0,0,0,.1);
+
+    justify-content:space-around;
+
+    align-items:center;
+
+    z-index:999;
+
+}
+
+
+
+.bottom-nav a{
+
+    text-decoration:none;
+
+    color:#64748b;
+
+    text-align:center;
+
+    font-size:12px;
+
+}
+
+
+
+.bottom-nav span{
+
+    display:block;
+
+    font-size:22px;
+
+}
+
 
 
 }
