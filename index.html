@@ -6,9 +6,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Pasar UMKM | Marketplace Lokal</title>
+<title>
+Pasar UMKM | Marketplace UMKM Lokal
+</title>
 
-<meta name="description" content="Marketplace UMKM Lokal HIPMI PT UIN Al Azhaar Lubuklinggau">
+<meta name="description" content="Pasar UMKM merupakan marketplace UMKM lokal HIPMI PT UIN Al Azhaar Lubuklinggau.">
 
 <link rel="stylesheet" href="css/style.css">
 
@@ -18,10 +20,9 @@
 <body>
 
 
-<!-- TOP NAVBAR -->
+<!-- HEADER -->
 
 <header class="header">
-
 
 <div class="navbar">
 
@@ -34,16 +35,20 @@
 
 
 
-<div class="search">
 
-<input type="text" placeholder="Cari produk UMKM...">
+<div class="search-box">
+
+<input 
+type="text"
+placeholder="Cari produk UMKM..."
+>
 
 </div>
 
 
 
 
-<div class="actions">
+<div class="header-icon">
 
 
 <a href="#">
@@ -66,8 +71,8 @@
 
 </div>
 
-
 </header>
+
 
 
 
@@ -76,34 +81,34 @@
 
 <!-- HERO -->
 
-
 <section class="hero">
 
 
-<div class="hero-text">
+<div class="hero-content">
 
 
-<span>
+<p class="label">
 Marketplace UMKM Lokal
-</span>
+</p>
+
 
 
 <h1>
-Belanja Produk Lokal,
-Dukung Pengusaha Muda
+Belanja Produk Lokal
+Lebih Mudah
 </h1>
 
 
+
 <p>
-Temukan produk terbaik dari UMKM
+Temukan produk unggulan UMKM
 Lubuklinggau dan Sumatera Selatan.
 </p>
 
 
-<button onclick="location.href='#produk'">
 
+<button>
 Mulai Belanja
-
 </button>
 
 
@@ -112,11 +117,10 @@ Mulai Belanja
 
 
 
+
 <div class="hero-image">
 
-
-<img src="assets/images/hero.png">
-
+<img src="assets/images/hero.png" alt="Promo UMKM">
 
 </div>
 
@@ -130,42 +134,91 @@ Mulai Belanja
 
 
 
+
 <!-- CATEGORY -->
 
 
-<section class="section">
+<section class="category">
 
+
+<div class="section-header">
 
 <h2>
 Kategori
 </h2>
 
 
+<a href="#">
+Lihat Semua
+</a>
 
-<div class="categories">
 
+</div>
+
+
+
+
+
+<div class="category-list">
+
+
+<div class="category-card">
 
 <div>
 🍜
-<p>Kuliner</p>
 </div>
 
+<p>
+Kuliner
+</p>
+
+</div>
+
+
+
+
+<div class="category-card">
 
 <div>
 👕
-<p>Fashion</p>
 </div>
 
+<p>
+Fashion
+</p>
+
+</div>
+
+
+
+
+
+<div class="category-card">
 
 <div>
 💄
-<p>Kecantikan</p>
+</div>
+
+<p>
+Beauty
+</p>
+
 </div>
 
 
+
+
+
+<div class="category-card">
+
 <div>
 💻
-<p>Digital</p>
+</div>
+
+<p>
+Digital
+</p>
+
 </div>
 
 
@@ -185,13 +238,14 @@ Kategori
 <!-- PRODUK -->
 
 
-<section class="section" id="produk">
+<section class="product-section">
 
 
-<div class="title">
+<div class="section-header">
+
 
 <h2>
-Produk Terbaru
+Produk Pilihan
 </h2>
 
 
@@ -206,17 +260,17 @@ Lihat Semua
 
 
 
-<div class="products">
+<div class="product-grid">
 
 
 
-<div class="card">
+<div class="product-card">
 
 
 <img src="assets/images/umkm1.jpg">
 
 
-<div class="card-body">
+<div class="product-info">
 
 
 <h3>
@@ -224,14 +278,18 @@ Kopi Lokal Premium
 </h3>
 
 
-<p>
-📍 Lubuklinggau
-</p>
-
-
 <div class="rating">
-⭐⭐⭐⭐⭐
+
+⭐ 4.9
+
 </div>
+
+
+<p class="sold">
+
+1,2 rb terjual
+
+</p>
 
 
 <h4>
@@ -239,10 +297,8 @@ Rp25.000
 </h4>
 
 
-<button onclick="alert('Produk berhasil ditambahkan ke keranjang')">
-
+<button>
 Beli
-
 </button>
 
 
@@ -255,13 +311,16 @@ Beli
 
 
 
-<div class="card">
+
+
+
+<div class="product-card">
 
 
 <img src="assets/images/umkm2.jpg">
 
 
-<div class="card-body">
+<div class="product-info">
 
 
 <h3>
@@ -269,14 +328,18 @@ Fashion Lokal
 </h3>
 
 
-<p>
-📍 Lubuklinggau
-</p>
-
-
 <div class="rating">
-⭐⭐⭐⭐⭐
+
+⭐ 4.8
+
 </div>
+
+
+<p class="sold">
+
+850 terjual
+
+</p>
 
 
 <h4>
@@ -285,9 +348,7 @@ Rp75.000
 
 
 <button>
-
 Beli
-
 </button>
 
 
@@ -302,13 +363,14 @@ Beli
 
 
 
-<div class="card">
+
+<div class="product-card">
 
 
 <img src="assets/images/umkm3.jpg">
 
 
-<div class="card-body">
+<div class="product-info">
 
 
 <h3>
@@ -316,14 +378,18 @@ Kerajinan UMKM
 </h3>
 
 
-<p>
-📍 Sumatera Selatan
-</p>
-
-
 <div class="rating">
-⭐⭐⭐⭐⭐
+
+⭐ 5.0
+
 </div>
+
+
+<p class="sold">
+
+500 terjual
+
+</p>
 
 
 <h4>
@@ -332,9 +398,7 @@ Rp50.000
 
 
 <button>
-
 Beli
-
 </button>
 
 
@@ -360,7 +424,7 @@ Beli
 <!-- MITRA -->
 
 
-<section class="join">
+<section class="partner">
 
 
 <h2>
@@ -369,14 +433,13 @@ Punya Usaha?
 
 
 <p>
-Gabung menjadi mitra Pasar UMKM.
+Gabung menjadi mitra Pasar UMKM
+dan kembangkan bisnis digital.
 </p>
 
 
 <button>
-
 Daftar UMKM
-
 </button>
 
 
@@ -387,6 +450,9 @@ Daftar UMKM
 
 
 
+
+
+<!-- FOOTER -->
 
 
 <footer>
@@ -415,44 +481,66 @@ Founder: Capryan Agusto
 
 
 
-<!-- MOBILE NAV -->
 
-<nav class="bottom">
+<!-- MOBILE NAVIGATION -->
+
+
+<nav class="bottom-nav">
 
 
 <a href="#">
+
 🏠
+
 <span>
 Home
 </span>
+
 </a>
 
 
+
 <a href="#">
+
 🗂
+
 <span>
 Kategori
 </span>
+
 </a>
 
 
+
+
 <a href="#">
-🛍
+
+🛒
+
 <span>
-Produk
+Keranjang
 </span>
+
 </a>
 
 
+
+
 <a href="#">
+
 👤
+
 <span>
 Akun
 </span>
+
 </a>
 
 
+
 </nav>
+
+
 
 
 
