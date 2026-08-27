@@ -55,9 +55,11 @@ nav {
 }
 
 
+
 /* BUTTON */
 
 button {
+
     background: #D4AF37;
     color: white;
     border: none;
@@ -66,19 +68,24 @@ button {
     cursor: pointer;
     font-weight: 600;
     transition: 0.3s;
+
 }
 
 
 button:hover {
+
     transform: translateY(-3px);
-    opacity: 0.9;
+    opacity:0.9;
+
 }
 
 
 .secondary {
-    background: white;
-    color: #047857;
-    border: 2px solid #047857;
+
+    background:white;
+    color:#047857;
+    border:2px solid #047857;
+
 }
 
 
@@ -87,19 +94,19 @@ button:hover {
 
 .hero {
 
-    min-height: 85vh;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 70px 8%;
-    gap: 40px;
+    min-height:85vh;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:70px 8%;
+    gap:40px;
 
 }
 
 
 .hero-text {
 
-    width: 55%;
+    width:55%;
 
 }
 
@@ -145,8 +152,6 @@ button:hover {
 
 }
 
-
-/* HERO IMAGE */
 
 .hero-image {
 
@@ -194,55 +199,7 @@ button:hover {
 
 
 
-/* ABOUT */
-
-.about,
-.founder {
-
-    padding:80px 8%;
-    text-align:center;
-
-}
-
-
-.about h2,
-.founder h2 {
-
-    color:#064E3B;
-    font-size:35px;
-    margin-bottom:20px;
-
-}
-
-
-.about p,
-.founder p {
-
-    max-width:800px;
-    margin:auto;
-    line-height:1.8;
-    color:#64748B;
-
-}
-
-
-
-/* FOOTER */
-
-footer {
-
-    background:#064E3B;
-    color:white;
-    padding:35px;
-    text-align:center;
-
-}
-
-
-
-/* MOBILE RESPONSIVE */
-/* CATEGORY SECTION */
-
+/* CATEGORY */
 
 .category {
 
@@ -291,13 +248,11 @@ footer {
 }
 
 
-
 .category-card:hover {
 
     transform:translateY(-10px);
 
 }
-
 
 
 .icon {
@@ -306,7 +261,6 @@ footer {
     margin-bottom:20px;
 
 }
-
 
 
 .category-card h3 {
@@ -326,15 +280,203 @@ footer {
 
 
 
-@media(max-width:768px){
+/* UMKM CARD */
 
-.category-container {
+.featured {
 
-    grid-template-columns:1fr;
+    padding:80px 8%;
+    text-align:center;
 
 }
 
+
+.featured h2 {
+
+    color:#064E3B;
+    font-size:35px;
+
 }
+
+
+.featured-desc {
+
+    color:#64748B;
+    margin:20px;
+
+}
+
+
+.umkm-container {
+
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:30px;
+
+}
+
+
+.umkm-card {
+
+    background:white;
+    border-radius:20px;
+    overflow:hidden;
+    box-shadow:0 10px 30px rgba(0,0,0,0.08);
+
+}
+
+
+.umkm-card img {
+
+    width:100%;
+    height:220px;
+    object-fit:cover;
+
+}
+
+
+.umkm-content {
+
+    padding:25px;
+
+}
+
+
+.umkm-content span {
+
+    background:#DCFCE7;
+    color:#047857;
+    padding:6px 15px;
+    border-radius:20px;
+
+}
+
+
+.umkm-content h3 {
+
+    color:#064E3B;
+    margin:20px 0 10px;
+
+}
+
+
+
+/* ABOUT */
+
+.about {
+
+    background:white;
+    padding:80px 8%;
+    text-align:center;
+
+}
+
+
+.about-content {
+
+    max-width:850px;
+    margin:auto;
+
+}
+
+
+.about h2 {
+
+    color:#064E3B;
+    font-size:35px;
+    margin-bottom:20px;
+
+}
+
+
+.about p {
+
+    color:#64748B;
+    line-height:1.8;
+    margin-bottom:15px;
+
+}
+
+
+
+.about strong {
+
+    color:#047857;
+
+}
+
+
+
+/* FOUNDER */
+
+.founder {
+
+    background:#064E3B;
+    padding:80px 8%;
+    text-align:center;
+    color:white;
+
+}
+
+
+.founder-box {
+
+    max-width:700px;
+    margin:auto;
+
+}
+
+
+.founder h2 {
+
+    color:#D4AF37;
+    font-size:35px;
+
+}
+
+
+.founder h3 {
+
+    font-size:32px;
+    margin:20px 0;
+
+}
+
+
+.founder p {
+
+    color:#E2E8F0;
+    line-height:1.8;
+
+}
+
+
+.founder span {
+
+    display:inline-block;
+    margin-top:20px;
+    padding:10px 20px;
+    border:1px solid #D4AF37;
+    border-radius:30px;
+    color:#D4AF37;
+
+}
+
+
+
+/* FOOTER */
+
+footer {
+
+    background:#043927;
+    color:white;
+    padding:35px;
+    text-align:center;
+
+}
+
+
+
+/* MOBILE */
 
 @media(max-width:768px){
 
@@ -363,7 +505,8 @@ nav {
 }
 
 
-.hero-text {
+.hero-text,
+.hero-image {
 
     width:100%;
 
@@ -377,17 +520,18 @@ nav {
 }
 
 
-.hero-image {
-
-    width:100%;
-
-}
-
-
 .stats {
 
     justify-content:center;
     gap:25px;
+
+}
+
+
+.category-container,
+.umkm-container {
+
+    grid-template-columns:1fr;
 
 }
 
