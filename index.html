@@ -3,185 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Pasar UMKM | Marketplace UMKM Lokal</title>
-  <meta name="description" content="Pasar UMKM adalah marketplace sosial untuk UMKM lokal Lubuklinggau dan Sumatera Selatan.">
+  <title>Pasar UMKM — Marketplace UMKM Lokal Lubuklinggau</title>
+  <meta name="description" content="Temukan produk terbaik dari UMKM pilihan Lubuklinggau dan Sumatera Selatan.">
+  
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&family=Caveat:wght@500;600&display=swap" rel="stylesheet">
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-  <!-- ===== HEADER ===== -->
+  <!-- HEADER -->
   <header class="header">
     <div class="header-left">
       <button class="menu-btn">☰</button>
       <div class="logo">
-  <img src="assets/logo.png" alt="Pasar UMKM" class="logo-img">
-  <span class="logo-text">Pasar UMKM</span>
-</div>
+        <div class="logo-mark">🌿</div>
+        <div class="logo-text">
+          Pasar UMKM
+          <span>Lubuklinggau</span>
+        </div>
+      </div>
     </div>
     <div class="header-right">
-      <button class="icon-btn">🔍</button>
-      <button class="icon-btn">
+      <button class="header-icon">🔍</button>
+      <button class="header-icon">
         🔔
         <span class="badge">3</span>
       </button>
-      <button class="icon-btn">
+      <button class="header-icon">
         💬
         <span class="badge">2</span>
       </button>
     </div>
   </header>
 
-
-  <!-- ===== STORIES ROW ===== -->
+  <!-- STORIES -->
   <div class="stories-container">
     <div class="stories" id="stories">
-      <!-- Diisi oleh JavaScript -->
-      <div class="story">
-        <div class="story-avatar live">
-          <img src="assets/umkm1.jpg" alt="Pak Budi">
-        </div>
-        <span class="story-name">Pak Budi</span>
-      </div>
-      <div class="story">
-        <div class="story-avatar live">
-          <img src="assets/umkm2.jpg" alt="Ibu Siti">
-        </div>
-        <span class="story-name">Ibu Siti</span>
-      </div>
-      <div class="story">
-        <div class="story-avatar">
-          <img src="assets/umkm3.jpg" alt="Madi">
-        </div>
-        <span class="story-name">Madi</span>
-      </div>
-      <div class="story">
-        <div class="story-avatar">
-          <img src="assets/1.jpg" alt="Maepi">
-        </div>
-        <span class="story-name">Maepi</span>
-      </div>
-      <div class="story">
-        <div class="story-avatar">
-          <img src="assets/2.jpg" alt="Pak Sili">
-        </div>
-        <span class="story-name">Pak Sili</span>
-      </div>
-      <div class="story add">
-        <div class="story-avatar">
-          <span>+</span>
-        </div>
-        <span class="story-name">Jual</span>
-      </div>
+      <!-- Diisi JavaScript -->
     </div>
   </div>
 
-
-  <!-- ===== MAIN FEED ===== -->
+  <!-- FEED -->
   <main class="feed" id="feed">
-    
-    <!-- Post 1 -->
-    <article class="post">
-      <div class="post-header">
-        <img src="assets/umkm1.jpg" class="post-avatar" alt="Pak Madi">
-        <div class="post-info">
-          <h3 class="post-author">Pak Madi</h3>
-          <p class="post-meta">📍 Lubuklinggau • 2 jam lalu</p>
-        </div>
-        <button class="post-more">•••</button>
-      </div>
-      
-      <div class="post-image">
-        <img src="assets/umkm1.jpg" alt="Kopi Robusta">
-      </div>
-      
-      <div class="post-actions">
-        <button class="action-btn like">
-          <span class="icon">♡</span>
-          <span class="count">128</span>
-        </button>
-        <button class="action-btn">
-          <span class="icon">💬</span>
-          <span class="count">23</span>
-        </button>
-        <button class="action-btn">
-          <span class="icon">↗️</span>
-          <span>Bagikan</span>
-        </button>
-      </div>
-      
-      <div class="post-caption">
-        <strong>Pak Madi</strong> Alhamdulillah panen kali ini biji kopi lebih besar. Langsung dari kebun sendiri di Lubuklinggau ☕🌿 <span class="hashtag">#KopiLokal #UMKMSumsel</span>
-      </div>
-      
-      <div class="product-tag">
-        <img src="assets/umkm1.jpg" class="product-img" alt="Kopi">
-        <div class="product-info">
-          <h4>🏷️ KOPI ROBUSTA PREMIUM - 250g</h4>
-          <div class="product-meta">⭐ 4.9 • 1.2rb terjual</div>
-          <div class="product-price">Rp25.000</div>
-          <div class="product-location">📍 Lubuklinggau</div>
-        </div>
-        <div class="product-actions">
-          <button class="btn-cart">+ Keranjang</button>
-          <button class="btn-buy">Beli</button>
-        </div>
-      </div>
-    </article>
-
-    <!-- Post 2 -->
-    <article class="post">
-      <div class="post-header">
-        <img src="assets/umkm2.jpg" class="post-avatar" alt="Ibu Siti">
-        <div class="post-info">
-          <h3 class="post-author">Ibu Siti</h3>
-          <p class="post-meta">📍 Lubuklinggau • 5 jam lalu</p>
-        </div>
-        <button class="post-more">•••</button>
-      </div>
-      
-      <div class="post-image">
-        <img src="assets/umkm2.jpg" alt="Anyaman Purun">
-        <div class="video-play">▶</div>
-      </div>
-      
-      <div class="post-actions">
-        <button class="action-btn like">
-          <span class="icon">♡</span>
-          <span class="count">89</span>
-        </button>
-        <button class="action-btn">
-          <span class="icon">💬</span>
-          <span class="count">15</span>
-        </button>
-        <button class="action-btn">
-          <span class="icon">↗️</span>
-          <span>Bagikan</span>
-        </button>
-      </div>
-      
-      <div class="post-caption">
-        <strong>Ibu Siti</strong> Dari menganyam sampai jadi tas cantik ini butuh 3 hari. Yang mau belajar bisa DM ya 📩
-      </div>
-      
-      <div class="product-tag">
-        <img src="assets/umkm2.jpg" class="product-img" alt="Tas">
-        <div class="product-info">
-          <h4>🏷️ TAS ANYAMAN PURUN PREMIUM</h4>
-          <div class="product-meta">⭐ 5.0 • 500 terjual</div>
-          <div class="product-price">Rp75.000</div>
-          <div class="product-location">📍 Lubuklinggau</div>
-        </div>
-        <div class="product-actions">
-          <button class="btn-cart">+ Keranjang</button>
-          <button class="btn-buy">Beli</button>
-        </div>
-      </div>
-    </article>
-
+    <!-- Diisi JavaScript -->
   </main>
 
-
-  <!-- ===== BOTTOM NAVIGATION (5 item) ===== -->
+  <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
     <a href="#" class="nav-item active">
       <span class="nav-icon">🏠</span>
@@ -205,8 +78,10 @@
     </a>
   </nav>
 
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
 
-  <!-- ===== SCRIPT ===== -->
+  <!-- SCRIPT -->
   <script src="js/app.js"></script>
 
 </body>
