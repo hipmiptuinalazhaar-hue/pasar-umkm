@@ -2,111 +2,123 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Pasar UMKM Lubuklinggau</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#128c4e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <title>Pasar UMKM — Lubuklinggau</title>
+  <meta name="description" content="Marketplace UMKM lokal Lubuklinggau dan Sumatera Selatan. Temukan produk terbaik dari penjual terpercaya.">
+  
+  <!-- Preconnect for speed -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  
+  <!-- Icons (Phosphor, modern & clean) -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
+  <!-- Styles -->
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header class="header">
-    <div class="header-left">
-      <button class="menu-btn">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <line x1="3" y1="6" x2="21" y2="6"/>
-          <line x1="3" y1="12" x2="21" y2="12"/>
-          <line x1="3" y1="18" x2="21" y2="18"/>
-        </svg>
+  <!-- ==================== HEADER ==================== -->
+  <header class="app-header" id="header">
+    <div class="header-main">
+      <button class="header-btn" aria-label="Menu">
+        <i class="ph ph-list"></i>
       </button>
-      <div class="logo">
-        <img src="assets/logo.png" alt="" class="logo-img">
-        <div class="logo-text">
-          <div class="logo-main">Pasar UMKM</div>
-          <div class="logo-sub">Lubuklinggau</div>
+      
+      <div class="brand">
+        <img src="assets/logo.png" alt="" class="brand-mark">
+        <div class="brand-wordmark">
+          <span class="brand-name">Pasar UMKM</span>
+          <span class="brand-location">Lubuklinggau</span>
         </div>
       </div>
-    </div>
-    <div class="header-right">
-      <button class="header-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"/>
-          <path d="m21 21-4.35-4.35"/>
-        </svg>
-      </button>
-      <button class="header-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
-          <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
-        </svg>
-        <span class="badge">3</span>
-      </button>
-      <button class="header-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
-        <span class="badge">2</span>
-      </button>
+      
+      <div class="header-actions">
+        <button class="header-btn" aria-label="Cari">
+          <i class="ph ph-magnifying-glass"></i>
+        </button>
+        <button class="header-btn has-badge" aria-label="Notifikasi">
+          <i class="ph ph-bell"></i>
+          <span class="badge-dot">3</span>
+        </button>
+        <button class="header-btn has-badge" aria-label="Pesan">
+          <i class="ph ph-chat-circle-text"></i>
+          <span class="badge-dot">2</span>
+        </button>
+      </div>
     </div>
   </header>
 
-  <!-- STORIES -->
-  <div class="stories-container">
-    <div class="stories" id="stories"></div>
-  </div>
+  <!-- ==================== STORIES ==================== -->
+  <section class="stories-section" aria-label="Cerita penjual">
+    <div class="stories-track" id="stories">
+      <!-- JS injects here -->
+    </div>
+  </section>
 
-  <!-- FEED -->
-  <main class="feed" id="feed"></main>
+  <!-- ==================== MAIN FEED ==================== -->
+  <main class="feed" id="feed" aria-label="Feed produk">
+    <!-- JS injects here -->
+  </main>
 
-  <!-- BOTTOM NAV -->
-  <nav class="bottom-nav">
-    <a href="#" class="nav-item active">
-      <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-        <polyline points="9 22 9 12 15 12 15 22"/>
-      </svg>
+  <!-- ==================== BOTTOM NAV ==================== -->
+  <nav class="app-nav" aria-label="Navigasi utama">
+    <a href="#" class="nav-link active" aria-current="page">
+      <div class="nav-icon-wrap">
+        <i class="ph-fill ph-house"></i>
+      </div>
       <span class="nav-label">Beranda</span>
     </a>
-    <a href="#" class="nav-item">
-      <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect width="7" height="7" x="3" y="3" rx="1"/>
-        <rect width="7" height="7" x="14" y="3" rx="1"/>
-        <rect width="7" height="7" x="14" y="14" rx="1"/>
-        <rect width="7" height="7" x="3" y="14" rx="1"/>
-      </svg>
+    
+    <a href="#" class="nav-link">
+      <div class="nav-icon-wrap">
+        <i class="ph ph-squares-four"></i>
+      </div>
       <span class="nav-label">Kategori</span>
     </a>
-    <a href="#" class="nav-item nav-sell">
-      <div class="sell-btn">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M5 12h14"/>
-          <path d="M12 5v14"/>
-        </svg>
+    
+    <a href="#" class="nav-link nav-create">
+      <div class="create-btn">
+        <i class="ph ph-plus"></i>
       </div>
     </a>
-    <a href="#" class="nav-item">
-      <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="8" cy="21" r="1"/>
-        <circle cx="19" cy="21" r="1"/>
-        <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/>
-      </svg>
+    
+    <a href="#" class="nav-link has-badge">
+      <div class="nav-icon-wrap">
+        <i class="ph ph-shopping-cart"></i>
+        <span class="nav-badge">2</span>
+      </div>
       <span class="nav-label">Keranjang</span>
-      <span class="nav-badge">2</span>
     </a>
-    <a href="#" class="nav-item">
-      <svg class="nav-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
-        <circle cx="12" cy="7" r="4"/>
-      </svg>
+    
+    <a href="#" class="nav-link">
+      <div class="nav-icon-wrap">
+        <i class="ph ph-user"></i>
+      </div>
       <span class="nav-label">Akun</span>
     </a>
   </nav>
 
-  <!-- TOAST -->
-  <div class="toast" id="toast"></div>
+  <!-- ==================== OVERLAYS ==================== -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  
+  <div class="sheet-overlay" id="sheetOverlay" hidden></div>
+  
+  <div class="bottom-sheet" id="bottomSheet" hidden>
+    <div class="sheet-handle"></div>
+    <div class="sheet-content" id="sheetContent"></div>
+  </div>
 
+  <!-- ==================== SCRIPTS ==================== -->
   <script src="js/app.js"></script>
 </body>
 </html>
