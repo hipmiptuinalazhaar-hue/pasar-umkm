@@ -1,47 +1,85 @@
 /* =========================================================
-   PASAR UMKM — APP.JS v3.0
+   PASAR UMKM — APP.JS v4.0
    Social Marketplace Frontend Engine
 
    HIPMI PT UIN Al Azhaar Lubuklinggau
-   Product Initiator: Capryan Agusto
+   Founder & Product Initiator: Capryan Agusto
    ========================================================= */
 
 'use strict';
 
 
 /* =========================================================
-   01. CONFIGURATION
+   01. CONFIG
    ========================================================= */
 
 const CONFIG = {
 
   /*
-   * DEVELOPMENT:
-   * true  = menampilkan data demo.
-   * false = data demo hilang dan aplikasi menampilkan empty state.
+   * DEVELOPMENT ONLY
    *
-   * NANTI KETIKA BACKEND SUDAH AKTIF:
-   * DEMO_MODE akan dibuat false dan data berasal dari API/database.
+   * true  = data contoh tampil.
+   * false = data contoh hilang.
+   *
+   * Saat backend sudah aktif:
+   * ubah menjadi false.
    */
   DEMO_MODE: true,
 
-  APP_NAME: 'Pasar UMKM',
-  LOCATION: 'Lubuklinggau',
+  APP_NAME:
+    'Pasar UMKM',
 
-  ORGANIZATION: 'HIPMI PT UIN Al Azhaar Lubuklinggau',
-  INITIATOR: 'Capryan Agusto',
+  LOCATION:
+    'Lubuklinggau',
 
-  STORAGE_KEY: 'pasarUmkmStateV3'
+  ORGANIZATION:
+    'HIPMI PT UIN Al Azhaar Lubuklinggau',
+
+  UNIVERSITY:
+    'Universitas Islam Nusantara Al-Azhaar Lubuklinggau',
+
+  INITIATOR:
+    'Capryan Agusto',
+
+  STORAGE_KEY:
+    'pasarUmkmStateV4',
+
+  INTRO_SESSION_KEY:
+    'pasarUmkmIntroSeen',
+
+  INTRO_HOLD:
+    1750,
+
+  INTRO_EXIT:
+    430
 };
 
 
 /* =========================================================
-   02. DEMO DATA
+   02. ASSET PATHS
+   ========================================================= */
+
+const ASSETS = {
+
+  appLogo:
+    'assets/logo.png',
+
+  hipmiLogo:
+    'assets/branding/logo-hipmi-pt.png',
+
+  universityLogo:
+    'assets/branding/logo-uin-alazhaar.png'
+};
+
+
+/* =========================================================
+   03. DEMO DATA
    ========================================================= */
 
 const DEMO_DATA = {
 
   stories: [
+
     {
       id: 1,
       name: 'Pak Madi',
@@ -49,6 +87,7 @@ const DEMO_DATA = {
       hasUpdate: true,
       live: true
     },
+
     {
       id: 2,
       name: 'Ibu Siti',
@@ -56,6 +95,7 @@ const DEMO_DATA = {
       hasUpdate: true,
       live: false
     },
+
     {
       id: 3,
       name: 'Madi Craft',
@@ -63,6 +103,7 @@ const DEMO_DATA = {
       hasUpdate: false,
       live: false
     },
+
     {
       id: 4,
       name: 'Maepi Art',
@@ -70,6 +111,7 @@ const DEMO_DATA = {
       hasUpdate: true,
       live: false
     },
+
     {
       id: 5,
       name: 'Pak Sili',
@@ -81,60 +123,115 @@ const DEMO_DATA = {
 
 
   posts: [
+
     {
       id: 1,
-      author: 'Pak Madi',
-      avatar: 'assets/umkm1.jpg',
-      verified: true,
-      category: 'Kuliner',
-      location: 'Lubuklinggau',
-      time: '2 jam lalu',
 
-      media: 'assets/umkm1.jpg',
-      mediaType: 'image',
+      author:
+        'Pak Madi',
 
-      likes: 128,
-      comments: 23,
-      shares: 12,
+      avatar:
+        'assets/umkm1.jpg',
+
+      verified:
+        true,
+
+      category:
+        'Kuliner',
+
+      location:
+        'Lubuklinggau',
+
+      time:
+        '2 jam lalu',
+
+      media:
+        'assets/umkm1.jpg',
+
+      mediaType:
+        'image',
+
+      likes:
+        128,
+
+      comments:
+        23,
+
+      shares:
+        12,
 
       caption:
-        'Alhamdulillah panen kali ini biji kopi lebih besar. Langsung dari kebun sendiri di Lubuklinggau.',
+        'Panen kopi terbaru dari kebun lokal Lubuklinggau. Tersedia dalam kemasan 250 gram.',
 
       tags: [
         '#KopiLokal',
-        '#UMKMSumsel'
+        '#UMKMLubuklinggau'
       ],
 
       product: {
-        id: 101,
-        name: 'Kopi Robusta Premium 250g',
-        image: 'assets/umkm1.jpg',
-        rating: 4.9,
-        sold: 1200,
-        price: 25000,
-        originalPrice: 30000
+
+        id:
+          101,
+
+        name:
+          'Kopi Robusta Premium 250g',
+
+        image:
+          'assets/umkm1.jpg',
+
+        rating:
+          4.9,
+
+        sold:
+          1200,
+
+        price:
+          25000,
+
+        originalPrice:
+          30000
       }
     },
 
 
     {
       id: 2,
-      author: 'Ibu Siti',
-      avatar: 'assets/umkm2.jpg',
-      verified: true,
-      category: 'Kerajinan',
-      location: 'Lubuklinggau',
-      time: '5 jam lalu',
 
-      media: 'assets/umkm2.jpg',
-      mediaType: 'video',
+      author:
+        'Ibu Siti',
 
-      likes: 89,
-      comments: 15,
-      shares: 8,
+      avatar:
+        'assets/umkm2.jpg',
+
+      verified:
+        true,
+
+      category:
+        'Kerajinan',
+
+      location:
+        'Lubuklinggau',
+
+      time:
+        '5 jam lalu',
+
+      media:
+        'assets/umkm2.jpg',
+
+      mediaType:
+        'video',
+
+      likes:
+        89,
+
+      comments:
+        15,
+
+      shares:
+        8,
 
       caption:
-        'Dari menganyam sampai jadi tas cantik ini butuh tiga hari. Dibuat manual oleh pengrajin lokal.',
+        'Tas anyaman dibuat secara manual oleh pengrajin lokal. Setiap produk memiliki detail yang sedikit berbeda.',
 
       tags: [
         '#KerajinanLokal',
@@ -142,100 +239,198 @@ const DEMO_DATA = {
       ],
 
       product: {
-        id: 102,
-        name: 'Tas Anyaman Purun Premium',
-        image: 'assets/umkm2.jpg',
-        rating: 5,
-        sold: 500,
-        price: 75000,
-        originalPrice: null
+
+        id:
+          102,
+
+        name:
+          'Tas Anyaman Purun',
+
+        image:
+          'assets/umkm2.jpg',
+
+        rating:
+          5,
+
+        sold:
+          500,
+
+        price:
+          75000,
+
+        originalPrice:
+          null
       }
     },
 
 
     {
       id: 3,
-      author: 'Madi Craft',
-      avatar: 'assets/umkm3.jpg',
-      verified: false,
-      category: 'Fashion',
-      location: 'Sumatera Selatan',
-      time: '1 hari lalu',
 
-      media: 'assets/umkm3.jpg',
-      mediaType: 'image',
+      author:
+        'Madi Craft',
 
-      likes: 67,
-      comments: 9,
-      shares: 4,
+      avatar:
+        'assets/umkm3.jpg',
+
+      verified:
+        false,
+
+      category:
+        'Fashion',
+
+      location:
+        'Sumatera Selatan',
+
+      time:
+        '1 hari lalu',
+
+      media:
+        'assets/umkm3.jpg',
+
+      mediaType:
+        'image',
+
+      likes:
+        67,
+
+      comments:
+        9,
+
+      shares:
+        4,
 
       caption:
-        'Produk handmade lokal dengan desain sederhana dan elegan.',
+        'Produk handmade lokal dengan produksi terbatas.',
 
       tags: [
         '#Handmade',
-        '#BanggaProdukLokal'
+        '#ProdukLokal'
       ],
 
       product: {
-        id: 103,
-        name: 'Produk Handmade Lokal',
-        image: 'assets/umkm3.jpg',
-        rating: 4.8,
-        sold: 320,
-        price: 50000,
-        originalPrice: 65000
+
+        id:
+          103,
+
+        name:
+          'Produk Handmade Lokal',
+
+        image:
+          'assets/umkm3.jpg',
+
+        rating:
+          4.8,
+
+        sold:
+          320,
+
+        price:
+          50000,
+
+        originalPrice:
+          65000
       }
     }
   ],
 
 
   notifications: [
+
     {
-      id: 1,
-      icon: 'ph-heart',
-      title: 'Postingan UMKM mendapat interaksi baru',
-      time: '5 menit lalu',
-      unread: true
+      id:
+        1,
+
+      icon:
+        'ph-heart',
+
+      title:
+        'Postingan mendapat interaksi baru',
+
+      time:
+        '5 menit lalu',
+
+      unread:
+        true
     },
+
     {
-      id: 2,
-      icon: 'ph-shopping-cart',
-      title: 'Produk baru tersedia di Pasar UMKM',
-      time: '30 menit lalu',
-      unread: true
+      id:
+        2,
+
+      icon:
+        'ph-shopping-bag',
+
+      title:
+        'Produk baru tersedia',
+
+      time:
+        '30 menit lalu',
+
+      unread:
+        true
     },
+
     {
-      id: 3,
-      icon: 'ph-storefront',
-      title: 'UMKM baru bergabung',
-      time: '1 jam lalu',
-      unread: true
+      id:
+        3,
+
+      icon:
+        'ph-storefront',
+
+      title:
+        'UMKM baru bergabung',
+
+      time:
+        '1 jam lalu',
+
+      unread:
+        true
     }
   ],
 
 
   messages: [
+
     {
-      id: 1,
-      name: 'Pak Madi',
-      text: 'Kopi masih tersedia, kak.',
-      time: '2 menit lalu',
-      unread: true
+      id:
+        1,
+
+      name:
+        'Pak Madi',
+
+      text:
+        'Kopi masih tersedia.',
+
+      time:
+        '2 menit lalu',
+
+      unread:
+        true
     },
+
     {
-      id: 2,
-      name: 'Ibu Siti',
-      text: 'Terima kasih sudah menghubungi toko kami.',
-      time: '25 menit lalu',
-      unread: true
+      id:
+        2,
+
+      name:
+        'Ibu Siti',
+
+      text:
+        'Terima kasih sudah menghubungi toko kami.',
+
+      time:
+        '25 menit lalu',
+
+      unread:
+        true
     }
   ]
 };
 
 
 /* =========================================================
-   03. LIVE DATA
+   04. LIVE DATA
    ========================================================= */
 
 const DATA = {
@@ -263,37 +458,50 @@ const DATA = {
 
 
 /* =========================================================
-   04. APPLICATION STATE
+   05. STATE
    ========================================================= */
 
 const STATE = {
 
-  likedPosts: new Set(),
+  likedPosts:
+    new Set(),
 
-  savedPosts: new Set(),
+  savedPosts:
+    new Set(),
 
-  cart: [],
+  cart:
+    [],
 
-  activeNav: 'home',
+  orders:
+    [],
 
-  activeCategory: null,
+  activeNav:
+    'home',
 
-  currentSheet: null,
+  activeCategory:
+    null,
 
-  searchQuery: '',
-
-  orders: []
+  searchQuery:
+    ''
 };
 
 
 /* =========================================================
-   05. DOM CACHE
+   06. DOM CACHE
    ========================================================= */
 
 const DOM = {};
 
 
 function cacheDOM() {
+
+  DOM.app =
+    document.getElementById('app');
+
+
+  DOM.splashIntro =
+    document.getElementById('splashIntro');
+
 
   DOM.header =
     document.getElementById('header');
@@ -369,7 +577,7 @@ function cacheDOM() {
 
 
 /* =========================================================
-   06. INITIALIZATION
+   07. INITIALIZATION
    ========================================================= */
 
 document.addEventListener(
@@ -384,6 +592,8 @@ function init() {
 
   restoreState();
 
+  setupSplashIntro();
+
   renderStories();
 
   renderFeed();
@@ -396,6 +606,8 @@ function init() {
 
   updateHeaderBadges();
 
+  renderSearchHint();
+
   hideLoading();
 
   handleScroll();
@@ -403,12 +615,157 @@ function init() {
 
 
 /* =========================================================
-   07. STORIES
+   08. SPLASH INTRO
+   ========================================================= */
+
+function setupSplashIntro() {
+
+  if (!DOM.splashIntro) {
+    return;
+  }
+
+
+  const prefersReducedMotion =
+    window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches;
+
+
+  let alreadySeen = false;
+
+
+  try {
+
+    alreadySeen =
+      sessionStorage.getItem(
+        CONFIG.INTRO_SESSION_KEY
+      ) === 'true';
+
+  } catch (error) {
+
+    /*
+     * Browser tertentu bisa memblokir sessionStorage.
+     * Intro tetap bekerja tanpa membuat aplikasi rusak.
+     */
+    alreadySeen = false;
+  }
+
+
+  if (alreadySeen) {
+
+    removeSplashImmediately();
+
+    return;
+  }
+
+
+  if (prefersReducedMotion) {
+
+    finishSplashIntro(300);
+
+    return;
+  }
+
+
+  window.setTimeout(
+    () => {
+
+      DOM.splashIntro
+        ?.classList
+        .add('is-exiting');
+
+
+      window.setTimeout(
+        completeSplashIntro,
+        CONFIG.INTRO_EXIT
+      );
+
+    },
+    CONFIG.INTRO_HOLD
+  );
+}
+
+
+/* =========================================================
+   09. SPLASH HELPERS
+   ========================================================= */
+
+function finishSplashIntro(delay = 0) {
+
+  window.setTimeout(
+    () => {
+
+      DOM.splashIntro
+        ?.classList
+        .add('is-exiting');
+
+
+      window.setTimeout(
+        completeSplashIntro,
+        CONFIG.INTRO_EXIT
+      );
+
+    },
+    delay
+  );
+}
+
+
+function completeSplashIntro() {
+
+  if (!DOM.splashIntro) {
+    return;
+  }
+
+
+  try {
+
+    sessionStorage.setItem(
+      CONFIG.INTRO_SESSION_KEY,
+      'true'
+    );
+
+  } catch (error) {
+    // Tidak perlu menghentikan aplikasi.
+  }
+
+
+  DOM.splashIntro
+    .classList
+    .add('is-hidden');
+
+
+  DOM.splashIntro.hidden =
+    true;
+}
+
+
+function removeSplashImmediately() {
+
+  if (!DOM.splashIntro) {
+    return;
+  }
+
+
+  DOM.splashIntro
+    .classList
+    .add('is-hidden');
+
+
+  DOM.splashIntro.hidden =
+    true;
+}
+
+
+/* =========================================================
+   10. STORIES
    ========================================================= */
 
 function renderStories() {
 
-  if (!DOM.stories) return;
+  if (!DOM.stories) {
+    return;
+  }
 
 
   const addStory = `
@@ -418,35 +775,44 @@ function renderStories() {
       data-story-action="add"
       aria-label="Tambah cerita"
     >
+
       <div class="story-ring">
-        <i class="ph ph-plus"></i>
+
+        <i
+          class="ph ph-plus"
+          aria-hidden="true"
+        ></i>
+
       </div>
 
       <span class="story-name">
         Jual
       </span>
+
     </button>
   `;
 
 
   if (!DATA.stories.length) {
 
-    DOM.stories.innerHTML = addStory;
+    DOM.stories.innerHTML =
+      addStory;
 
     return;
   }
 
 
-  const storiesHTML =
+  DOM.stories.innerHTML =
+    addStory +
     DATA.stories
       .map(createStoryTemplate)
       .join('');
-
-
-  DOM.stories.innerHTML =
-    addStory + storiesHTML;
 }
 
+
+/* =========================================================
+   11. STORY TEMPLATE
+   ========================================================= */
 
 function createStoryTemplate(story) {
 
@@ -484,12 +850,16 @@ function createStoryTemplate(story) {
 
 
 /* =========================================================
-   08. FEED
+   12. FEED
    ========================================================= */
 
-function renderFeed(posts = DATA.posts) {
+function renderFeed(
+  posts = DATA.posts
+) {
 
-  if (!DOM.feed) return;
+  if (!DOM.feed) {
+    return;
+  }
 
 
   if (!posts.length) {
@@ -508,10 +878,15 @@ function renderFeed(posts = DATA.posts) {
 
 
 /* =========================================================
-   09. EMPTY FEED
+   13. EMPTY FEED
    ========================================================= */
 
 function renderEmptyFeed() {
+
+  if (!DOM.feed) {
+    return;
+  }
+
 
   const title =
     STATE.activeCategory
@@ -522,13 +897,16 @@ function renderEmptyFeed() {
   const description =
     CONFIG.DEMO_MODE
       ? 'Belum ditemukan produk pada pilihan ini.'
-      : 'Jadilah UMKM pertama yang membagikan produk di Pasar UMKM.';
+      : 'UMKM yang mulai membagikan produk akan muncul di sini.';
 
 
   DOM.feed.innerHTML = `
     <div class="empty-state">
 
-      <i class="ph ph-storefront"></i>
+      <i
+        class="ph ph-storefront"
+        aria-hidden="true"
+      ></i>
 
       <div class="empty-state-title">
         ${escapeHTML(title)}
@@ -556,20 +934,26 @@ function renderEmptyFeed() {
 
 
 /* =========================================================
-   10. POST TEMPLATE
+   14. POST TEMPLATE
    ========================================================= */
 
 function createPostTemplate(post) {
 
   const liked =
-    STATE.likedPosts.has(post.id);
+    STATE.likedPosts.has(
+      post.id
+    );
+
 
   const saved =
-    STATE.savedPosts.has(post.id);
+    STATE.savedPosts.has(
+      post.id
+    );
 
 
-  const likes =
-    post.likes + (liked ? 1 : 0);
+  const currentLikes =
+    Number(post.likes || 0) +
+    (liked ? 1 : 0);
 
 
   return `
@@ -634,7 +1018,12 @@ function createPostTemplate(post) {
           data-post-id="${post.id}"
           aria-label="Menu postingan"
         >
-          <i class="ph ph-dots-three"></i>
+
+          <i
+            class="ph ph-dots-three"
+            aria-hidden="true"
+          ></i>
+
         </button>
 
       </div>
@@ -653,14 +1042,16 @@ function createPostTemplate(post) {
             data-action="like"
             data-post-id="${post.id}"
             aria-pressed="${liked}"
+            aria-label="Sukai postingan"
           >
 
             <i
               class="${liked ? 'ph-fill' : 'ph'} ph-heart"
+              aria-hidden="true"
             ></i>
 
             <span>
-              ${formatCompact(likes)}
+              ${formatCompact(currentLikes)}
             </span>
 
           </button>
@@ -671,9 +1062,13 @@ function createPostTemplate(post) {
             class="action-btn"
             data-action="comments"
             data-post-id="${post.id}"
+            aria-label="Lihat komentar"
           >
 
-            <i class="ph ph-chat-circle"></i>
+            <i
+              class="ph ph-chat-circle"
+              aria-hidden="true"
+            ></i>
 
             <span>
               ${formatCompact(post.comments)}
@@ -687,9 +1082,13 @@ function createPostTemplate(post) {
             class="action-btn"
             data-action="share"
             data-post-id="${post.id}"
+            aria-label="Bagikan postingan"
           >
 
-            <i class="ph ph-paper-plane-tilt"></i>
+            <i
+              class="ph ph-paper-plane-tilt"
+              aria-hidden="true"
+            ></i>
 
             <span>
               ${formatCompact(post.shares)}
@@ -711,6 +1110,7 @@ function createPostTemplate(post) {
 
           <i
             class="${saved ? 'ph-fill' : 'ph'} ph-bookmark-simple"
+            aria-hidden="true"
           ></i>
 
         </button>
@@ -719,7 +1119,7 @@ function createPostTemplate(post) {
 
 
       <div class="post-stats">
-        ${formatCompact(likes)} suka
+        ${formatCompact(currentLikes)} suka
       </div>
 
 
@@ -732,14 +1132,18 @@ function createPostTemplate(post) {
         ${escapeHTML(post.caption)}
 
         ${
-          post.tags?.length
+          Array.isArray(post.tags) &&
+          post.tags.length
             ? `
               <br>
 
               ${post.tags
                 .map(
-                  tag =>
-                    `<span class="tag">${escapeHTML(tag)}</span>`
+                  tag => `
+                    <span class="tag">
+                      ${escapeHTML(tag)}
+                    </span>
+                  `
                 )
                 .join(' ')
               }
@@ -751,7 +1155,7 @@ function createPostTemplate(post) {
 
 
       ${
-        post.comments > 0
+        Number(post.comments) > 0
           ? `
             <button
               type="button"
@@ -779,7 +1183,7 @@ function createPostTemplate(post) {
 
 
 /* =========================================================
-   11. POST MEDIA
+   15. POST MEDIA
    ========================================================= */
 
 function createPostMedia(post) {
@@ -805,12 +1209,14 @@ function createPostMedia(post) {
           ? `
             <span class="video-indicator">
 
-              <i class="ph-fill ph-video"></i>
+              <i
+                class="ph-fill ph-video"
+                aria-hidden="true"
+              ></i>
 
               VIDEO
 
             </span>
-
 
             <button
               type="button"
@@ -829,7 +1235,7 @@ function createPostMedia(post) {
 
 
 /* =========================================================
-   12. PRODUCT TEMPLATE
+   16. PRODUCT TEMPLATE
    ========================================================= */
 
 function createProductTemplate(post) {
@@ -838,7 +1244,9 @@ function createProductTemplate(post) {
     post.product;
 
 
-  if (!product) return '';
+  if (!product) {
+    return '';
+  }
 
 
   return `
@@ -857,7 +1265,10 @@ function createProductTemplate(post) {
 
         <div class="product-badge">
 
-          <i class="ph-fill ph-storefront"></i>
+          <i
+            class="ph-fill ph-storefront"
+            aria-hidden="true"
+          ></i>
 
           Produk UMKM
 
@@ -872,10 +1283,12 @@ function createProductTemplate(post) {
         <div class="product-meta">
 
           <span class="stars">
-            ★ ${product.rating}
+            ★ ${escapeHTML(product.rating)}
           </span>
 
-          <span>•</span>
+          <span>
+            •
+          </span>
 
           <span>
             ${formatCompact(product.sold)} terjual
@@ -910,9 +1323,14 @@ function createProductTemplate(post) {
           class="btn-icon"
           data-action="cart"
           data-product-id="${product.id}"
-          aria-label="Tambah ke keranjang"
+          aria-label="Tambahkan ke keranjang"
         >
-          <i class="ph ph-shopping-cart"></i>
+
+          <i
+            class="ph ph-shopping-cart"
+            aria-hidden="true"
+          ></i>
+
         </button>
 
 
@@ -933,7 +1351,7 @@ function createProductTemplate(post) {
 
 
 /* =========================================================
-   13. MAIN GLOBAL ACTIONS
+   17. GLOBAL DATA-ACTION HANDLER
    ========================================================= */
 
 document.addEventListener(
@@ -941,10 +1359,14 @@ document.addEventListener(
   event => {
 
     const target =
-      event.target.closest('[data-action]');
+      event.target.closest(
+        '[data-action]'
+      );
 
 
-    if (!target) return;
+    if (!target) {
+      return;
+    }
 
 
     const action =
@@ -954,140 +1376,203 @@ document.addEventListener(
     switch (action) {
 
       case 'menu':
+
         openSideMenu();
+
         break;
 
 
       case 'close-menu':
+
         closeSideMenu();
+
         break;
 
 
       case 'search':
+
         openSearch();
+
         break;
 
 
       case 'close-search':
+
         closeSearch();
+
         break;
 
 
       case 'notifications':
+
         openNotifications();
+
         break;
 
 
       case 'messages':
+
         openMessages();
+
         break;
 
 
       case 'like':
+
         toggleLike(
-          Number(target.dataset.postId)
+          Number(
+            target.dataset.postId
+          )
         );
+
         break;
 
 
       case 'comments':
+
         openComments(
-          Number(target.dataset.postId)
+          Number(
+            target.dataset.postId
+          )
         );
+
         break;
 
 
       case 'share':
+
         sharePost(
-          Number(target.dataset.postId)
+          Number(
+            target.dataset.postId
+          )
         );
+
         break;
 
 
       case 'save':
+
         toggleSave(
-          Number(target.dataset.postId)
+          Number(
+            target.dataset.postId
+          )
         );
+
         break;
 
 
       case 'post-menu':
+
         openPostMenu(
-          Number(target.dataset.postId)
+          Number(
+            target.dataset.postId
+          )
         );
+
         break;
 
 
       case 'play-video':
-        playDemoVideo(
-          Number(target.dataset.postId)
-        );
+
+        playDemoVideo();
+
         break;
 
 
       case 'cart':
+
         addProductToCart(
-          Number(target.dataset.productId)
+          Number(
+            target.dataset.productId
+          )
         );
+
         break;
 
 
       case 'buy':
+
         buyProduct(
-          Number(target.dataset.productId)
+          Number(
+            target.dataset.productId
+          )
         );
+
         break;
 
 
       case 'sell':
+
         openSellSheet();
+
         break;
 
 
       case 'checkout':
+
         checkoutCart();
+
         break;
 
 
       case 'clear-cart':
+
         clearCart();
+
         break;
 
 
       case 'remove-cart':
+
         removeCartItem(
-          Number(target.dataset.productId)
+          Number(
+            target.dataset.productId
+          )
         );
+
         break;
 
 
       case 'cart-plus':
+
         changeCartQuantity(
-          Number(target.dataset.productId),
+          Number(
+            target.dataset.productId
+          ),
           1
         );
+
         break;
 
 
       case 'cart-minus':
+
         changeCartQuantity(
-          Number(target.dataset.productId),
+          Number(
+            target.dataset.productId
+          ),
           -1
         );
+
         break;
 
 
       case 'login':
+
         openLogin();
+
         break;
 
 
       case 'clear-category':
+
         clearCategoryFilter();
+
         break;
 
 
       default:
+
         break;
     }
   }
@@ -1095,7 +1580,7 @@ document.addEventListener(
 
 
 /* =========================================================
-   14. STORY EVENTS
+   18. STORY EVENTS
    ========================================================= */
 
 document.addEventListener(
@@ -1103,13 +1588,17 @@ document.addEventListener(
   event => {
 
     const story =
-      event.target.closest('[data-story-id]');
+      event.target.closest(
+        '[data-story-id]'
+      );
 
 
     if (story) {
 
       openStory(
-        Number(story.dataset.storyId)
+        Number(
+          story.dataset.storyId
+        )
       );
 
       return;
@@ -1131,18 +1620,29 @@ document.addEventListener(
 
 
 /* =========================================================
-   15. LIKE
+   19. LIKE
    ========================================================= */
 
 function toggleLike(postId) {
 
-  if (STATE.likedPosts.has(postId)) {
+  if (!findPost(postId)) {
+    return;
+  }
 
-    STATE.likedPosts.delete(postId);
+
+  if (
+    STATE.likedPosts.has(postId)
+  ) {
+
+    STATE.likedPosts.delete(
+      postId
+    );
 
   } else {
 
-    STATE.likedPosts.add(postId);
+    STATE.likedPosts.add(
+      postId
+    );
   }
 
 
@@ -1153,14 +1653,23 @@ function toggleLike(postId) {
 
 
 /* =========================================================
-   16. SAVE / FAVORITE
+   20. SAVE
    ========================================================= */
 
 function toggleSave(postId) {
 
-  if (STATE.savedPosts.has(postId)) {
+  if (!findPost(postId)) {
+    return;
+  }
 
-    STATE.savedPosts.delete(postId);
+
+  if (
+    STATE.savedPosts.has(postId)
+  ) {
+
+    STATE.savedPosts.delete(
+      postId
+    );
 
     showToast(
       'Dihapus dari favorit'
@@ -1168,7 +1677,9 @@ function toggleSave(postId) {
 
   } else {
 
-    STATE.savedPosts.add(postId);
+    STATE.savedPosts.add(
+      postId
+    );
 
     showToast(
       'Disimpan ke favorit'
@@ -1183,7 +1694,7 @@ function toggleSave(postId) {
 
 
 /* =========================================================
-   17. COMMENTS
+   21. COMMENTS
    ========================================================= */
 
 function openComments(postId) {
@@ -1192,24 +1703,28 @@ function openComments(postId) {
     findPost(postId);
 
 
-  if (!post) return;
+  if (!post) {
+    return;
+  }
 
-
-  /*
-   * Saat backend aktif,
-   * komentar akan berasal dari database.
-   */
 
   const comments =
     CONFIG.DEMO_MODE
       ? [
           {
-            name: 'Pengguna Lokal',
-            text: 'Produknya bagus sekali 👍'
+            name:
+              'Pengguna Lokal',
+
+            text:
+              'Produknya menarik.'
           },
+
           {
-            name: 'Pembeli UMKM',
-            text: 'Semoga UMKM lokal makin maju.'
+            name:
+              'Pembeli UMKM',
+
+            text:
+              'Semoga UMKM lokal terus berkembang.'
           }
         ]
       : [];
@@ -1223,21 +1738,24 @@ function openComments(postId) {
               <div
                 style="
                   padding:12px 0;
-                  border-bottom:1px solid rgba(0,0,0,.06);
+                  border-bottom:1px solid var(--border-subtle);
                 "
               >
 
                 <strong
-                  style="font-size:13px"
+                  style="
+                    font-size:12px;
+                  "
                 >
                   ${escapeHTML(comment.name)}
                 </strong>
 
                 <p
                   style="
-                    font-size:12px;
-                    color:var(--text-secondary);
                     margin-top:4px;
+                    font-size:11px;
+                    line-height:1.55;
+                    color:var(--text-secondary);
                   "
                 >
                   ${escapeHTML(comment.text)}
@@ -1251,7 +1769,7 @@ function openComments(postId) {
       : createSheetEmptyState(
           'ph-chat-circle',
           'Belum ada komentar',
-          'Jadilah yang pertama memberikan komentar.'
+          'Komentar pertama akan muncul di sini.'
         );
 
 
@@ -1268,7 +1786,7 @@ function openComments(postId) {
 
 
 /* =========================================================
-   18. SHARE
+   22. SHARE
    ========================================================= */
 
 async function sharePost(postId) {
@@ -1277,19 +1795,24 @@ async function sharePost(postId) {
     findPost(postId);
 
 
-  if (!post) return;
+  if (!post) {
+    return;
+  }
+
+
+  const url =
+    `${window.location.origin}${window.location.pathname}#post-${post.id}`;
 
 
   const shareData = {
 
     title:
-      `${post.author} — ${CONFIG.APP_NAME}`,
+      `${post.author} · ${CONFIG.APP_NAME}`,
 
     text:
       post.caption,
 
-    url:
-      `${window.location.origin}${window.location.pathname}#post-${post.id}`
+    url
   };
 
 
@@ -1308,7 +1831,7 @@ async function sharePost(postId) {
     if (navigator.clipboard) {
 
       await navigator.clipboard.writeText(
-        shareData.url
+        url
       );
 
       showToast(
@@ -1325,10 +1848,12 @@ async function sharePost(postId) {
 
   } catch (error) {
 
-    if (error.name !== 'AbortError') {
+    if (
+      error.name !== 'AbortError'
+    ) {
 
       showToast(
-        'Tidak dapat membagikan postingan'
+        'Postingan tidak dapat dibagikan'
       );
     }
   }
@@ -1336,7 +1861,7 @@ async function sharePost(postId) {
 
 
 /* =========================================================
-   19. POST MENU
+   23. POST MENU
    ========================================================= */
 
 function openPostMenu(postId) {
@@ -1345,11 +1870,15 @@ function openPostMenu(postId) {
     findPost(postId);
 
 
-  if (!post) return;
+  if (!post) {
+    return;
+  }
 
 
   const saved =
-    STATE.savedPosts.has(post.id);
+    STATE.savedPosts.has(
+      postId
+    );
 
 
   openBottomSheet(`
@@ -1359,9 +1888,9 @@ function openPostMenu(postId) {
 
     <div
       style="
-        margin-top:18px;
         display:grid;
         gap:8px;
+        margin-top:18px;
       "
     >
 
@@ -1372,9 +1901,16 @@ function openPostMenu(postId) {
         data-post-id="${post.id}"
       >
 
-        <i class="ph ph-bookmark-simple"></i>
+        <i
+          class="ph ph-bookmark-simple"
+          aria-hidden="true"
+        ></i>
 
-        ${saved ? 'Hapus dari Favorit' : 'Simpan Postingan'}
+        ${
+          saved
+            ? 'Hapus dari Favorit'
+            : 'Simpan Postingan'
+        }
 
       </button>
 
@@ -1386,7 +1922,10 @@ function openPostMenu(postId) {
         data-post-id="${post.id}"
       >
 
-        <i class="ph ph-eye-slash"></i>
+        <i
+          class="ph ph-eye-slash"
+          aria-hidden="true"
+        ></i>
 
         Tidak Tertarik
 
@@ -1400,7 +1939,10 @@ function openPostMenu(postId) {
         data-post-id="${post.id}"
       >
 
-        <i class="ph ph-flag"></i>
+        <i
+          class="ph ph-flag"
+          aria-hidden="true"
+        ></i>
 
         Laporkan
 
@@ -1412,7 +1954,7 @@ function openPostMenu(postId) {
 
 
 /* =========================================================
-   20. POST MENU ACTION
+   24. POST SHEET ACTION
    ========================================================= */
 
 document.addEventListener(
@@ -1425,7 +1967,9 @@ document.addEventListener(
       );
 
 
-    if (!button) return;
+    if (!button) {
+      return;
+    }
 
 
     const action =
@@ -1433,14 +1977,18 @@ document.addEventListener(
 
 
     const postId =
-      Number(button.dataset.postId);
+      Number(
+        button.dataset.postId
+      );
 
 
     switch (action) {
 
       case 'save':
 
-        toggleSave(postId);
+        toggleSave(
+          postId
+        );
 
         closeBottomSheet();
 
@@ -1463,7 +2011,7 @@ document.addEventListener(
         closeBottomSheet();
 
         showToast(
-          'Terima kasih. Laporan akan ditinjau.'
+          'Laporan diterima'
         );
 
         break;
@@ -1473,34 +2021,44 @@ document.addEventListener(
 
 
 /* =========================================================
-   21. VIDEO DEMO
+   25. VIDEO PLACEHOLDER
    ========================================================= */
 
 function playDemoVideo() {
 
   showToast(
     CONFIG.DEMO_MODE
-      ? 'Video demo belum tersedia'
+      ? 'Video masih berupa contoh tampilan'
       : 'Video belum tersedia'
   );
 }
 
 
 /* =========================================================
-   22. FIND HELPERS
+   26. FIND POST
    ========================================================= */
 
 function findPost(postId) {
 
-  return DATA.posts.find(
-    post => post.id === postId
-  ) || null;
+  return (
+    DATA.posts.find(
+      post =>
+        post.id === postId
+    ) ||
+    null
+  );
 }
 
 
+/* =========================================================
+   27. FIND PRODUCT
+   ========================================================= */
+
 function findProduct(productId) {
 
-  for (const post of DATA.posts) {
+  for (
+    const post of DATA.posts
+  ) {
 
     if (
       post.product &&
@@ -1508,8 +2066,11 @@ function findProduct(productId) {
     ) {
 
       return {
+
         ...post.product,
-        seller: post.author
+
+        seller:
+          post.author
       };
     }
   }
@@ -1520,16 +2081,20 @@ function findProduct(productId) {
 
 
 /* =========================================================
-   23. ADD TO CART
+   28. ADD TO CART
    ========================================================= */
 
-function addProductToCart(productId) {
+function addProductToCart(
+  productId
+) {
 
   const product =
     findProduct(productId);
 
 
-  if (!product) return;
+  if (!product) {
+    return;
+  }
 
 
   const existing =
@@ -1546,8 +2111,11 @@ function addProductToCart(productId) {
   } else {
 
     STATE.cart.push({
+
       ...product,
-      quantity: 1
+
+      quantity:
+        1
     });
   }
 
@@ -1558,13 +2126,13 @@ function addProductToCart(productId) {
 
 
   showToast(
-    `${product.name} masuk ke keranjang`
+    `${product.name} ditambahkan ke keranjang`
   );
 }
 
 
 /* =========================================================
-   24. CHANGE CART QUANTITY
+   29. CART QUANTITY
    ========================================================= */
 
 function changeCartQuantity(
@@ -1579,13 +2147,18 @@ function changeCartQuantity(
     );
 
 
-  if (!item) return;
+  if (!item) {
+    return;
+  }
 
 
-  item.quantity += difference;
+  item.quantity +=
+    difference;
 
 
-  if (item.quantity <= 0) {
+  if (
+    item.quantity <= 0
+  ) {
 
     STATE.cart =
       STATE.cart.filter(
@@ -1604,10 +2177,12 @@ function changeCartQuantity(
 
 
 /* =========================================================
-   25. REMOVE CART
+   30. REMOVE CART ITEM
    ========================================================= */
 
-function removeCartItem(productId) {
+function removeCartItem(
+  productId
+) {
 
   STATE.cart =
     STATE.cart.filter(
@@ -1630,7 +2205,7 @@ function removeCartItem(productId) {
 
 
 /* =========================================================
-   26. CLEAR CART
+   31. CLEAR CART
    ========================================================= */
 
 function clearCart() {
@@ -1652,16 +2227,20 @@ function clearCart() {
 
 
 /* =========================================================
-   27. BUY NOW
+   32. BUY NOW
    ========================================================= */
 
-function buyProduct(productId) {
+function buyProduct(
+  productId
+) {
 
   const product =
     findProduct(productId);
 
 
-  if (!product) return;
+  if (!product) {
+    return;
+  }
 
 
   openBottomSheet(`
@@ -1673,6 +2252,7 @@ function buyProduct(productId) {
     <div
       style="
         display:flex;
+        align-items:center;
         gap:12px;
         margin-top:18px;
       "
@@ -1685,17 +2265,23 @@ function buyProduct(productId) {
           width:72px;
           height:72px;
           object-fit:cover;
-          border-radius:12px;
+          border-radius:12px 6px 12px 6px;
         "
       >
 
 
-      <div style="min-width:0">
+      <div
+        style="
+          min-width:0;
+          flex:1;
+        "
+      >
 
         <strong
           style="
-            font-size:14px;
             display:block;
+            font-size:13px;
+            line-height:1.4;
           "
         >
           ${escapeHTML(product.name)}
@@ -1715,9 +2301,10 @@ function buyProduct(productId) {
 
         <div
           style="
-            margin-top:6px;
-            color:var(--sunset-500);
-            font-weight:800;
+            margin-top:7px;
+            font-size:15px;
+            font-weight:700;
+            color:var(--sunset-600);
           "
         >
           ${formatRupiah(product.price)}
@@ -1738,13 +2325,15 @@ function buyProduct(productId) {
         padding:12px;
       "
     >
-      Lanjutkan Checkout
+      Lanjutkan
     </button>
   `);
 
 
   document
-    .getElementById('buyNowContinue')
+    .getElementById(
+      'buyNowContinue'
+    )
     ?.addEventListener(
       'click',
       () => {
@@ -1755,9 +2344,10 @@ function buyProduct(productId) {
 
         closeBottomSheet();
 
-        setTimeout(
+
+        window.setTimeout(
           openCart,
-          400
+          420
         );
       }
     );
@@ -1765,12 +2355,14 @@ function buyProduct(productId) {
 
 
 /* =========================================================
-   28. CART SHEET
+   33. OPEN CART
    ========================================================= */
 
 function openCart() {
 
-  if (!STATE.cart.length) {
+  if (
+    !STATE.cart.length
+  ) {
 
     openBottomSheet(`
       <h2 id="sheetTitle">
@@ -1780,7 +2372,7 @@ function openCart() {
       ${createSheetEmptyState(
         'ph-shopping-cart',
         'Keranjang masih kosong',
-        'Produk yang kamu tambahkan akan muncul di sini.'
+        'Produk yang ditambahkan akan muncul di sini.'
       )}
     `);
 
@@ -1788,18 +2380,23 @@ function openCart() {
   }
 
 
-  const itemsHTML =
+  const items =
     STATE.cart
-      .map(createCartItemTemplate)
+      .map(
+        createCartItemTemplate
+      )
       .join('');
 
 
   const total =
     STATE.cart.reduce(
-      (sum, item) =>
+      (
+        sum,
+        item
+      ) =>
         sum +
-        item.price *
-        item.quantity,
+        Number(item.price) *
+        Number(item.quantity),
       0
     );
 
@@ -1818,14 +2415,13 @@ function openCart() {
         Keranjang
       </h2>
 
-
       <button
         type="button"
         data-action="clear-cart"
         style="
-          font-size:11px;
-          color:var(--sunset-500);
+          font-size:10px;
           font-weight:700;
+          color:var(--sunset-600);
         "
       >
         Kosongkan
@@ -1835,9 +2431,7 @@ function openCart() {
 
 
     <div style="margin-top:12px">
-
-      ${itemsHTML}
-
+      ${items}
     </div>
 
 
@@ -1848,13 +2442,13 @@ function openCart() {
         justify-content:space-between;
         margin-top:18px;
         padding-top:14px;
-        border-top:1px solid rgba(0,0,0,.08);
+        border-top:1px solid var(--border-soft);
       "
     >
 
       <span
         style="
-          font-size:12px;
+          font-size:11px;
           color:var(--text-secondary);
         "
       >
@@ -1864,8 +2458,8 @@ function openCart() {
 
       <strong
         style="
-          color:var(--sunset-500);
           font-size:17px;
+          color:var(--sunset-600);
         "
       >
         ${formatRupiah(total)}
@@ -1891,10 +2485,12 @@ function openCart() {
 
 
 /* =========================================================
-   29. CART ITEM TEMPLATE
+   34. CART ITEM TEMPLATE
    ========================================================= */
 
-function createCartItemTemplate(item) {
+function createCartItemTemplate(
+  item
+) {
 
   return `
     <div
@@ -1902,7 +2498,7 @@ function createCartItemTemplate(item) {
         display:flex;
         gap:10px;
         padding:12px 0;
-        border-bottom:1px solid rgba(0,0,0,.06);
+        border-bottom:1px solid var(--border-subtle);
       "
     >
 
@@ -1913,7 +2509,7 @@ function createCartItemTemplate(item) {
           width:62px;
           height:62px;
           object-fit:cover;
-          border-radius:10px;
+          border-radius:10px 5px 10px 5px;
         "
       >
 
@@ -1928,8 +2524,8 @@ function createCartItemTemplate(item) {
         <strong
           style="
             display:block;
-            font-size:12px;
-            line-height:1.4;
+            font-size:11px;
+            line-height:1.45;
           "
         >
           ${escapeHTML(item.name)}
@@ -1939,20 +2535,23 @@ function createCartItemTemplate(item) {
         <small
           style="
             display:block;
-            color:var(--text-tertiary);
             margin-top:2px;
+            color:var(--text-tertiary);
           "
         >
-          ${escapeHTML(item.seller || 'UMKM Lokal')}
+          ${escapeHTML(
+            item.seller ||
+            'UMKM Lokal'
+          )}
         </small>
 
 
         <div
           style="
-            font-size:13px;
-            color:var(--sunset-500);
-            font-weight:800;
             margin-top:5px;
+            font-size:13px;
+            font-weight:700;
+            color:var(--sunset-600);
           "
         >
           ${formatRupiah(
@@ -1979,11 +2578,16 @@ function createCartItemTemplate(item) {
             style="
               width:28px;
               height:28px;
-              border-radius:8px;
+              border-radius:8px 4px 8px 4px;
               background:var(--forest-50);
             "
           >
-            <i class="ph ph-minus"></i>
+
+            <i
+              class="ph ph-minus"
+              aria-hidden="true"
+            ></i>
+
           </button>
 
 
@@ -1991,7 +2595,7 @@ function createCartItemTemplate(item) {
             style="
               min-width:18px;
               text-align:center;
-              font-size:12px;
+              font-size:11px;
             "
           >
             ${item.quantity}
@@ -2006,11 +2610,16 @@ function createCartItemTemplate(item) {
             style="
               width:28px;
               height:28px;
-              border-radius:8px;
+              border-radius:8px 4px 8px 4px;
               background:var(--forest-50);
             "
           >
-            <i class="ph ph-plus"></i>
+
+            <i
+              class="ph ph-plus"
+              aria-hidden="true"
+            ></i>
+
           </button>
 
 
@@ -2020,8 +2629,8 @@ function createCartItemTemplate(item) {
             data-product-id="${item.id}"
             style="
               margin-left:auto;
-              font-size:11px;
-              color:var(--sunset-500);
+              font-size:10px;
+              color:var(--sunset-600);
             "
           >
             Hapus
@@ -2037,12 +2646,14 @@ function createCartItemTemplate(item) {
 
 
 /* =========================================================
-   30. CHECKOUT
+   35. CHECKOUT
    ========================================================= */
 
 function checkoutCart() {
 
-  if (!STATE.cart.length) return;
+  if (!STATE.cart.length) {
+    return;
+  }
 
 
   openBottomSheet(`
@@ -2055,7 +2666,7 @@ function checkoutCart() {
       style="
         margin-top:18px;
         padding:16px;
-        border-radius:16px;
+        border-radius:14px 7px 14px 7px;
         background:var(--forest-50);
       "
     >
@@ -2066,29 +2677,28 @@ function checkoutCart() {
           font-size:22px;
           color:var(--forest-700);
         "
+        aria-hidden="true"
       ></i>
-
 
       <strong
         style="
           display:block;
           margin-top:8px;
+          font-size:12px;
         "
       >
         Alamat Pengiriman
       </strong>
 
-
       <p
         style="
           margin-top:5px;
-          font-size:11px;
+          font-size:10px;
           line-height:1.6;
           color:var(--text-secondary);
         "
       >
-        Nantinya pembeli dapat memilih alamat pengiriman
-        setelah sistem akun dan database diaktifkan.
+        Alamat pembeli akan diambil dari akun setelah sistem backend diaktifkan.
       </p>
 
     </div>
@@ -2096,9 +2706,9 @@ function checkoutCart() {
 
     <div
       style="
-        margin-top:14px;
+        margin-top:12px;
         padding:16px;
-        border-radius:16px;
+        border-radius:12px 6px 12px 6px;
         background:var(--bg-tertiary);
       "
     >
@@ -2109,28 +2719,28 @@ function checkoutCart() {
           font-size:22px;
           color:var(--forest-700);
         "
+        aria-hidden="true"
       ></i>
-
 
       <strong
         style="
           display:block;
           margin-top:8px;
+          font-size:12px;
         "
       >
-        Metode Pembayaran
+        Pembayaran
       </strong>
-
 
       <p
         style="
           margin-top:5px;
-          font-size:11px;
+          font-size:10px;
           line-height:1.6;
           color:var(--text-secondary);
         "
       >
-        Modul pembayaran akan dihubungkan pada fase backend.
+        Metode pembayaran belum diaktifkan pada prototype frontend.
       </p>
 
     </div>
@@ -2139,7 +2749,7 @@ function checkoutCart() {
     <button
       type="button"
       class="btn-primary"
-      id="checkoutDemoButton"
+      id="checkoutPrototypeButton"
       style="
         width:100%;
         margin-top:18px;
@@ -2153,14 +2763,14 @@ function checkoutCart() {
 
   document
     .getElementById(
-      'checkoutDemoButton'
+      'checkoutPrototypeButton'
     )
     ?.addEventListener(
       'click',
       () => {
 
         showToast(
-          'Checkout backend belum diaktifkan'
+          'Checkout akan aktif setelah backend terhubung'
         );
       }
     );
@@ -2168,12 +2778,14 @@ function checkoutCart() {
 
 
 /* =========================================================
-   31. SEARCH
+   36. SEARCH OPEN
    ========================================================= */
 
 function openSearch() {
 
-  if (!DOM.searchOverlay) return;
+  if (!DOM.searchOverlay) {
+    return;
+  }
 
 
   DOM.searchOverlay.hidden =
@@ -2186,22 +2798,30 @@ function openSearch() {
   );
 
 
-  document.body.style.overflow =
-    'hidden';
+  lockBodyScroll();
 
 
-  setTimeout(
+  window.setTimeout(
     () => {
-      DOM.searchInput?.focus();
+
+      DOM.searchInput
+        ?.focus();
+
     },
     60
   );
 }
 
 
+/* =========================================================
+   37. SEARCH CLOSE
+   ========================================================= */
+
 function closeSearch() {
 
-  if (!DOM.searchOverlay) return;
+  if (!DOM.searchOverlay) {
+    return;
+  }
 
 
   DOM.searchOverlay.hidden =
@@ -2214,30 +2834,32 @@ function closeSearch() {
   );
 
 
-  document.body.style.overflow =
-    '';
+  unlockBodyScrollIfPossible();
 }
 
 
 /* =========================================================
-   32. SEARCH HANDLER
+   38. SEARCH
    ========================================================= */
 
 function handleSearch(query) {
 
-  const q =
-    query
+  const normalized =
+    String(query)
       .trim()
       .toLowerCase();
 
 
-  STATE.searchQuery = q;
+  STATE.searchQuery =
+    normalized;
 
 
-  if (!DOM.searchResults) return;
+  if (!DOM.searchResults) {
+    return;
+  }
 
 
-  if (!q) {
+  if (!normalized) {
 
     renderSearchHint();
 
@@ -2249,7 +2871,7 @@ function handleSearch(query) {
     DATA.posts.filter(
       post => {
 
-        const text = [
+        const searchable = [
 
           post.author,
 
@@ -2262,11 +2884,14 @@ function handleSearch(query) {
           post.product?.name
 
         ]
+          .filter(Boolean)
           .join(' ')
           .toLowerCase();
 
 
-        return text.includes(q);
+        return searchable.includes(
+          normalized
+        );
       }
     );
 
@@ -2286,41 +2911,47 @@ function handleSearch(query) {
 
   DOM.searchResults.innerHTML =
     results
-      .map(createSearchResultTemplate)
+      .map(
+        createSearchResultTemplate
+      )
       .join('');
 }
 
 
 /* =========================================================
-   33. SEARCH HINT
+   39. SEARCH HINT
    ========================================================= */
 
 function renderSearchHint() {
 
-  if (!DOM.searchResults) return;
+  if (!DOM.searchResults) {
+    return;
+  }
 
 
   DOM.searchResults.innerHTML = `
     <div
       style="
-        padding:22px 6px;
+        padding:22px 4px;
       "
     >
 
       <strong
         style="
           display:block;
-          font-size:13px;
+          font-family:var(--font-display);
+          font-size:15px;
+          color:var(--forest-900);
         "
       >
         Cari di Pasar UMKM
       </strong>
 
-
       <p
         style="
-          margin-top:5px;
-          font-size:11px;
+          margin-top:6px;
+          max-width:260px;
+          font-size:10px;
           line-height:1.6;
           color:var(--text-tertiary);
         "
@@ -2334,10 +2965,12 @@ function renderSearchHint() {
 
 
 /* =========================================================
-   34. SEARCH RESULT TEMPLATE
+   40. SEARCH RESULT
    ========================================================= */
 
-function createSearchResultTemplate(post) {
+function createSearchResultTemplate(
+  post
+) {
 
   const product =
     post.product;
@@ -2354,22 +2987,24 @@ function createSearchResultTemplate(post) {
         gap:11px;
         padding:11px 0;
         text-align:left;
-        border-bottom:1px solid rgba(0,0,0,.06);
+        border-bottom:1px solid var(--border-subtle);
       "
     >
 
       <img
         src="${escapeHTML(
-          product?.image || post.media
+          product?.image ||
+          post.media
         )}"
         alt="${escapeHTML(
-          product?.name || post.author
+          product?.name ||
+          post.author
         )}"
         style="
           width:54px;
           height:54px;
           object-fit:cover;
-          border-radius:11px;
+          border-radius:11px 5px 11px 5px;
         "
       >
 
@@ -2384,15 +3019,15 @@ function createSearchResultTemplate(post) {
         <strong
           style="
             display:block;
-            font-size:12px;
+            font-size:11px;
+            line-height:1.4;
           "
         >
           ${escapeHTML(
             product?.name ||
-            post.caption
+            post.author
           )}
         </strong>
-
 
         <small
           style="
@@ -2402,10 +3037,9 @@ function createSearchResultTemplate(post) {
           "
         >
           ${escapeHTML(post.author)}
-          •
+          ·
           ${escapeHTML(post.category)}
         </small>
-
 
         ${
           product
@@ -2415,8 +3049,8 @@ function createSearchResultTemplate(post) {
                   display:block;
                   margin-top:4px;
                   font-size:12px;
-                  font-weight:800;
-                  color:var(--sunset-500);
+                  font-weight:700;
+                  color:var(--sunset-600);
                 "
               >
                 ${formatRupiah(product.price)}
@@ -2433,7 +3067,7 @@ function createSearchResultTemplate(post) {
 
 
 /* =========================================================
-   35. SEARCH RESULT CLICK
+   41. SEARCH RESULT CLICK
    ========================================================= */
 
 document.addEventListener(
@@ -2446,7 +3080,9 @@ document.addEventListener(
       );
 
 
-    if (!result) return;
+    if (!result) {
+      return;
+    }
 
 
     const postId =
@@ -2458,21 +3094,29 @@ document.addEventListener(
     closeSearch();
 
 
-    setTimeout(
-      () => scrollToPost(postId),
-      100
+    window.setTimeout(
+      () => {
+
+        scrollToPost(
+          postId
+        );
+
+      },
+      120
     );
   }
 );
 
 
 /* =========================================================
-   36. SCROLL TO POST
+   42. SCROLL TO POST
    ========================================================= */
 
 function scrollToPost(postId) {
 
-  STATE.activeCategory = null;
+  STATE.activeCategory =
+    null;
+
 
   renderFeed();
 
@@ -2480,15 +3124,19 @@ function scrollToPost(postId) {
   requestAnimationFrame(
     () => {
 
-      const post =
+      const element =
         document.getElementById(
           `post-${postId}`
         );
 
 
-      post?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
+      element?.scrollIntoView({
+
+        behavior:
+          'smooth',
+
+        block:
+          'center'
       });
     }
   );
@@ -2496,19 +3144,21 @@ function scrollToPost(postId) {
 
 
 /* =========================================================
-   37. NOTIFICATIONS
+   43. NOTIFICATIONS
    ========================================================= */
 
 function openNotifications() {
 
-  const notifications =
+  const items =
     DATA.notifications;
 
 
   const content =
-    notifications.length
-      ? notifications
-          .map(createNotificationTemplate)
+    items.length
+      ? items
+          .map(
+            createNotificationTemplate
+          )
           .join('')
 
       : createSheetEmptyState(
@@ -2524,19 +3174,19 @@ function openNotifications() {
     </h2>
 
     <div style="margin-top:14px">
-
       ${content}
-
     </div>
   `);
 }
 
 
 /* =========================================================
-   38. NOTIFICATION TEMPLATE
+   44. NOTIFICATION TEMPLATE
    ========================================================= */
 
-function createNotificationTemplate(item) {
+function createNotificationTemplate(
+  item
+) {
 
   return `
     <div
@@ -2544,7 +3194,7 @@ function createNotificationTemplate(item) {
         display:flex;
         gap:11px;
         padding:13px 0;
-        border-bottom:1px solid rgba(0,0,0,.06);
+        border-bottom:1px solid var(--border-subtle);
       "
     >
 
@@ -2556,15 +3206,18 @@ function createNotificationTemplate(item) {
           display:flex;
           align-items:center;
           justify-content:center;
-          border-radius:50%;
+          border-radius:13px 6px 13px 6px;
           background:var(--forest-50);
           color:var(--forest-700);
         "
       >
+
         <i
           class="ph ${escapeHTML(item.icon)}"
           style="font-size:19px"
+          aria-hidden="true"
         ></i>
+
       </div>
 
 
@@ -2572,13 +3225,13 @@ function createNotificationTemplate(item) {
 
         <strong
           style="
-            font-size:12px;
-            line-height:1.4;
+            display:block;
+            font-size:11px;
+            line-height:1.45;
           "
         >
           ${escapeHTML(item.title)}
         </strong>
-
 
         <small
           style="
@@ -2598,19 +3251,17 @@ function createNotificationTemplate(item) {
 
 
 /* =========================================================
-   39. MESSAGES
+   45. MESSAGES
    ========================================================= */
 
 function openMessages() {
 
-  const messages =
-    DATA.messages;
-
-
   const content =
-    messages.length
-      ? messages
-          .map(createMessageTemplate)
+    DATA.messages.length
+      ? DATA.messages
+          .map(
+            createMessageTemplate
+          )
           .join('')
 
       : createSheetEmptyState(
@@ -2626,19 +3277,19 @@ function openMessages() {
     </h2>
 
     <div style="margin-top:14px">
-
       ${content}
-
     </div>
   `);
 }
 
 
 /* =========================================================
-   40. MESSAGE TEMPLATE
+   46. MESSAGE TEMPLATE
    ========================================================= */
 
-function createMessageTemplate(message) {
+function createMessageTemplate(
+  message
+) {
 
   return `
     <button
@@ -2651,7 +3302,7 @@ function createMessageTemplate(message) {
         gap:11px;
         padding:13px 0;
         text-align:left;
-        border-bottom:1px solid rgba(0,0,0,.06);
+        border-bottom:1px solid var(--border-subtle);
       "
     >
 
@@ -2659,6 +3310,7 @@ function createMessageTemplate(message) {
         style="
           width:42px;
           height:42px;
+          flex:0 0 42px;
           display:flex;
           align-items:center;
           justify-content:center;
@@ -2667,41 +3319,44 @@ function createMessageTemplate(message) {
           color:var(--forest-700);
         "
       >
-        <i class="ph ph-user"></i>
+
+        <i
+          class="ph ph-user"
+          aria-hidden="true"
+        ></i>
+
       </div>
 
 
       <div
         style="
-          flex:1;
           min-width:0;
+          flex:1;
         "
       >
 
         <strong
           style="
             display:block;
-            font-size:12px;
+            font-size:11px;
           "
         >
           ${escapeHTML(message.name)}
         </strong>
 
-
         <span
           style="
             display:block;
             margin-top:3px;
-            font-size:11px;
-            color:var(--text-secondary);
-            white-space:nowrap;
             overflow:hidden;
+            white-space:nowrap;
             text-overflow:ellipsis;
+            font-size:10px;
+            color:var(--text-secondary);
           "
         >
           ${escapeHTML(message.text)}
         </span>
-
 
         <small
           style="
@@ -2721,62 +3376,66 @@ function createMessageTemplate(message) {
 
 
 /* =========================================================
-   41. MESSAGE CLICK
+   47. MESSAGE CLICK
    ========================================================= */
 
 document.addEventListener(
   'click',
   event => {
 
-    const message =
+    const button =
       event.target.closest(
         '[data-message-id]'
       );
 
 
-    if (!message) return;
+    if (!button) {
+      return;
+    }
 
 
-    const data =
+    const message =
       DATA.messages.find(
         item =>
           item.id ===
           Number(
-            message.dataset.messageId
+            button.dataset.messageId
           )
       );
 
 
-    if (!data) return;
+    if (!message) {
+      return;
+    }
 
 
     openBottomSheet(`
       <h2 id="sheetTitle">
-        ${escapeHTML(data.name)}
+        ${escapeHTML(message.name)}
       </h2>
 
       <div
         style="
           margin-top:18px;
-          padding:12px;
-          border-radius:14px;
+          padding:13px;
+          border-radius:13px 6px 13px 6px;
           background:var(--forest-50);
-          font-size:12px;
+          font-size:11px;
           line-height:1.6;
         "
       >
-        ${escapeHTML(data.text)}
+        ${escapeHTML(message.text)}
       </div>
 
       <p
         style="
           margin-top:16px;
-          font-size:11px;
-          color:var(--text-tertiary);
           text-align:center;
+          font-size:9px;
+          color:var(--text-tertiary);
         "
       >
-        Sistem chat penuh akan diaktifkan bersama backend.
+        Chat langsung akan aktif setelah sistem akun dan backend tersedia.
       </p>
     `);
   }
@@ -2784,7 +3443,7 @@ document.addEventListener(
 
 
 /* =========================================================
-   42. STORY VIEW
+   48. STORY VIEW
    ========================================================= */
 
 function openStory(storyId) {
@@ -2796,7 +3455,9 @@ function openStory(storyId) {
     );
 
 
-  if (!story) return;
+  if (!story) {
+    return;
+  }
 
 
   openBottomSheet(`
@@ -2834,7 +3495,7 @@ function openStory(storyId) {
         max-height:65vh;
         object-fit:cover;
         margin-top:14px;
-        border-radius:16px;
+        border-radius:16px 8px 16px 8px;
       "
     >
   `);
@@ -2842,7 +3503,7 @@ function openStory(storyId) {
 
 
 /* =========================================================
-   43. SELL SHEET
+   49. SELL SHEET
    ========================================================= */
 
 function openSellSheet() {
@@ -2852,23 +3513,22 @@ function openSellSheet() {
       Jual di Pasar UMKM
     </h2>
 
-
     <p
       style="
-        margin-top:5px;
-        font-size:11px;
+        margin-top:6px;
+        font-size:10px;
         line-height:1.6;
         color:var(--text-tertiary);
       "
     >
-      Pilih aktivitas yang ingin dilakukan.
+      Pilih aktivitas yang ingin dibuat.
     </p>
 
 
     <div
       style="
         display:grid;
-        gap:10px;
+        gap:9px;
         margin-top:18px;
       "
     >
@@ -2903,7 +3563,7 @@ function openSellSheet() {
 
 
 /* =========================================================
-   44. SELL OPTION
+   50. SELL OPTION
    ========================================================= */
 
 function createSellOption(
@@ -2915,14 +3575,14 @@ function createSellOption(
   return `
     <button
       type="button"
-      data-sell-option="${type}"
+      data-sell-option="${escapeHTML(type)}"
       style="
         width:100%;
         display:flex;
         align-items:center;
         gap:12px;
         padding:13px;
-        border-radius:12px;
+        border-radius:12px 6px 12px 6px;
         background:var(--forest-50);
         color:var(--forest-800);
         text-align:left;
@@ -2931,11 +3591,16 @@ function createSellOption(
 
       <i
         class="ph ${icon}"
-        style="font-size:21px"
+        style="
+          font-size:21px;
+        "
+        aria-hidden="true"
       ></i>
 
       <strong
-        style="font-size:12px"
+        style="
+          font-size:11px;
+        "
       >
         ${escapeHTML(label)}
       </strong>
@@ -2946,6 +3611,7 @@ function createSellOption(
           margin-left:auto;
           opacity:.55;
         "
+        aria-hidden="true"
       ></i>
 
     </button>
@@ -2954,7 +3620,7 @@ function createSellOption(
 
 
 /* =========================================================
-   45. SELL OPTION CLICK
+   51. SELL OPTION CLICK
    ========================================================= */
 
 document.addEventListener(
@@ -2967,11 +3633,9 @@ document.addEventListener(
       );
 
 
-    if (!option) return;
-
-
-    const type =
-      option.dataset.sellOption;
+    if (!option) {
+      return;
+    }
 
 
     const labels = {
@@ -2991,25 +3655,35 @@ document.addEventListener(
 
 
     showToast(
-      `${labels[type] || 'Fitur'} akan tersedia setelah sistem akun aktif`
+      `${
+        labels[
+          option.dataset.sellOption
+        ] ||
+        'Fitur'
+      } akan aktif bersama sistem akun`
     );
   }
 );
 
 
 /* =========================================================
-   46. SIDE MENU
+   52. SIDE MENU
    ========================================================= */
 
 function renderSideMenu() {
 
-  if (!DOM.sideMenuContent) return;
+  if (!DOM.sideMenuContent) {
+    return;
+  }
 
 
   DOM.sideMenuContent.innerHTML = `
 
-    <div style="padding-top:8px">
-
+    <div
+      style="
+        padding-top:4px;
+      "
+    >
 
       <div
         style="
@@ -3020,38 +3694,43 @@ function renderSideMenu() {
       >
 
         <img
-          src="assets/logo.png"
+          src="${ASSETS.appLogo}"
           alt="${CONFIG.APP_NAME}"
           style="
-            width:38px;
-            height:38px;
+            width:42px;
+            height:42px;
             object-fit:contain;
           "
         >
 
 
-        <div>
+        <div
+          style="
+            min-width:0;
+          "
+        >
 
           <div
             style="
               font-family:var(--font-display);
               font-size:21px;
-              line-height:1.1;
-              color:var(--forest-800);
+              line-height:1;
+              color:var(--forest-900);
               font-weight:700;
+              letter-spacing:-.025em;
             "
           >
             ${CONFIG.APP_NAME}
           </div>
 
-
           <div
             style="
-              margin-top:4px;
-              color:var(--gold-600);
-              font-size:9px;
-              letter-spacing:.7px;
+              margin-top:5px;
+              font-size:8px;
+              font-weight:600;
+              letter-spacing:.12em;
               text-transform:uppercase;
+              color:var(--gold-700);
             "
           >
             ${CONFIG.LOCATION}
@@ -3064,9 +3743,9 @@ function renderSideMenu() {
 
       <div
         style="
-          margin-top:28px;
           display:grid;
-          gap:6px;
+          gap:5px;
+          margin-top:26px;
         "
       >
 
@@ -3119,13 +3798,13 @@ function renderSideMenu() {
         style="
           margin-top:28px;
           padding-top:16px;
-          border-top:1px solid rgba(0,0,0,.06);
+          border-top:1px solid var(--border-subtle);
         "
       >
 
         <div
           style="
-            font-size:9px;
+            font-size:8px;
             line-height:1.5;
             color:var(--text-tertiary);
           "
@@ -3133,31 +3812,17 @@ function renderSideMenu() {
           Sebuah inisiatif dari
         </div>
 
-
         <div
           style="
             margin-top:3px;
+            max-width:220px;
             font-size:10px;
-            line-height:1.5;
+            line-height:1.45;
             font-weight:700;
             color:var(--forest-800);
           "
         >
           ${CONFIG.ORGANIZATION}
-        </div>
-
-
-        <div
-          style="
-            margin-top:7px;
-            font-size:9px;
-            color:var(--text-tertiary);
-          "
-        >
-          Initiated by
-          <strong>
-            ${CONFIG.INITIATOR}
-          </strong>
         </div>
 
       </div>
@@ -3168,7 +3833,7 @@ function renderSideMenu() {
 
 
 /* =========================================================
-   47. SIDE MENU ITEM
+   53. SIDE MENU ITEM
    ========================================================= */
 
 function sideMenuItem(
@@ -3183,11 +3848,12 @@ function sideMenuItem(
       data-menu-action="${escapeHTML(action)}"
       style="
         width:100%;
+        min-height:43px;
         display:flex;
         align-items:center;
         gap:12px;
-        padding:12px;
-        border-radius:12px;
+        padding:10px 11px;
+        border-radius:11px 5px 11px 5px;
         text-align:left;
         color:var(--text-primary);
       "
@@ -3196,30 +3862,30 @@ function sideMenuItem(
       <i
         class="ph ${icon}"
         style="
-          width:22px;
-          font-size:20px;
+          width:21px;
+          font-size:19px;
           color:var(--forest-700);
         "
+        aria-hidden="true"
       ></i>
-
 
       <span
         style="
-          font-size:13px;
-          font-weight:500;
+          font-size:11px;
+          font-weight:600;
         "
       >
         ${escapeHTML(label)}
       </span>
 
-
       <i
         class="ph ph-caret-right"
         style="
           margin-left:auto;
-          font-size:13px;
+          font-size:12px;
           color:var(--text-tertiary);
         "
+        aria-hidden="true"
       ></i>
 
     </button>
@@ -3228,12 +3894,14 @@ function sideMenuItem(
 
 
 /* =========================================================
-   48. SIDE MENU OPEN / CLOSE
+   54. SIDE MENU OPEN
    ========================================================= */
 
 function openSideMenu() {
 
-  if (!DOM.sideMenu) return;
+  if (!DOM.sideMenu) {
+    return;
+  }
 
 
   DOM.sideMenu.hidden =
@@ -3246,20 +3914,26 @@ function openSideMenu() {
   );
 
 
-  DOM.menuButton?.setAttribute(
-    'aria-expanded',
-    'true'
-  );
+  DOM.menuButton
+    ?.setAttribute(
+      'aria-expanded',
+      'true'
+    );
 
 
-  document.body.style.overflow =
-    'hidden';
+  lockBodyScroll();
 }
 
 
+/* =========================================================
+   55. SIDE MENU CLOSE
+   ========================================================= */
+
 function closeSideMenu() {
 
-  if (!DOM.sideMenu) return;
+  if (!DOM.sideMenu) {
+    return;
+  }
 
 
   DOM.sideMenu.hidden =
@@ -3272,39 +3946,41 @@ function closeSideMenu() {
   );
 
 
-  DOM.menuButton?.setAttribute(
-    'aria-expanded',
-    'false'
-  );
+  DOM.menuButton
+    ?.setAttribute(
+      'aria-expanded',
+      'false'
+    );
 
 
-  document.body.style.overflow =
-    '';
+  unlockBodyScrollIfPossible();
 }
 
 
 /* =========================================================
-   49. SIDE MENU ACTIONS
+   56. SIDE MENU ACTION
    ========================================================= */
 
-function handleSideMenuAction(action) {
+function handleSideMenuAction(
+  action
+) {
 
   closeSideMenu();
 
 
-  setTimeout(
+  window.setTimeout(
     () => {
 
       switch (action) {
 
         case 'home':
 
+          STATE.activeCategory =
+            null;
+
           setActiveNavigation(
             'home'
           );
-
-          STATE.activeCategory =
-            null;
 
           renderFeed();
 
@@ -3368,6 +4044,7 @@ function handleSideMenuAction(action) {
             'Menu belum tersedia'
           );
       }
+
     },
     100
   );
@@ -3375,65 +4052,96 @@ function handleSideMenuAction(action) {
 
 
 /* =========================================================
-   50. CATEGORIES
+   57. CATEGORIES
    ========================================================= */
 
 const CATEGORIES = [
 
   {
-    icon: 'ph-hamburger',
-    label: 'Kuliner'
+    icon:
+      'ph-fork-knife',
+
+    label:
+      'Kuliner'
   },
 
   {
-    icon: 'ph-t-shirt',
-    label: 'Fashion'
+    icon:
+      'ph-t-shirt',
+
+    label:
+      'Fashion'
   },
 
   {
-    icon: 'ph-sparkle',
-    label: 'Kecantikan'
+    icon:
+      'ph-sparkle',
+
+    label:
+      'Kecantikan'
   },
 
   {
-    icon: 'ph-laptop',
-    label: 'Digital'
+    icon:
+      'ph-laptop',
+
+    label:
+      'Digital'
   },
 
   {
-    icon: 'ph-device-mobile',
-    label: 'Elektronik'
+    icon:
+      'ph-device-mobile',
+
+    label:
+      'Elektronik'
   },
 
   {
-    icon: 'ph-house-line',
-    label: 'Property'
+    icon:
+      'ph-house-line',
+
+    label:
+      'Property'
   },
 
   {
-    icon: 'ph-wallet',
-    label: 'Finance'
+    icon:
+      'ph-wallet',
+
+    label:
+      'Finance'
   },
 
   {
-    icon: 'ph-wrench',
-    label: 'Jasa'
+    icon:
+      'ph-wrench',
+
+    label:
+      'Jasa'
   },
 
   {
-    icon: 'ph-hammer',
-    label: 'Kerajinan'
+    icon:
+      'ph-hammer',
+
+    label:
+      'Kerajinan'
   }
 ];
 
 
+/* =========================================================
+   58. OPEN CATEGORIES
+   ========================================================= */
+
 function openCategories() {
 
-  const items =
+  const content =
     CATEGORIES
       .map(
         category =>
-          categoryItem(
+          createCategoryItem(
             category.icon,
             category.label
           )
@@ -3446,39 +4154,35 @@ function openCategories() {
       Kategori
     </h2>
 
-
     <p
       style="
-        margin-top:5px;
-        font-size:11px;
+        margin-top:6px;
+        font-size:10px;
         color:var(--text-tertiary);
       "
     >
-      Temukan produk berdasarkan kategori.
+      Telusuri produk berdasarkan jenis usaha.
     </p>
-
 
     <div
       style="
         display:grid;
-        grid-template-columns:repeat(2,1fr);
-        gap:10px;
-        margin-top:16px;
+        grid-template-columns:repeat(3,1fr);
+        gap:9px;
+        margin-top:17px;
       "
     >
-
-      ${items}
-
+      ${content}
     </div>
   `);
 }
 
 
 /* =========================================================
-   51. CATEGORY ITEM
+   59. CATEGORY ITEM
    ========================================================= */
 
-function categoryItem(
+function createCategoryItem(
   icon,
   label
 ) {
@@ -3488,8 +4192,9 @@ function categoryItem(
       type="button"
       data-category="${escapeHTML(label)}"
       style="
-        padding:15px 8px;
-        border-radius:12px;
+        min-height:78px;
+        padding:13px 7px;
+        border-radius:13px 6px 13px 6px;
         background:var(--forest-50);
         color:var(--forest-800);
       "
@@ -3499,15 +4204,15 @@ function categoryItem(
         class="ph ${icon}"
         style="
           display:block;
-          font-size:23px;
           margin-bottom:7px;
+          font-size:22px;
         "
+        aria-hidden="true"
       ></i>
-
 
       <span
         style="
-          font-size:11px;
+          font-size:9px;
           font-weight:700;
         "
       >
@@ -3520,7 +4225,7 @@ function categoryItem(
 
 
 /* =========================================================
-   52. CATEGORY CLICK
+   60. CATEGORY CLICK
    ========================================================= */
 
 document.addEventListener(
@@ -3533,7 +4238,9 @@ document.addEventListener(
       );
 
 
-    if (!button) return;
+    if (!button) {
+      return;
+    }
 
 
     const category =
@@ -3547,16 +4254,17 @@ document.addEventListener(
     const results =
       DATA.posts.filter(
         post =>
-          post.category
+          String(post.category)
             .toLowerCase() ===
-          category.toLowerCase()
+          String(category)
+            .toLowerCase()
       );
 
 
     closeBottomSheet();
 
 
-    setTimeout(
+    window.setTimeout(
       () => {
 
         renderCategoryFeed(
@@ -3565,30 +4273,32 @@ document.addEventListener(
         );
 
       },
-      380
+      420
     );
   }
 );
 
 
 /* =========================================================
-   53. CATEGORY FEED
+   61. CATEGORY FEED
    ========================================================= */
 
 function renderCategoryFeed(
   category,
-  results
+  posts
 ) {
 
-  if (!DOM.feed) return;
+  if (!DOM.feed) {
+    return;
+  }
 
 
-  const header = `
+  const top = `
     <div
       style="
-        padding:14px 14px 12px;
+        padding:15px var(--page-gutter) 13px;
         background:var(--bg-secondary);
-        border-bottom:1px solid rgba(0,0,0,.06);
+        border-bottom:1px solid var(--border-subtle);
       "
     >
 
@@ -3606,22 +4316,22 @@ function renderCategoryFeed(
           <small
             style="
               display:block;
-              color:var(--text-tertiary);
-              font-size:9px;
+              font-size:8px;
               text-transform:uppercase;
-              letter-spacing:.6px;
+              letter-spacing:.1em;
+              color:var(--text-tertiary);
             "
           >
             Kategori
           </small>
 
-
           <strong
             style="
               display:block;
-              margin-top:2px;
-              color:var(--forest-800);
-              font-size:15px;
+              margin-top:3px;
+              font-family:var(--font-display);
+              font-size:17px;
+              color:var(--forest-900);
             "
           >
             ${escapeHTML(category)}
@@ -3634,12 +4344,12 @@ function renderCategoryFeed(
           type="button"
           data-action="clear-category"
           style="
-            font-size:11px;
-            color:var(--forest-700);
+            font-size:10px;
             font-weight:700;
+            color:var(--forest-700);
           "
         >
-          Lihat Semua
+          Semua
         </button>
 
       </div>
@@ -3648,21 +4358,24 @@ function renderCategoryFeed(
   `;
 
 
-  if (!results.length) {
+  if (!posts.length) {
 
     DOM.feed.innerHTML =
-      header +
+      top +
       `
         <div class="empty-state">
 
-          <i class="ph ph-package"></i>
+          <i
+            class="ph ph-package"
+            aria-hidden="true"
+          ></i>
 
           <div class="empty-state-title">
             Belum ada produk ${escapeHTML(category)}
           </div>
 
           <div class="empty-state-text">
-            Produk pada kategori ini akan muncul setelah UMKM mulai mengunggah produk.
+            Produk pada kategori ini akan muncul setelah UMKM mulai mengunggahnya.
           </div>
 
         </div>
@@ -3673,8 +4386,8 @@ function renderCategoryFeed(
 
 
   DOM.feed.innerHTML =
-    header +
-    results
+    top +
+    posts
       .map(createPostTemplate)
       .join('');
 
@@ -3687,7 +4400,7 @@ function renderCategoryFeed(
 
 
 /* =========================================================
-   54. CLEAR CATEGORY
+   62. CLEAR CATEGORY
    ========================================================= */
 
 function clearCategoryFilter() {
@@ -3712,152 +4425,28 @@ function clearCategoryFilter() {
 
 
 /* =========================================================
-   55. STORES / UMKM
-   ========================================================= */
-
-function openStores() {
-
-  const stores =
-    getStores();
-
-
-  if (!stores.length) {
-
-    openBottomSheet(`
-      <h2 id="sheetTitle">
-        Jelajahi UMKM
-      </h2>
-
-      ${createSheetEmptyState(
-        'ph-storefront',
-        'Belum ada UMKM',
-        'UMKM yang bergabung akan muncul di halaman ini.'
-      )}
-    `);
-
-    return;
-  }
-
-
-  const content =
-    stores
-      .map(
-        store => `
-          <button
-            type="button"
-            data-store-name="${escapeHTML(store.name)}"
-            style="
-              width:100%;
-              display:flex;
-              align-items:center;
-              gap:11px;
-              padding:12px 0;
-              text-align:left;
-              border-bottom:1px solid rgba(0,0,0,.06);
-            "
-          >
-
-            <img
-              src="${escapeHTML(store.avatar)}"
-              alt="${escapeHTML(store.name)}"
-              style="
-                width:48px;
-                height:48px;
-                border-radius:50%;
-                object-fit:cover;
-              "
-            >
-
-
-            <div
-              style="
-                flex:1;
-                min-width:0;
-              "
-            >
-
-              <strong
-                style="
-                  display:block;
-                  font-size:12px;
-                "
-              >
-                ${escapeHTML(store.name)}
-              </strong>
-
-
-              <small
-                style="
-                  display:block;
-                  margin-top:3px;
-                  color:var(--text-tertiary);
-                "
-              >
-                ${escapeHTML(store.category)}
-                •
-                ${escapeHTML(store.location)}
-              </small>
-
-            </div>
-
-
-            <i
-              class="ph ph-caret-right"
-              style="
-                color:var(--text-tertiary);
-              "
-            ></i>
-
-          </button>
-        `
-      )
-      .join('');
-
-
-  openBottomSheet(`
-    <h2 id="sheetTitle">
-      Jelajahi UMKM
-    </h2>
-
-
-    <p
-      style="
-        margin-top:5px;
-        font-size:11px;
-        color:var(--text-tertiary);
-      "
-    >
-      Temukan pelaku usaha lokal di Pasar UMKM.
-    </p>
-
-
-    <div style="margin-top:14px">
-
-      ${content}
-
-    </div>
-  `);
-}
-
-
-/* =========================================================
-   56. GET STORES
+   63. GET STORES
    ========================================================= */
 
 function getStores() {
 
-  const map =
+  const stores =
     new Map();
 
 
   DATA.posts.forEach(
     post => {
 
-      if (!map.has(post.author)) {
+      if (
+        !stores.has(
+          post.author
+        )
+      ) {
 
-        map.set(
+        stores.set(
           post.author,
           {
+
             name:
               post.author,
 
@@ -3879,12 +4468,137 @@ function getStores() {
   );
 
 
-  return [...map.values()];
+  return [
+    ...stores.values()
+  ];
 }
 
 
 /* =========================================================
-   57. STORE CLICK
+   64. STORES
+   ========================================================= */
+
+function openStores() {
+
+  const stores =
+    getStores();
+
+
+  if (!stores.length) {
+
+    openBottomSheet(`
+      <h2 id="sheetTitle">
+        Jelajahi UMKM
+      </h2>
+
+      ${createSheetEmptyState(
+        'ph-storefront',
+        'Belum ada UMKM',
+        'Pelaku usaha yang bergabung akan muncul di sini.'
+      )}
+    `);
+
+    return;
+  }
+
+
+  const content =
+    stores
+      .map(
+        store => `
+          <button
+            type="button"
+            data-store-name="${escapeHTML(store.name)}"
+            style="
+              width:100%;
+              display:flex;
+              align-items:center;
+              gap:11px;
+              padding:12px 0;
+              text-align:left;
+              border-bottom:1px solid var(--border-subtle);
+            "
+          >
+
+            <img
+              src="${escapeHTML(store.avatar)}"
+              alt="${escapeHTML(store.name)}"
+              style="
+                width:48px;
+                height:48px;
+                object-fit:cover;
+                border-radius:50%;
+              "
+            >
+
+            <div
+              style="
+                flex:1;
+                min-width:0;
+              "
+            >
+
+              <strong
+                style="
+                  display:block;
+                  font-size:11px;
+                "
+              >
+                ${escapeHTML(store.name)}
+              </strong>
+
+              <small
+                style="
+                  display:block;
+                  margin-top:3px;
+                  color:var(--text-tertiary);
+                "
+              >
+                ${escapeHTML(store.category)}
+                ·
+                ${escapeHTML(store.location)}
+              </small>
+
+            </div>
+
+            <i
+              class="ph ph-caret-right"
+              style="
+                color:var(--text-tertiary);
+              "
+              aria-hidden="true"
+            ></i>
+
+          </button>
+        `
+      )
+      .join('');
+
+
+  openBottomSheet(`
+    <h2 id="sheetTitle">
+      Jelajahi UMKM
+    </h2>
+
+    <p
+      style="
+        margin-top:6px;
+        font-size:10px;
+        color:var(--text-tertiary);
+      "
+    >
+      Pelaku usaha yang tampil pada Pasar UMKM.
+    </p>
+
+    <div style="margin-top:14px">
+      ${content}
+    </div>
+  `);
+}
+
+
+/* =========================================================
+   65. STORE CLICK
    ========================================================= */
 
 document.addEventListener(
@@ -3897,49 +4611,61 @@ document.addEventListener(
       );
 
 
-    if (!button) return;
+    if (!button) {
+      return;
+    }
 
 
-    const storeName =
+    const store =
       button.dataset.storeName;
 
 
     const posts =
       DATA.posts.filter(
         post =>
-          post.author === storeName
+          post.author === store
       );
 
 
-    if (!posts.length) return;
+    if (!posts.length) {
+      return;
+    }
 
 
     closeBottomSheet();
 
 
-    setTimeout(
+    window.setTimeout(
       () => {
 
-        renderFeed(posts);
+        STATE.activeCategory =
+          null;
+
+
+        renderFeed(
+          posts
+        );
+
 
         window.scrollTo({
           top: 0,
           behavior: 'smooth'
         });
 
+
         showToast(
-          `Menampilkan produk ${storeName}`
+          `Menampilkan ${store}`
         );
 
       },
-      380
+      420
     );
   }
 );
 
 
 /* =========================================================
-   58. ORDERS
+   66. ORDERS
    ========================================================= */
 
 function openOrders() {
@@ -3954,7 +4680,7 @@ function openOrders() {
       ${createSheetEmptyState(
         'ph-receipt',
         'Belum ada pesanan',
-        'Pesanan yang kamu buat akan muncul di sini.'
+        'Pesanan yang dibuat akan muncul di sini.'
       )}
     `);
 
@@ -3964,7 +4690,7 @@ function openOrders() {
 
 
 /* =========================================================
-   59. FAVORITES
+   67. FAVORITES
    ========================================================= */
 
 function openFavorites() {
@@ -3988,7 +4714,7 @@ function openFavorites() {
       ${createSheetEmptyState(
         'ph-heart',
         'Belum ada favorit',
-        'Simpan postingan atau produk yang kamu sukai untuk menemukannya lagi dengan mudah.'
+        'Simpan produk atau postingan untuk menemukannya kembali.'
       )}
     `);
 
@@ -3996,7 +4722,7 @@ function openFavorites() {
   }
 
 
-  const items =
+  const content =
     favorites
       .map(
         post => `
@@ -4006,11 +4732,11 @@ function openFavorites() {
             style="
               width:100%;
               display:flex;
-              gap:11px;
               align-items:center;
+              gap:11px;
               padding:11px 0;
               text-align:left;
-              border-bottom:1px solid rgba(0,0,0,.06);
+              border-bottom:1px solid var(--border-subtle);
             "
           >
 
@@ -4021,10 +4747,9 @@ function openFavorites() {
                 width:54px;
                 height:54px;
                 object-fit:cover;
-                border-radius:11px;
+                border-radius:11px 5px 11px 5px;
               "
             >
-
 
             <span
               style="
@@ -4036,7 +4761,7 @@ function openFavorites() {
               <strong
                 style="
                   display:block;
-                  font-size:12px;
+                  font-size:11px;
                 "
               >
                 ${escapeHTML(
@@ -4044,7 +4769,6 @@ function openFavorites() {
                   post.author
                 )}
               </strong>
-
 
               <small
                 style="
@@ -4058,12 +4782,12 @@ function openFavorites() {
 
             </span>
 
-
             <i
               class="ph-fill ph-heart"
               style="
                 color:var(--sunset-500);
               "
+              aria-hidden="true"
             ></i>
 
           </button>
@@ -4078,16 +4802,14 @@ function openFavorites() {
     </h2>
 
     <div style="margin-top:14px">
-
-      ${items}
-
+      ${content}
     </div>
   `);
 }
 
 
 /* =========================================================
-   60. FAVORITE CLICK
+   68. FAVORITE CLICK
    ========================================================= */
 
 document.addEventListener(
@@ -4100,7 +4822,9 @@ document.addEventListener(
       );
 
 
-    if (!button) return;
+    if (!button) {
+      return;
+    }
 
 
     const postId =
@@ -4112,16 +4836,22 @@ document.addEventListener(
     closeBottomSheet();
 
 
-    setTimeout(
-      () => scrollToPost(postId),
-      380
+    window.setTimeout(
+      () => {
+
+        scrollToPost(
+          postId
+        );
+
+      },
+      420
     );
   }
 );
 
 
 /* =========================================================
-   61. ABOUT
+   69. ABOUT PASAR UMKM
    ========================================================= */
 
 function openAbout() {
@@ -4129,17 +4859,17 @@ function openAbout() {
   openBottomSheet(`
     <div
       style="
+        padding-top:3px;
         text-align:center;
-        padding-top:4px;
       "
     >
 
       <img
-        src="assets/logo.png"
+        src="${ASSETS.appLogo}"
         alt="${CONFIG.APP_NAME}"
         style="
-          width:72px;
-          height:72px;
+          width:74px;
+          height:74px;
           object-fit:contain;
           margin:0 auto;
         "
@@ -4150,8 +4880,7 @@ function openAbout() {
         id="sheetTitle"
         style="
           margin-top:12px;
-          font-family:var(--font-display);
-          color:var(--forest-800);
+          font-size:24px;
         "
       >
         ${CONFIG.APP_NAME}
@@ -4160,11 +4889,12 @@ function openAbout() {
 
       <div
         style="
-          margin-top:4px;
-          color:var(--gold-600);
-          font-size:9px;
-          letter-spacing:1px;
+          margin-top:5px;
+          font-size:8px;
+          font-weight:600;
+          letter-spacing:.14em;
           text-transform:uppercase;
+          color:var(--gold-700);
         "
       >
         Social Marketplace UMKM Lokal
@@ -4173,81 +4903,168 @@ function openAbout() {
     </div>
 
 
+
     <div
       style="
-        margin-top:20px;
-        font-size:12px;
+        max-width:320px;
+        margin:20px auto 0;
+        font-size:11px;
         line-height:1.75;
         color:var(--text-secondary);
       "
     >
 
       <p>
-        Pasar UMKM adalah platform digital yang dirancang
-        untuk membantu masyarakat menemukan, mendukung,
-        mempromosikan dan membeli produk dari UMKM lokal.
+        Pasar UMKM membantu masyarakat menemukan produk,
+        pelaku usaha, dan aktivitas UMKM lokal dalam satu tempat.
       </p>
 
-
-      <p style="margin-top:12px">
-        Platform ini menggabungkan pengalaman marketplace
-        dengan fitur sosial agar pelaku UMKM dapat
-        memperkenalkan produk, membangun audiens dan
-        berinteraksi dengan calon pembeli.
+      <p style="margin-top:11px">
+        Penjual dapat memperkenalkan produk melalui feed,
+        cerita, katalog, dan interaksi langsung dengan calon pembeli.
       </p>
 
     </div>
+
+
+
+    <div
+      style="
+        margin-top:24px;
+        text-align:center;
+      "
+    >
+
+      <div
+        style="
+          font-size:8px;
+          font-weight:600;
+          letter-spacing:.12em;
+          text-transform:uppercase;
+          color:var(--text-tertiary);
+        "
+      >
+        Diinisiasi oleh
+      </div>
+
+
+      <div
+        style="
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          gap:22px;
+          margin-top:17px;
+          padding:18px 14px;
+          border-top:1px solid var(--border-subtle);
+          border-bottom:1px solid var(--border-subtle);
+        "
+      >
+
+
+        <div
+          style="
+            width:44%;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            gap:9px;
+          "
+        >
+
+          <img
+            src="${ASSETS.hipmiLogo}"
+            alt="Logo HIPMI PT UIN Al Azhaar Lubuklinggau"
+            style="
+              width:82px;
+              height:82px;
+              object-fit:contain;
+            "
+          >
+
+          <span
+            style="
+              max-width:125px;
+              font-size:8px;
+              line-height:1.4;
+              font-weight:700;
+              color:var(--forest-900);
+            "
+          >
+            HIPMI PT
+            UIN Al Azhaar
+            Lubuklinggau
+          </span>
+
+        </div>
+
+
+
+        <div
+          aria-hidden="true"
+          style="
+            width:1px;
+            align-self:stretch;
+            background:var(--border-soft);
+          "
+        ></div>
+
+
+
+        <div
+          style="
+            width:44%;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            gap:9px;
+          "
+        >
+
+          <img
+            src="${ASSETS.universityLogo}"
+            alt="Logo Universitas Islam Nusantara Al-Azhaar Lubuklinggau"
+            style="
+              width:82px;
+              height:82px;
+              object-fit:contain;
+            "
+          >
+
+          <span
+            style="
+              max-width:130px;
+              font-size:8px;
+              line-height:1.4;
+              font-weight:700;
+              color:var(--forest-900);
+            "
+          >
+            Universitas Islam Nusantara
+            Al-Azhaar Lubuklinggau
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
 
 
     <div
       style="
         margin-top:20px;
-        padding:16px;
-        border-radius:16px;
-        background:var(--forest-50);
+        padding:15px 4px;
+        text-align:center;
       "
     >
 
       <div
         style="
-          font-size:9px;
-          letter-spacing:.7px;
-          text-transform:uppercase;
-          color:var(--text-tertiary);
-        "
-      >
-        Sebuah inisiatif dari
-      </div>
-
-
-      <strong
-        style="
-          display:block;
-          margin-top:5px;
-          font-size:13px;
-          line-height:1.45;
-          color:var(--forest-800);
-        "
-      >
-        ${CONFIG.ORGANIZATION}
-      </strong>
-
-    </div>
-
-
-    <div
-      style="
-        margin-top:12px;
-        padding:16px;
-        border-radius:16px;
-        background:var(--bg-tertiary);
-      "
-    >
-
-      <div
-        style="
-          font-size:9px;
-          letter-spacing:.7px;
+          font-size:8px;
+          font-weight:600;
+          letter-spacing:.1em;
           text-transform:uppercase;
           color:var(--text-tertiary);
         "
@@ -4255,13 +5072,13 @@ function openAbout() {
         Founder & Product Initiator
       </div>
 
-
       <strong
         style="
           display:block;
           margin-top:5px;
-          font-size:14px;
-          color:var(--text-primary);
+          font-family:var(--font-display);
+          font-size:16px;
+          color:var(--forest-900);
         "
       >
         ${CONFIG.INITIATOR}
@@ -4270,12 +5087,15 @@ function openAbout() {
     </div>
 
 
+
     <div
       style="
-        margin-top:18px;
+        margin-top:4px;
+        padding-top:15px;
+        border-top:1px solid var(--border-subtle);
         text-align:center;
-        font-size:9px;
-        line-height:1.6;
+        font-size:8px;
+        line-height:1.7;
         color:var(--text-tertiary);
       "
     >
@@ -4287,7 +5107,7 @@ function openAbout() {
 
 
 /* =========================================================
-   62. HELP
+   70. HELP
    ========================================================= */
 
 function openHelp() {
@@ -4297,15 +5117,14 @@ function openHelp() {
       Bantuan
     </h2>
 
-
     <p
       style="
-        margin-top:5px;
-        font-size:11px;
+        margin-top:6px;
+        font-size:10px;
         color:var(--text-tertiary);
       "
     >
-      Pusat bantuan Pasar UMKM.
+      Informasi penggunaan Pasar UMKM.
     </p>
 
 
@@ -4317,32 +5136,32 @@ function openHelp() {
       "
     >
 
-      ${helpItem(
+      ${createHelpItem(
         'ph-shopping-cart',
         'Cara membeli produk'
       )}
 
-      ${helpItem(
+      ${createHelpItem(
         'ph-storefront',
         'Cara menjadi penjual'
       )}
 
-      ${helpItem(
+      ${createHelpItem(
         'ph-package',
         'Pesanan dan pengiriman'
       )}
 
-      ${helpItem(
+      ${createHelpItem(
         'ph-wallet',
         'Pembayaran'
       )}
 
-      ${helpItem(
+      ${createHelpItem(
         'ph-shield-check',
         'Keamanan akun'
       )}
 
-      ${helpItem(
+      ${createHelpItem(
         'ph-headset',
         'Hubungi pengelola'
       )}
@@ -4353,10 +5172,10 @@ function openHelp() {
 
 
 /* =========================================================
-   63. HELP ITEM
+   71. HELP ITEM
    ========================================================= */
 
-function helpItem(
+function createHelpItem(
   icon,
   label
 ) {
@@ -4371,7 +5190,7 @@ function helpItem(
         align-items:center;
         gap:12px;
         padding:13px;
-        border-radius:12px;
+        border-radius:12px 6px 12px 6px;
         background:var(--forest-50);
         text-align:left;
       "
@@ -4380,21 +5199,20 @@ function helpItem(
       <i
         class="ph ${icon}"
         style="
-          color:var(--forest-700);
           font-size:19px;
+          color:var(--forest-700);
         "
+        aria-hidden="true"
       ></i>
-
 
       <span
         style="
-          font-size:12px;
+          font-size:11px;
           font-weight:600;
         "
       >
         ${escapeHTML(label)}
       </span>
-
 
       <i
         class="ph ph-caret-right"
@@ -4402,6 +5220,7 @@ function helpItem(
           margin-left:auto;
           color:var(--text-tertiary);
         "
+        aria-hidden="true"
       ></i>
 
     </button>
@@ -4410,7 +5229,7 @@ function helpItem(
 
 
 /* =========================================================
-   64. HELP CLICK
+   72. HELP CLICK
    ========================================================= */
 
 document.addEventListener(
@@ -4423,22 +5242,20 @@ document.addEventListener(
       );
 
 
-    if (!button) return;
-
-
-    const label =
-      button.dataset.helpItem;
+    if (!button) {
+      return;
+    }
 
 
     showToast(
-      `${label} akan dilengkapi pada tahap berikutnya`
+      `${button.dataset.helpItem} sedang disiapkan`
     );
   }
 );
 
 
 /* =========================================================
-   65. ACCOUNT
+   73. ACCOUNT
    ========================================================= */
 
 function openAccount() {
@@ -4451,48 +5268,56 @@ function openAccount() {
 
     <div
       style="
-        padding:24px 0;
+        padding:24px 0 12px;
         text-align:center;
       "
     >
 
       <div
         style="
-          width:68px;
-          height:68px;
+          width:66px;
+          height:66px;
           margin:0 auto;
           display:flex;
           align-items:center;
           justify-content:center;
+          border-radius:20px 9px 20px 9px;
           background:var(--forest-100);
           color:var(--forest-700);
-          border-radius:50%;
-          font-size:30px;
+          font-size:29px;
         "
       >
-        <i class="ph ph-user"></i>
+
+        <i
+          class="ph ph-user"
+          aria-hidden="true"
+        ></i>
+
       </div>
 
 
       <h3
         style="
-          margin-top:12px;
+          margin-top:13px;
+          font-family:var(--font-display);
+          font-size:17px;
+          color:var(--forest-900);
         "
       >
-        Selamat Datang
+        Akun Pasar UMKM
       </h3>
 
 
       <p
         style="
-          margin-top:5px;
-          font-size:11px;
+          max-width:270px;
+          margin:6px auto 0;
+          font-size:10px;
           line-height:1.6;
           color:var(--text-tertiary);
         "
       >
-        Masuk untuk membeli produk, menjual,
-        mengelola toko, pesanan dan aktivitasmu.
+        Masuk untuk membeli, menjual, mengelola toko, dan melihat pesanan.
       </p>
 
 
@@ -4515,22 +5340,21 @@ function openAccount() {
 
 
 /* =========================================================
-   66. LOGIN PLACEHOLDER
+   74. LOGIN PLACEHOLDER
    ========================================================= */
 
 function openLogin() {
 
   openBottomSheet(`
     <h2 id="sheetTitle">
-      Masuk ke Pasar UMKM
+      Masuk
     </h2>
-
 
     <div
       style="
         margin-top:18px;
-        padding:18px;
-        border-radius:16px;
+        padding:19px;
+        border-radius:16px 8px 16px 8px;
         background:var(--forest-50);
         text-align:center;
       "
@@ -4539,33 +5363,31 @@ function openLogin() {
       <i
         class="ph ph-user-circle"
         style="
-          font-size:34px;
+          font-size:35px;
           color:var(--forest-700);
         "
+        aria-hidden="true"
       ></i>
-
 
       <strong
         style="
           display:block;
           margin-top:10px;
-          font-size:13px;
+          font-size:12px;
         "
       >
-        Sistem akun sedang disiapkan
+        Sistem akun belum diaktifkan
       </strong>
-
 
       <p
         style="
           margin-top:6px;
-          font-size:11px;
+          font-size:10px;
           line-height:1.6;
           color:var(--text-secondary);
         "
       >
-        Login dan pendaftaran akan dihubungkan
-        ke backend serta database pada tahap berikutnya.
+        Login dan pendaftaran akan menggunakan backend dan database pada tahap berikutnya.
       </p>
 
     </div>
@@ -4574,10 +5396,12 @@ function openLogin() {
 
 
 /* =========================================================
-   67. BOTTOM SHEET
+   75. OPEN BOTTOM SHEET
    ========================================================= */
 
-function openBottomSheet(content) {
+function openBottomSheet(
+  content
+) {
 
   if (
     !DOM.bottomSheet ||
@@ -4601,17 +5425,9 @@ function openBottomSheet(content) {
     false;
 
 
-  requestAnimationFrame(
-    () => {
-
-      DOM.sheetOverlay.classList.add(
-        'show'
-      );
-
-      DOM.bottomSheet.classList.add(
-        'show'
-      );
-    }
+  DOM.sheetOverlay.setAttribute(
+    'aria-hidden',
+    'false'
   );
 
 
@@ -4621,19 +5437,27 @@ function openBottomSheet(content) {
   );
 
 
-  DOM.sheetOverlay.setAttribute(
-    'aria-hidden',
-    'false'
+  requestAnimationFrame(
+    () => {
+
+      DOM.sheetOverlay
+        .classList
+        .add('show');
+
+
+      DOM.bottomSheet
+        .classList
+        .add('show');
+    }
   );
 
 
-  document.body.style.overflow =
-    'hidden';
+  lockBodyScroll();
 }
 
 
 /* =========================================================
-   68. CLOSE BOTTOM SHEET
+   76. CLOSE BOTTOM SHEET
    ========================================================= */
 
 function closeBottomSheet() {
@@ -4647,28 +5471,14 @@ function closeBottomSheet() {
   }
 
 
-  DOM.sheetOverlay.classList.remove(
-    'show'
-  );
+  DOM.sheetOverlay
+    .classList
+    .remove('show');
 
 
-  DOM.bottomSheet.classList.remove(
-    'show'
-  );
-
-
-  setTimeout(
-    () => {
-
-      DOM.sheetOverlay.hidden =
-        true;
-
-      DOM.bottomSheet.hidden =
-        true;
-
-    },
-    400
-  );
+  DOM.bottomSheet
+    .classList
+    .remove('show');
 
 
   DOM.bottomSheet.setAttribute(
@@ -4683,13 +5493,27 @@ function closeBottomSheet() {
   );
 
 
-  document.body.style.overflow =
-    '';
+  window.setTimeout(
+    () => {
+
+      DOM.sheetOverlay.hidden =
+        true;
+
+
+      DOM.bottomSheet.hidden =
+        true;
+
+
+      unlockBodyScrollIfPossible();
+
+    },
+    400
+  );
 }
 
 
 /* =========================================================
-   69. NAVIGATION
+   77. NAVIGATION
    ========================================================= */
 
 function bindNavigation() {
@@ -4769,7 +5593,7 @@ function bindNavigation() {
 
 
 /* =========================================================
-   70. ACTIVE NAV
+   78. ACTIVE NAVIGATION
    ========================================================= */
 
 function setActiveNavigation(nav) {
@@ -4795,6 +5619,27 @@ function setActiveNavigation(nav) {
         );
 
 
+        const icon =
+          link.querySelector(
+            '.nav-icon-wrap i'
+          );
+
+
+        if (icon) {
+
+          icon.classList.toggle(
+            'ph-fill',
+            active
+          );
+
+
+          icon.classList.toggle(
+            'ph',
+            !active
+          );
+        }
+
+
         if (active) {
 
           link.setAttribute(
@@ -4814,7 +5659,7 @@ function setActiveNavigation(nav) {
 
 
 /* =========================================================
-   71. BRAND HOME NAVIGATION
+   79. BRAND NAVIGATION
    ========================================================= */
 
 function bindBrandNavigation() {
@@ -4857,12 +5702,12 @@ function bindBrandNavigation() {
 
 
 /* =========================================================
-   72. STATIC EVENTS
+   80. BIND EVENTS
    ========================================================= */
 
 function bindEvents() {
 
-  /* SIDE MENU ITEM */
+  /* SIDE MENU ITEMS */
 
   DOM.sideMenuContent
     ?.addEventListener(
@@ -4875,12 +5720,32 @@ function bindEvents() {
           );
 
 
-        if (!button) return;
+        if (!button) {
+          return;
+        }
 
 
         handleSideMenuAction(
           button.dataset.menuAction
         );
+      }
+    );
+
+
+  /* CLICK DARK AREA TO CLOSE SIDE MENU */
+
+  DOM.sideMenu
+    ?.addEventListener(
+      'click',
+      event => {
+
+        if (
+          event.target ===
+          DOM.sideMenu
+        ) {
+
+          closeSideMenu();
+        }
       }
     );
 
@@ -4912,14 +5777,16 @@ function bindEvents() {
     );
 
 
-  /* SEARCH CLEAR */
+  /* CLEAR SEARCH */
 
   DOM.searchClearButton
     ?.addEventListener(
       'click',
       () => {
 
-        if (!DOM.searchInput) return;
+        if (!DOM.searchInput) {
+          return;
+        }
 
 
         DOM.searchInput.value =
@@ -4951,7 +5818,7 @@ function bindEvents() {
     );
 
 
-  /* ESCAPE */
+  /* ESC */
 
   document.addEventListener(
     'keydown',
@@ -4965,7 +5832,8 @@ function bindEvents() {
     'scroll',
     handleScroll,
     {
-      passive: true
+      passive:
+        true
     }
   );
 
@@ -4973,13 +5841,11 @@ function bindEvents() {
   bindNavigation();
 
   bindBrandNavigation();
-
-  renderSearchHint();
 }
 
 
 /* =========================================================
-   73. ESCAPE HANDLER
+   81. ESCAPE
    ========================================================= */
 
 function handleEscape(event) {
@@ -5025,43 +5891,51 @@ function handleEscape(event) {
 
 
 /* =========================================================
-   74. HEADER SCROLL
+   82. HEADER SCROLL STATE
    ========================================================= */
 
 function handleScroll() {
 
-  DOM.header?.classList.toggle(
-    'scrolled',
-    window.scrollY > 8
-  );
+  DOM.header
+    ?.classList
+    .toggle(
+      'scrolled',
+      window.scrollY > 8
+    );
 }
 
 
 /* =========================================================
-   75. HEADER BADGES
+   83. HEADER BADGES
    ========================================================= */
 
 function updateHeaderBadges() {
 
   updateButtonBadge(
+
     DOM.notificationButton,
+
     DATA.notifications.filter(
-      item => item.unread
+      item =>
+        item.unread
     ).length
   );
 
 
   updateButtonBadge(
+
     DOM.messageButton,
+
     DATA.messages.filter(
-      item => item.unread
+      item =>
+        item.unread
     ).length
   );
 }
 
 
 /* =========================================================
-   76. GENERIC BUTTON BADGE
+   84. BUTTON BADGE
    ========================================================= */
 
 function updateButtonBadge(
@@ -5069,7 +5943,9 @@ function updateButtonBadge(
   count
 ) {
 
-  if (!button) return;
+  if (!button) {
+    return;
+  }
 
 
   const badge =
@@ -5078,28 +5954,34 @@ function updateButtonBadge(
     );
 
 
-  if (!badge) return;
+  if (!badge) {
+    return;
+  }
+
+
+  const number =
+    Number(count) || 0;
 
 
   badge.textContent =
-    count > 99
+    number > 99
       ? '99+'
-      : count;
+      : String(number);
 
 
   badge.hidden =
-    count === 0;
+    number === 0;
 
 
   button.classList.toggle(
     'has-badge',
-    count > 0
+    number > 0
   );
 }
 
 
 /* =========================================================
-   77. CART BADGE
+   85. CART BADGE
    ========================================================= */
 
 function updateCartBadge() {
@@ -5110,13 +5992,19 @@ function updateCartBadge() {
     );
 
 
-  if (!badge) return;
+  if (!badge) {
+    return;
+  }
 
 
   const count =
     STATE.cart.reduce(
-      (sum, item) =>
-        sum + item.quantity,
+      (
+        total,
+        item
+      ) =>
+        total +
+        Number(item.quantity || 0),
       0
     );
 
@@ -5124,7 +6012,7 @@ function updateCartBadge() {
   badge.textContent =
     count > 99
       ? '99+'
-      : count;
+      : String(count);
 
 
   badge.hidden =
@@ -5133,19 +6021,23 @@ function updateCartBadge() {
 
 
 /* =========================================================
-   78. REFRESH CURRENT FEED
+   86. REFRESH FEED
    ========================================================= */
 
 function refreshCurrentFeed() {
 
-  if (STATE.activeCategory) {
+  if (
+    STATE.activeCategory
+  ) {
 
     const results =
       DATA.posts.filter(
         post =>
-          post.category
+          String(post.category)
             .toLowerCase() ===
-          STATE.activeCategory
+          String(
+            STATE.activeCategory
+          )
             .toLowerCase()
       );
 
@@ -5165,7 +6057,47 @@ function refreshCurrentFeed() {
 
 
 /* =========================================================
-   79. LOCAL STORAGE
+   87. BODY SCROLL LOCK
+   ========================================================= */
+
+function lockBodyScroll() {
+
+  document.body.style.overflow =
+    'hidden';
+}
+
+
+function unlockBodyScrollIfPossible() {
+
+  const searchOpen =
+    DOM.searchOverlay &&
+    !DOM.searchOverlay.hidden;
+
+
+  const menuOpen =
+    DOM.sideMenu &&
+    !DOM.sideMenu.hidden;
+
+
+  const sheetOpen =
+    DOM.bottomSheet &&
+    !DOM.bottomSheet.hidden;
+
+
+  if (
+    !searchOpen &&
+    !menuOpen &&
+    !sheetOpen
+  ) {
+
+    document.body.style.overflow =
+      '';
+  }
+}
+
+
+/* =========================================================
+   88. SAVE LOCAL STATE
    ========================================================= */
 
 function saveState() {
@@ -5193,7 +6125,7 @@ function saveState() {
   } catch (error) {
 
     console.warn(
-      'Gagal menyimpan state Pasar UMKM:',
+      'Pasar UMKM: state tidak dapat disimpan.',
       error
     );
   }
@@ -5201,7 +6133,7 @@ function saveState() {
 
 
 /* =========================================================
-   80. RESTORE STATE
+   89. RESTORE STATE
    ========================================================= */
 
 function restoreState() {
@@ -5214,7 +6146,9 @@ function restoreState() {
       );
 
 
-    if (!raw) return;
+    if (!raw) {
+      return;
+    }
 
 
     const saved =
@@ -5242,20 +6176,24 @@ function restoreState() {
 
 
     STATE.cart =
-      Array.isArray(saved.cart)
+      Array.isArray(
+        saved.cart
+      )
         ? saved.cart
         : [];
 
 
     STATE.orders =
-      Array.isArray(saved.orders)
+      Array.isArray(
+        saved.orders
+      )
         ? saved.orders
         : [];
 
   } catch (error) {
 
     console.warn(
-      'Gagal membaca state Pasar UMKM:',
+      'Pasar UMKM: state lokal tidak dapat dibaca.',
       error
     );
   }
@@ -5263,14 +6201,20 @@ function restoreState() {
 
 
 /* =========================================================
-   81. CLEAR LOCAL STATE
+   90. CLEAR LOCAL STATE
    ========================================================= */
 
 function clearState() {
 
-  localStorage.removeItem(
-    CONFIG.STORAGE_KEY
-  );
+  try {
+
+    localStorage.removeItem(
+      CONFIG.STORAGE_KEY
+    );
+
+  } catch (error) {
+    // Abaikan.
+  }
 
 
   STATE.likedPosts.clear();
@@ -5295,13 +6239,40 @@ function clearState() {
 
 
   showToast(
-    'Data lokal berhasil direset'
+    'Data lokal direset'
   );
 }
 
 
 /* =========================================================
-   82. EMPTY STATE HELPER
+   91. RESET SPLASH
+   DEV ONLY
+   ========================================================= */
+
+function resetSplashIntro() {
+
+  try {
+
+    sessionStorage.removeItem(
+      CONFIG.INTRO_SESSION_KEY
+    );
+
+
+    console.info(
+      'Pasar UMKM: splash akan tampil lagi setelah halaman dimuat ulang.'
+    );
+
+  } catch (error) {
+
+    console.warn(
+      'Splash session tidak dapat direset.'
+    );
+  }
+}
+
+
+/* =========================================================
+   92. EMPTY STATE HELPER
    ========================================================= */
 
 function createSheetEmptyState(
@@ -5313,13 +6284,14 @@ function createSheetEmptyState(
   return `
     <div class="empty-state">
 
-      <i class="ph ${icon}"></i>
-
+      <i
+        class="ph ${icon}"
+        aria-hidden="true"
+      ></i>
 
       <div class="empty-state-title">
         ${escapeHTML(title)}
       </div>
-
 
       <div class="empty-state-text">
         ${escapeHTML(description)}
@@ -5331,12 +6303,14 @@ function createSheetEmptyState(
 
 
 /* =========================================================
-   83. LOADING
+   93. LOADING
    ========================================================= */
 
 function hideLoading() {
 
-  if (!DOM.appLoading) return;
+  if (!DOM.appLoading) {
+    return;
+  }
 
 
   DOM.appLoading.hidden =
@@ -5351,38 +6325,40 @@ function hideLoading() {
 
 
 /* =========================================================
-   84. TOAST
+   94. TOAST
    ========================================================= */
 
-let toastTimer;
+let toastTimer = null;
 
 
 function showToast(message) {
 
-  if (!DOM.toast) return;
+  if (!DOM.toast) {
+    return;
+  }
 
 
-  clearTimeout(
+  window.clearTimeout(
     toastTimer
   );
 
 
   DOM.toast.textContent =
-    message;
+    String(message);
 
 
-  DOM.toast.classList.add(
-    'show'
-  );
+  DOM.toast
+    .classList
+    .add('show');
 
 
   toastTimer =
-    setTimeout(
+    window.setTimeout(
       () => {
 
-        DOM.toast.classList.remove(
-          'show'
-        );
+        DOM.toast
+          ?.classList
+          .remove('show');
 
       },
       2300
@@ -5391,7 +6367,7 @@ function showToast(message) {
 
 
 /* =========================================================
-   85. RUPIAH FORMATTER
+   95. CURRENCY
    ========================================================= */
 
 function formatRupiah(value) {
@@ -5403,16 +6379,22 @@ function formatRupiah(value) {
   return new Intl.NumberFormat(
     'id-ID',
     {
-      style: 'currency',
-      currency: 'IDR',
-      maximumFractionDigits: 0
+
+      style:
+        'currency',
+
+      currency:
+        'IDR',
+
+      maximumFractionDigits:
+        0
     }
   ).format(number);
 }
 
 
 /* =========================================================
-   86. COMPACT NUMBER FORMATTER
+   96. COMPACT NUMBER
    ========================================================= */
 
 function formatCompact(value) {
@@ -5424,19 +6406,21 @@ function formatCompact(value) {
   return new Intl.NumberFormat(
     'id-ID',
     {
+
       notation:
         number >= 1000
           ? 'compact'
           : 'standard',
 
-      maximumFractionDigits: 1
+      maximumFractionDigits:
+        1
     }
   ).format(number);
 }
 
 
 /* =========================================================
-   87. HTML ESCAPE
+   97. ESCAPE HTML
    ========================================================= */
 
 function escapeHTML(value) {
@@ -5444,22 +6428,27 @@ function escapeHTML(value) {
   return String(
     value ?? ''
   )
+
     .replace(
       /&/g,
       '&amp;'
     )
+
     .replace(
       /</g,
       '&lt;'
     )
+
     .replace(
       />/g,
       '&gt;'
     )
+
     .replace(
       /"/g,
       '&quot;'
     )
+
     .replace(
       /'/g,
       '&#039;'
@@ -5468,12 +6457,14 @@ function escapeHTML(value) {
 
 
 /* =========================================================
-   88. DEVELOPMENT API
+   98. DEVELOPMENT API
    ========================================================= */
 
 window.PasarUMKM = {
 
   CONFIG,
+
+  ASSETS,
 
   DATA,
 
@@ -5510,16 +6501,22 @@ window.PasarUMKM = {
 
   clearState,
 
+  resetSplashIntro,
+
 
   /*
-   * Sementara untuk pengujian developer.
+   * DEVELOPMENT TEST
    *
-   * Contoh di Console:
+   * Console:
    *
    * PasarUMKM.setDemoMode(false)
    *
-   * CATATAN:
-   * perubahan ini hanya berlaku sampai halaman direfresh.
+   * atau:
+   *
+   * PasarUMKM.setDemoMode(true)
+   *
+   * Nilai ini kembali ke CONFIG.DEMO_MODE
+   * setelah reload.
    */
   setDemoMode(enabled) {
 
@@ -5564,13 +6561,13 @@ window.PasarUMKM = {
 
     showToast(
       active
-        ? 'Mode demo diaktifkan'
-        : 'Mode demo dinonaktifkan'
+        ? 'Mode demo aktif'
+        : 'Mode demo nonaktif'
     );
   }
 };
 
 
 /* =========================================================
-   END — PASAR UMKM APP.JS v3.0
+   END — PASAR UMKM APP.JS v4.0
    ========================================================= */
