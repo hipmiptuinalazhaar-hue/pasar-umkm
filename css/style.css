@@ -1,26 +1,21 @@
 /* ========================================
-   PASAR UMKM - SOCIAL FEED STYLES
+   PASAR UMKM - SOCIAL FEED
    ======================================== */
 
-/* ----- RESET & BASE ----- */
+/* ----- RESET ----- */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-html {
-  font-size: 16px;
-}
-
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background-color: #FAFAF5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #FAFAF5;
   color: #1A1A1A;
-  line-height: 1.5;
   max-width: 430px;
   margin: 0 auto;
-  padding-bottom: 80px; /* Space for bottom nav */
+  padding-bottom: 80px;
 }
 
 img {
@@ -35,11 +30,6 @@ button {
   font-family: inherit;
 }
 
-a {
-  text-decoration: none;
-  color: inherit;
-}
-
 /* ========================================
    HEADER
    ======================================== */
@@ -47,9 +37,9 @@ a {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: #FFFFFF;
-  border-bottom: 1px solid #F0F0F0;
-  padding: 12px 16px;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  padding: 10px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -64,24 +54,23 @@ a {
 .menu-btn {
   font-size: 20px;
   padding: 4px;
-  color: #1A1A1A;
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
-.logo-icon {
-  font-size: 22px;
+.logo img {
+  height: 32px;
+  width: auto;
 }
 
 .logo-text {
   font-size: 18px;
   font-weight: 700;
   color: #2D5A27;
-  letter-spacing: -0.5px;
 }
 
 .header-right {
@@ -98,8 +87,8 @@ a {
 
 .badge {
   position: absolute;
-  top: -2px;
-  right: -6px;
+  top: -4px;
+  right: -8px;
   background: #E85D04;
   color: white;
   font-size: 10px;
@@ -110,15 +99,15 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #FFFFFF;
+  border: 2px solid #fff;
 }
 
 /* ========================================
-   STORIES ROW
+   STORIES
    ======================================== */
 .stories-container {
-  background: #FFFFFF;
-  border-bottom: 1px solid #F0F0F0;
+  background: #fff;
+  border-bottom: 1px solid #eee;
   padding: 12px 0;
 }
 
@@ -127,12 +116,11 @@ a {
   gap: 14px;
   padding: 0 16px;
   overflow-x: auto;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE */
+  scrollbar-width: none;
 }
 
 .stories::-webkit-scrollbar {
-  display: none; /* Chrome/Safari */
+  display: none;
 }
 
 .story {
@@ -149,7 +137,7 @@ a {
   height: 64px;
   border-radius: 50%;
   padding: 3px;
-  background: #E8E8E8;
+  background: #ddd;
   position: relative;
 }
 
@@ -158,17 +146,15 @@ a {
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #FFFFFF;
+  border: 2px solid #fff;
 }
 
-/* Live indicator - gradient border */
 .story-avatar.live {
   background: linear-gradient(45deg, #E85D04, #C4A35A, #2D5A27);
 }
 
-/* Add story button */
 .story.add .story-avatar {
-  background: #F5F5F5;
+  background: #f5f5f5;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -177,7 +163,6 @@ a {
 .story.add .story-avatar span {
   font-size: 28px;
   color: #999;
-  font-weight: 300;
 }
 
 .story-name {
@@ -191,19 +176,19 @@ a {
 }
 
 /* ========================================
-   FEED & POSTS
+   FEED / POSTS
    ======================================== */
 .feed {
   padding-top: 8px;
 }
 
 .post {
-  background: #FFFFFF;
+  background: #fff;
   margin-bottom: 8px;
-  border-bottom: 1px solid #F0F0F0;
+  border-bottom: 1px solid #eee;
 }
 
-/* ----- Post Header ----- */
+/* Post Header */
 .post-header {
   display: flex;
   align-items: center;
@@ -216,40 +201,34 @@ a {
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
-  flex-shrink: 0;
 }
 
 .post-info {
   flex: 1;
-  min-width: 0;
 }
 
 .post-author {
   font-size: 14px;
   font-weight: 600;
-  color: #1A1A1A;
 }
 
 .post-meta {
   font-size: 12px;
   color: #888;
-  margin-top: 1px;
 }
 
 .post-more {
   font-size: 16px;
   color: #888;
   padding: 4px 8px;
-  letter-spacing: 2px;
 }
 
-/* ----- Post Image ----- */
+/* Post Image */
 .post-image {
   position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
-  background: #F5F5F0;
-  overflow: hidden;
+  background: #f5f5f0;
 }
 
 .post-image img {
@@ -258,7 +237,6 @@ a {
   object-fit: cover;
 }
 
-/* Video play button overlay */
 .video-play {
   position: absolute;
   top: 50%;
@@ -273,13 +251,11 @@ a {
   justify-content: center;
   color: white;
   font-size: 24px;
-  padding-left: 4px; /* Visual center fix for triangle */
 }
 
-/* ----- Post Actions ----- */
+/* Post Actions */
 .post-actions {
   display: flex;
-  align-items: center;
   gap: 16px;
   padding: 12px 16px;
 }
@@ -290,49 +266,39 @@ a {
   gap: 6px;
   font-size: 14px;
   color: #444;
-  transition: color 0.2s;
 }
 
 .action-btn .icon {
   font-size: 22px;
 }
 
-.action-btn.like:hover,
 .action-btn.like.active {
   color: #E85D04;
 }
 
-.action-btn.like.active .icon {
-  color: #E85D04;
-}
-
-/* ----- Post Caption ----- */
+/* Caption */
 .post-caption {
   padding: 0 16px 12px;
   font-size: 14px;
   line-height: 1.6;
-  color: #333;
 }
 
 .post-caption strong {
   font-weight: 600;
-  color: #1A1A1A;
 }
 
 .hashtag {
   color: #2D5A27;
-  cursor: pointer;
 }
 
 /* ========================================
-   PRODUCT TAG (Inside Post)
+   PRODUCT TAG
    ======================================== */
 .product-tag {
   margin: 0 16px 16px;
   padding: 12px;
-  background: #F8F8F5;
+  background: #f8f8f5;
   border-radius: 12px;
-  border: 1px solid #F0F0E8;
   display: flex;
   gap: 12px;
   align-items: center;
@@ -343,7 +309,6 @@ a {
   height: 70px;
   border-radius: 10px;
   object-fit: cover;
-  flex-shrink: 0;
 }
 
 .product-info {
@@ -354,7 +319,6 @@ a {
 .product-info h4 {
   font-size: 12px;
   font-weight: 600;
-  color: #1A1A1A;
   margin-bottom: 4px;
   white-space: nowrap;
   overflow: hidden;
@@ -364,7 +328,6 @@ a {
 .product-meta {
   font-size: 11px;
   color: #888;
-  margin-bottom: 2px;
 }
 
 .product-price {
@@ -376,7 +339,6 @@ a {
 .product-location {
   font-size: 11px;
   color: #999;
-  margin-top: 2px;
 }
 
 .product-actions {
@@ -390,7 +352,6 @@ a {
   border: 1px solid #2D5A27;
   border-radius: 8px;
   font-size: 11px;
-  font-weight: 500;
   color: #2D5A27;
   background: white;
   white-space: nowrap;
@@ -407,7 +368,7 @@ a {
 }
 
 /* ========================================
-   BOTTOM NAVIGATION
+   BOTTOM NAV
    ======================================== */
 .bottom-nav {
   position: fixed;
@@ -416,12 +377,12 @@ a {
   transform: translateX(-50%);
   width: 100%;
   max-width: 430px;
-  background: #FFFFFF;
-  border-top: 1px solid #F0F0F0;
+  background: #fff;
+  border-top: 1px solid #eee;
   display: flex;
-  align-items: center;
   justify-content: space-around;
-  padding: 8px 0 20px; /* Extra bottom for safe area */
+  align-items: flex-end;
+  padding: 8px 0 20px;
   z-index: 100;
 }
 
@@ -431,18 +392,15 @@ a {
   align-items: center;
   gap: 2px;
   padding: 4px 12px;
-  position: relative;
 }
 
 .nav-icon {
   font-size: 22px;
-  line-height: 1;
 }
 
 .nav-label {
   font-size: 10px;
   color: #999;
-  font-weight: 500;
 }
 
 .nav-item.active .nav-label {
@@ -450,7 +408,7 @@ a {
   font-weight: 600;
 }
 
-/* Sell button - center floating */
+/* Tombol Jual di tengah */
 .nav-sell {
   position: relative;
   top: -16px;
@@ -466,18 +424,13 @@ a {
   justify-content: center;
   color: white;
   font-size: 28px;
-  font-weight: 300;
   box-shadow: 0 4px 16px rgba(232, 93, 4, 0.35);
 }
 
-.nav-sell .nav-label {
-  display: none; /* Hide label for center button */
-}
-
-/* Badge on cart */
+/* Badge keranjang */
 .nav-badge {
   position: absolute;
-  top: 2px;
+  top: 0;
   right: 6px;
   background: #E85D04;
   color: white;
@@ -498,26 +451,13 @@ a {
   text-align: center;
   padding: 40px;
   color: #999;
-  font-size: 14px;
 }
 
-/* Hide scrollbar but keep functionality */
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-/* ========================================
-   RESPONSIVE (Desktop view)
-   ======================================== */
+/* Desktop border */
 @media (min-width: 431px) {
   body {
-    border-left: 1px solid #E8E8E8;
-    border-right: 1px solid #E8E8E8;
+    border-left: 1px solid #e8e8e8;
+    border-right: 1px solid #e8e8e8;
     min-height: 100vh;
   }
 }
