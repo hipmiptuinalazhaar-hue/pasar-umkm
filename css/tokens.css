@@ -1,87 +1,52 @@
 /* ========================================
    PASAR UMKM - DESIGN TOKENS
-   Crafted with obsession to detail
    ======================================== */
 
 :root {
-  /* --- Colors: Earth of Lubuklinggau --- */
+  /* Warna Hijau (Brand) */
   --color-forest-900: #1a3d1a;
-  --color-forest-800: #245024;
-  --color-forest-700: #2D5A27;  /* Primary */
-  --color-forest-600: #3d7a35;
+  --color-forest-700: #2D5A27;
   --color-forest-500: #5a9a50;
   --color-forest-100: #e8f5e6;
-  --color-forest-50: #f5faf4;
   
-  --color-gold-600: #8a7020;
-  --color-gold-500: #C4A35A;     /* Secondary */
-  --color-gold-400: #d4b76a;
+  /* Warna Emas */
+  --color-gold-500: #C4A35A;
   --color-gold-100: #faf5e6;
   
-  --color-earth-900: #8B4513;
-  --color-earth-700: #A0522D;
-  --color-earth-500: #CD853F;    /* Warm accent */
-  --color-earth-100: #faf0e6;
-  
+  /* Warna Oranye (CTA) */
   --color-orange-600: #c44a04;
-  --color-orange-500: #E85D04;   /* CTA */
-  --color-orange-400: #f07830;
-  --color-orange-100: #fff0e6;
+  --color-orange-500: #E85D04;
   
+  /* Background */
   --color-cream: #FAFAF5;
   --color-warm-white: #FFFCF8;
   
-  /* --- Neutrals: Not pure gray, but warm gray --- */
-  --color-gray-900: #1c1917;     /* Warm black */
-  --color-gray-800: #292524;
+  /* Abu-abu Warm */
+  --color-gray-900: #1c1917;
   --color-gray-700: #44403c;
-  --color-gray-600: #57534e;
   --color-gray-500: #78716c;
   --color-gray-400: #a8a29e;
-  --color-gray-300: #d6d3d1;
   --color-gray-200: #e7e5e4;
   --color-gray-100: #f5f5f4;
-  --color-gray-50: #fafaf9;
   
-  /* --- Typography: Personality --- */
-  --font-display: 'Playfair Display', Georgia, serif;  /* Elegant headlines */
-  --font-body: 'Inter', -apple-system, sans-serif;      /* Clean readable */
-  --font-accent: 'Caveat', cursive;                      /* Handwritten feel */
+  /* Font */
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'Inter', sans-serif;
+  --font-accent: 'Caveat', cursive;
   
-  /* --- Spacing: Odd numbers feel organic --- */
-  --space-1: 3px;
+  /* Spacing */
   --space-2: 7px;
   --space-3: 11px;
   --space-4: 15px;
   --space-5: 19px;
-  --space-6: 23px;
-  --space-8: 31px;
-  --space-10: 39px;
-  --space-12: 47px;
   
-  /* --- Shadows: Layered depth --- */
-  --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.04);
-  --shadow-md: 0 4px 6px -1px rgba(28, 25, 23, 0.06), 0 2px 4px -2px rgba(28, 25, 23, 0.04);
-  --shadow-lg: 0 10px 15px -3px rgba(28, 25, 23, 0.08), 0 4px 6px -4px rgba(28, 25, 23, 0.04);
-  --shadow-xl: 0 20px 25px -5px rgba(28, 25, 23, 0.1), 0 8px 10px -6px rgba(28, 25, 23, 0.04);
-  --shadow-glow: 0 0 20px rgba(232, 93, 4, 0.15);
+  /* Shadow */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.08);
   
-  /* --- Radius: Mixed for organic feel --- */
-  --radius-sm: 6px;
+  /* Radius */
   --radius-md: 10px;
   --radius-lg: 16px;
-  --radius-xl: 24px;
   --radius-full: 9999px;
-  
-  /* --- Transitions: Spring physics --- */
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-dramatic: cubic-bezier(0.87, 0, 0.13, 1);
-  
-  /* --- Z-index layers --- */
-  --z-base: 0;
-  --z-dropdown: 100;
-  --z-sticky: 200;
-  --z-modal: 300;
-  --z-toast: 400;
 }
