@@ -1,47 +1,72 @@
-/* ========================================
-   PASAR UMKM - DESIGN TOKENS
-   ======================================== */
+/* ============================================
+   PASAR UMKM — DESIGN TOKENS v3.0
+   "Hijau Daun Basah" Edition
+   ============================================ */
 
 :root {
-  /* PRIMARY: Hijau HIPMI */
-  --color-primary-900: #0f3d0f;
-  --color-primary-800: #1a5c1a;
-  --color-primary-700: #228B22;
-  --color-primary-600: #2da82d;
-  --color-primary-500: #4dc44d;
-  --color-primary-100: #e8f5e8;
-  --color-primary-50: #f0faf0;
-  
-  /* ACCENT: Emas */
-  --color-gold-500: #C4A35A;
-  --color-gold-100: #faf5e6;
-  
-  /* CTA: Oren (hanya tombol beli) */
-  --color-cta-500: #EE4D2D;
-  --color-cta-600: #D73211;
-  
-  /* BACKGROUND */
-  --color-bg: #F5F5F5;
-  --color-surface: #FFFFFF;
-  
-  /* TEXT */
-  --color-text-900: #1a1a1a;
-  --color-text-700: #555555;
-  --color-text-500: #888888;
-  --color-text-300: #cccccc;
-  
-  /* SHADOW */
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
-  
-  /* RADIUS */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  
-  /* SPACING */
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 12px;
-  --space-lg: 16px;
+  /* === BRAND: Hijau Daun Basah === */
+  --forest-950: #052e1a;
+  --forest-900: #0a5c36;
+  --forest-800: #0d7a47;
+  --forest-700: #128c4e;    /* PRIMARY */
+  --forest-600: #1aad5f;
+  --forest-500: #3dd47a;
+  --forest-100: #e8f5ee;
+  --forest-50:  #f2faf5;
+
+  /* === ACCENT: Emas Mentah === */
+  --gold-600: #8b6914;
+  --gold-500: #b8860b;
+  --gold-400: #d4a574;
+  --gold-100: #f4e4c1;
+
+  /* === CTA: Sunset Orange === */
+  --sunset-600: #c73e1d;
+  --sunset-500: #ee4d2d;
+  --sunset-400: #ff6b4a;
+
+  /* === SURFACE === */
+  --bg-primary:   #f7f7f5;  /* Rice Paper */
+  --bg-secondary: #ffffff;
+  --bg-tertiary:  #f0f0ec;
+
+  /* === TEXT === */
+  --text-primary:   #1a1a1a;
+  --text-secondary: #5c5c5c;
+  --text-tertiary:  #8a8a8a;
+  --text-inverse:   #ffffff;
+
+  /* === SHADOW (Layered for depth) === */
+  --shadow-1: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-2: 0 4px 8px rgba(0,0,0,0.06);
+  --shadow-3: 0 8px 16px rgba(0,0,0,0.08);
+  --shadow-4: 0 16px 32px rgba(0,0,0,0.12);
+  --shadow-glow: 0 0 20px rgba(18,140,78,0.15);
+
+  /* === RADIUS === */
+  --r-sm:  8px;
+  --r-md:  12px;
+  --r-lg:  16px;
+  --r-xl:  24px;
+  --r-full: 999px;
+
+  /* === SPACING (8px base, golden ratio) === */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  /* === MOTION (Spring physics) === */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-dramatic: cubic-bezier(0.87, 0, 0.13, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+
+  /* === TYPOGRAPHY === */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Playfair Display', Georgia, serif;
 }
