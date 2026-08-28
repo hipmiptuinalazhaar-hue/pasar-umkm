@@ -5,7 +5,7 @@
 
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
   >
 
   <meta name="theme-color" content="#128c4e">
@@ -13,46 +13,77 @@
 
   <meta
     name="description"
-    content="Pasar UMKM adalah marketplace sosial untuk menemukan, mendukung, dan membeli produk UMKM lokal Lubuklinggau dan Sumatera Selatan."
+    content="Pasar UMKM adalah social marketplace untuk menemukan, mendukung, dan membeli produk UMKM lokal Lubuklinggau."
   >
 
   <meta
     name="keywords"
-    content="Pasar UMKM, UMKM Lubuklinggau, UMKM Sumatera Selatan, marketplace lokal, produk lokal"
+    content="Pasar UMKM, UMKM Lubuklinggau, marketplace lokal, produk lokal, HIPMI PT UIN Al Azhaar Lubuklinggau"
   >
 
-  <meta name="author" content="Pasar UMKM">
+  <meta
+    name="author"
+    content="Pasar UMKM"
+  >
 
-  <!-- Mobile Web App -->
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta
+    name="application-name"
+    content="Pasar UMKM"
+  >
+
+  <meta
+    name="mobile-web-app-capable"
+    content="yes"
+  >
+
+  <meta
+    name="apple-mobile-web-app-capable"
+    content="yes"
+  >
+
   <meta
     name="apple-mobile-web-app-status-bar-style"
-    content="black-translucent"
+    content="default"
   >
 
-  <title>Pasar UMKM — Lubuklinggau</title>
+  <title>
+    Pasar UMKM — Lubuklinggau
+  </title>
+
 
   <!-- =====================================================
        PERFORMANCE
        ===================================================== -->
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+  >
 
-  <link rel="preconnect" href="https://unpkg.com">
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+  >
+
+  <link
+    rel="preconnect"
+    href="https://unpkg.com"
+  >
+
 
   <!-- =====================================================
-       FONTS
+       TYPOGRAPHY
        ===================================================== -->
 
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
     rel="stylesheet"
   >
 
+
   <!-- =====================================================
-       ICONS
+       ICON SYSTEM
        ===================================================== -->
 
   <script
@@ -60,23 +91,113 @@
     defer
   ></script>
 
+
   <!-- =====================================================
        DESIGN SYSTEM
        ===================================================== -->
 
-  <link rel="stylesheet" href="css/tokens.css">
-  <link rel="stylesheet" href="css/style.css">
+  <link
+    rel="stylesheet"
+    href="css/tokens.css"
+  >
 
+  <link
+    rel="stylesheet"
+    href="css/style.css"
+  >
 </head>
 
 
 <body>
 
+
   <!-- =====================================================
-       APP CONTAINER
+       SPLASH INTRO
        ===================================================== -->
 
-  <div class="app" id="app">
+  <section
+    class="splash-intro"
+    id="splashIntro"
+    aria-label="Membuka Pasar UMKM"
+  >
+
+    <div
+      class="splash-stage"
+      aria-hidden="true"
+    >
+
+      <!-- CART ENTERS FROM LEFT -->
+
+      <div
+        class="splash-cart"
+        id="splashCart"
+      >
+        <i class="ph ph-shopping-cart-simple"></i>
+      </div>
+
+
+      <!-- TAGLINE ENTERS FROM RIGHT -->
+
+      <div
+        class="splash-copy"
+        id="splashCopy"
+      >
+
+        <span class="splash-copy-main">
+          Belanja Lokal.
+        </span>
+
+        <span class="splash-copy-sub">
+          Tumbuh Bersama.
+        </span>
+
+      </div>
+
+
+      <!-- FINAL BRAND REVEAL -->
+
+      <div
+        class="splash-brand"
+        id="splashBrand"
+      >
+
+        <img
+          src="assets/logo.png"
+          alt=""
+          class="splash-logo"
+          width="88"
+          height="88"
+        >
+
+
+        <div class="splash-brand-text">
+
+          <strong>
+            Pasar UMKM
+          </strong>
+
+          <span>
+            Lubuklinggau
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- =====================================================
+       APP ROOT
+       ===================================================== -->
+
+  <div
+    class="app"
+    id="app"
+  >
 
 
     <!-- ===================================================
@@ -103,8 +224,12 @@
           aria-expanded="false"
           data-action="menu"
         >
-          <i class="ph ph-list"></i>
+          <i
+            class="ph ph-list"
+            aria-hidden="true"
+          ></i>
         </button>
+
 
 
         <!-- BRAND -->
@@ -112,17 +237,18 @@
         <a
           href="#"
           class="brand"
-          aria-label="Pasar UMKM - Beranda"
+          aria-label="Pasar UMKM, kembali ke beranda"
           data-nav="home"
         >
 
           <img
             src="assets/logo.png"
-            alt="Pasar UMKM"
+            alt=""
             class="brand-mark"
-            width="32"
-            height="32"
+            width="34"
+            height="34"
           >
+
 
           <div class="brand-wordmark">
 
@@ -139,7 +265,8 @@
         </a>
 
 
-        <!-- HEADER ACTIONS -->
+
+        <!-- ACTIONS -->
 
         <div class="header-actions">
 
@@ -153,55 +280,65 @@
             aria-label="Cari produk atau UMKM"
             data-action="search"
           >
-
-            <i class="ph ph-magnifying-glass"></i>
-
+            <i
+              class="ph ph-magnifying-glass"
+              aria-hidden="true"
+            ></i>
           </button>
+
 
 
           <!-- NOTIFICATION -->
 
           <button
-            class="header-btn has-badge"
+            class="header-btn"
             id="notificationButton"
             type="button"
-            aria-label="Notifikasi, 3 pemberitahuan"
+            aria-label="Buka notifikasi"
             data-action="notifications"
           >
 
-            <i class="ph ph-bell"></i>
+            <i
+              class="ph ph-bell"
+              aria-hidden="true"
+            ></i>
 
             <span
               class="badge-dot"
               aria-hidden="true"
+              hidden
             >
-              3
+              0
             </span>
 
           </button>
+
 
 
           <!-- MESSAGE -->
 
           <button
-            class="header-btn has-badge"
+            class="header-btn"
             id="messageButton"
             type="button"
-            aria-label="Pesan, 2 pesan baru"
+            aria-label="Buka pesan"
             data-action="messages"
           >
 
-            <i class="ph ph-chat-circle-text"></i>
+            <i
+              class="ph ph-chat-circle-text"
+              aria-hidden="true"
+            ></i>
 
             <span
               class="badge-dot"
               aria-hidden="true"
+              hidden
             >
-              2
+              0
             </span>
 
           </button>
-
 
         </div>
 
@@ -224,19 +361,10 @@
         class="stories-track"
         id="stories"
         role="list"
-        aria-label="Cerita penjual"
+        aria-label="Cerita dan aktivitas penjual"
       >
 
-        <!--
-          Stories akan dibuat oleh JavaScript.
-
-          Contoh data:
-          - Pak Madi
-          - Ibu Siti
-          - Madi Craft
-          - Maepi Art
-          - Jual
-        -->
+        <!-- Dirender oleh app.js -->
 
       </div>
 
@@ -245,19 +373,17 @@
 
 
     <!-- ===================================================
-         MAIN CONTENT
+         MAIN FEED
          =================================================== -->
 
     <main
       class="feed"
       id="feed"
       role="main"
-      aria-label="Feed produk dan aktivitas UMKM"
+      aria-label="Feed Pasar UMKM"
     >
 
-      <!--
-        Feed akan dirender oleh app.js.
-      -->
+      <!-- Dirender oleh app.js -->
 
     </main>
 
@@ -274,7 +400,7 @@
     >
 
 
-      <!-- BERANDA -->
+      <!-- HOME -->
 
       <a
         href="#"
@@ -301,7 +427,7 @@
 
 
 
-      <!-- KATEGORI -->
+      <!-- CATEGORY -->
 
       <a
         href="#kategori"
@@ -327,7 +453,7 @@
 
 
 
-      <!-- JUAL -->
+      <!-- SELL -->
 
       <a
         href="#jual"
@@ -345,17 +471,21 @@
 
         </div>
 
+        <span class="sr-only">
+          Jual
+        </span>
+
       </a>
 
 
 
-      <!-- KERANJANG -->
+      <!-- CART -->
 
       <a
         href="#keranjang"
         class="nav-link"
         data-nav="cart"
-        aria-label="Keranjang, 2 produk"
+        aria-label="Keranjang"
       >
 
         <div class="nav-icon-wrap">
@@ -368,8 +498,9 @@
           <span
             class="nav-badge"
             aria-hidden="true"
+            hidden
           >
-            2
+            0
           </span>
 
         </div>
@@ -382,7 +513,7 @@
 
 
 
-      <!-- AKUN -->
+      <!-- ACCOUNT -->
 
       <a
         href="#akun"
@@ -406,7 +537,6 @@
 
       </a>
 
-
     </nav>
 
 
@@ -424,19 +554,40 @@
 
       <div class="side-menu-inner">
 
-        <button
-          class="header-btn"
-          id="closeMenuButton"
-          type="button"
-          aria-label="Tutup menu"
-          data-action="close-menu"
+
+        <div class="side-menu-top">
+
+          <span class="side-menu-title">
+            Menu
+          </span>
+
+
+          <button
+            class="header-btn"
+            id="closeMenuButton"
+            type="button"
+            aria-label="Tutup menu"
+            data-action="close-menu"
+          >
+
+            <i
+              class="ph ph-x"
+              aria-hidden="true"
+            ></i>
+
+          </button>
+
+        </div>
+
+
+        <div
+          id="sideMenuContent"
+          class="side-menu-content"
         >
 
-          <i class="ph ph-x"></i>
+          <!-- Dirender oleh app.js -->
 
-        </button>
-
-        <div id="sideMenuContent"></div>
+        </div>
 
       </div>
 
@@ -453,11 +604,16 @@
       id="searchOverlay"
       aria-hidden="true"
       hidden
+      role="dialog"
+      aria-modal="true"
+      aria-label="Pencarian Pasar UMKM"
     >
 
       <div class="search-panel">
 
+
         <div class="search-panel-header">
+
 
           <button
             class="header-btn"
@@ -467,9 +623,14 @@
             data-action="close-search"
           >
 
-            <i class="ph ph-arrow-left"></i>
+            <i
+              class="ph ph-arrow-left"
+              aria-hidden="true"
+            ></i>
 
           </button>
+
+
 
           <div class="search-input-wrap">
 
@@ -478,14 +639,16 @@
               aria-hidden="true"
             ></i>
 
+
             <input
               type="search"
               id="searchInput"
-              placeholder="Cari produk atau UMKM..."
+              placeholder="Cari produk, UMKM, atau kategori"
               autocomplete="off"
               enterkeyhint="search"
               aria-label="Cari produk atau UMKM"
             >
+
 
             <button
               type="button"
@@ -495,7 +658,10 @@
               hidden
             >
 
-              <i class="ph ph-x-circle"></i>
+              <i
+                class="ph ph-x-circle"
+                aria-hidden="true"
+              ></i>
 
             </button>
 
@@ -503,10 +669,14 @@
 
         </div>
 
+
+
         <div
           class="search-results"
           id="searchResults"
-        ></div>
+        >
+          <!-- Dirender oleh app.js -->
+        </div>
 
       </div>
 
@@ -560,15 +730,13 @@
         aria-hidden="true"
       ></div>
 
+
       <div
         class="sheet-content"
         id="sheetContent"
       >
 
-        <!--
-          Konten bottom sheet
-          akan dibuat oleh app.js.
-        -->
+        <!-- Dirender oleh app.js -->
 
       </div>
 
@@ -587,16 +755,20 @@
       hidden
     >
 
-      <div class="loading-spinner"></div>
+      <div
+        class="loading-spinner"
+        aria-hidden="true"
+      ></div>
 
       <span>
-        Memuat Pasar UMKM...
+        Memuat Pasar UMKM
       </span>
 
     </div>
 
 
   </div>
+
 
 
   <!-- =====================================================
@@ -607,6 +779,7 @@
     src="js/app.js"
     defer
   ></script>
+
 
 </body>
 </html>
