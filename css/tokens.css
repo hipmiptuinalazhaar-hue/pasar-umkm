@@ -1,487 +1,474 @@
-/* ============================================
+/* =========================================================
    PASAR UMKM — DESIGN TOKENS v4.0
-   "Hijau Daun Basah" Edition
-   ============================================
-   
-   Design Philosophy:
-   - Premium but approachable
-   - Local but modern
-   - Social commerce focused
-   - Mobile-first
-   - Consistent motion
-   - Accessible interaction
-   
-   DO NOT PUT COMPONENT STYLES HERE.
-   This file is ONLY for design tokens.
-   ============================================ */
+   Local Commerce Editorial System
+   ========================================================= */
 
 :root {
 
-  /* ==================================================
-     01. BRAND — HIJAU DAUN BASAH
-     ================================================== */
 
-  --forest-950: #052e1a;
-  --forest-900: #0a5c36;
-  --forest-800: #0d7a47;
+  /* =======================================================
+     01. BRAND COLOR — HIJAU DAUN BASAH
+     ======================================================= */
 
-  /* Primary brand color */
+  --forest-950: #062419;
+  --forest-900: #083b28;
+  --forest-850: #0a4c31;
+  --forest-800: #0d6640;
+  --forest-750: #0f7848;
   --forest-700: #128c4e;
-
+  --forest-650: #169b57;
   --forest-600: #1aad5f;
   --forest-500: #3dd47a;
 
-  /* Soft brand surfaces */
+  --forest-200: #cdebd9;
+  --forest-150: #dcefe4;
   --forest-100: #e8f5ee;
-  --forest-50:  #f2faf5;
+  --forest-75:  #edf8f1;
+  --forest-50:  #f4faf6;
 
 
-  /* ==================================================
-     02. ACCENT — EMAS
-     ================================================== */
+  /* =======================================================
+     02. GOLD ACCENT — WARM METAL, NOT YELLOW NEON
+     ======================================================= */
 
+  --gold-800: #5f470f;
+  --gold-700: #755714;
   --gold-600: #8b6914;
   --gold-500: #b8860b;
+  --gold-450: #c89423;
   --gold-400: #d4a574;
+  --gold-300: #e7c992;
+  --gold-200: #f0d9a7;
+  --gold-100: #f7ead0;
 
-  /* Soft gold surface */
-  --gold-100: #f4e4c1;
 
+  /* =======================================================
+     03. COMMERCE ACCENT
+     ======================================================= */
 
-  /* ==================================================
-     03. CTA — SUNSET ORANGE
-     Used for:
-     - Buy actions
-     - Discounts
-     - Urgency
-     - Notification badges
-     ================================================== */
-
+  --sunset-700: #a72e16;
   --sunset-600: #c73e1d;
   --sunset-500: #ee4d2d;
+  --sunset-450: #f35c3d;
   --sunset-400: #ff6b4a;
+  --sunset-100: #fff0eb;
 
 
-  /* ==================================================
-     04. SEMANTIC COLORS
-     ================================================== */
+  /* =======================================================
+     04. NEUTRAL SURFACES
+     ======================================================= */
 
-  --success-600: #16803c;
-  --success-500: #22a052;
-  --success-100: #e8f7ed;
+  --paper-0:    #ffffff;
+  --paper-25:   #fcfcfa;
+  --paper-50:   #f9f8f4;
+  --paper-75:   #f6f5f0;
+  --paper-100:  #f1efe8;
+  --paper-150:  #ebe8df;
+  --paper-200:  #e2ded3;
 
-  --warning-600: #a16207;
-  --warning-500: #ca8a04;
-  --warning-100: #fef9c3;
-
-  --danger-600: #b42318;
-  --danger-500: #dc2626;
-  --danger-100: #feecec;
-
-  --info-600: #1769aa;
-  --info-500: #2684c7;
-  --info-100: #eaf4fb;
-
-
-  /* ==================================================
-     05. SURFACE / BACKGROUND
-     ================================================== */
-
-  /* Main application background */
-  --bg-primary: #f7f7f5;
-
-  /* Cards / sheets / navigation */
-  --bg-secondary: #ffffff;
-
-  /* Secondary surfaces */
-  --bg-tertiary: #f0f0ec;
-
-  /* Elevated surface */
-  --bg-elevated: #ffffff;
-
-  /* Dark surface */
-  --bg-dark: #1a1a1a;
+  --ink-950: #171815;
+  --ink-900: #1f211d;
+  --ink-800: #2c2f29;
+  --ink-700: #3b3f38;
+  --ink-600: #52574e;
+  --ink-500: #6b7167;
+  --ink-400: #898f85;
+  --ink-300: #a7aca3;
+  --ink-200: #c5c9c1;
+  --ink-100: #e0e2dc;
 
 
-  /* ==================================================
-     06. TEXT
-     ================================================== */
+  /* =======================================================
+     05. SEMANTIC SURFACE TOKENS
+     ======================================================= */
 
-  --text-primary: #1a1a1a;
+  --bg-primary:   var(--paper-50);
+  --bg-secondary: var(--paper-0);
+  --bg-tertiary:  var(--paper-75);
+  --bg-muted:     var(--paper-100);
 
-  --text-secondary: #5c5c5c;
-
-  --text-tertiary: #8a8a8a;
-
-  --text-disabled: #b5b5b5;
-
-  --text-inverse: #ffffff;
-
-
-  /* ==================================================
-     07. BORDER
-     ================================================== */
-
-  --border-subtle: rgba(0, 0, 0, 0.04);
-
-  --border-default: rgba(0, 0, 0, 0.08);
-
-  --border-strong: rgba(0, 0, 0, 0.14);
-
-  --border-brand: rgba(18, 140, 78, 0.25);
-
-  --border-gold: rgba(184, 134, 11, 0.25);
+  --surface-card:       var(--paper-0);
+  --surface-elevated:   var(--paper-0);
+  --surface-soft:       var(--forest-50);
+  --surface-warm:       #fffaf1;
+  --surface-overlay:    rgba(10, 20, 14, 0.46);
+  --surface-overlay-strong: rgba(8, 16, 11, 0.72);
 
 
-  /* ==================================================
-     08. OVERLAY
-     ================================================== */
+  /* =======================================================
+     06. TEXT TOKENS
+     ======================================================= */
 
-  --overlay-light: rgba(255, 255, 255, 0.72);
+  --text-primary:   var(--ink-950);
+  --text-secondary: var(--ink-600);
+  --text-tertiary:  var(--ink-400);
+  --text-muted:     var(--ink-300);
 
-  --overlay-dark: rgba(0, 0, 0, 0.50);
+  --text-brand:     var(--forest-800);
+  --text-accent:    var(--gold-600);
+  --text-danger:    var(--sunset-600);
+  --text-inverse:   #ffffff;
 
-  --overlay-heavy: rgba(0, 0, 0, 0.68);
+
+  /* =======================================================
+     07. BORDER TOKENS
+     ======================================================= */
+
+  --border-subtle: rgba(24, 32, 26, 0.055);
+  --border-soft:   rgba(24, 32, 26, 0.08);
+  --border-default: rgba(24, 32, 26, 0.12);
+  --border-strong: rgba(24, 32, 26, 0.18);
+
+  --border-brand-soft: rgba(18, 140, 78, 0.18);
+  --border-gold-soft: rgba(184, 134, 11, 0.18);
 
 
-  /* ==================================================
-     09. SHADOW SYSTEM
-     ================================================== */
+  /* =======================================================
+     08. SHADOW SYSTEM
+     Different depth for different purposes.
+     ======================================================= */
 
-  --shadow-1:
-    0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-hairline:
+    0 1px 0 rgba(20, 27, 22, 0.04);
 
-  --shadow-2:
-    0 4px 8px rgba(0, 0, 0, 0.06);
+  --shadow-xs:
+    0 2px 6px rgba(14, 22, 17, 0.045);
 
-  --shadow-3:
-    0 8px 16px rgba(0, 0, 0, 0.08);
+  --shadow-sm:
+    0 4px 12px rgba(14, 22, 17, 0.06);
 
-  --shadow-4:
-    0 16px 32px rgba(0, 0, 0, 0.12);
+  --shadow-md:
+    0 10px 24px rgba(14, 22, 17, 0.085);
 
-  /* Brand glow */
-  --shadow-glow:
-    0 0 20px rgba(18, 140, 78, 0.15);
+  --shadow-lg:
+    0 18px 44px rgba(14, 22, 17, 0.13);
 
-  /* Gold glow */
+  --shadow-xl:
+    0 26px 70px rgba(14, 22, 17, 0.18);
+
+  --shadow-brand:
+    0 12px 30px rgba(18, 140, 78, 0.16);
+
   --shadow-gold:
-    0 0 20px rgba(184, 134, 11, 0.15);
-
-  /* Floating action button */
-  --shadow-fab:
-    0 8px 20px rgba(18, 140, 78, 0.28);
+    0 10px 28px rgba(184, 134, 11, 0.12);
 
 
-  /* ==================================================
-     10. GRADIENTS
-     ================================================== */
+  /* =======================================================
+     09. RADIUS SYSTEM
+     Intentionally varied to avoid generic uniform cards.
+     ======================================================= */
 
-  --gradient-brand:
-    linear-gradient(
-      135deg,
-      var(--forest-600),
-      var(--forest-800)
-    );
+  --radius-2xs: 4px;
+  --radius-xs:  7px;
+  --radius-sm:  10px;
+  --radius-md:  14px;
+  --radius-lg:  18px;
+  --radius-xl:  24px;
+  --radius-2xl: 30px;
+  --radius-pill: 999px;
 
-  --gradient-brand-gold:
-    linear-gradient(
-      135deg,
-      var(--forest-700),
-      var(--gold-500)
-    );
-
-  --gradient-soft:
-    linear-gradient(
-      135deg,
-      var(--forest-50),
-      var(--gold-100)
-    );
-
-  --gradient-cta:
-    linear-gradient(
-      135deg,
-      var(--sunset-400),
-      var(--sunset-600)
-    );
+  /* Contextual radius */
+  --radius-button: 11px;
+  --radius-control: 10px;
+  --radius-card: 16px;
+  --radius-product: 13px;
+  --radius-sheet: 26px;
+  --radius-story: 50%;
 
 
-  /* ==================================================
-     11. BORDER RADIUS
-     ================================================== */
+  /* =======================================================
+     10. SPACING SCALE
+     ======================================================= */
 
-  --r-xs: 6px;
-
-  --r-sm: 8px;
-
-  --r-md: 12px;
-
-  --r-lg: 16px;
-
-  --r-xl: 24px;
-
-  --r-2xl: 32px;
-
-  --r-full: 999px;
-
-
-  /* ==================================================
-     12. SPACING
-     Base system: 4px
-     ================================================== */
-
+  --space-0: 0;
   --space-1: 4px;
-
-  --space-2: 8px;
-
-  --space-3: 12px;
-
-  --space-4: 16px;
-
-  --space-5: 24px;
-
-  --space-6: 32px;
-
-  --space-7: 40px;
-
-  --space-8: 48px;
-
-  --space-9: 56px;
-
-  --space-10: 64px;
+  --space-2: 6px;
+  --space-3: 8px;
+  --space-4: 10px;
+  --space-5: 12px;
+  --space-6: 14px;
+  --space-7: 16px;
+  --space-8: 18px;
+  --space-9: 20px;
+  --space-10: 24px;
+  --space-11: 28px;
+  --space-12: 32px;
+  --space-13: 40px;
+  --space-14: 48px;
+  --space-15: 64px;
 
 
-  /* ==================================================
-     13. COMPONENT SIZES
-     ================================================== */
-
-  --header-height: 52px;
-
-  --bottom-nav-height: 56px;
-
-  --touch-target: 44px;
-
-  --icon-sm: 18px;
-
-  --icon-md: 22px;
-
-  --icon-lg: 28px;
-
-  --icon-xl: 36px;
+  /* =======================================================
+     11. LAYOUT TOKENS
+     ======================================================= */
 
   --content-max-width: 430px;
 
+  --header-height: 56px;
+  --bottom-nav-height: 58px;
 
-  /* ==================================================
-     14. MOTION
-     ================================================== */
+  --side-menu-width: min(84vw, 340px);
 
-  /* Spring = buttons, cards, playful interactions */
-  --ease-spring:
-    cubic-bezier(0.34, 1.56, 0.64, 1);
-
-  /* Smooth = normal UI transitions */
-  --ease-smooth:
-    cubic-bezier(0.4, 0, 0.2, 1);
-
-  /* Dramatic = sheets / major transitions */
-  --ease-dramatic:
-    cubic-bezier(0.87, 0, 0.13, 1);
-
-  /* Entrance */
-  --ease-enter:
-    cubic-bezier(0.16, 1, 0.3, 1);
+  --page-gutter: 14px;
+  --page-gutter-small: 11px;
+  --section-gap: 18px;
 
 
-  /* Durations */
+  /* =======================================================
+     12. TYPOGRAPHY
+     DM Sans = interface
+     Fraunces = display / identity
+     ======================================================= */
 
-  --duration-instant: 80ms;
-
-  --duration-fast: 150ms;
-
-  --duration-normal: 300ms;
-
-  --duration-slow: 500ms;
-
-  --duration-slower: 700ms;
-
-
-  /* ==================================================
-     15. TYPOGRAPHY
-     ================================================== */
-
-  --font-sans:
-    'Inter',
+  --font-ui:
+    'DM Sans',
     -apple-system,
     BlinkMacSystemFont,
     'Segoe UI',
     sans-serif;
 
   --font-display:
-    'Playfair Display',
+    'Fraunces',
     Georgia,
+    'Times New Roman',
     serif;
 
 
-  /* Font sizes */
+  /* Font size */
 
+  --text-2xs: 9px;
   --text-xs: 10px;
-
-  --text-sm: 12px;
-
-  --text-md: 14px;
-
-  --text-lg: 16px;
-
-  --text-xl: 18px;
-
-  --text-2xl: 22px;
-
-  --text-3xl: 28px;
-
-  --text-4xl: 36px;
+  --text-sm: 11px;
+  --text-md: 12px;
+  --text-base: 13px;
+  --text-lg: 14px;
+  --text-xl: 16px;
+  --text-2xl: 18px;
+  --text-3xl: 22px;
+  --text-4xl: 28px;
+  --text-5xl: 36px;
 
 
-  /* ==================================================
-     16. FONT WEIGHTS
-     ================================================== */
-
-  --weight-light: 300;
+  /* Font weight */
 
   --weight-regular: 400;
-
   --weight-medium: 500;
-
   --weight-semibold: 600;
-
   --weight-bold: 700;
 
-  --weight-extrabold: 800;
+
+  /* Line height */
+
+  --leading-tight: 1.1;
+  --leading-snug: 1.25;
+  --leading-normal: 1.45;
+  --leading-relaxed: 1.65;
+  --leading-loose: 1.8;
 
 
-  /* ==================================================
-     17. LINE HEIGHT
-     ================================================== */
+  /* Tracking */
 
-  --leading-tight: 1.2;
-
-  --leading-normal: 1.5;
-
-  --leading-relaxed: 1.6;
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.04em;
+  --tracking-label: 0.08em;
 
 
-  /* ==================================================
-     18. Z-INDEX SYSTEM
-     ================================================== */
+  /* =======================================================
+     13. MOTION SYSTEM
+     Motion should explain state changes, not decorate noise.
+     ======================================================= */
 
-  --z-base: 1;
+  --ease-standard:
+    cubic-bezier(0.2, 0.8, 0.2, 1);
 
-  --z-content: 10;
+  --ease-emphasized:
+    cubic-bezier(0.16, 1, 0.3, 1);
 
-  --z-header: 1000;
+  --ease-soft:
+    cubic-bezier(0.33, 1, 0.68, 1);
 
-  --z-nav: 1000;
+  --ease-exit:
+    cubic-bezier(0.4, 0, 1, 1);
 
-  --z-dropdown: 1100;
+  --ease-enter:
+    cubic-bezier(0, 0, 0.2, 1);
 
-  --z-sticky: 1200;
-
-  --z-overlay: 1500;
-
-  --z-sheet: 1600;
-
-  --z-modal: 1700;
-
-  --z-toast: 2000;
-
-  --z-max: 9999;
+  --ease-spring:
+    cubic-bezier(0.22, 1.35, 0.36, 1);
 
 
-  /* ==================================================
-     19. MOBILE SAFE AREA
-     ================================================== */
+  /* Durations */
 
-  --safe-top: env(safe-area-inset-top);
+  --duration-instant: 90ms;
+  --duration-fast: 150ms;
+  --duration-normal: 240ms;
+  --duration-slow: 380ms;
+  --duration-emphasis: 520ms;
 
-  --safe-bottom: env(safe-area-inset-bottom);
+  /* Splash-specific */
 
-  --safe-left: env(safe-area-inset-left);
+  --splash-enter-duration: 620ms;
+  --splash-meet-duration: 480ms;
+  --splash-hold-duration: 520ms;
+  --splash-exit-duration: 420ms;
 
-  --safe-right: env(safe-area-inset-right);
+
+  /* =======================================================
+     14. GRADIENTS
+     No purple-blue SaaS nonsense.
+     ======================================================= */
+
+  --gradient-brand:
+    linear-gradient(
+      135deg,
+      var(--forest-850) 0%,
+      var(--forest-700) 58%,
+      var(--forest-600) 100%
+    );
+
+  --gradient-brand-soft:
+    linear-gradient(
+      180deg,
+      rgba(18, 140, 78, 0.08) 0%,
+      rgba(18, 140, 78, 0.02) 100%
+    );
+
+  --gradient-gold:
+    linear-gradient(
+      135deg,
+      var(--gold-700) 0%,
+      var(--gold-450) 55%,
+      var(--gold-300) 100%
+    );
+
+  --gradient-paper:
+    linear-gradient(
+      180deg,
+      #fffef9 0%,
+      #f8f6ef 100%
+    );
 
 
-  /* ==================================================
-     20. ACCESSIBILITY
-     ================================================== */
+  /* =======================================================
+     15. INTERACTION TOKENS
+     ======================================================= */
+
+  --tap-scale: 0.97;
+  --hover-lift: -2px;
 
   --focus-ring:
-    0 0 0 3px rgba(18, 140, 78, 0.25);
+    0 0 0 3px rgba(18, 140, 78, 0.18);
 
-  --focus-ring-gold:
-    0 0 0 3px rgba(184, 134, 11, 0.25);
-
-
-  /* ==================================================
-     21. GLASS EFFECT
-     ================================================== */
-
-  --glass-bg:
-    rgba(247, 247, 245, 0.85);
-
-  --glass-border:
-    rgba(255, 255, 255, 0.40);
-
-  --glass-blur:
-    blur(20px);
+  --focus-ring-strong:
+    0 0 0 4px rgba(18, 140, 78, 0.24);
 
 
-  /* ==================================================
-     22. PRODUCT SYSTEM
-     ================================================== */
+  /* =======================================================
+     16. Z-INDEX LAYERS
+     ======================================================= */
 
-  --product-image-size: 68px;
+  --z-base: 1;
+  --z-header: 900;
+  --z-nav: 950;
 
-  --product-card-min-height: 92px;
+  --z-overlay: 1200;
+  --z-menu: 1300;
 
-  --product-price-size: 16px;
+  --z-sheet-overlay: 1400;
+  --z-sheet: 1500;
 
+  --z-search: 1600;
 
-  /* ==================================================
-     23. SOCIAL SYSTEM
-     ================================================== */
+  --z-toast: 1800;
 
-  --story-size: 64px;
-
-  --avatar-sm: 32px;
-
-  --avatar-md: 40px;
-
-  --avatar-lg: 56px;
-
-  --avatar-xl: 80px;
+  --z-splash: 2500;
 
 
-  /* ==================================================
-     24. APP BREAKPOINTS
-     ================================================== */
+  /* =======================================================
+     17. SPLASH INTRO TOKENS
+     ======================================================= */
 
-  --breakpoint-mobile: 430px;
+  --splash-bg: #f8f7f1;
+  --splash-ink: var(--forest-900);
+  --splash-accent: var(--gold-500);
 
+  --splash-cart-size: 58px;
+  --splash-logo-size: 88px;
+
+  --splash-gap: 14px;
+
+
+  /* =======================================================
+     18. IMAGE / MEDIA
+     ======================================================= */
+
+  --image-bg: #eceae2;
+  --image-overlay:
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0) 55%,
+      rgba(0, 0, 0, 0.12) 100%
+    );
+
+
+  /* =======================================================
+     19. STATUS COLORS
+     ======================================================= */
+
+  --success: #168a4d;
+  --success-soft: #eaf7ef;
+
+  --warning: #9b6b13;
+  --warning-soft: #fff7e5;
+
+  --danger: #c7422b;
+  --danger-soft: #fff0ed;
+
+  --info: #2e6d8f;
+  --info-soft: #edf6fb;
+
+
+  /* =======================================================
+     20. LEGACY ALIASES
+     Temporary compatibility for old CSS / JS.
+     ======================================================= */
+
+  --r-sm: var(--radius-sm);
+  --r-md: var(--radius-md);
+  --r-lg: var(--radius-lg);
+  --r-xl: var(--radius-xl);
+  --r-full: var(--radius-pill);
+
+  --shadow-1: var(--shadow-xs);
+  --shadow-2: var(--shadow-sm);
+  --shadow-3: var(--shadow-md);
+  --shadow-4: var(--shadow-lg);
+
+  --ease-smooth: var(--ease-standard);
+  --ease-dramatic: var(--ease-emphasized);
+
+  --font-sans: var(--font-ui);
 }
 
 
-/* ======================================================
-   ACCESSIBILITY — REDUCED MOTION
-   Menghormati pengguna yang mematikan animasi.
-   ====================================================== */
+/* =========================================================
+   ACCESSIBILITY / USER MOTION PREFERENCE
+   ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
 
   :root {
-    --duration-fast: 0ms;
-    --duration-normal: 0ms;
-    --duration-slow: 0ms;
-    --duration-slower: 0ms;
-  }
 
+    --duration-instant: 1ms;
+    --duration-fast: 1ms;
+    --duration-normal: 1ms;
+    --duration-slow: 1ms;
+    --duration-emphasis: 1ms;
+
+    --splash-enter-duration: 1ms;
+    --splash-meet-duration: 1ms;
+    --splash-hold-duration: 1ms;
+    --splash-exit-duration: 1ms;
+  }
 }
