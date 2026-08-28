@@ -2,123 +2,611 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+  >
+
   <meta name="theme-color" content="#128c4e">
+  <meta name="color-scheme" content="light">
+
+  <meta
+    name="description"
+    content="Pasar UMKM adalah marketplace sosial untuk menemukan, mendukung, dan membeli produk UMKM lokal Lubuklinggau dan Sumatera Selatan."
+  >
+
+  <meta
+    name="keywords"
+    content="Pasar UMKM, UMKM Lubuklinggau, UMKM Sumatera Selatan, marketplace lokal, produk lokal"
+  >
+
+  <meta name="author" content="Pasar UMKM">
+
+  <!-- Mobile Web App -->
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  
+  <meta
+    name="apple-mobile-web-app-status-bar-style"
+    content="black-translucent"
+  >
+
   <title>Pasar UMKM — Lubuklinggau</title>
-  <meta name="description" content="Marketplace UMKM lokal Lubuklinggau dan Sumatera Selatan. Temukan produk terbaik dari penjual terpercaya.">
-  
-  <!-- Preconnect for speed -->
+
+  <!-- =====================================================
+       PERFORMANCE
+       ===================================================== -->
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://cdn.jsdelivr.net">
-  
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-  
-  <!-- Icons (Phosphor, modern & clean) -->
-  <script src="https://unpkg.com/@phosphor-icons/web"></script>
-  
-  <!-- Styles -->
+
+  <link rel="preconnect" href="https://unpkg.com">
+
+  <!-- =====================================================
+       FONTS
+       ===================================================== -->
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap"
+    rel="stylesheet"
+  >
+
+  <!-- =====================================================
+       ICONS
+       ===================================================== -->
+
+  <script
+    src="https://unpkg.com/@phosphor-icons/web"
+    defer
+  ></script>
+
+  <!-- =====================================================
+       DESIGN SYSTEM
+       ===================================================== -->
+
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/style.css">
+
 </head>
+
+
 <body>
 
-  <!-- ==================== HEADER ==================== -->
-  <header class="app-header" id="header">
-    <div class="header-main">
-      <button class="header-btn" aria-label="Menu">
-        <i class="ph ph-list"></i>
-      </button>
-      
-      <div class="brand">
-        <img src="assets/logo.png" alt="" class="brand-mark">
-        <div class="brand-wordmark">
-          <span class="brand-name">Pasar UMKM</span>
-          <span class="brand-location">Lubuklinggau</span>
+  <!-- =====================================================
+       APP CONTAINER
+       ===================================================== -->
+
+  <div class="app" id="app">
+
+
+    <!-- ===================================================
+         HEADER
+         =================================================== -->
+
+    <header
+      class="app-header"
+      id="header"
+      role="banner"
+    >
+
+      <div class="header-main">
+
+
+        <!-- MENU -->
+
+        <button
+          class="header-btn"
+          id="menuButton"
+          type="button"
+          aria-label="Buka menu"
+          aria-controls="sideMenu"
+          aria-expanded="false"
+          data-action="menu"
+        >
+          <i class="ph ph-list"></i>
+        </button>
+
+
+        <!-- BRAND -->
+
+        <a
+          href="#"
+          class="brand"
+          aria-label="Pasar UMKM - Beranda"
+          data-nav="home"
+        >
+
+          <img
+            src="assets/logo.png"
+            alt="Pasar UMKM"
+            class="brand-mark"
+            width="32"
+            height="32"
+          >
+
+          <div class="brand-wordmark">
+
+            <span class="brand-name">
+              Pasar UMKM
+            </span>
+
+            <span class="brand-location">
+              Lubuklinggau
+            </span>
+
+          </div>
+
+        </a>
+
+
+        <!-- HEADER ACTIONS -->
+
+        <div class="header-actions">
+
+
+          <!-- SEARCH -->
+
+          <button
+            class="header-btn"
+            id="searchButton"
+            type="button"
+            aria-label="Cari produk atau UMKM"
+            data-action="search"
+          >
+
+            <i class="ph ph-magnifying-glass"></i>
+
+          </button>
+
+
+          <!-- NOTIFICATION -->
+
+          <button
+            class="header-btn has-badge"
+            id="notificationButton"
+            type="button"
+            aria-label="Notifikasi, 3 pemberitahuan"
+            data-action="notifications"
+          >
+
+            <i class="ph ph-bell"></i>
+
+            <span
+              class="badge-dot"
+              aria-hidden="true"
+            >
+              3
+            </span>
+
+          </button>
+
+
+          <!-- MESSAGE -->
+
+          <button
+            class="header-btn has-badge"
+            id="messageButton"
+            type="button"
+            aria-label="Pesan, 2 pesan baru"
+            data-action="messages"
+          >
+
+            <i class="ph ph-chat-circle-text"></i>
+
+            <span
+              class="badge-dot"
+              aria-hidden="true"
+            >
+              2
+            </span>
+
+          </button>
+
+
         </div>
+
       </div>
-      
-      <div class="header-actions">
-        <button class="header-btn" aria-label="Cari">
-          <i class="ph ph-magnifying-glass"></i>
-        </button>
-        <button class="header-btn has-badge" aria-label="Notifikasi">
-          <i class="ph ph-bell"></i>
-          <span class="badge-dot">3</span>
-        </button>
-        <button class="header-btn has-badge" aria-label="Pesan">
-          <i class="ph ph-chat-circle-text"></i>
-          <span class="badge-dot">2</span>
-        </button>
+
+    </header>
+
+
+
+    <!-- ===================================================
+         STORIES
+         =================================================== -->
+
+    <section
+      class="stories-section"
+      aria-label="Cerita UMKM"
+    >
+
+      <div
+        class="stories-track"
+        id="stories"
+        role="list"
+        aria-label="Cerita penjual"
+      >
+
+        <!--
+          Stories akan dibuat oleh JavaScript.
+
+          Contoh data:
+          - Pak Madi
+          - Ibu Siti
+          - Madi Craft
+          - Maepi Art
+          - Jual
+        -->
+
       </div>
+
+    </section>
+
+
+
+    <!-- ===================================================
+         MAIN CONTENT
+         =================================================== -->
+
+    <main
+      class="feed"
+      id="feed"
+      role="main"
+      aria-label="Feed produk dan aktivitas UMKM"
+    >
+
+      <!--
+        Feed akan dirender oleh app.js.
+      -->
+
+    </main>
+
+
+
+    <!-- ===================================================
+         BOTTOM NAVIGATION
+         =================================================== -->
+
+    <nav
+      class="app-nav"
+      id="appNavigation"
+      aria-label="Navigasi utama"
+    >
+
+
+      <!-- BERANDA -->
+
+      <a
+        href="#"
+        class="nav-link active"
+        data-nav="home"
+        aria-current="page"
+        aria-label="Beranda"
+      >
+
+        <div class="nav-icon-wrap">
+
+          <i
+            class="ph-fill ph-house"
+            aria-hidden="true"
+          ></i>
+
+        </div>
+
+        <span class="nav-label">
+          Beranda
+        </span>
+
+      </a>
+
+
+
+      <!-- KATEGORI -->
+
+      <a
+        href="#kategori"
+        class="nav-link"
+        data-nav="categories"
+        aria-label="Kategori"
+      >
+
+        <div class="nav-icon-wrap">
+
+          <i
+            class="ph ph-squares-four"
+            aria-hidden="true"
+          ></i>
+
+        </div>
+
+        <span class="nav-label">
+          Kategori
+        </span>
+
+      </a>
+
+
+
+      <!-- JUAL -->
+
+      <a
+        href="#jual"
+        class="nav-link nav-create"
+        data-nav="sell"
+        aria-label="Jual produk"
+      >
+
+        <div class="create-btn">
+
+          <i
+            class="ph ph-plus"
+            aria-hidden="true"
+          ></i>
+
+        </div>
+
+      </a>
+
+
+
+      <!-- KERANJANG -->
+
+      <a
+        href="#keranjang"
+        class="nav-link"
+        data-nav="cart"
+        aria-label="Keranjang, 2 produk"
+      >
+
+        <div class="nav-icon-wrap">
+
+          <i
+            class="ph ph-shopping-cart"
+            aria-hidden="true"
+          ></i>
+
+          <span
+            class="nav-badge"
+            aria-hidden="true"
+          >
+            2
+          </span>
+
+        </div>
+
+        <span class="nav-label">
+          Keranjang
+        </span>
+
+      </a>
+
+
+
+      <!-- AKUN -->
+
+      <a
+        href="#akun"
+        class="nav-link"
+        data-nav="account"
+        aria-label="Akun"
+      >
+
+        <div class="nav-icon-wrap">
+
+          <i
+            class="ph ph-user"
+            aria-hidden="true"
+          ></i>
+
+        </div>
+
+        <span class="nav-label">
+          Akun
+        </span>
+
+      </a>
+
+
+    </nav>
+
+
+
+    <!-- ===================================================
+         SIDE MENU
+         =================================================== -->
+
+    <aside
+      class="side-menu"
+      id="sideMenu"
+      aria-hidden="true"
+      hidden
+    >
+
+      <div class="side-menu-inner">
+
+        <button
+          class="header-btn"
+          id="closeMenuButton"
+          type="button"
+          aria-label="Tutup menu"
+          data-action="close-menu"
+        >
+
+          <i class="ph ph-x"></i>
+
+        </button>
+
+        <div id="sideMenuContent"></div>
+
+      </div>
+
+    </aside>
+
+
+
+    <!-- ===================================================
+         SEARCH OVERLAY
+         =================================================== -->
+
+    <section
+      class="search-overlay"
+      id="searchOverlay"
+      aria-hidden="true"
+      hidden
+    >
+
+      <div class="search-panel">
+
+        <div class="search-panel-header">
+
+          <button
+            class="header-btn"
+            id="closeSearchButton"
+            type="button"
+            aria-label="Tutup pencarian"
+            data-action="close-search"
+          >
+
+            <i class="ph ph-arrow-left"></i>
+
+          </button>
+
+          <div class="search-input-wrap">
+
+            <i
+              class="ph ph-magnifying-glass"
+              aria-hidden="true"
+            ></i>
+
+            <input
+              type="search"
+              id="searchInput"
+              placeholder="Cari produk atau UMKM..."
+              autocomplete="off"
+              enterkeyhint="search"
+              aria-label="Cari produk atau UMKM"
+            >
+
+            <button
+              type="button"
+              class="search-clear"
+              id="searchClearButton"
+              aria-label="Hapus pencarian"
+              hidden
+            >
+
+              <i class="ph ph-x-circle"></i>
+
+            </button>
+
+          </div>
+
+        </div>
+
+        <div
+          class="search-results"
+          id="searchResults"
+        ></div>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- ===================================================
+         TOAST
+         =================================================== -->
+
+    <div
+      class="toast"
+      id="toast"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    ></div>
+
+
+
+    <!-- ===================================================
+         SHEET OVERLAY
+         =================================================== -->
+
+    <div
+      class="sheet-overlay"
+      id="sheetOverlay"
+      hidden
+      aria-hidden="true"
+    ></div>
+
+
+
+    <!-- ===================================================
+         BOTTOM SHEET
+         =================================================== -->
+
+    <section
+      class="bottom-sheet"
+      id="bottomSheet"
+      hidden
+      aria-hidden="true"
+      aria-modal="true"
+      role="dialog"
+      aria-labelledby="sheetTitle"
+    >
+
+      <div
+        class="sheet-handle"
+        aria-hidden="true"
+      ></div>
+
+      <div
+        class="sheet-content"
+        id="sheetContent"
+      >
+
+        <!--
+          Konten bottom sheet
+          akan dibuat oleh app.js.
+        -->
+
+      </div>
+
+    </section>
+
+
+
+    <!-- ===================================================
+         GLOBAL LOADING
+         =================================================== -->
+
+    <div
+      class="app-loading"
+      id="appLoading"
+      aria-hidden="true"
+      hidden
+    >
+
+      <div class="loading-spinner"></div>
+
+      <span>
+        Memuat Pasar UMKM...
+      </span>
+
     </div>
-  </header>
 
-  <!-- ==================== STORIES ==================== -->
-  <section class="stories-section" aria-label="Cerita penjual">
-    <div class="stories-track" id="stories">
-      <!-- JS injects here -->
-    </div>
-  </section>
 
-  <!-- ==================== MAIN FEED ==================== -->
-  <main class="feed" id="feed" aria-label="Feed produk">
-    <!-- JS injects here -->
-  </main>
-
-  <!-- ==================== BOTTOM NAV ==================== -->
-  <nav class="app-nav" aria-label="Navigasi utama">
-    <a href="#" class="nav-link active" aria-current="page">
-      <div class="nav-icon-wrap">
-        <i class="ph-fill ph-house"></i>
-      </div>
-      <span class="nav-label">Beranda</span>
-    </a>
-    
-    <a href="#" class="nav-link">
-      <div class="nav-icon-wrap">
-        <i class="ph ph-squares-four"></i>
-      </div>
-      <span class="nav-label">Kategori</span>
-    </a>
-    
-    <a href="#" class="nav-link nav-create">
-      <div class="create-btn">
-        <i class="ph ph-plus"></i>
-      </div>
-    </a>
-    
-    <a href="#" class="nav-link has-badge">
-      <div class="nav-icon-wrap">
-        <i class="ph ph-shopping-cart"></i>
-        <span class="nav-badge">2</span>
-      </div>
-      <span class="nav-label">Keranjang</span>
-    </a>
-    
-    <a href="#" class="nav-link">
-      <div class="nav-icon-wrap">
-        <i class="ph ph-user"></i>
-      </div>
-      <span class="nav-label">Akun</span>
-    </a>
-  </nav>
-
-  <!-- ==================== OVERLAYS ==================== -->
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  
-  <div class="sheet-overlay" id="sheetOverlay" hidden></div>
-  
-  <div class="bottom-sheet" id="bottomSheet" hidden>
-    <div class="sheet-handle"></div>
-    <div class="sheet-content" id="sheetContent"></div>
   </div>
 
-  <!-- ==================== SCRIPTS ==================== -->
-  <script src="js/app.js"></script>
+
+  <!-- =====================================================
+       JAVASCRIPT
+       ===================================================== -->
+
+  <script
+    src="js/app.js"
+    defer
+  ></script>
+
 </body>
 </html>
