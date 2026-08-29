@@ -4882,7 +4882,550 @@ function openSell() {
   );
 }
 
+/* =========================================================
+   PRODUCT CREATE FORM
+   ========================================================= */
 
+function openProductCreateForm() {
+  if (
+    !STATE.user ||
+    (
+      STATE.user.role !== 'seller' &&
+      STATE.user.role !== 'admin'
+    )
+  ) {
+    showToast(
+      'Hanya pemilik UMKM yang dapat menambahkan produk.'
+    );
+
+    return;
+  }
+
+
+  const categoryOptions =
+    Array.isArray(CATEGORIES)
+      ? CATEGORIES
+          .map(category => `
+            <option
+              value="${escapeHTML(
+                category.id
+              )}"
+            >
+              ${escapeHTML(
+                category.name
+              )}
+            </option>
+          `)
+          .join('')
+      : '';
+
+
+  openBottomSheet(
+    `
+      <div
+        class="auth-shell"
+        id="productCreateShell"
+      >
+
+        <section class="auth-brand">
+
+          <div class="auth-brand-mark">
+            <i
+              class="ph ph-package"
+              aria-hidden="true"
+              style="font-size:32px;"
+            ></i>
+          </div>
+
+          <div
+            id="sheetTitle"
+            class="auth-title"
+            role="heading"
+            aria-level="2"
+          >
+            Tambah Produk
+          </div>
+
+          <p class="auth-subtitle">
+            Tambahkan produk baru ke toko Anda.
+          </p>
+
+        </section>
+
+
+        <div
+          id="productCreateMessage"
+          class="auth-message"
+          aria-live="polite"
+          hidden
+        ></div>
+
+
+        <form
+          id="productCreateForm"
+          class="auth-form"
+        >
+
+          <div class="auth-field">
+
+            <label
+              class="auth-label"
+              for="productCreateName"
+            >
+              Nama Produk
+            </label>
+
+            <div class="auth-input-wrap">
+
+              <i
+                class="ph ph-package auth-input-icon"
+                aria-hidden="true"
+              ></i>
+
+              <input
+                id="productCreateName"
+                class="auth-input"
+                name="name"
+                type="text"
+                minlength="2"
+                maxlength="150"
+                placeholder="Contoh: Keripik Pisang Cokelat"
+                required
+              >
+
+            </div>
+
+          </div>
+
+
+          <div class="auth-field">
+
+            <label
+              class="auth-label"
+              for="productCreateCategory"
+            >
+              Kategori
+            </label>
+
+            <select
+              id="productCreateCategory"
+              class="auth-input"
+              name="category_id"
+            >
+              <option value="">
+                Pilih kategori
+              </option>
+
+              ${categoryOptions}
+
+            </select>
+
+          </div>
+
+
+          <div class="auth-field">
+
+            <label
+              class="auth-label"
+              for="productCreatePrice"
+            >
+              Harga
+            </label>
+
+            <div class="auth-input-wrap">
+
+              <i
+                class="ph ph-currency-circle-dollar auth-input-icon"
+                aria-hidden="true"
+              ></i>
+
+              <input
+                id="productCreatePrice"
+                class="auth-input"
+                name="price"
+                type="number"
+                inputmode="numeric"
+                min="0"
+                step="1"
+                placeholder="15000"
+                required
+              >
+
+            </div>
+
+          </div>
+
+
+          <div class="auth-field">
+
+            <label
+              class="auth-label"
+              for="productCreateStock"
+            >
+              Stok
+            </label>
+
+            <div class="auth-input-wrap">
+
+              <i
+                class="ph ph-stack auth-input-icon"
+                aria-hidden="true"
+              ></i>
+
+              <input
+                id="productCreateStock"
+                class="auth-input"
+                name="stock"
+                type="number"
+                inputmode="numeric"
+                min="0"
+                step="1"
+                value="0"
+                required
+              >
+
+            </div>
+
+          </div>
+
+
+          <div class="auth-field">
+
+            <label
+              class="auth-label"
+              for="productCreateUnit"
+            >
+              Satuan
+            </label>
+
+            <div class="auth-input-wrap">
+
+              <i
+                class="ph ph-tag auth-input-icon"
+                aria-hidden="true"
+              ></i>
+
+              <input
+                id="productCreateUnit"
+                class="auth-input"
+                name="unit"
+                type="text"
+                maxlength="50"
+                placeholder="pcs, kotak, botol, porsi..."
+              >
+
+            </div>
+
+          </div>
+
+
+          <div class="auth-field">
+
+            <label
+              class="auth-label"
+              for="productCreateDescription"
+            >
+              Deskripsi
+            </label>
+
+            <textarea
+              id="productCreateDescription"
+              class="auth-input"
+              name="description"
+              rows="4"
+              placeholder="Jelaskan produk Anda..."
+              style="
+                min-height:110px;
+                resize:vertical;
+                padding-top:14px;
+              "
+            ></textarea>
+
+          </div>
+
+
+          <button
+            type="submit"
+            class="btn-primary auth-submit"
+          >
+            <i
+              class="ph ph-plus-circle"
+              aria-hidden="true"
+            ></i>
+
+            <span>
+              Tambahkan Produk
+            </span>
+          </button>
+
+        </form>
+
+
+        <div class="auth-security">
+
+          <i
+            class="ph ph-shield-check"
+            aria-hidden="true"
+          ></i>
+
+          <span>
+            Produk akan terhubung langsung
+            dengan UMKM Anda.
+          </span>
+
+        </div>
+
+      </div>
+    `,
+    'product-create'
+  );
+
+
+  bindProductCreateEvents();
+
+
+  requestAnimationFrame(() => {
+    DOM.sheetContent
+      ?.querySelector(
+        '#productCreateName'
+      )
+      ?.focus();
+  });
+}
+
+
+/* =========================================================
+   PRODUCT CREATE EVENTS
+   ========================================================= */
+
+function bindProductCreateEvents() {
+  const form =
+    DOM.sheetContent
+      ?.querySelector(
+        '#productCreateForm'
+      );
+
+
+  if (!form) {
+    return;
+  }
+
+
+  form.addEventListener(
+    'submit',
+    handleProductCreateSubmit
+  );
+}
+
+
+/* =========================================================
+   PRODUCT CREATE SUBMIT
+   ========================================================= */
+
+async function handleProductCreateSubmit(
+  event
+) {
+  event.preventDefault();
+
+
+  const form =
+    event.currentTarget;
+
+
+  const submitButton =
+    form.querySelector(
+      '[type="submit"]'
+    );
+
+
+  const message =
+    DOM.sheetContent
+      ?.querySelector(
+        '#productCreateMessage'
+      );
+
+
+  const formData =
+    new FormData(form);
+
+
+  const payload = {
+    name:
+      String(
+        formData.get('name') || ''
+      ).trim(),
+
+    category_id:
+      String(
+        formData.get(
+          'category_id'
+        ) || ''
+      ).trim() || null,
+
+    price:
+      Number(
+        formData.get('price')
+      ),
+
+    stock:
+      Number(
+        formData.get('stock')
+      ),
+
+    unit:
+      String(
+        formData.get('unit') || ''
+      ).trim(),
+
+    description:
+      String(
+        formData.get(
+          'description'
+        ) || ''
+      ).trim()
+  };
+
+
+  if (
+    payload.name.length < 2
+  ) {
+    showToast(
+      'Nama produk minimal 2 karakter.'
+    );
+
+    return;
+  }
+
+
+  if (
+    !Number.isFinite(
+      payload.price
+    ) ||
+    payload.price < 0
+  ) {
+    showToast(
+      'Harga produk tidak valid.'
+    );
+
+    return;
+  }
+
+
+  if (
+    !Number.isInteger(
+      payload.stock
+    ) ||
+    payload.stock < 0
+  ) {
+    showToast(
+      'Stok produk tidak valid.'
+    );
+
+    return;
+  }
+
+
+  if (submitButton) {
+    submitButton.disabled = true;
+  }
+
+
+  if (message) {
+    message.hidden = true;
+    message.textContent = '';
+  }
+
+
+  try {
+    const response =
+      await fetch(
+        '/api/products',
+        {
+          method: 'POST',
+
+          credentials:
+            'include',
+
+          headers: {
+            'Content-Type':
+              'application/json',
+
+            Accept:
+              'application/json'
+          },
+
+          body:
+            JSON.stringify(
+              payload
+            )
+        }
+      );
+
+
+    const data =
+      await response
+        .json()
+        .catch(() => ({}));
+
+
+    if (
+      !response.ok ||
+      data.ok !== true
+    ) {
+      throw new Error(
+        data.error ||
+        'Produk gagal ditambahkan.'
+      );
+    }
+
+
+    showToast(
+      data.message ||
+      'Produk berhasil ditambahkan.'
+    );
+
+
+    closeBottomSheet();
+
+
+    await openAccount();
+
+
+    const productTab =
+      document.querySelector(
+        '.social-account-tab[data-tab="products"]'
+      );
+
+
+    if (productTab) {
+      switchAccountTab(
+        'products',
+        productTab
+      );
+    }
+
+
+  } catch (error) {
+    console.error(
+      '[Pasar UMKM] Product create error:',
+      error
+    );
+
+
+    if (message) {
+      message.textContent =
+        error.message ||
+        'Produk gagal ditambahkan.';
+
+      message.hidden = false;
+    }
+
+
+    if (submitButton) {
+      submitButton.disabled = false;
+    }
+  }
+}
 
 /* =========================================================
    STORE REGISTRATION FORM
