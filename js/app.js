@@ -3529,20 +3529,38 @@ async function openAccount() {
 
   let store = null;
 
-  if (
-    STATE.user.role === 'seller' ||
-    STATE.user.role === 'admin'
-  ) {
-    try {
-      store =
-        await loadCurrentAccountStore();
-    } catch (error) {
-      console.error(
-        '[Pasar UMKM] Store profile error:',
-        error
-      );
-    }
+ if (
+  STATE.user.role === 'seller' ||
+  STATE.user.role === 'admin'
+) {
+  try {
+    const [
+      currentStore,
+      currentProducts
+    ] = await Promise.all([
+      loadCurrentAccountStore(),
+      loadCurrentAccountProducts()
+    ]);
+
+
+    store =
+      currentStore;
+
+    STATE.accountProducts =
+      currentProducts;
+
+  } catch (error) {
+    console.error(
+      '[Pasar UMKM] Account data error:',
+      error
+    );
+
+    STATE.accountProducts = [];
   }
+
+} else {
+  STATE.accountProducts = [];
+}
 
   renderSocialAccountProfile(store);
 
