@@ -3597,66 +3597,89 @@ function formatRole(role) {
 
 function openSell() {
   if (!STATE.user) {
-    showToast('Masuk untuk mulai menjual.');
+    showToast(
+      'Masuk untuk mulai menjual.'
+    );
+
     openLogin();
+
     return;
   }
 
+
+  /*
+   * Belum menjadi seller?
+   * Tampilkan formulir pendaftaran UMKM.
+   */
   if (
     STATE.user.role !== 'seller' &&
     STATE.user.role !== 'admin'
   ) {
-    openBottomSheet(
-      `
-        <h2 id="sheetTitle">
-          Mulai Jual
-        </h2>
-
-        <section class="empty-state">
-
-          <i
-            class="ph ph-storefront"
-            aria-hidden="true"
-          ></i>
-
-          <strong class="empty-state-title">
-            Daftarkan UMKM
-          </strong>
-
-          <p class="empty-state-text">
-            Aktifkan profil UMKM sebelum menerbitkan
-            produk dan postingan.
-          </p>
-
-        </section>
-      `,
-      'seller-register'
-    );
+    renderStoreRegistrationForm();
 
     return;
   }
 
+
+  /*
+   * Seller / Admin:
+   * tampilkan pusat penjual.
+   */
   openBottomSheet(
     `
       <h2 id="sheetTitle">
         Pusat Penjual
       </h2>
 
+
+      <section class="side-account">
+
+        <div class="side-account-user-main">
+
+          <div class="side-account-avatar">
+            <i
+              class="ph ph-storefront"
+              aria-hidden="true"
+            ></i>
+          </div>
+
+
+          <div class="side-account-user-info">
+
+            <strong class="side-account-user-name">
+              Pusat Penjual
+            </strong>
+
+            <span class="side-account-user-role">
+              Kelola UMKM dan produk Anda
+            </span>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
       <button
         type="button"
         class="menu-sheet-btn"
       >
         <i class="ph ph-plus-circle"></i>
+
         Tambah Produk
       </button>
+
 
       <button
         type="button"
         class="menu-sheet-btn"
       >
         <i class="ph ph-camera"></i>
+
         Buat Postingan
       </button>
+
 
       <button
         type="button"
@@ -3664,6 +3687,7 @@ function openSell() {
         data-menu-action="store"
       >
         <i class="ph ph-storefront"></i>
+
         Kelola Toko
       </button>
     `,
@@ -3671,6 +3695,333 @@ function openSell() {
   );
 }
 
+
+
+/* =========================================================
+   STORE REGISTRATION FORM
+   ========================================================= */
+
+function renderStoreRegistrationForm() {
+  openBottomSheet(
+    `
+      <div
+        class="auth-shell"
+        id="storeRegisterShell"
+      >
+
+        <section class="auth-brand">
+
+          <div class="auth-brand-mark">
+
+            <i
+              class="ph ph-storefront"
+              aria-hidden="true"
+              style="font-size:32px;"
+            ></i>
+
+          </div>
+
+
+          <div
+            id="sheetTitle"
+            class="auth-title"
+            role="heading"
+            aria-level="2"
+          >
+            Daftarkan UMKM
+          </div>
+
+
+          <p class="auth-subtitle">
+            Buat profil UMKM Anda untuk mulai
+            menjual produk di Pasar UMKM.
+          </p>
+
+        </section>
+
+
+        <div
+          id="authMessage"
+          class="auth-message"
+          aria-live="polite"
+          hidden
+        ></div>
+
+
+        <form
+          id="storeRegisterForm"
+          class="auth-form"
+        >
+
+          <div class="auth-field">
+
+            <label
+              class="auth-label"
+              for="storeRegisterName"
+            >
+              Nama UMKM
+            </label>
+
+
+            <div class="auth-input-wrap">
+
+              <i
+                class="ph ph-storefront auth-input-icon"
+                aria-hidden="true"
+              ></i>
+
+
+              <input
+                id="storeRegisterName"
+                class="auth-input"
+                type="text"
+                name="name"
+                minlength="3"
+                maxlength="100"
+                autocomplete="organization"
+                placeholder="Contoh: Kopi Linggau"
+                required
+              >
+
+            </div>
+
+          </div>
+
+
+          <p
+            class="empty-state-text"
+            style="
+              text-align:left;
+              margin:0;
+              font-size:13px;
+              line-height:1.55;
+            "
+          >
+            Nama UMKM dapat diubah melalui
+            pengaturan toko setelah pendaftaran.
+          </p>
+
+
+          <button
+            type="submit"
+            class="btn-primary auth-submit"
+          >
+            <i
+              class="ph ph-storefront"
+              aria-hidden="true"
+            ></i>
+
+            <span>
+              Daftarkan UMKM
+            </span>
+          </button>
+
+        </form>
+
+
+        <div class="auth-security">
+
+          <i
+            class="ph ph-shield-check"
+            aria-hidden="true"
+          ></i>
+
+          <span>
+            UMKM akan terhubung langsung
+            dengan akun Anda.
+          </span>
+
+        </div>
+
+      </div>
+    `,
+    'seller-register'
+  );
+
+
+  bindStoreRegisterEvents();
+
+
+  requestAnimationFrame(() => {
+    DOM.sheetContent
+      ?.querySelector(
+        '#storeRegisterName'
+      )
+      ?.focus();
+  });
+}
+
+
+
+/* =========================================================
+   STORE REGISTRATION EVENTS
+   ========================================================= */
+
+function bindStoreRegisterEvents() {
+  const form =
+    DOM.sheetContent
+      ?.querySelector(
+        '#storeRegisterForm'
+      );
+
+
+  if (!form) {
+    return;
+  }
+
+
+  form.addEventListener(
+    'submit',
+    handleStoreRegisterSubmit
+  );
+}
+
+
+
+/* =========================================================
+   STORE REGISTRATION SUBMIT
+   ========================================================= */
+
+async function handleStoreRegisterSubmit(
+  event
+) {
+  event.preventDefault();
+
+
+  const form =
+    event.currentTarget;
+
+
+  if (!form.checkValidity()) {
+    form.reportValidity();
+
+    return;
+  }
+
+
+  const formData =
+    new FormData(form);
+
+
+  const name =
+    String(
+      formData.get('name') || ''
+    )
+      .trim()
+      .replace(
+        /\s+/g,
+        ' '
+      );
+
+
+  const button =
+    form.querySelector(
+      '.auth-submit'
+    );
+
+
+  clearAuthMessage();
+
+
+  setAuthLoading(
+    button,
+    true
+  );
+
+
+  try {
+
+    /*
+     * Kirim ke Cloudflare Worker.
+     */
+    const data =
+      await authRequest(
+        '/api/stores',
+        {
+          method: 'POST',
+
+          body:
+            JSON.stringify({
+              name
+            })
+        }
+      );
+
+
+    if (!data.store) {
+      throw new Error(
+        'Data UMKM tidak diterima dari server.'
+      );
+    }
+
+
+    /*
+     * Backend mengembalikan user
+     * yang role-nya sudah seller.
+     */
+    if (data.user) {
+      STATE.user =
+        data.user;
+    } else {
+      /*
+       * Jaga-jaga jika response backend
+       * tidak membawa user.
+       */
+      await restoreAuthSession();
+    }
+
+
+    /*
+     * Ambil ulang daftar toko
+     * dari Neon supaya frontend
+     * menggunakan data server terbaru.
+     */
+    await loadStores();
+
+
+    /*
+     * Refresh bagian UI yang
+     * bergantung pada role user.
+     */
+    renderAccount();
+    renderSidebar();
+    renderStories();
+    updateNavigation();
+
+
+    showToast(
+      data.message ||
+      'UMKM berhasil didaftarkan.'
+    );
+
+
+    /*
+     * Role sekarang seller.
+     * Buka kembali menu jual.
+     */
+    openSell();
+
+
+  } catch (error) {
+    console.error(
+      '[Pasar UMKM] Store registration error:',
+      error
+    );
+
+
+    setAuthMessage(
+      'error',
+      error.message ||
+      'UMKM belum berhasil didaftarkan.'
+    );
+
+
+    setAuthLoading(
+      button,
+      false
+    );
+  }
+}
 
 /* =========================================================
    44. STORES
