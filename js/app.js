@@ -257,21 +257,27 @@ function cacheDOM() {
 
 async function loadInitialData() {
   /*
-   * Pulihkan session akun terlebih dahulu.
+   * 1. Pulihkan session user.
    */
   await restoreAuthSession();
 
 
   /*
-   * Ambil kategori nyata dari backend / Neon.
+   * 2. Ambil kategori dari Neon.
    */
   await loadCategories();
 
 
   /*
-   * Data marketplace lain seperti posts,
-   * stores, messages, dan orders
-   * masih menunggu bootstrap backend.
+   * 3. Ambil daftar UMKM dari Neon.
+   */
+  await loadStores();
+
+
+  /*
+   * Data marketplace lainnya seperti
+   * posts, messages, notifications,
+   * dan orders belum memakai bootstrap.
    */
   if (!CONFIG.API_BASE_URL) {
     return;
@@ -279,7 +285,9 @@ async function loadInitialData() {
 
 
   const bootstrap =
-    await apiRequest('/api/bootstrap');
+    await apiRequest(
+      '/api/bootstrap'
+    );
 
 
   if (!bootstrap) {
@@ -296,12 +304,6 @@ async function loadInitialData() {
   DATA.posts =
     ensureArray(
       bootstrap.posts
-    );
-
-
-  DATA.stores =
-    ensureArray(
-      bootstrap.stores
     );
 
 
@@ -340,6 +342,7 @@ async function loadInitialData() {
 }
 
 
+
 /* =========================================================
    LOAD CATEGORIES
    ========================================================= */
@@ -352,14 +355,16 @@ async function loadCategories() {
         {
           method: 'GET',
 
-          credentials: 'include',
+          credentials:
+            'include',
 
           headers: {
             Accept:
               'application/json'
           },
 
-          cache: 'no-store'
+          cache:
+            'no-store'
         }
       );
 
@@ -446,6 +451,94 @@ async function loadCategories() {
 
     showToast(
       'Kategori belum dapat dimuat.'
+    );
+  }
+}
+
+
+
+/* =========================================================
+   LOAD STORES
+   ========================================================= */
+
+async function loadStores() {
+  try {
+    const response =
+      await fetch(
+        '/api/stores',
+        {
+          method: 'GET',
+
+          credentials:
+            'include',
+
+          headers: {
+            Accept:
+              'application/json'
+          },
+
+          cache:
+            'no-store'
+        }
+      );
+
+
+    if (!response.ok) {
+      throw new Error(
+        `Stores request failed: ${response.status}`
+      );
+    }
+
+
+    const data =
+      await response.json();
+
+
+    if (
+      data.ok !== true ||
+      !Array.isArray(
+        data.stores
+      )
+    ) {
+      throw new Error(
+        'Format data UMKM tidak valid.'
+      );
+    }
+
+
+    DATA.stores =
+      data.stores
+        .map(store => ({
+          id:
+            String(
+              store.id || ''
+            ),
+
+          name:
+            String(
+              store.name || ''
+            )
+        }))
+        .filter(store => {
+          return (
+            store.id &&
+            store.name
+          );
+        });
+
+
+  } catch (error) {
+    console.error(
+      '[Pasar UMKM] Stores load error:',
+      error
+    );
+
+
+    DATA.stores = [];
+
+
+    showToast(
+      'Daftar UMKM belum dapat dimuat.'
     );
   }
 }
