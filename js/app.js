@@ -1,36 +1,21 @@
 /* =========================================================
-   PASAR UMKM — APP.JS v4.0
-   Social Marketplace Frontend Engine
-
-   HIPMI PT UIN Al Azhaar Lubuklinggau
-   Founder & Product Initiator: Capryan Agusto
+   PASAR UMKM
+   APP.JS v5.0
+   Frontend Application Controller
    ========================================================= */
 
 'use strict';
 
 
 /* =========================================================
-   01. CONFIG
+   01. CONFIGURATION
    ========================================================= */
 
 const CONFIG = {
 
-  /*
-   * DEVELOPMENT ONLY
-   *
-   * true  = data contoh tampil.
-   * false = data contoh hilang.
-   *
-   * Saat backend sudah aktif:
-   * ubah menjadi false.
-   */
-  DEMO_MODE: true,
+  APP_NAME: 'Pasar UMKM',
 
-  APP_NAME:
-    'Pasar UMKM',
-
-  LOCATION:
-    'Lubuklinggau',
+  LOCATION: 'Lubuklinggau',
 
   ORGANIZATION:
     'HIPMI PT UIN Al Azhaar Lubuklinggau',
@@ -41,39 +26,62 @@ const CONFIG = {
   INITIATOR:
     'Capryan Agusto',
 
+  /*
+   * Production must remain FALSE.
+   *
+   * Demo data is intentionally disabled so a newly launched
+   * marketplace does not pretend to already have likes,
+   * orders, chats or products.
+   */
+  DEMO_MODE: false,
+
+  /*
+   * Later replace this with your Cloudflare Worker API.
+   *
+   * Example:
+   * https://api-pasar-umkm.example.workers.dev
+   */
+  API_BASE_URL: '',
+
   STORAGE_KEY:
-    'pasarUmkmStateV4',
+    'pasarUmkmFrontendStateV5',
+
+  SESSION_KEY:
+    'pasarUmkmSessionV5',
 
   INTRO_SESSION_KEY:
     'pasarUmkmIntroSeen',
 
-  INTRO_HOLD:
-    1750,
+  SPLASH_HOLD_MS: 1150,
 
-  INTRO_EXIT:
-    430
+  SPLASH_EXIT_MS: 420,
+
+  TOAST_DURATION: 2400,
+
 };
 
 
 /* =========================================================
-   02. ASSET PATHS
+   02. ASSETS
    ========================================================= */
 
 const ASSETS = {
 
-  appLogo:
+  logo:
     'assets/logo.png',
 
-  hipmiLogo:
+  hipmi:
     'assets/branding/logo-hipmi-pt.png',
 
-  universityLogo:
-    'assets/branding/logo-uin-alazhaar.png'
+  university:
+    'assets/branding/logo-uin-alazhaar.png',
+
 };
 
 
 /* =========================================================
-   03. DEMO DATA
+   03. DEVELOPMENT DATA
+   Disabled while DEMO_MODE = false.
    ========================================================= */
 
 const DEMO_DATA = {
@@ -81,356 +89,99 @@ const DEMO_DATA = {
   stories: [
 
     {
-      id: 1,
-      name: 'Pak Madi',
-      image: 'assets/umkm1.jpg',
-      hasUpdate: true,
-      live: true
-    },
-
-    {
-      id: 2,
-      name: 'Ibu Siti',
-      image: 'assets/umkm2.jpg',
-      hasUpdate: true,
-      live: false
-    },
-
-    {
-      id: 3,
+      id: 'story-1',
       name: 'Madi Craft',
-      image: 'assets/umkm3.jpg',
-      hasUpdate: false,
-      live: false
-    },
-
-    {
-      id: 4,
-      name: 'Maepi Art',
-      image: 'assets/1.jpg',
+      avatar:
+        'https://images.unsplash.com/photo-1528698827591-e19ccd7bc23d?auto=format&fit=crop&w=300&q=80',
       hasUpdate: true,
-      live: false
+      live: false,
     },
 
     {
-      id: 5,
-      name: 'Pak Sili',
-      image: 'assets/2.jpg',
-      hasUpdate: false,
-      live: false
-    }
+      id: 'story-2',
+      name: 'Maepi Art',
+      avatar:
+        'https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?auto=format&fit=crop&w=300&q=80',
+      hasUpdate: true,
+      live: false,
+    },
+
   ],
 
 
   posts: [
 
     {
-      id: 1,
+      id: 'post-1',
 
-      author:
-        'Pak Madi',
-
-      avatar:
-        'assets/umkm1.jpg',
-
-      verified:
-        true,
-
-      category:
-        'Kuliner',
+      store: {
+        id: 'store-1',
+        name: 'Contoh UMKM',
+        avatar:
+          'https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=200&q=80',
+        verified: false,
+      },
 
       location:
         'Lubuklinggau',
 
-      time:
-        '2 jam lalu',
-
-      media:
-        'assets/umkm1.jpg',
-
-      mediaType:
-        'image',
-
-      likes:
-        128,
-
-      comments:
-        23,
-
-      shares:
-        12,
+      createdAt:
+        '2026-08-29T06:00:00+07:00',
 
       caption:
-        'Panen kopi terbaru dari kebun lokal Lubuklinggau. Tersedia dalam kemasan 250 gram.',
+        'Contoh tampilan produk untuk pengujian antarmuka.',
 
-      tags: [
-        '#KopiLokal',
-        '#UMKMLubuklinggau'
-      ],
+      media: {
+        type: 'image',
+        src:
+          'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=80',
+        aspect: 'square',
+      },
+
+      likes: 0,
+
+      comments: 0,
 
       product: {
 
-        id:
-          101,
+        id: 'product-1',
 
         name:
-          'Kopi Robusta Premium 250g',
+          'Produk Contoh',
 
         image:
-          'assets/umkm1.jpg',
+          'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80',
 
-        rating:
-          4.9,
+        price: 75000,
 
-        sold:
-          1200,
+        originalPrice: null,
 
-        price:
-          25000,
+        sold: 0,
 
-        originalPrice:
-          30000
-      }
+        rating: null,
+
+        category:
+          'Produk Lokal',
+
+        storeId:
+          'store-1',
+
+      },
+
     },
 
-
-    {
-      id: 2,
-
-      author:
-        'Ibu Siti',
-
-      avatar:
-        'assets/umkm2.jpg',
-
-      verified:
-        true,
-
-      category:
-        'Kerajinan',
-
-      location:
-        'Lubuklinggau',
-
-      time:
-        '5 jam lalu',
-
-      media:
-        'assets/umkm2.jpg',
-
-      mediaType:
-        'video',
-
-      likes:
-        89,
-
-      comments:
-        15,
-
-      shares:
-        8,
-
-      caption:
-        'Tas anyaman dibuat secara manual oleh pengrajin lokal. Setiap produk memiliki detail yang sedikit berbeda.',
-
-      tags: [
-        '#KerajinanLokal',
-        '#ProdukUMKM'
-      ],
-
-      product: {
-
-        id:
-          102,
-
-        name:
-          'Tas Anyaman Purun',
-
-        image:
-          'assets/umkm2.jpg',
-
-        rating:
-          5,
-
-        sold:
-          500,
-
-        price:
-          75000,
-
-        originalPrice:
-          null
-      }
-    },
-
-
-    {
-      id: 3,
-
-      author:
-        'Madi Craft',
-
-      avatar:
-        'assets/umkm3.jpg',
-
-      verified:
-        false,
-
-      category:
-        'Fashion',
-
-      location:
-        'Sumatera Selatan',
-
-      time:
-        '1 hari lalu',
-
-      media:
-        'assets/umkm3.jpg',
-
-      mediaType:
-        'image',
-
-      likes:
-        67,
-
-      comments:
-        9,
-
-      shares:
-        4,
-
-      caption:
-        'Produk handmade lokal dengan produksi terbatas.',
-
-      tags: [
-        '#Handmade',
-        '#ProdukLokal'
-      ],
-
-      product: {
-
-        id:
-          103,
-
-        name:
-          'Produk Handmade Lokal',
-
-        image:
-          'assets/umkm3.jpg',
-
-        rating:
-          4.8,
-
-        sold:
-          320,
-
-        price:
-          50000,
-
-        originalPrice:
-          65000
-      }
-    }
   ],
 
 
-  notifications: [
+  notifications: [],
 
-    {
-      id:
-        1,
+  messages: [],
 
-      icon:
-        'ph-heart',
-
-      title:
-        'Postingan mendapat interaksi baru',
-
-      time:
-        '5 menit lalu',
-
-      unread:
-        true
-    },
-
-    {
-      id:
-        2,
-
-      icon:
-        'ph-shopping-bag',
-
-      title:
-        'Produk baru tersedia',
-
-      time:
-        '30 menit lalu',
-
-      unread:
-        true
-    },
-
-    {
-      id:
-        3,
-
-      icon:
-        'ph-storefront',
-
-      title:
-        'UMKM baru bergabung',
-
-      time:
-        '1 jam lalu',
-
-      unread:
-        true
-    }
-  ],
-
-
-  messages: [
-
-    {
-      id:
-        1,
-
-      name:
-        'Pak Madi',
-
-      text:
-        'Kopi masih tersedia.',
-
-      time:
-        '2 menit lalu',
-
-      unread:
-        true
-    },
-
-    {
-      id:
-        2,
-
-      name:
-        'Ibu Siti',
-
-      text:
-        'Terima kasih sudah menghubungi toko kami.',
-
-      time:
-        '25 menit lalu',
-
-      unread:
-        true
-    }
-  ]
 };
 
 
 /* =========================================================
-   04. LIVE DATA
+   04. APPLICATION DATA
    ========================================================= */
 
 const DATA = {
@@ -453,15 +204,27 @@ const DATA = {
   messages:
     CONFIG.DEMO_MODE
       ? [...DEMO_DATA.messages]
-      : []
+      : [],
+
 };
 
 
 /* =========================================================
-   05. STATE
+   05. APPLICATION STATE
    ========================================================= */
 
 const STATE = {
+
+  user: null,
+
+  activeNav:
+    'home',
+
+  activeCategory:
+    null,
+
+  searchQuery:
+    '',
 
   likedPosts:
     new Set(),
@@ -475,14 +238,18 @@ const STATE = {
   orders:
     [],
 
-  activeNav:
-    'home',
+  isMenuOpen:
+    false,
 
-  activeCategory:
+  isSearchOpen:
+    false,
+
+  activeSheet:
     null,
 
-  searchQuery:
-    ''
+  loading:
+    false,
+
 };
 
 
@@ -491,89 +258,6 @@ const STATE = {
    ========================================================= */
 
 const DOM = {};
-
-
-function cacheDOM() {
-
-  DOM.app =
-    document.getElementById('app');
-
-
-  DOM.splashIntro =
-    document.getElementById('splashIntro');
-
-
-  DOM.header =
-    document.getElementById('header');
-
-
-  DOM.stories =
-    document.getElementById('stories');
-
-  DOM.feed =
-    document.getElementById('feed');
-
-
-  DOM.menuButton =
-    document.getElementById('menuButton');
-
-  DOM.closeMenuButton =
-    document.getElementById('closeMenuButton');
-
-  DOM.sideMenu =
-    document.getElementById('sideMenu');
-
-  DOM.sideMenuContent =
-    document.getElementById('sideMenuContent');
-
-
-  DOM.searchButton =
-    document.getElementById('searchButton');
-
-  DOM.closeSearchButton =
-    document.getElementById('closeSearchButton');
-
-  DOM.searchOverlay =
-    document.getElementById('searchOverlay');
-
-  DOM.searchInput =
-    document.getElementById('searchInput');
-
-  DOM.searchClearButton =
-    document.getElementById('searchClearButton');
-
-  DOM.searchResults =
-    document.getElementById('searchResults');
-
-
-  DOM.notificationButton =
-    document.getElementById('notificationButton');
-
-  DOM.messageButton =
-    document.getElementById('messageButton');
-
-
-  DOM.appNavigation =
-    document.getElementById('appNavigation');
-
-
-  DOM.toast =
-    document.getElementById('toast');
-
-
-  DOM.sheetOverlay =
-    document.getElementById('sheetOverlay');
-
-  DOM.bottomSheet =
-    document.getElementById('bottomSheet');
-
-  DOM.sheetContent =
-    document.getElementById('sheetContent');
-
-
-  DOM.appLoading =
-    document.getElementById('appLoading');
-}
 
 
 /* =========================================================
@@ -586,13 +270,427 @@ document.addEventListener(
 );
 
 
-function init() {
+async function init() {
 
   cacheDOM();
 
-  restoreState();
+  restoreLocalState();
 
   setupSplashIntro();
+
+  bindEvents();
+
+  setLoading(true);
+
+  try {
+
+    await loadInitialData();
+
+  }
+  catch (error) {
+
+    console.error(
+      '[Pasar UMKM] Initial data error:',
+      error
+    );
+
+    showToast(
+      'Data belum dapat dimuat.'
+    );
+
+  }
+  finally {
+
+    setLoading(false);
+
+  }
+
+  renderAll();
+
+  handleScroll();
+
+}
+
+
+/* =========================================================
+   08. CACHE DOM
+   ========================================================= */
+
+function cacheDOM() {
+
+  DOM.splash =
+    document.getElementById(
+      'splashIntro'
+    );
+
+  DOM.header =
+    document.getElementById(
+      'header'
+    );
+
+  DOM.stories =
+    document.getElementById(
+      'stories'
+    );
+
+  DOM.feed =
+    document.getElementById(
+      'feed'
+    );
+
+  DOM.menuButton =
+    document.getElementById(
+      'menuButton'
+    );
+
+  DOM.sideMenu =
+    document.getElementById(
+      'sideMenu'
+    );
+
+  DOM.closeMenuButton =
+    document.getElementById(
+      'closeMenuButton'
+    );
+
+  DOM.sideMenuContent =
+    document.getElementById(
+      'sideMenuContent'
+    );
+
+  DOM.sideAccountGuest =
+    document.getElementById(
+      'sideAccountGuest'
+    );
+
+  DOM.sideAccountUser =
+    document.getElementById(
+      'sideAccountUser'
+    );
+
+  DOM.sideAccountUserName =
+    document.getElementById(
+      'sideAccountUserName'
+    );
+
+  DOM.sideAccountUserRole =
+    document.getElementById(
+      'sideAccountUserRole'
+    );
+
+  DOM.searchButton =
+    document.getElementById(
+      'searchButton'
+    );
+
+  DOM.searchOverlay =
+    document.getElementById(
+      'searchOverlay'
+    );
+
+  DOM.closeSearchButton =
+    document.getElementById(
+      'closeSearchButton'
+    );
+
+  DOM.searchInput =
+    document.getElementById(
+      'searchInput'
+    );
+
+  DOM.searchClearButton =
+    document.getElementById(
+      'searchClearButton'
+    );
+
+  DOM.searchResults =
+    document.getElementById(
+      'searchResults'
+    );
+
+  DOM.notificationButton =
+    document.getElementById(
+      'notificationButton'
+    );
+
+  DOM.messageButton =
+    document.getElementById(
+      'messageButton'
+    );
+
+  DOM.navigation =
+    document.getElementById(
+      'appNavigation'
+    );
+
+  DOM.sheetOverlay =
+    document.getElementById(
+      'sheetOverlay'
+    );
+
+  DOM.bottomSheet =
+    document.getElementById(
+      'bottomSheet'
+    );
+
+  DOM.sheetContent =
+    document.getElementById(
+      'sheetContent'
+    );
+
+  DOM.toast =
+    document.getElementById(
+      'toast'
+    );
+
+  DOM.loading =
+    document.getElementById(
+      'appLoading'
+    );
+
+}
+
+
+/* =========================================================
+   09. INITIAL DATA
+   ========================================================= */
+
+async function loadInitialData() {
+
+  if (CONFIG.DEMO_MODE) {
+    return;
+  }
+
+  /*
+   * Until API_BASE_URL exists, production starts honestly
+   * with an empty marketplace.
+   */
+  if (!CONFIG.API_BASE_URL) {
+    return;
+  }
+
+  const response =
+    await apiRequest(
+      '/bootstrap'
+    );
+
+  if (!response) {
+    return;
+  }
+
+  DATA.stories =
+    Array.isArray(response.stories)
+      ? response.stories
+      : [];
+
+  DATA.posts =
+    Array.isArray(response.posts)
+      ? response.posts
+      : [];
+
+  DATA.notifications =
+    Array.isArray(response.notifications)
+      ? response.notifications
+      : [];
+
+  DATA.messages =
+    Array.isArray(response.messages)
+      ? response.messages
+      : [];
+
+  if (response.user) {
+
+    STATE.user =
+      response.user;
+
+  }
+
+  if (
+    Array.isArray(
+      response.cart
+    )
+  ) {
+
+    STATE.cart =
+      response.cart;
+
+  }
+
+  if (
+    Array.isArray(
+      response.orders
+    )
+  ) {
+
+    STATE.orders =
+      response.orders;
+
+  }
+
+}
+
+
+/* =========================================================
+   10. API CLIENT
+   ========================================================= */
+
+async function apiRequest(
+  endpoint,
+  options = {}
+) {
+
+  if (!CONFIG.API_BASE_URL) {
+    return null;
+  }
+
+  const url =
+    `${CONFIG.API_BASE_URL}${endpoint}`;
+
+  const response =
+    await fetch(
+      url,
+      {
+        credentials:
+          'include',
+
+        headers: {
+          'Content-Type':
+            'application/json',
+
+          ...options.headers,
+        },
+
+        ...options,
+      }
+    );
+
+  if (!response.ok) {
+
+    const message =
+      `API error ${response.status}`;
+
+    throw new Error(message);
+
+  }
+
+  const contentType =
+    response.headers.get(
+      'content-type'
+    ) || '';
+
+  if (
+    !contentType.includes(
+      'application/json'
+    )
+  ) {
+
+    return null;
+
+  }
+
+  return response.json();
+
+}
+
+
+/* =========================================================
+   11. SPLASH
+   ========================================================= */
+
+function setupSplashIntro() {
+
+  if (!DOM.splash) {
+    return;
+  }
+
+  const alreadySeen =
+    sessionStorage.getItem(
+      CONFIG.INTRO_SESSION_KEY
+    );
+
+  if (alreadySeen) {
+
+    hideSplashImmediately();
+
+    return;
+
+  }
+
+  sessionStorage.setItem(
+    CONFIG.INTRO_SESSION_KEY,
+    '1'
+  );
+
+  const prefersReducedMotion =
+    window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches;
+
+  if (prefersReducedMotion) {
+
+    window.setTimeout(
+      finishSplash,
+      120
+    );
+
+    return;
+
+  }
+
+  window.setTimeout(
+    finishSplash,
+    CONFIG.SPLASH_HOLD_MS
+  );
+
+}
+
+
+function finishSplash() {
+
+  if (!DOM.splash) {
+    return;
+  }
+
+  DOM.splash.classList.add(
+    'is-exiting'
+  );
+
+  window.setTimeout(
+    () => {
+
+      DOM.splash.classList.add(
+        'is-hidden'
+      );
+
+      DOM.splash.hidden = true;
+
+    },
+    CONFIG.SPLASH_EXIT_MS
+  );
+
+}
+
+
+function hideSplashImmediately() {
+
+  if (!DOM.splash) {
+    return;
+  }
+
+  DOM.splash.classList.add(
+    'is-hidden'
+  );
+
+  DOM.splash.hidden = true;
+
+}
+
+
+/* =========================================================
+   12. GLOBAL RENDER
+   ========================================================= */
+
+function renderAll() {
 
   renderStories();
 
@@ -600,165 +698,19 @@ function init() {
 
   renderSideMenu();
 
-  bindEvents();
+  renderAccountState();
+
+  updateNavigation();
 
   updateCartBadge();
 
   updateHeaderBadges();
 
-  renderSearchHint();
-
-  hideLoading();
-
-  handleScroll();
 }
 
 
 /* =========================================================
-   08. SPLASH INTRO
-   ========================================================= */
-
-function setupSplashIntro() {
-
-  if (!DOM.splashIntro) {
-    return;
-  }
-
-
-  const prefersReducedMotion =
-    window.matchMedia(
-      '(prefers-reduced-motion: reduce)'
-    ).matches;
-
-
-  let alreadySeen = false;
-
-
-  try {
-
-    alreadySeen =
-      sessionStorage.getItem(
-        CONFIG.INTRO_SESSION_KEY
-      ) === 'true';
-
-  } catch (error) {
-
-    /*
-     * Browser tertentu bisa memblokir sessionStorage.
-     * Intro tetap bekerja tanpa membuat aplikasi rusak.
-     */
-    alreadySeen = false;
-  }
-
-
-  if (alreadySeen) {
-
-    removeSplashImmediately();
-
-    return;
-  }
-
-
-  if (prefersReducedMotion) {
-
-    finishSplashIntro(300);
-
-    return;
-  }
-
-
-  window.setTimeout(
-    () => {
-
-      DOM.splashIntro
-        ?.classList
-        .add('is-exiting');
-
-
-      window.setTimeout(
-        completeSplashIntro,
-        CONFIG.INTRO_EXIT
-      );
-
-    },
-    CONFIG.INTRO_HOLD
-  );
-}
-
-
-/* =========================================================
-   09. SPLASH HELPERS
-   ========================================================= */
-
-function finishSplashIntro(delay = 0) {
-
-  window.setTimeout(
-    () => {
-
-      DOM.splashIntro
-        ?.classList
-        .add('is-exiting');
-
-
-      window.setTimeout(
-        completeSplashIntro,
-        CONFIG.INTRO_EXIT
-      );
-
-    },
-    delay
-  );
-}
-
-
-function completeSplashIntro() {
-
-  if (!DOM.splashIntro) {
-    return;
-  }
-
-
-  try {
-
-    sessionStorage.setItem(
-      CONFIG.INTRO_SESSION_KEY,
-      'true'
-    );
-
-  } catch (error) {
-    // Tidak perlu menghentikan aplikasi.
-  }
-
-
-  DOM.splashIntro
-    .classList
-    .add('is-hidden');
-
-
-  DOM.splashIntro.hidden =
-    true;
-}
-
-
-function removeSplashImmediately() {
-
-  if (!DOM.splashIntro) {
-    return;
-  }
-
-
-  DOM.splashIntro
-    .classList
-    .add('is-hidden');
-
-
-  DOM.splashIntro.hidden =
-    true;
-}
-
-
-/* =========================================================
-   10. STORIES
+   13. STORIES
    ========================================================= */
 
 function renderStories() {
@@ -767,78 +719,129 @@ function renderStories() {
     return;
   }
 
+  const addStory =
+    STATE.user
+      ? createAddStoryTemplate()
+      : '';
 
-  const addStory = `
-    <button
-      type="button"
-      class="story-item story-add"
-      data-story-action="add"
-      aria-label="Tambah cerita"
-    >
+  if (
+    DATA.stories.length === 0
+  ) {
 
-      <div class="story-ring">
+    if (STATE.user) {
 
-        <i
-          class="ph ph-plus"
-          aria-hidden="true"
-        ></i>
+      DOM.stories.innerHTML =
+        addStory;
 
-      </div>
+    }
+    else {
 
-      <span class="story-name">
-        Jual
-      </span>
+      DOM.stories.innerHTML =
+        createStoriesEmptyTemplate();
 
-    </button>
-  `;
-
-
-  if (!DATA.stories.length) {
-
-    DOM.stories.innerHTML =
-      addStory;
+    }
 
     return;
+
   }
 
+  const stories =
+    DATA.stories
+      .map(
+        createStoryTemplate
+      )
+      .join('');
 
   DOM.stories.innerHTML =
-    addStory +
-    DATA.stories
-      .map(createStoryTemplate)
-      .join('');
+    addStory + stories;
+
 }
 
 
-/* =========================================================
-   11. STORY TEMPLATE
-   ========================================================= */
-
-function createStoryTemplate(story) {
+function createAddStoryTemplate() {
 
   return `
     <button
       type="button"
-      class="
-        story-item
-        ${story.hasUpdate ? 'has-update' : ''}
-        ${story.live ? 'live' : ''}
-      "
-      data-story-id="${story.id}"
-      aria-label="Lihat cerita ${escapeHTML(story.name)}"
+      class="story-item story-add"
+      data-action="add-story"
+      aria-label="Tambahkan cerita"
+    >
+      <span class="story-ring">
+        <i
+          class="ph ph-plus"
+          aria-hidden="true"
+        ></i>
+      </span>
+
+      <span class="story-name">
+        Cerita Anda
+      </span>
+    </button>
+  `;
+
+}
+
+
+function createStoriesEmptyTemplate() {
+
+  return `
+    <button
+      type="button"
+      class="story-item story-add"
+      data-action="explore-stories"
+      aria-label="Belum ada cerita UMKM"
+    >
+      <span class="story-ring">
+        <i
+          class="ph ph-storefront"
+          aria-hidden="true"
+        ></i>
+      </span>
+
+      <span class="story-name">
+        UMKM Lokal
+      </span>
+    </button>
+  `;
+
+}
+
+
+function createStoryTemplate(
+  story
+) {
+
+  const updateClass =
+    story.hasUpdate
+      ? 'has-update'
+      : '';
+
+  const liveClass =
+    story.live
+      ? 'live'
+      : '';
+
+  return `
+    <button
+      type="button"
+      class="story-item ${updateClass} ${liveClass}"
+      data-action="open-story"
+      data-story-id="${escapeHTML(story.id)}"
+      aria-label="Cerita ${escapeHTML(story.name)}"
     >
 
-      <div class="story-ring">
+      <span class="story-ring">
 
         <img
-          src="${escapeHTML(story.image)}"
-          alt="${escapeHTML(story.name)}"
+          src="${escapeHTML(story.avatar)}"
+          alt=""
           class="story-avatar"
           loading="lazy"
           decoding="async"
         >
 
-      </div>
+      </span>
 
       <span class="story-name">
         ${escapeHTML(story.name)}
@@ -846,11 +849,12 @@ function createStoryTemplate(story) {
 
     </button>
   `;
+
 }
 
 
 /* =========================================================
-   12. FEED
+   14. FEED
    ========================================================= */
 
 function renderFeed(
@@ -861,46 +865,31 @@ function renderFeed(
     return;
   }
 
+  if (
+    !Array.isArray(posts) ||
+    posts.length === 0
+  ) {
 
-  if (!posts.length) {
-
-    renderEmptyFeed();
+    DOM.feed.innerHTML =
+      createFeedEmptyTemplate();
 
     return;
-  }
 
+  }
 
   DOM.feed.innerHTML =
     posts
-      .map(createPostTemplate)
+      .map(
+        createPostTemplate
+      )
       .join('');
+
 }
 
 
-/* =========================================================
-   13. EMPTY FEED
-   ========================================================= */
+function createFeedEmptyTemplate() {
 
-function renderEmptyFeed() {
-
-  if (!DOM.feed) {
-    return;
-  }
-
-
-  const title =
-    STATE.activeCategory
-      ? `Belum ada produk ${STATE.activeCategory}`
-      : 'Belum ada postingan';
-
-
-  const description =
-    CONFIG.DEMO_MODE
-      ? 'Belum ditemukan produk pada pilihan ini.'
-      : 'UMKM yang mulai membagikan produk akan muncul di sini.';
-
-
-  DOM.feed.innerHTML = `
+  return `
     <div class="empty-state">
 
       <i
@@ -908,129 +897,71 @@ function renderEmptyFeed() {
         aria-hidden="true"
       ></i>
 
-      <div class="empty-state-title">
-        ${escapeHTML(title)}
-      </div>
+      <strong class="empty-state-title">
+        Belum ada postingan
+      </strong>
 
-      <div class="empty-state-text">
-        ${escapeHTML(description)}
-      </div>
+      <p class="empty-state-text">
+        Produk dan cerita dari UMKM Lubuklinggau
+        akan tampil di sini saat mulai dipublikasikan.
+      </p>
 
-      <button
-        type="button"
-        class="btn-primary"
-        data-action="sell"
-        style="
-          margin-top:16px;
-          padding:10px 18px;
-        "
-      >
-        Mulai Jual
-      </button>
+      ${
+        STATE.user
+          ? `
+            <button
+              type="button"
+              class="btn-primary"
+              data-action="sell"
+            >
+              Mulai Jual
+            </button>
+          `
+          : `
+            <button
+              type="button"
+              class="btn-primary"
+              data-action="login"
+            >
+              Masuk untuk Memulai
+            </button>
+          `
+      }
 
     </div>
   `;
+
 }
 
 
 /* =========================================================
-   14. POST TEMPLATE
+   15. POST TEMPLATE
    ========================================================= */
 
-function createPostTemplate(post) {
+function createPostTemplate(
+  post
+) {
 
   const liked =
     STATE.likedPosts.has(
       post.id
     );
 
-
   const saved =
     STATE.savedPosts.has(
       post.id
     );
 
-
-  const currentLikes =
-    Number(post.likes || 0) +
-    (liked ? 1 : 0);
-
-
   return `
     <article
       class="post-card"
-      id="post-${post.id}"
-      data-post-id="${post.id}"
+      id="post-${escapeHTML(post.id)}"
+      data-post-id="${escapeHTML(post.id)}"
     >
 
-      <div class="post-header">
-
-        <img
-          src="${escapeHTML(post.avatar)}"
-          alt="${escapeHTML(post.author)}"
-          class="post-avatar"
-          loading="lazy"
-          decoding="async"
-        >
-
-
-        <div class="post-meta">
-
-          <div class="post-author">
-
-            ${escapeHTML(post.author)}
-
-            ${
-              post.verified
-                ? `
-                  <i
-                    class="ph-fill ph-seal-check verified-badge"
-                    aria-label="Terverifikasi"
-                  ></i>
-                `
-                : ''
-            }
-
-          </div>
-
-
-          <div class="post-context">
-
-            <span>
-              ${escapeHTML(post.location)}
-            </span>
-
-            <span class="dot"></span>
-
-            <span>
-              ${escapeHTML(post.time)}
-            </span>
-
-          </div>
-
-        </div>
-
-
-        <button
-          type="button"
-          class="post-menu"
-          data-action="post-menu"
-          data-post-id="${post.id}"
-          aria-label="Menu postingan"
-        >
-
-          <i
-            class="ph ph-dots-three"
-            aria-hidden="true"
-          ></i>
-
-        </button>
-
-      </div>
-
+      ${createPostHeader(post)}
 
       ${createPostMedia(post)}
-
 
       <div class="post-actions">
 
@@ -1040,19 +971,15 @@ function createPostTemplate(post) {
             type="button"
             class="action-btn ${liked ? 'liked' : ''}"
             data-action="like"
-            data-post-id="${post.id}"
-            aria-pressed="${liked}"
+            data-post-id="${escapeHTML(post.id)}"
             aria-label="Sukai postingan"
+            aria-pressed="${liked}"
           >
 
             <i
               class="${liked ? 'ph-fill' : 'ph'} ph-heart"
               aria-hidden="true"
             ></i>
-
-            <span>
-              ${formatCompact(currentLikes)}
-            </span>
 
           </button>
 
@@ -1061,18 +988,14 @@ function createPostTemplate(post) {
             type="button"
             class="action-btn"
             data-action="comments"
-            data-post-id="${post.id}"
-            aria-label="Lihat komentar"
+            data-post-id="${escapeHTML(post.id)}"
+            aria-label="Komentar"
           >
 
             <i
               class="ph ph-chat-circle"
               aria-hidden="true"
             ></i>
-
-            <span>
-              ${formatCompact(post.comments)}
-            </span>
 
           </button>
 
@@ -1081,18 +1004,14 @@ function createPostTemplate(post) {
             type="button"
             class="action-btn"
             data-action="share"
-            data-post-id="${post.id}"
-            aria-label="Bagikan postingan"
+            data-post-id="${escapeHTML(post.id)}"
+            aria-label="Bagikan"
           >
 
             <i
               class="ph ph-paper-plane-tilt"
               aria-hidden="true"
             ></i>
-
-            <span>
-              ${formatCompact(post.shares)}
-            </span>
 
           </button>
 
@@ -1103,7 +1022,7 @@ function createPostTemplate(post) {
           type="button"
           class="action-btn ${saved ? 'saved' : ''}"
           data-action="save"
-          data-post-id="${post.id}"
+          data-post-id="${escapeHTML(post.id)}"
           aria-label="Simpan postingan"
           aria-pressed="${saved}"
         >
@@ -1118,52 +1037,20 @@ function createPostTemplate(post) {
       </div>
 
 
-      <div class="post-stats">
-        ${formatCompact(currentLikes)} suka
-      </div>
+      ${createPostStats(post)}
 
-
-      <div class="post-caption">
-
-        <span class="author">
-          ${escapeHTML(post.author)}
-        </span>
-
-        ${escapeHTML(post.caption)}
-
-        ${
-          Array.isArray(post.tags) &&
-          post.tags.length
-            ? `
-              <br>
-
-              ${post.tags
-                .map(
-                  tag => `
-                    <span class="tag">
-                      ${escapeHTML(tag)}
-                    </span>
-                  `
-                )
-                .join(' ')
-              }
-            `
-            : ''
-        }
-
-      </div>
-
+      ${createPostCaption(post)}
 
       ${
-        Number(post.comments) > 0
+        post.comments > 0
           ? `
             <button
               type="button"
               class="view-comments"
               data-action="comments"
-              data-post-id="${post.id}"
+              data-post-id="${escapeHTML(post.id)}"
             >
-              Lihat ${formatCompact(post.comments)} komentar
+              Lihat ${formatCompactNumber(post.comments)} komentar
             </button>
           `
           : ''
@@ -1171,90 +1058,299 @@ function createPostTemplate(post) {
 
 
       <div class="post-time">
-        ${escapeHTML(post.time)}
+        ${formatRelativeTime(post.createdAt)}
       </div>
 
 
-      ${createProductTemplate(post)}
+      ${
+        post.product
+          ? createProductTemplate(
+              post.product
+            )
+          : ''
+      }
 
     </article>
   `;
+
 }
 
 
-/* =========================================================
-   15. POST MEDIA
-   ========================================================= */
+function createPostHeader(
+  post
+) {
 
-function createPostMedia(post) {
-
-  const isVideo =
-    post.mediaType === 'video';
-
+  const store =
+    post.store || {};
 
   return `
-    <div
-      class="post-media ${isVideo ? 'video' : 'square'}"
-    >
+    <header class="post-header">
 
       <img
-        src="${escapeHTML(post.media)}"
-        alt="${escapeHTML(post.caption)}"
+        src="${escapeHTML(store.avatar || ASSETS.logo)}"
+        alt=""
+        class="post-avatar"
         loading="lazy"
         decoding="async"
       >
 
-      ${
-        isVideo
-          ? `
-            <span class="video-indicator">
+      <div class="post-meta">
 
-              <i
-                class="ph-fill ph-video"
-                aria-hidden="true"
-              ></i>
+        <div class="post-author">
 
-              VIDEO
+          <span>
+            ${escapeHTML(store.name || 'UMKM Lokal')}
+          </span>
 
-            </span>
+          ${
+            store.verified
+              ? `
+                <i
+                  class="ph-fill ph-seal-check verified-badge"
+                  aria-label="Terverifikasi"
+                ></i>
+              `
+              : ''
+          }
 
-            <button
-              type="button"
-              class="play-button"
-              data-action="play-video"
-              data-post-id="${post.id}"
-              aria-label="Putar video"
-            ></button>
-          `
-          : ''
-      }
+        </div>
 
-    </div>
+        <div class="post-context">
+
+          <span>
+            ${escapeHTML(post.location || CONFIG.LOCATION)}
+          </span>
+
+          <span
+            class="dot"
+            aria-hidden="true"
+          ></span>
+
+          <span>
+            ${formatRelativeTime(post.createdAt)}
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="post-menu"
+        data-action="post-menu"
+        data-post-id="${escapeHTML(post.id)}"
+        aria-label="Menu postingan"
+      >
+
+        <i
+          class="ph ph-dots-three"
+          aria-hidden="true"
+        ></i>
+
+      </button>
+
+    </header>
   `;
+
 }
 
 
 /* =========================================================
-   16. PRODUCT TEMPLATE
+   16. MEDIA
    ========================================================= */
 
-function createProductTemplate(post) {
+function createPostMedia(
+  post
+) {
 
-  const product =
-    post.product;
+  if (
+    !post.media ||
+    !post.media.src
+  ) {
+
+    return '';
+
+  }
+
+  const isVideo =
+    post.media.type === 'video';
+
+  const aspectClass =
+    post.media.aspect === 'square'
+      ? 'square'
+      : '';
+
+  if (isVideo) {
+
+    return `
+      <div
+        class="post-media video"
+        data-post-id="${escapeHTML(post.id)}"
+      >
+
+        ${
+          post.media.poster
+            ? `
+              <img
+                src="${escapeHTML(post.media.poster)}"
+                alt=""
+                loading="lazy"
+                decoding="async"
+              >
+            `
+            : ''
+        }
+
+        <span class="video-indicator">
+
+          <i
+            class="ph-fill ph-play"
+            aria-hidden="true"
+          ></i>
+
+          VIDEO
+
+        </span>
+
+        <button
+          type="button"
+          class="play-button"
+          data-action="play-video"
+          data-post-id="${escapeHTML(post.id)}"
+          aria-label="Putar video"
+        ></button>
+
+      </div>
+    `;
+
+  }
+
+  return `
+    <div
+      class="post-media ${aspectClass}"
+    >
+
+      <img
+        src="${escapeHTML(post.media.src)}"
+        alt="${escapeHTML(post.media.alt || '')}"
+        loading="lazy"
+        decoding="async"
+      >
+
+    </div>
+  `;
+
+}
 
 
-  if (!product) {
+/* =========================================================
+   17. POST STATS
+   ========================================================= */
+
+function createPostStats(
+  post
+) {
+
+  const likes =
+    Number(post.likes) || 0;
+
+  const localLiked =
+    STATE.likedPosts.has(
+      post.id
+    );
+
+  const finalLikes =
+    likes + (localLiked ? 1 : 0);
+
+  if (finalLikes <= 0) {
     return '';
   }
 
+  return `
+    <div class="post-stats">
+      ${formatCompactNumber(finalLikes)} suka
+    </div>
+  `;
+
+}
+
+
+/* =========================================================
+   18. POST CAPTION
+   ========================================================= */
+
+function createPostCaption(
+  post
+) {
+
+  if (!post.caption) {
+    return '';
+  }
+
+  const storeName =
+    post.store?.name ||
+    'UMKM Lokal';
 
   return `
-    <div class="product-card">
+    <div class="post-caption">
+
+      <span class="author">
+        ${escapeHTML(storeName)}
+      </span>
+
+      ${escapeHTML(post.caption)}
+
+    </div>
+  `;
+
+}
+
+
+/* =========================================================
+   19. PRODUCT TEMPLATE
+   ========================================================= */
+
+function createProductTemplate(
+  product
+) {
+
+  const rating =
+    product.rating
+      ? `
+        <span class="stars">
+          ★ ${escapeHTML(product.rating)}
+        </span>
+      `
+      : '';
+
+  const sold =
+    Number(product.sold) > 0
+      ? `
+        <span>
+          ${formatCompactNumber(product.sold)} terjual
+        </span>
+      `
+      : '';
+
+  const originalPrice =
+    product.originalPrice
+      ? `
+        <span class="original">
+          ${formatRupiah(product.originalPrice)}
+        </span>
+      `
+      : '';
+
+  return `
+    <section
+      class="product-card"
+      data-product-id="${escapeHTML(product.id)}"
+    >
 
       <img
-        src="${escapeHTML(product.image)}"
-        alt="${escapeHTML(product.name)}"
+        src="${escapeHTML(product.image || ASSETS.logo)}"
+        alt="${escapeHTML(product.name || 'Produk UMKM')}"
         class="product-img"
         loading="lazy"
         decoding="async"
@@ -1263,53 +1359,48 @@ function createProductTemplate(post) {
 
       <div class="product-info">
 
-        <div class="product-badge">
-
-          <i
-            class="ph-fill ph-storefront"
-            aria-hidden="true"
-          ></i>
-
-          Produk UMKM
-
-        </div>
+        ${
+          product.category
+            ? `
+              <div class="product-badge">
+                ${escapeHTML(product.category)}
+              </div>
+            `
+            : ''
+        }
 
 
         <div class="product-name">
-          ${escapeHTML(product.name)}
+          ${escapeHTML(product.name || 'Produk UMKM')}
         </div>
 
 
-        <div class="product-meta">
+        ${
+          rating || sold
+            ? `
+              <div class="product-meta">
 
-          <span class="stars">
-            ★ ${escapeHTML(product.rating)}
-          </span>
+                ${rating}
 
-          <span>
-            •
-          </span>
+                ${
+                  rating && sold
+                    ? '<span>·</span>'
+                    : ''
+                }
 
-          <span>
-            ${formatCompact(product.sold)} terjual
-          </span>
+                ${sold}
 
-        </div>
+              </div>
+            `
+            : ''
+        }
 
 
         <div class="product-price">
 
           ${formatRupiah(product.price)}
 
-          ${
-            product.originalPrice
-              ? `
-                <span class="original">
-                  ${formatRupiah(product.originalPrice)}
-                </span>
-              `
-              : ''
-          }
+          ${originalPrice}
 
         </div>
 
@@ -1321,13 +1412,13 @@ function createProductTemplate(post) {
         <button
           type="button"
           class="btn-icon"
-          data-action="cart"
-          data-product-id="${product.id}"
-          aria-label="Tambahkan ke keranjang"
+          data-action="add-cart"
+          data-product-id="${escapeHTML(product.id)}"
+          aria-label="Tambah ke keranjang"
         >
 
           <i
-            class="ph ph-shopping-cart"
+            class="ph ph-shopping-cart-simple"
             aria-hidden="true"
           ></i>
 
@@ -1336,335 +1427,645 @@ function createProductTemplate(post) {
 
         <button
           type="button"
-          class="btn-primary"
-          data-action="buy"
-          data-product-id="${product.id}"
+          class="btn-icon"
+          data-action="buy-now"
+          data-product-id="${escapeHTML(product.id)}"
+          aria-label="Beli sekarang"
         >
-          Beli
+
+          <i
+            class="ph ph-arrow-right"
+            aria-hidden="true"
+          ></i>
+
         </button>
 
       </div>
 
-    </div>
+    </section>
   `;
+
 }
 
 
 /* =========================================================
-   17. GLOBAL DATA-ACTION HANDLER
+   20. EVENTS
    ========================================================= */
 
-document.addEventListener(
-  'click',
-  event => {
+function bindEvents() {
 
-    const target =
-      event.target.closest(
-        '[data-action]'
-      );
+  document.addEventListener(
+    'click',
+    handleGlobalClick
+  );
 
-
-    if (!target) {
-      return;
+  window.addEventListener(
+    'scroll',
+    handleScroll,
+    {
+      passive: true,
     }
+  );
 
+  if (DOM.searchInput) {
+
+    DOM.searchInput.addEventListener(
+      'input',
+      handleSearchInput
+    );
+
+  }
+
+  if (DOM.searchClearButton) {
+
+    DOM.searchClearButton.addEventListener(
+      'click',
+      clearSearch
+    );
+
+  }
+
+  document.addEventListener(
+    'keydown',
+    handleKeyboard
+  );
+
+}
+
+
+/* =========================================================
+   21. GLOBAL CLICK ROUTER
+   ========================================================= */
+
+function handleGlobalClick(
+  event
+) {
+
+  const navigation =
+    event.target.closest(
+      '[data-nav]'
+    );
+
+  if (navigation) {
+
+    event.preventDefault();
+
+    navigate(
+      navigation.dataset.nav
+    );
+
+    return;
+
+  }
+
+
+  const actionElement =
+    event.target.closest(
+      '[data-action]'
+    );
+
+  if (actionElement) {
 
     const action =
-      target.dataset.action;
+      actionElement.dataset.action;
 
+    handleAction(
+      action,
+      actionElement
+    );
 
-    switch (action) {
-
-      case 'menu':
-
-        openSideMenu();
-
-        break;
-
-
-      case 'close-menu':
-
-        closeSideMenu();
-
-        break;
-
-
-      case 'search':
-
-        openSearch();
-
-        break;
-
-
-      case 'close-search':
-
-        closeSearch();
-
-        break;
-
-
-      case 'notifications':
-
-        openNotifications();
-
-        break;
-
-
-      case 'messages':
-
-        openMessages();
-
-        break;
-
-
-      case 'like':
-
-        toggleLike(
-          Number(
-            target.dataset.postId
-          )
-        );
-
-        break;
-
-
-      case 'comments':
-
-        openComments(
-          Number(
-            target.dataset.postId
-          )
-        );
-
-        break;
-
-
-      case 'share':
-
-        sharePost(
-          Number(
-            target.dataset.postId
-          )
-        );
-
-        break;
-
-
-      case 'save':
-
-        toggleSave(
-          Number(
-            target.dataset.postId
-          )
-        );
-
-        break;
-
-
-      case 'post-menu':
-
-        openPostMenu(
-          Number(
-            target.dataset.postId
-          )
-        );
-
-        break;
-
-
-      case 'play-video':
-
-        playDemoVideo();
-
-        break;
-
-
-      case 'cart':
-
-        addProductToCart(
-          Number(
-            target.dataset.productId
-          )
-        );
-
-        break;
-
-
-      case 'buy':
-
-        buyProduct(
-          Number(
-            target.dataset.productId
-          )
-        );
-
-        break;
-
-
-      case 'sell':
-
-        openSellSheet();
-
-        break;
-
-
-      case 'checkout':
-
-        checkoutCart();
-
-        break;
-
-
-      case 'clear-cart':
-
-        clearCart();
-
-        break;
-
-
-      case 'remove-cart':
-
-        removeCartItem(
-          Number(
-            target.dataset.productId
-          )
-        );
-
-        break;
-
-
-      case 'cart-plus':
-
-        changeCartQuantity(
-          Number(
-            target.dataset.productId
-          ),
-          1
-        );
-
-        break;
-
-
-      case 'cart-minus':
-
-        changeCartQuantity(
-          Number(
-            target.dataset.productId
-          ),
-          -1
-        );
-
-        break;
-
-
-      case 'login':
-
-        openLogin();
-
-        break;
-
-
-      case 'clear-category':
-
-        clearCategoryFilter();
-
-        break;
-
-
-      default:
-
-        break;
-    }
-  }
-);
-
-
-/* =========================================================
-   18. STORY EVENTS
-   ========================================================= */
-
-document.addEventListener(
-  'click',
-  event => {
-
-    const story =
-      event.target.closest(
-        '[data-story-id]'
-      );
-
-
-    if (story) {
-
-      openStory(
-        Number(
-          story.dataset.storyId
-        )
-      );
-
-      return;
-    }
-
-
-    const addStory =
-      event.target.closest(
-        '[data-story-action="add"]'
-      );
-
-
-    if (addStory) {
-
-      openSellSheet();
-    }
-  }
-);
-
-
-/* =========================================================
-   19. LIKE
-   ========================================================= */
-
-function toggleLike(postId) {
-
-  if (!findPost(postId)) {
     return;
+
+  }
+
+
+  const menuAction =
+    event.target.closest(
+      '[data-menu-action]'
+    );
+
+  if (menuAction) {
+
+    handleMenuAction(
+      menuAction.dataset.menuAction
+    );
+
+    return;
+
   }
 
 
   if (
-    STATE.likedPosts.has(postId)
+    DOM.sideMenu &&
+    STATE.isMenuOpen &&
+    event.target === DOM.sideMenu
+  ) {
+
+    closeSideMenu();
+
+  }
+
+
+  if (
+    DOM.sheetOverlay &&
+    event.target === DOM.sheetOverlay
+  ) {
+
+    closeBottomSheet();
+
+  }
+
+}
+
+
+/* =========================================================
+   22. ACTION ROUTER
+   ========================================================= */
+
+function handleAction(
+  action,
+  element
+) {
+
+  switch (action) {
+
+    case 'menu':
+
+      openSideMenu();
+
+      break;
+
+
+    case 'close-menu':
+
+      closeSideMenu();
+
+      break;
+
+
+    case 'search':
+
+      openSearch();
+
+      break;
+
+
+    case 'close-search':
+
+      closeSearch();
+
+      break;
+
+
+    case 'notifications':
+
+      openNotifications();
+
+      break;
+
+
+    case 'messages':
+
+      openMessages();
+
+      break;
+
+
+    case 'like':
+
+      toggleLike(
+        element.dataset.postId
+      );
+
+      break;
+
+
+    case 'save':
+
+      toggleSave(
+        element.dataset.postId
+      );
+
+      break;
+
+
+    case 'comments':
+
+      openComments(
+        element.dataset.postId
+      );
+
+      break;
+
+
+    case 'share':
+
+      sharePost(
+        element.dataset.postId
+      );
+
+      break;
+
+
+    case 'post-menu':
+
+      openPostMenu(
+        element.dataset.postId
+      );
+
+      break;
+
+
+    case 'add-cart':
+
+      addToCart(
+        element.dataset.productId
+      );
+
+      break;
+
+
+    case 'buy-now':
+
+      buyNow(
+        element.dataset.productId
+      );
+
+      break;
+
+
+    case 'cart-increase':
+
+      changeCartQuantity(
+        element.dataset.productId,
+        1
+      );
+
+      break;
+
+
+    case 'cart-decrease':
+
+      changeCartQuantity(
+        element.dataset.productId,
+        -1
+      );
+
+      break;
+
+
+    case 'remove-cart':
+
+      removeFromCart(
+        element.dataset.productId
+      );
+
+      break;
+
+
+    case 'checkout':
+
+      checkout();
+
+      break;
+
+
+    case 'login':
+
+      openLogin();
+
+      break;
+
+
+    case 'logout':
+
+      logout();
+
+      break;
+
+
+    case 'sell':
+
+      openSell();
+
+      break;
+
+
+    case 'add-story':
+
+      openAddStory();
+
+      break;
+
+
+    case 'open-story':
+
+      openStory(
+        element.dataset.storyId
+      );
+
+      break;
+
+
+    case 'explore-stories':
+
+      showToast(
+        'Cerita UMKM akan muncul ketika tersedia.'
+      );
+
+      break;
+
+
+    case 'play-video':
+
+      playVideo(
+        element.dataset.postId
+      );
+
+      break;
+
+
+    case 'close-sheet':
+
+      closeBottomSheet();
+
+      break;
+
+
+    case 'clear-cart':
+
+      clearCart();
+
+      break;
+
+
+    case 'notification-item':
+
+      openNotificationTarget(
+        element.dataset.notificationId
+      );
+
+      break;
+
+
+    case 'mark-all-read':
+
+      markAllNotificationsRead();
+
+      break;
+
+
+    case 'message-item':
+
+      openMessage(
+        element.dataset.messageId
+      );
+
+      break;
+
+
+    case 'search-post':
+
+      closeSearch();
+
+      scrollToPost(
+        element.dataset.postId
+      );
+
+      break;
+
+
+    default:
+
+      break;
+
+  }
+
+}
+
+
+/* =========================================================
+   23. NAVIGATION
+   ========================================================= */
+
+function navigate(
+  target
+) {
+
+  STATE.activeNav =
+    target;
+
+  updateNavigation();
+
+  closeSideMenu();
+
+  switch (target) {
+
+    case 'home':
+
+      STATE.activeCategory =
+        null;
+
+      renderFeed();
+
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+
+      break;
+
+
+    case 'categories':
+
+      openCategories();
+
+      break;
+
+
+    case 'sell':
+
+      openSell();
+
+      break;
+
+
+    case 'cart':
+
+      openCart();
+
+      break;
+
+
+    case 'account':
+
+      openAccount();
+
+      break;
+
+
+    default:
+
+      break;
+
+  }
+
+}
+
+
+/* =========================================================
+   24. UPDATE NAVIGATION
+   ========================================================= */
+
+function updateNavigation() {
+
+  if (!DOM.navigation) {
+    return;
+  }
+
+  const links =
+    DOM.navigation.querySelectorAll(
+      '[data-nav]'
+    );
+
+  links.forEach(
+    link => {
+
+      const isActive =
+        link.dataset.nav ===
+        STATE.activeNav;
+
+      link.classList.toggle(
+        'active',
+        isActive
+      );
+
+      if (isActive) {
+
+        link.setAttribute(
+          'aria-current',
+          'page'
+        );
+
+      }
+      else {
+
+        link.removeAttribute(
+          'aria-current'
+        );
+
+      }
+
+      const icon =
+        link.querySelector('i');
+
+      if (!icon) {
+        return;
+      }
+
+      if (
+        link.dataset.nav ===
+        'sell'
+      ) {
+        return;
+      }
+
+      icon.classList.toggle(
+        'ph-fill',
+        isActive
+      );
+
+      icon.classList.toggle(
+        'ph',
+        !isActive
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   25. LIKE
+   ========================================================= */
+
+async function toggleLike(
+  postId
+) {
+
+  if (!postId) {
+    return;
+  }
+
+  if (
+    STATE.likedPosts.has(
+      postId
+    )
   ) {
 
     STATE.likedPosts.delete(
       postId
     );
 
-  } else {
+  }
+  else {
 
     STATE.likedPosts.add(
       postId
     );
+
   }
 
+  saveLocalState();
 
-  saveState();
+  renderFeed(
+    getVisiblePosts()
+  );
 
-  refreshCurrentFeed();
+  if (
+    CONFIG.API_BASE_URL &&
+    STATE.user
+  ) {
+
+    try {
+
+      await apiRequest(
+        `/posts/${encodeURIComponent(postId)}/like`,
+        {
+          method:
+            'POST',
+        }
+      );
+
+    }
+    catch (error) {
+
+      console.error(error);
+
+    }
+
+  }
+
 }
 
 
 /* =========================================================
-   20. SAVE
+   26. SAVE
    ========================================================= */
 
-function toggleSave(postId) {
+function toggleSave(
+  postId
+) {
 
-  if (!findPost(postId)) {
+  if (!postId) {
     return;
   }
 
-
   if (
-    STATE.savedPosts.has(postId)
+    STATE.savedPosts.has(
+      postId
+    )
   ) {
 
     STATE.savedPosts.delete(
@@ -1672,233 +2073,169 @@ function toggleSave(postId) {
     );
 
     showToast(
-      'Dihapus dari favorit'
+      'Dihapus dari favorit.'
     );
 
-  } else {
+  }
+  else {
 
     STATE.savedPosts.add(
       postId
     );
 
     showToast(
-      'Disimpan ke favorit'
+      'Disimpan ke favorit.'
     );
+
   }
 
+  saveLocalState();
 
-  saveState();
+  renderFeed(
+    getVisiblePosts()
+  );
 
-  refreshCurrentFeed();
 }
 
 
 /* =========================================================
-   21. COMMENTS
+   27. COMMENTS
    ========================================================= */
 
-function openComments(postId) {
+function openComments(
+  postId
+) {
 
   const post =
     findPost(postId);
-
 
   if (!post) {
     return;
   }
 
+  openBottomSheet(
+    `
+      <h2 id="sheetTitle">
+        Komentar
+      </h2>
 
-  const comments =
-    CONFIG.DEMO_MODE
-      ? [
-          {
-            name:
-              'Pengguna Lokal',
+      <div class="empty-state">
 
-            text:
-              'Produknya menarik.'
-          },
+        <i
+          class="ph ph-chat-circle"
+          aria-hidden="true"
+        ></i>
 
-          {
-            name:
-              'Pembeli UMKM',
-
-            text:
-              'Semoga UMKM lokal terus berkembang.'
+        <strong class="empty-state-title">
+          ${
+            Number(post.comments) > 0
+              ? `${formatCompactNumber(post.comments)} komentar`
+              : 'Belum ada komentar'
           }
-        ]
-      : [];
+        </strong>
 
+        <p class="empty-state-text">
+          Percakapan tentang produk ini akan tampil di sini.
+        </p>
 
-  const content =
-    comments.length
-      ? comments
-          .map(
-            comment => `
-              <div
-                style="
-                  padding:12px 0;
-                  border-bottom:1px solid var(--border-subtle);
-                "
-              >
+      </div>
+    `,
+    'comments'
+  );
 
-                <strong
-                  style="
-                    font-size:12px;
-                  "
-                >
-                  ${escapeHTML(comment.name)}
-                </strong>
-
-                <p
-                  style="
-                    margin-top:4px;
-                    font-size:11px;
-                    line-height:1.55;
-                    color:var(--text-secondary);
-                  "
-                >
-                  ${escapeHTML(comment.text)}
-                </p>
-
-              </div>
-            `
-          )
-          .join('')
-
-      : createSheetEmptyState(
-          'ph-chat-circle',
-          'Belum ada komentar',
-          'Komentar pertama akan muncul di sini.'
-        );
-
-
-  openBottomSheet(`
-    <h2 id="sheetTitle">
-      Komentar
-    </h2>
-
-    <div style="margin-top:14px">
-      ${content}
-    </div>
-  `);
 }
 
 
 /* =========================================================
-   22. SHARE
+   28. SHARE
    ========================================================= */
 
-async function sharePost(postId) {
+async function sharePost(
+  postId
+) {
 
   const post =
     findPost(postId);
 
-
   if (!post) {
     return;
   }
-
 
   const url =
-    `${window.location.origin}${window.location.pathname}#post-${post.id}`;
+    `${window.location.origin}${window.location.pathname}#post-${encodeURIComponent(postId)}`;
 
-
-  const shareData = {
-
-    title:
-      `${post.author} · ${CONFIG.APP_NAME}`,
-
-    text:
-      post.caption,
-
-    url
-  };
-
+  const title =
+    post.product?.name ||
+    CONFIG.APP_NAME;
 
   try {
 
-    if (navigator.share) {
-
-      await navigator.share(
-        shareData
-      );
-
-      return;
-    }
-
-
-    if (navigator.clipboard) {
-
-      await navigator.clipboard.writeText(
-        url
-      );
-
-      showToast(
-        'Link postingan disalin'
-      );
-
-      return;
-    }
-
-
-    showToast(
-      'Fitur berbagi tidak tersedia'
-    );
-
-  } catch (error) {
-
     if (
-      error.name !== 'AbortError'
+      navigator.share
     ) {
 
-      showToast(
-        'Postingan tidak dapat dibagikan'
-      );
+      await navigator.share({
+        title,
+        text:
+          post.caption || '',
+        url,
+      });
+
+      return;
+
     }
+
+    await navigator.clipboard.writeText(
+      url
+    );
+
+    showToast(
+      'Tautan disalin.'
+    );
+
   }
+  catch (error) {
+
+    if (
+      error.name !==
+      'AbortError'
+    ) {
+
+      console.error(error);
+
+    }
+
+  }
+
 }
 
 
 /* =========================================================
-   23. POST MENU
+   29. POST MENU
    ========================================================= */
 
-function openPostMenu(postId) {
+function openPostMenu(
+  postId
+) {
 
   const post =
     findPost(postId);
-
 
   if (!post) {
     return;
   }
 
-
-  const saved =
-    STATE.savedPosts.has(
-      postId
-    );
-
-
-  openBottomSheet(`
-    <h2 id="sheetTitle">
-      ${escapeHTML(post.author)}
-    </h2>
-
-    <div
-      style="
-        display:grid;
-        gap:8px;
-        margin-top:18px;
-      "
-    >
+  openBottomSheet(
+    `
+      <h2 id="sheetTitle">
+        Postingan
+      </h2>
 
       <button
         type="button"
         class="menu-sheet-btn"
-        data-post-sheet-action="save"
-        data-post-id="${post.id}"
+        data-action="save"
+        data-post-id="${escapeHTML(postId)}"
       >
 
         <i
@@ -1906,11 +2243,7 @@ function openPostMenu(postId) {
           aria-hidden="true"
         ></i>
 
-        ${
-          saved
-            ? 'Hapus dari Favorit'
-            : 'Simpan Postingan'
-        }
+        Simpan postingan
 
       </button>
 
@@ -1918,467 +2251,136 @@ function openPostMenu(postId) {
       <button
         type="button"
         class="menu-sheet-btn"
-        data-post-sheet-action="hide"
-        data-post-id="${post.id}"
+        data-action="share"
+        data-post-id="${escapeHTML(postId)}"
       >
 
         <i
-          class="ph ph-eye-slash"
+          class="ph ph-share-network"
           aria-hidden="true"
         ></i>
 
-        Tidak Tertarik
+        Bagikan
 
       </button>
-
-
-      <button
-        type="button"
-        class="menu-sheet-btn"
-        data-post-sheet-action="report"
-        data-post-id="${post.id}"
-      >
-
-        <i
-          class="ph ph-flag"
-          aria-hidden="true"
-        ></i>
-
-        Laporkan
-
-      </button>
-
-    </div>
-  `);
-}
-
-
-/* =========================================================
-   24. POST SHEET ACTION
-   ========================================================= */
-
-document.addEventListener(
-  'click',
-  event => {
-
-    const button =
-      event.target.closest(
-        '[data-post-sheet-action]'
-      );
-
-
-    if (!button) {
-      return;
-    }
-
-
-    const action =
-      button.dataset.postSheetAction;
-
-
-    const postId =
-      Number(
-        button.dataset.postId
-      );
-
-
-    switch (action) {
-
-      case 'save':
-
-        toggleSave(
-          postId
-        );
-
-        closeBottomSheet();
-
-        break;
-
-
-      case 'hide':
-
-        closeBottomSheet();
-
-        showToast(
-          'Preferensi feed diperbarui'
-        );
-
-        break;
-
-
-      case 'report':
-
-        closeBottomSheet();
-
-        showToast(
-          'Laporan diterima'
-        );
-
-        break;
-    }
-  }
-);
-
-
-/* =========================================================
-   25. VIDEO PLACEHOLDER
-   ========================================================= */
-
-function playDemoVideo() {
-
-  showToast(
-    CONFIG.DEMO_MODE
-      ? 'Video masih berupa contoh tampilan'
-      : 'Video belum tersedia'
+    `,
+    'post-menu'
   );
+
 }
 
 
 /* =========================================================
-   26. FIND POST
+   30. CART
    ========================================================= */
 
-function findPost(postId) {
-
-  return (
-    DATA.posts.find(
-      post =>
-        post.id === postId
-    ) ||
-    null
-  );
-}
-
-
-/* =========================================================
-   27. FIND PRODUCT
-   ========================================================= */
-
-function findProduct(productId) {
-
-  for (
-    const post of DATA.posts
-  ) {
-
-    if (
-      post.product &&
-      post.product.id === productId
-    ) {
-
-      return {
-
-        ...post.product,
-
-        seller:
-          post.author
-      };
-    }
-  }
-
-
-  return null;
-}
-
-
-/* =========================================================
-   28. ADD TO CART
-   ========================================================= */
-
-function addProductToCart(
+function addToCart(
   productId
 ) {
 
   const product =
     findProduct(productId);
 
-
   if (!product) {
     return;
   }
 
-
   const existing =
     STATE.cart.find(
       item =>
-        item.id === product.id
+        item.productId ===
+        productId
     );
-
 
   if (existing) {
 
     existing.quantity += 1;
 
-  } else {
+  }
+  else {
 
     STATE.cart.push({
-
-      ...product,
+      productId:
+        product.id,
 
       quantity:
-        1
+        1,
+
+      product:
+        structuredCloneSafe(
+          product
+        ),
     });
+
   }
 
-
-  saveState();
+  saveLocalState();
 
   updateCartBadge();
-
 
   showToast(
-    `${product.name} ditambahkan ke keranjang`
+    'Produk ditambahkan ke keranjang.'
   );
+
 }
 
 
 /* =========================================================
-   29. CART QUANTITY
+   31. BUY NOW
    ========================================================= */
 
-function changeCartQuantity(
-  productId,
-  difference
-) {
-
-  const item =
-    STATE.cart.find(
-      product =>
-        product.id === productId
-    );
-
-
-  if (!item) {
-    return;
-  }
-
-
-  item.quantity +=
-    difference;
-
-
-  if (
-    item.quantity <= 0
-  ) {
-
-    STATE.cart =
-      STATE.cart.filter(
-        product =>
-          product.id !== productId
-      );
-  }
-
-
-  saveState();
-
-  updateCartBadge();
-
-  openCart();
-}
-
-
-/* =========================================================
-   30. REMOVE CART ITEM
-   ========================================================= */
-
-function removeCartItem(
+function buyNow(
   productId
 ) {
 
-  STATE.cart =
-    STATE.cart.filter(
-      item =>
-        item.id !== productId
-    );
-
-
-  saveState();
-
-  updateCartBadge();
+  addToCart(
+    productId
+  );
 
   openCart();
 
-
-  showToast(
-    'Produk dihapus dari keranjang'
-  );
 }
 
 
 /* =========================================================
-   31. CLEAR CART
-   ========================================================= */
-
-function clearCart() {
-
-  STATE.cart = [];
-
-
-  saveState();
-
-  updateCartBadge();
-
-  openCart();
-
-
-  showToast(
-    'Keranjang dikosongkan'
-  );
-}
-
-
-/* =========================================================
-   32. BUY NOW
-   ========================================================= */
-
-function buyProduct(
-  productId
-) {
-
-  const product =
-    findProduct(productId);
-
-
-  if (!product) {
-    return;
-  }
-
-
-  openBottomSheet(`
-    <h2 id="sheetTitle">
-      Beli Produk
-    </h2>
-
-
-    <div
-      style="
-        display:flex;
-        align-items:center;
-        gap:12px;
-        margin-top:18px;
-      "
-    >
-
-      <img
-        src="${escapeHTML(product.image)}"
-        alt="${escapeHTML(product.name)}"
-        style="
-          width:72px;
-          height:72px;
-          object-fit:cover;
-          border-radius:12px 6px 12px 6px;
-        "
-      >
-
-
-      <div
-        style="
-          min-width:0;
-          flex:1;
-        "
-      >
-
-        <strong
-          style="
-            display:block;
-            font-size:13px;
-            line-height:1.4;
-          "
-        >
-          ${escapeHTML(product.name)}
-        </strong>
-
-
-        <small
-          style="
-            display:block;
-            margin-top:4px;
-            color:var(--text-tertiary);
-          "
-        >
-          ${escapeHTML(product.seller)}
-        </small>
-
-
-        <div
-          style="
-            margin-top:7px;
-            font-size:15px;
-            font-weight:700;
-            color:var(--sunset-600);
-          "
-        >
-          ${formatRupiah(product.price)}
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <button
-      type="button"
-      class="btn-primary"
-      id="buyNowContinue"
-      style="
-        width:100%;
-        margin-top:22px;
-        padding:12px;
-      "
-    >
-      Lanjutkan
-    </button>
-  `);
-
-
-  document
-    .getElementById(
-      'buyNowContinue'
-    )
-    ?.addEventListener(
-      'click',
-      () => {
-
-        addProductToCart(
-          productId
-        );
-
-        closeBottomSheet();
-
-
-        window.setTimeout(
-          openCart,
-          420
-        );
-      }
-    );
-}
-
-
-/* =========================================================
-   33. OPEN CART
+   32. OPEN CART
    ========================================================= */
 
 function openCart() {
 
   if (
-    !STATE.cart.length
+    STATE.cart.length === 0
   ) {
 
-    openBottomSheet(`
-      <h2 id="sheetTitle">
-        Keranjang
-      </h2>
+    openBottomSheet(
+      `
+        <h2 id="sheetTitle">
+          Keranjang
+        </h2>
 
-      ${createSheetEmptyState(
-        'ph-shopping-cart',
-        'Keranjang masih kosong',
-        'Produk yang ditambahkan akan muncul di sini.'
-      )}
-    `);
+        <div class="empty-state">
+
+          <i
+            class="ph ph-shopping-cart-simple"
+            aria-hidden="true"
+          ></i>
+
+          <strong class="empty-state-title">
+            Keranjang masih kosong
+          </strong>
+
+          <p class="empty-state-text">
+            Produk yang Anda pilih akan tersimpan di sini.
+          </p>
+
+        </div>
+      `,
+      'cart'
+    );
 
     return;
-  }
 
+  }
 
   const items =
     STATE.cart
@@ -2387,1287 +2389,371 @@ function openCart() {
       )
       .join('');
 
-
   const total =
-    STATE.cart.reduce(
-      (
-        sum,
-        item
-      ) =>
-        sum +
-        Number(item.price) *
-        Number(item.quantity),
-      0
-    );
+    calculateCartTotal();
 
-
-  openBottomSheet(`
-    <div
-      style="
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        gap:12px;
-      "
-    >
-
+  openBottomSheet(
+    `
       <h2 id="sheetTitle">
         Keranjang
       </h2>
 
+      ${items}
+
+      <div class="product-card">
+
+        <div class="product-info">
+
+          <div class="product-badge">
+            Total
+          </div>
+
+          <div class="product-price">
+            ${formatRupiah(total)}
+          </div>
+
+        </div>
+
+        <button
+          type="button"
+          class="btn-primary"
+          data-action="checkout"
+        >
+          Checkout
+        </button>
+
+      </div>
+
+
       <button
         type="button"
+        class="menu-sheet-btn"
         data-action="clear-cart"
-        style="
-          font-size:10px;
-          font-weight:700;
-          color:var(--sunset-600);
-        "
       >
-        Kosongkan
+
+        <i
+          class="ph ph-trash"
+          aria-hidden="true"
+        ></i>
+
+        Kosongkan keranjang
+
       </button>
+    `,
+    'cart'
+  );
 
-    </div>
-
-
-    <div style="margin-top:12px">
-      ${items}
-    </div>
-
-
-    <div
-      style="
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
-        margin-top:18px;
-        padding-top:14px;
-        border-top:1px solid var(--border-soft);
-      "
-    >
-
-      <span
-        style="
-          font-size:11px;
-          color:var(--text-secondary);
-        "
-      >
-        Total
-      </span>
-
-
-      <strong
-        style="
-          font-size:17px;
-          color:var(--sunset-600);
-        "
-      >
-        ${formatRupiah(total)}
-      </strong>
-
-    </div>
-
-
-    <button
-      type="button"
-      class="btn-primary"
-      data-action="checkout"
-      style="
-        width:100%;
-        margin-top:16px;
-        padding:13px;
-      "
-    >
-      Checkout
-    </button>
-  `);
 }
 
-
-/* =========================================================
-   34. CART ITEM TEMPLATE
-   ========================================================= */
 
 function createCartItemTemplate(
   item
 ) {
 
+  const product =
+    item.product ||
+    findProduct(
+      item.productId
+    );
+
+  if (!product) {
+    return '';
+  }
+
   return `
-    <div
-      style="
-        display:flex;
-        gap:10px;
-        padding:12px 0;
-        border-bottom:1px solid var(--border-subtle);
-      "
-    >
+    <div class="product-card">
 
       <img
-        src="${escapeHTML(item.image)}"
-        alt="${escapeHTML(item.name)}"
-        style="
-          width:62px;
-          height:62px;
-          object-fit:cover;
-          border-radius:10px 5px 10px 5px;
-        "
+        src="${escapeHTML(product.image || ASSETS.logo)}"
+        alt="${escapeHTML(product.name || '')}"
+        class="product-img"
       >
 
+      <div class="product-info">
 
-      <div
-        style="
-          flex:1;
-          min-width:0;
-        "
-      >
-
-        <strong
-          style="
-            display:block;
-            font-size:11px;
-            line-height:1.45;
-          "
-        >
-          ${escapeHTML(item.name)}
-        </strong>
-
-
-        <small
-          style="
-            display:block;
-            margin-top:2px;
-            color:var(--text-tertiary);
-          "
-        >
-          ${escapeHTML(
-            item.seller ||
-            'UMKM Lokal'
-          )}
-        </small>
-
-
-        <div
-          style="
-            margin-top:5px;
-            font-size:13px;
-            font-weight:700;
-            color:var(--sunset-600);
-          "
-        >
-          ${formatRupiah(
-            item.price *
-            item.quantity
-          )}
+        <div class="product-name">
+          ${escapeHTML(product.name || '')}
         </div>
 
-
-        <div
-          style="
-            display:flex;
-            align-items:center;
-            gap:8px;
-            margin-top:8px;
-          "
-        >
-
-          <button
-            type="button"
-            data-action="cart-minus"
-            data-product-id="${item.id}"
-            aria-label="Kurangi jumlah"
-            style="
-              width:28px;
-              height:28px;
-              border-radius:8px 4px 8px 4px;
-              background:var(--forest-50);
-            "
-          >
-
-            <i
-              class="ph ph-minus"
-              aria-hidden="true"
-            ></i>
-
-          </button>
-
-
-          <strong
-            style="
-              min-width:18px;
-              text-align:center;
-              font-size:11px;
-            "
-          >
-            ${item.quantity}
-          </strong>
-
-
-          <button
-            type="button"
-            data-action="cart-plus"
-            data-product-id="${item.id}"
-            aria-label="Tambah jumlah"
-            style="
-              width:28px;
-              height:28px;
-              border-radius:8px 4px 8px 4px;
-              background:var(--forest-50);
-            "
-          >
-
-            <i
-              class="ph ph-plus"
-              aria-hidden="true"
-            ></i>
-
-          </button>
-
-
-          <button
-            type="button"
-            data-action="remove-cart"
-            data-product-id="${item.id}"
-            style="
-              margin-left:auto;
-              font-size:10px;
-              color:var(--sunset-600);
-            "
-          >
-            Hapus
-          </button>
-
+        <div class="product-price">
+          ${formatRupiah(product.price)}
         </div>
+
+        <div class="product-meta">
+          Jumlah: ${item.quantity}
+        </div>
+
+      </div>
+
+
+      <div class="product-actions">
+
+        <button
+          type="button"
+          class="btn-icon"
+          data-action="cart-increase"
+          data-product-id="${escapeHTML(item.productId)}"
+          aria-label="Tambah jumlah"
+        >
+          <i class="ph ph-plus"></i>
+        </button>
+
+        <button
+          type="button"
+          class="btn-icon"
+          data-action="cart-decrease"
+          data-product-id="${escapeHTML(item.productId)}"
+          aria-label="Kurangi jumlah"
+        >
+          <i class="ph ph-minus"></i>
+        </button>
+
+        <button
+          type="button"
+          class="btn-icon"
+          data-action="remove-cart"
+          data-product-id="${escapeHTML(item.productId)}"
+          aria-label="Hapus produk"
+        >
+          <i class="ph ph-trash"></i>
+        </button>
 
       </div>
 
     </div>
   `;
+
 }
 
 
 /* =========================================================
-   35. CHECKOUT
+   33. CART QUANTITY
    ========================================================= */
 
-function checkoutCart() {
+function changeCartQuantity(
+  productId,
+  amount
+) {
 
-  if (!STATE.cart.length) {
-    return;
-  }
-
-
-  openBottomSheet(`
-    <h2 id="sheetTitle">
-      Checkout
-    </h2>
-
-
-    <div
-      style="
-        margin-top:18px;
-        padding:16px;
-        border-radius:14px 7px 14px 7px;
-        background:var(--forest-50);
-      "
-    >
-
-      <i
-        class="ph ph-map-pin"
-        style="
-          font-size:22px;
-          color:var(--forest-700);
-        "
-        aria-hidden="true"
-      ></i>
-
-      <strong
-        style="
-          display:block;
-          margin-top:8px;
-          font-size:12px;
-        "
-      >
-        Alamat Pengiriman
-      </strong>
-
-      <p
-        style="
-          margin-top:5px;
-          font-size:10px;
-          line-height:1.6;
-          color:var(--text-secondary);
-        "
-      >
-        Alamat pembeli akan diambil dari akun setelah sistem backend diaktifkan.
-      </p>
-
-    </div>
-
-
-    <div
-      style="
-        margin-top:12px;
-        padding:16px;
-        border-radius:12px 6px 12px 6px;
-        background:var(--bg-tertiary);
-      "
-    >
-
-      <i
-        class="ph ph-wallet"
-        style="
-          font-size:22px;
-          color:var(--forest-700);
-        "
-        aria-hidden="true"
-      ></i>
-
-      <strong
-        style="
-          display:block;
-          margin-top:8px;
-          font-size:12px;
-        "
-      >
-        Pembayaran
-      </strong>
-
-      <p
-        style="
-          margin-top:5px;
-          font-size:10px;
-          line-height:1.6;
-          color:var(--text-secondary);
-        "
-      >
-        Metode pembayaran belum diaktifkan pada prototype frontend.
-      </p>
-
-    </div>
-
-
-    <button
-      type="button"
-      class="btn-primary"
-      id="checkoutPrototypeButton"
-      style="
-        width:100%;
-        margin-top:18px;
-        padding:13px;
-      "
-    >
-      Buat Pesanan
-    </button>
-  `);
-
-
-  document
-    .getElementById(
-      'checkoutPrototypeButton'
-    )
-    ?.addEventListener(
-      'click',
-      () => {
-
-        showToast(
-          'Checkout akan aktif setelah backend terhubung'
-        );
-      }
+  const item =
+    STATE.cart.find(
+      cartItem =>
+        cartItem.productId ===
+        productId
     );
+
+  if (!item) {
+    return;
+  }
+
+  item.quantity += amount;
+
+  if (
+    item.quantity <= 0
+  ) {
+
+    removeFromCart(
+      productId
+    );
+
+    return;
+
+  }
+
+  saveLocalState();
+
+  updateCartBadge();
+
+  openCart();
+
 }
 
 
 /* =========================================================
-   36. SEARCH OPEN
+   34. REMOVE CART
    ========================================================= */
 
-function openSearch() {
+function removeFromCart(
+  productId
+) {
 
-  if (!DOM.searchOverlay) {
-    return;
-  }
+  STATE.cart =
+    STATE.cart.filter(
+      item =>
+        item.productId !==
+        productId
+    );
+
+  saveLocalState();
+
+  updateCartBadge();
+
+  openCart();
+
+}
 
 
-  DOM.searchOverlay.hidden =
-    false;
+/* =========================================================
+   35. CLEAR CART
+   ========================================================= */
 
+function clearCart() {
 
-  DOM.searchOverlay.setAttribute(
-    'aria-hidden',
-    'false'
+  STATE.cart = [];
+
+  saveLocalState();
+
+  updateCartBadge();
+
+  closeBottomSheet();
+
+  showToast(
+    'Keranjang dikosongkan.'
   );
 
+}
 
-  lockBodyScroll();
 
+/* =========================================================
+   36. CART TOTAL
+   ========================================================= */
 
-  window.setTimeout(
-    () => {
+function calculateCartTotal() {
 
-      DOM.searchInput
-        ?.focus();
+  return STATE.cart.reduce(
+    (
+      total,
+      item
+    ) => {
+
+      const product =
+        item.product ||
+        findProduct(
+          item.productId
+        );
+
+      if (!product) {
+        return total;
+      }
+
+      return (
+        total +
+        Number(product.price || 0) *
+        Number(item.quantity || 0)
+      );
 
     },
-    60
-  );
-}
-
-
-/* =========================================================
-   37. SEARCH CLOSE
-   ========================================================= */
-
-function closeSearch() {
-
-  if (!DOM.searchOverlay) {
-    return;
-  }
-
-
-  DOM.searchOverlay.hidden =
-    true;
-
-
-  DOM.searchOverlay.setAttribute(
-    'aria-hidden',
-    'true'
+    0
   );
 
-
-  unlockBodyScrollIfPossible();
 }
 
 
 /* =========================================================
-   38. SEARCH
+   37. CHECKOUT
    ========================================================= */
 
-function handleSearch(query) {
+function checkout() {
 
-  const normalized =
-    String(query)
-      .trim()
-      .toLowerCase();
-
-
-  STATE.searchQuery =
-    normalized;
-
-
-  if (!DOM.searchResults) {
-    return;
-  }
-
-
-  if (!normalized) {
-
-    renderSearchHint();
-
-    return;
-  }
-
-
-  const results =
-    DATA.posts.filter(
-      post => {
-
-        const searchable = [
-
-          post.author,
-
-          post.category,
-
-          post.location,
-
-          post.caption,
-
-          post.product?.name
-
-        ]
-          .filter(Boolean)
-          .join(' ')
-          .toLowerCase();
-
-
-        return searchable.includes(
-          normalized
-        );
-      }
-    );
-
-
-  if (!results.length) {
-
-    DOM.searchResults.innerHTML =
-      createSheetEmptyState(
-        'ph-magnifying-glass',
-        'Tidak ditemukan',
-        `Tidak ada hasil untuk "${query}".`
-      );
-
-    return;
-  }
-
-
-  DOM.searchResults.innerHTML =
-    results
-      .map(
-        createSearchResultTemplate
-      )
-      .join('');
-}
-
-
-/* =========================================================
-   39. SEARCH HINT
-   ========================================================= */
-
-function renderSearchHint() {
-
-  if (!DOM.searchResults) {
-    return;
-  }
-
-
-  DOM.searchResults.innerHTML = `
-    <div
-      style="
-        padding:22px 4px;
-      "
-    >
-
-      <strong
-        style="
-          display:block;
-          font-family:var(--font-display);
-          font-size:15px;
-          color:var(--forest-900);
-        "
-      >
-        Cari di Pasar UMKM
-      </strong>
-
-      <p
-        style="
-          margin-top:6px;
-          max-width:260px;
-          font-size:10px;
-          line-height:1.6;
-          color:var(--text-tertiary);
-        "
-      >
-        Cari produk, nama UMKM, kategori, atau lokasi.
-      </p>
-
-    </div>
-  `;
-}
-
-
-/* =========================================================
-   40. SEARCH RESULT
-   ========================================================= */
-
-function createSearchResultTemplate(
-  post
-) {
-
-  const product =
-    post.product;
-
-
-  return `
-    <button
-      type="button"
-      data-search-result="${post.id}"
-      style="
-        width:100%;
-        display:flex;
-        align-items:center;
-        gap:11px;
-        padding:11px 0;
-        text-align:left;
-        border-bottom:1px solid var(--border-subtle);
-      "
-    >
-
-      <img
-        src="${escapeHTML(
-          product?.image ||
-          post.media
-        )}"
-        alt="${escapeHTML(
-          product?.name ||
-          post.author
-        )}"
-        style="
-          width:54px;
-          height:54px;
-          object-fit:cover;
-          border-radius:11px 5px 11px 5px;
-        "
-      >
-
-
-      <span
-        style="
-          flex:1;
-          min-width:0;
-        "
-      >
-
-        <strong
-          style="
-            display:block;
-            font-size:11px;
-            line-height:1.4;
-          "
-        >
-          ${escapeHTML(
-            product?.name ||
-            post.author
-          )}
-        </strong>
-
-        <small
-          style="
-            display:block;
-            margin-top:3px;
-            color:var(--text-tertiary);
-          "
-        >
-          ${escapeHTML(post.author)}
-          ·
-          ${escapeHTML(post.category)}
-        </small>
-
-        ${
-          product
-            ? `
-              <span
-                style="
-                  display:block;
-                  margin-top:4px;
-                  font-size:12px;
-                  font-weight:700;
-                  color:var(--sunset-600);
-                "
-              >
-                ${formatRupiah(product.price)}
-              </span>
-            `
-            : ''
-        }
-
-      </span>
-
-    </button>
-  `;
-}
-
-
-/* =========================================================
-   41. SEARCH RESULT CLICK
-   ========================================================= */
-
-document.addEventListener(
-  'click',
-  event => {
-
-    const result =
-      event.target.closest(
-        '[data-search-result]'
-      );
-
-
-    if (!result) {
-      return;
-    }
-
-
-    const postId =
-      Number(
-        result.dataset.searchResult
-      );
-
-
-    closeSearch();
-
-
-    window.setTimeout(
-      () => {
-
-        scrollToPost(
-          postId
-        );
-
-      },
-      120
-    );
-  }
-);
-
-
-/* =========================================================
-   42. SCROLL TO POST
-   ========================================================= */
-
-function scrollToPost(postId) {
-
-  STATE.activeCategory =
-    null;
-
-
-  renderFeed();
-
-
-  requestAnimationFrame(
-    () => {
-
-      const element =
-        document.getElementById(
-          `post-${postId}`
-        );
-
-
-      element?.scrollIntoView({
-
-        behavior:
-          'smooth',
-
-        block:
-          'center'
-      });
-    }
-  );
-}
-
-
-/* =========================================================
-   43. NOTIFICATIONS
-   ========================================================= */
-
-function openNotifications() {
-
-  const items =
-    DATA.notifications;
-
-
-  const content =
-    items.length
-      ? items
-          .map(
-            createNotificationTemplate
-          )
-          .join('')
-
-      : createSheetEmptyState(
-          'ph-bell',
-          'Belum ada notifikasi',
-          'Aktivitas terbaru akan muncul di sini.'
-        );
-
-
-  openBottomSheet(`
-    <h2 id="sheetTitle">
-      Notifikasi
-    </h2>
-
-    <div style="margin-top:14px">
-      ${content}
-    </div>
-  `);
-}
-
-
-/* =========================================================
-   44. NOTIFICATION TEMPLATE
-   ========================================================= */
-
-function createNotificationTemplate(
-  item
-) {
-
-  return `
-    <div
-      style="
-        display:flex;
-        gap:11px;
-        padding:13px 0;
-        border-bottom:1px solid var(--border-subtle);
-      "
-    >
-
-      <div
-        style="
-          width:40px;
-          height:40px;
-          flex:0 0 40px;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          border-radius:13px 6px 13px 6px;
-          background:var(--forest-50);
-          color:var(--forest-700);
-        "
-      >
-
-        <i
-          class="ph ${escapeHTML(item.icon)}"
-          style="font-size:19px"
-          aria-hidden="true"
-        ></i>
-
-      </div>
-
-
-      <div>
-
-        <strong
-          style="
-            display:block;
-            font-size:11px;
-            line-height:1.45;
-          "
-        >
-          ${escapeHTML(item.title)}
-        </strong>
-
-        <small
-          style="
-            display:block;
-            margin-top:4px;
-            color:var(--text-tertiary);
-          "
-        >
-          ${escapeHTML(item.time)}
-        </small>
-
-      </div>
-
-    </div>
-  `;
-}
-
-
-/* =========================================================
-   45. MESSAGES
-   ========================================================= */
-
-function openMessages() {
-
-  const content =
-    DATA.messages.length
-      ? DATA.messages
-          .map(
-            createMessageTemplate
-          )
-          .join('')
-
-      : createSheetEmptyState(
-          'ph-chat-circle-text',
-          'Belum ada pesan',
-          'Percakapan dengan pembeli atau penjual akan muncul di sini.'
-        );
-
-
-  openBottomSheet(`
-    <h2 id="sheetTitle">
-      Pesan
-    </h2>
-
-    <div style="margin-top:14px">
-      ${content}
-    </div>
-  `);
-}
-
-
-/* =========================================================
-   46. MESSAGE TEMPLATE
-   ========================================================= */
-
-function createMessageTemplate(
-  message
-) {
-
-  return `
-    <button
-      type="button"
-      data-message-id="${message.id}"
-      style="
-        width:100%;
-        display:flex;
-        align-items:center;
-        gap:11px;
-        padding:13px 0;
-        text-align:left;
-        border-bottom:1px solid var(--border-subtle);
-      "
-    >
-
-      <div
-        style="
-          width:42px;
-          height:42px;
-          flex:0 0 42px;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          border-radius:50%;
-          background:var(--forest-100);
-          color:var(--forest-700);
-        "
-      >
-
-        <i
-          class="ph ph-user"
-          aria-hidden="true"
-        ></i>
-
-      </div>
-
-
-      <div
-        style="
-          min-width:0;
-          flex:1;
-        "
-      >
-
-        <strong
-          style="
-            display:block;
-            font-size:11px;
-          "
-        >
-          ${escapeHTML(message.name)}
-        </strong>
-
-        <span
-          style="
-            display:block;
-            margin-top:3px;
-            overflow:hidden;
-            white-space:nowrap;
-            text-overflow:ellipsis;
-            font-size:10px;
-            color:var(--text-secondary);
-          "
-        >
-          ${escapeHTML(message.text)}
-        </span>
-
-        <small
-          style="
-            display:block;
-            margin-top:3px;
-            color:var(--text-tertiary);
-          "
-        >
-          ${escapeHTML(message.time)}
-        </small>
-
-      </div>
-
-    </button>
-  `;
-}
-
-
-/* =========================================================
-   47. MESSAGE CLICK
-   ========================================================= */
-
-document.addEventListener(
-  'click',
-  event => {
-
-    const button =
-      event.target.closest(
-        '[data-message-id]'
-      );
-
-
-    if (!button) {
-      return;
-    }
-
-
-    const message =
-      DATA.messages.find(
-        item =>
-          item.id ===
-          Number(
-            button.dataset.messageId
-          )
-      );
-
-
-    if (!message) {
-      return;
-    }
-
-
-    openBottomSheet(`
-      <h2 id="sheetTitle">
-        ${escapeHTML(message.name)}
-      </h2>
-
-      <div
-        style="
-          margin-top:18px;
-          padding:13px;
-          border-radius:13px 6px 13px 6px;
-          background:var(--forest-50);
-          font-size:11px;
-          line-height:1.6;
-        "
-      >
-        ${escapeHTML(message.text)}
-      </div>
-
-      <p
-        style="
-          margin-top:16px;
-          text-align:center;
-          font-size:9px;
-          color:var(--text-tertiary);
-        "
-      >
-        Chat langsung akan aktif setelah sistem akun dan backend tersedia.
-      </p>
-    `);
-  }
-);
-
-
-/* =========================================================
-   48. STORY VIEW
-   ========================================================= */
-
-function openStory(storyId) {
-
-  const story =
-    DATA.stories.find(
-      item =>
-        item.id === storyId
-    );
-
-
-  if (!story) {
-    return;
-  }
-
-
-  openBottomSheet(`
-    <div
-      style="
-        display:flex;
-        align-items:center;
-        gap:10px;
-      "
-    >
-
-      <img
-        src="${escapeHTML(story.image)}"
-        alt="${escapeHTML(story.name)}"
-        style="
-          width:38px;
-          height:38px;
-          object-fit:cover;
-          border-radius:50%;
-        "
-      >
-
-      <h2 id="sheetTitle">
-        ${escapeHTML(story.name)}
-      </h2>
-
-    </div>
-
-
-    <img
-      src="${escapeHTML(story.image)}"
-      alt="${escapeHTML(story.name)}"
-      style="
-        width:100%;
-        max-height:65vh;
-        object-fit:cover;
-        margin-top:14px;
-        border-radius:16px 8px 16px 8px;
-      "
-    >
-  `);
-}
-
-
-/* =========================================================
-   49. SELL SHEET
-   ========================================================= */
-
-function openSellSheet() {
-
-  openBottomSheet(`
-    <h2 id="sheetTitle">
-      Jual di Pasar UMKM
-    </h2>
-
-    <p
-      style="
-        margin-top:6px;
-        font-size:10px;
-        line-height:1.6;
-        color:var(--text-tertiary);
-      "
-    >
-      Pilih aktivitas yang ingin dibuat.
-    </p>
-
-
-    <div
-      style="
-        display:grid;
-        gap:9px;
-        margin-top:18px;
-      "
-    >
-
-      ${createSellOption(
-        'ph-package',
-        'Tambah Produk',
-        'product'
-      )}
-
-      ${createSellOption(
-        'ph-camera',
-        'Buat Postingan',
-        'post'
-      )}
-
-      ${createSellOption(
-        'ph-video-camera',
-        'Upload Video',
-        'video'
-      )}
-
-      ${createSellOption(
-        'ph-megaphone',
-        'Buat Promo',
-        'promo'
-      )}
-
-    </div>
-  `);
-}
-
-
-/* =========================================================
-   50. SELL OPTION
-   ========================================================= */
-
-function createSellOption(
-  icon,
-  label,
-  type
-) {
-
-  return `
-    <button
-      type="button"
-      data-sell-option="${escapeHTML(type)}"
-      style="
-        width:100%;
-        display:flex;
-        align-items:center;
-        gap:12px;
-        padding:13px;
-        border-radius:12px 6px 12px 6px;
-        background:var(--forest-50);
-        color:var(--forest-800);
-        text-align:left;
-      "
-    >
-
-      <i
-        class="ph ${icon}"
-        style="
-          font-size:21px;
-        "
-        aria-hidden="true"
-      ></i>
-
-      <strong
-        style="
-          font-size:11px;
-        "
-      >
-        ${escapeHTML(label)}
-      </strong>
-
-      <i
-        class="ph ph-caret-right"
-        style="
-          margin-left:auto;
-          opacity:.55;
-        "
-        aria-hidden="true"
-      ></i>
-
-    </button>
-  `;
-}
-
-
-/* =========================================================
-   51. SELL OPTION CLICK
-   ========================================================= */
-
-document.addEventListener(
-  'click',
-  event => {
-
-    const option =
-      event.target.closest(
-        '[data-sell-option]'
-      );
-
-
-    if (!option) {
-      return;
-    }
-
-
-    const labels = {
-
-      product:
-        'Tambah Produk',
-
-      post:
-        'Buat Postingan',
-
-      video:
-        'Upload Video',
-
-      promo:
-        'Buat Promo'
-    };
-
+  if (!STATE.user) {
 
     showToast(
-      `${
-        labels[
-          option.dataset.sellOption
-        ] ||
-        'Fitur'
-      } akan aktif bersama sistem akun`
+      'Masuk terlebih dahulu untuk checkout.'
     );
+
+    openLogin();
+
+    return;
+
   }
-);
+
+  if (
+    STATE.cart.length === 0
+  ) {
+
+    showToast(
+      'Keranjang masih kosong.'
+    );
+
+    return;
+
+  }
+
+  /*
+   * Real payment / order creation belongs in backend.
+   */
+  openBottomSheet(
+    `
+      <h2 id="sheetTitle">
+        Checkout
+      </h2>
+
+      <div class="empty-state">
+
+        <i
+          class="ph ph-receipt"
+          aria-hidden="true"
+        ></i>
+
+        <strong class="empty-state-title">
+          ${formatRupiah(calculateCartTotal())}
+        </strong>
+
+        <p class="empty-state-text">
+          Checkout akan diproses melalui sistem transaksi
+          setelah backend pembayaran dan pesanan diaktifkan.
+        </p>
+
+      </div>
+    `,
+    'checkout'
+  );
+
+}
 
 
 /* =========================================================
-   52. SIDE MENU
+   38. CART BADGE
+   ========================================================= */
+
+function updateCartBadge() {
+
+  if (!DOM.navigation) {
+    return;
+  }
+
+  const badge =
+    DOM.navigation.querySelector(
+      '.nav-badge'
+    );
+
+  if (!badge) {
+    return;
+  }
+
+  const count =
+    STATE.cart.reduce(
+      (
+        total,
+        item
+      ) =>
+        total +
+        Number(
+          item.quantity || 0
+        ),
+      0
+    );
+
+  setBadge(
+    badge,
+    count
+  );
+
+}
+
+
+/* =========================================================
+   39. SIDE MENU
    ========================================================= */
 
 function renderSideMenu() {
@@ -3676,225 +2762,127 @@ function renderSideMenu() {
     return;
   }
 
+  const sellerMenu =
+    STATE.user?.role === 'seller' ||
+    STATE.user?.role === 'admin'
+      ? `
+        <button
+          type="button"
+          class="menu-sheet-btn"
+          data-menu-action="store"
+        >
+          <i class="ph ph-storefront"></i>
+          Kelola Toko
+        </button>
 
-  DOM.sideMenuContent.innerHTML = `
+        <button
+          type="button"
+          class="menu-sheet-btn"
+          data-menu-action="seller-products"
+        >
+          <i class="ph ph-package"></i>
+          Produk Saya
+        </button>
+      `
+      : '';
 
-    <div
-      style="
-        padding-top:4px;
-      "
-    >
 
-      <div
-        style="
-          display:flex;
-          align-items:center;
-          gap:10px;
-        "
+  const adminMenu =
+    STATE.user?.role === 'admin'
+      ? `
+        <button
+          type="button"
+          class="menu-sheet-btn"
+          data-menu-action="admin"
+        >
+          <i class="ph ph-shield-check"></i>
+          Panel Pengelola
+        </button>
+      `
+      : '';
+
+
+  DOM.sideMenuContent.innerHTML =
+    `
+      <button
+        type="button"
+        class="menu-sheet-btn"
+        data-menu-action="home"
       >
-
-        <img
-          src="${ASSETS.appLogo}"
-          alt="${CONFIG.APP_NAME}"
-          style="
-            width:42px;
-            height:42px;
-            object-fit:contain;
-          "
-        >
+        <i class="ph ph-house"></i>
+        Beranda
+      </button>
 
 
-        <div
-          style="
-            min-width:0;
-          "
-        >
-
-          <div
-            style="
-              font-family:var(--font-display);
-              font-size:21px;
-              line-height:1;
-              color:var(--forest-900);
-              font-weight:700;
-              letter-spacing:-.025em;
-            "
-          >
-            ${CONFIG.APP_NAME}
-          </div>
-
-          <div
-            style="
-              margin-top:5px;
-              font-size:8px;
-              font-weight:600;
-              letter-spacing:.12em;
-              text-transform:uppercase;
-              color:var(--gold-700);
-            "
-          >
-            ${CONFIG.LOCATION}
-          </div>
-
-        </div>
-
-      </div>
-
-
-      <div
-        style="
-          display:grid;
-          gap:5px;
-          margin-top:26px;
-        "
+      <button
+        type="button"
+        class="menu-sheet-btn"
+        data-menu-action="categories"
       >
-
-        ${sideMenuItem(
-          'ph-house',
-          'Beranda',
-          'home'
-        )}
-
-        ${sideMenuItem(
-          'ph-squares-four',
-          'Kategori',
-          'categories'
-        )}
-
-        ${sideMenuItem(
-          'ph-storefront',
-          'Jelajahi UMKM',
-          'stores'
-        )}
-
-        ${sideMenuItem(
-          'ph-receipt',
-          'Pesanan Saya',
-          'orders'
-        )}
-
-        ${sideMenuItem(
-          'ph-heart',
-          'Favorit',
-          'favorites'
-        )}
-
-        ${sideMenuItem(
-          'ph-info',
-          'Tentang Pasar UMKM',
-          'about'
-        )}
-
-        ${sideMenuItem(
-          'ph-question',
-          'Bantuan',
-          'help'
-        )}
-
-      </div>
+        <i class="ph ph-squares-four"></i>
+        Kategori
+      </button>
 
 
-      <div
-        style="
-          margin-top:28px;
-          padding-top:16px;
-          border-top:1px solid var(--border-subtle);
-        "
+      <button
+        type="button"
+        class="menu-sheet-btn"
+        data-menu-action="stores"
       >
+        <i class="ph ph-storefront"></i>
+        Jelajahi UMKM
+      </button>
 
-        <div
-          style="
-            font-size:8px;
-            line-height:1.5;
-            color:var(--text-tertiary);
-          "
-        >
-          Sebuah inisiatif dari
-        </div>
 
-        <div
-          style="
-            margin-top:3px;
-            max-width:220px;
-            font-size:10px;
-            line-height:1.45;
-            font-weight:700;
-            color:var(--forest-800);
-          "
-        >
-          ${CONFIG.ORGANIZATION}
-        </div>
+      <button
+        type="button"
+        class="menu-sheet-btn"
+        data-menu-action="orders"
+      >
+        <i class="ph ph-receipt"></i>
+        Pesanan Saya
+      </button>
 
-      </div>
 
-    </div>
-  `;
+      <button
+        type="button"
+        class="menu-sheet-btn"
+        data-menu-action="favorites"
+      >
+        <i class="ph ph-heart"></i>
+        Favorit
+      </button>
+
+      ${sellerMenu}
+
+      ${adminMenu}
+
+
+      <button
+        type="button"
+        class="menu-sheet-btn"
+        data-menu-action="about"
+      >
+        <i class="ph ph-info"></i>
+        Tentang Pasar UMKM
+      </button>
+
+
+      <button
+        type="button"
+        class="menu-sheet-btn"
+        data-menu-action="help"
+      >
+        <i class="ph ph-question"></i>
+        Bantuan
+      </button>
+    `;
+
 }
 
 
 /* =========================================================
-   53. SIDE MENU ITEM
-   ========================================================= */
-
-function sideMenuItem(
-  icon,
-  label,
-  action
-) {
-
-  return `
-    <button
-      type="button"
-      data-menu-action="${escapeHTML(action)}"
-      style="
-        width:100%;
-        min-height:43px;
-        display:flex;
-        align-items:center;
-        gap:12px;
-        padding:10px 11px;
-        border-radius:11px 5px 11px 5px;
-        text-align:left;
-        color:var(--text-primary);
-      "
-    >
-
-      <i
-        class="ph ${icon}"
-        style="
-          width:21px;
-          font-size:19px;
-          color:var(--forest-700);
-        "
-        aria-hidden="true"
-      ></i>
-
-      <span
-        style="
-          font-size:11px;
-          font-weight:600;
-        "
-      >
-        ${escapeHTML(label)}
-      </span>
-
-      <i
-        class="ph ph-caret-right"
-        style="
-          margin-left:auto;
-          font-size:12px;
-          color:var(--text-tertiary);
-        "
-        aria-hidden="true"
-      ></i>
-
-    </button>
-  `;
-}
-
-
-/* =========================================================
-   54. SIDE MENU OPEN
+   40. SIDE MENU OPEN/CLOSE
    ========================================================= */
 
 function openSideMenu() {
@@ -3903,31 +2891,30 @@ function openSideMenu() {
     return;
   }
 
+  renderSideMenu();
+
+  renderAccountState();
 
   DOM.sideMenu.hidden =
     false;
-
 
   DOM.sideMenu.setAttribute(
     'aria-hidden',
     'false'
   );
 
+  DOM.menuButton?.setAttribute(
+    'aria-expanded',
+    'true'
+  );
 
-  DOM.menuButton
-    ?.setAttribute(
-      'aria-expanded',
-      'true'
-    );
-
+  STATE.isMenuOpen =
+    true;
 
   lockBodyScroll();
+
 }
 
-
-/* =========================================================
-   55. SIDE MENU CLOSE
-   ========================================================= */
 
 function closeSideMenu() {
 
@@ -3935,547 +2922,483 @@ function closeSideMenu() {
     return;
   }
 
-
   DOM.sideMenu.hidden =
     true;
-
 
   DOM.sideMenu.setAttribute(
     'aria-hidden',
     'true'
   );
 
+  DOM.menuButton?.setAttribute(
+    'aria-expanded',
+    'false'
+  );
 
-  DOM.menuButton
-    ?.setAttribute(
-      'aria-expanded',
-      'false'
-    );
+  STATE.isMenuOpen =
+    false;
 
+  unlockBodyScroll();
 
-  unlockBodyScrollIfPossible();
 }
 
 
 /* =========================================================
-   56. SIDE MENU ACTION
+   41. ACCOUNT STATE
    ========================================================= */
 
-function handleSideMenuAction(
+function renderAccountState() {
+
+  if (
+    !DOM.sideAccountGuest ||
+    !DOM.sideAccountUser
+  ) {
+    return;
+  }
+
+  const loggedIn =
+    Boolean(
+      STATE.user
+    );
+
+  DOM.sideAccountGuest.hidden =
+    loggedIn;
+
+  DOM.sideAccountUser.hidden =
+    !loggedIn;
+
+  if (!loggedIn) {
+    return;
+  }
+
+  DOM.sideAccountUserName.textContent =
+    STATE.user.name ||
+    'Pengguna';
+
+  DOM.sideAccountUserRole.textContent =
+    formatUserRole(
+      STATE.user.role
+    );
+
+}
+
+
+/* =========================================================
+   42. LOGIN
+   ========================================================= */
+
+function openLogin() {
+
+  closeSideMenu();
+
+  if (STATE.user) {
+
+    openAccount();
+
+    return;
+
+  }
+
+  /*
+   * Authentication must be implemented server-side.
+   * No fake production login is created here.
+   */
+
+  openBottomSheet(
+    `
+      <h2 id="sheetTitle">
+        Masuk ke Pasar UMKM
+      </h2>
+
+      <div class="empty-state">
+
+        <i
+          class="ph ph-user-circle"
+          aria-hidden="true"
+        ></i>
+
+        <strong class="empty-state-title">
+          Akun Pasar UMKM
+        </strong>
+
+        <p class="empty-state-text">
+          Sistem login akan terhubung ke backend agar akun,
+          transaksi, toko, dan data pengguna tersimpan dengan aman.
+        </p>
+
+      </div>
+    `,
+    'login'
+  );
+
+}
+
+
+/* =========================================================
+   43. LOGOUT
+   ========================================================= */
+
+async function logout() {
+
+  if (!STATE.user) {
+    return;
+  }
+
+  if (
+    CONFIG.API_BASE_URL
+  ) {
+
+    try {
+
+      await apiRequest(
+        '/auth/logout',
+        {
+          method: 'POST',
+        }
+      );
+
+    }
+    catch (error) {
+
+      console.error(error);
+
+    }
+
+  }
+
+  STATE.user =
+    null;
+
+  localStorage.removeItem(
+    CONFIG.SESSION_KEY
+  );
+
+  renderAccountState();
+
+  renderSideMenu();
+
+  renderStories();
+
+  closeSideMenu();
+
+  showToast(
+    'Anda telah keluar.'
+  );
+
+}
+
+
+/* =========================================================
+   44. ACCOUNT
+   ========================================================= */
+
+function openAccount() {
+
+  if (!STATE.user) {
+
+    openLogin();
+
+    return;
+
+  }
+
+  openBottomSheet(
+    `
+      <h2 id="sheetTitle">
+        Akun Saya
+      </h2>
+
+      <div class="side-account">
+
+        <div class="side-account-user-main">
+
+          <div class="side-account-avatar">
+            <i class="ph ph-user"></i>
+          </div>
+
+          <div class="side-account-user-info">
+
+            <strong class="side-account-user-name">
+              ${escapeHTML(STATE.user.name || 'Pengguna')}
+            </strong>
+
+            <span class="side-account-user-role">
+              ${escapeHTML(formatUserRole(STATE.user.role))}
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="menu-sheet-btn"
+        data-action="logout"
+      >
+
+        <i class="ph ph-sign-out"></i>
+
+        Keluar dari akun
+
+      </button>
+    `,
+    'account'
+  );
+
+}
+
+
+/* =========================================================
+   45. USER ROLE
+   ========================================================= */
+
+function formatUserRole(
+  role
+) {
+
+  switch (role) {
+
+    case 'seller':
+      return 'Pemilik UMKM';
+
+    case 'admin':
+      return 'Pengelola';
+
+    case 'buyer':
+    default:
+      return 'Pembeli';
+
+  }
+
+}
+
+
+/* =========================================================
+   46. MENU ACTION
+   ========================================================= */
+
+function handleMenuAction(
   action
 ) {
 
   closeSideMenu();
 
+  switch (action) {
 
-  window.setTimeout(
-    () => {
+    case 'home':
 
-      switch (action) {
+      navigate(
+        'home'
+      );
 
-        case 'home':
-
-          STATE.activeCategory =
-            null;
-
-          setActiveNavigation(
-            'home'
-          );
-
-          renderFeed();
-
-          window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-          });
-
-          break;
+      break;
 
 
-        case 'categories':
+    case 'categories':
 
-          setActiveNavigation(
-            'categories'
-          );
+      openCategories();
 
-          openCategories();
-
-          break;
+      break;
 
 
-        case 'stores':
+    case 'stores':
 
-          openStores();
+      openStores();
 
-          break;
-
-
-        case 'orders':
-
-          openOrders();
-
-          break;
+      break;
 
 
-        case 'favorites':
+    case 'orders':
 
-          openFavorites();
+      openOrders();
 
-          break;
-
-
-        case 'about':
-
-          openAbout();
-
-          break;
+      break;
 
 
-        case 'help':
+    case 'favorites':
 
-          openHelp();
+      openFavorites();
 
-          break;
+      break;
 
 
-        default:
+    case 'profile':
 
-          showToast(
-            'Menu belum tersedia'
-          );
-      }
+      openAccount();
 
-    },
-    100
-  );
+      break;
+
+
+    case 'store':
+
+      openSellerStore();
+
+      break;
+
+
+    case 'seller-products':
+
+      openSellerProducts();
+
+      break;
+
+
+    case 'admin':
+
+      openAdmin();
+
+      break;
+
+
+    case 'about':
+
+      openAbout();
+
+      break;
+
+
+    case 'help':
+
+      openHelp();
+
+      break;
+
+
+    default:
+
+      break;
+
+  }
+
 }
 
 
 /* =========================================================
-   57. CATEGORIES
-   ========================================================= */
-
-const CATEGORIES = [
-
-  {
-    icon:
-      'ph-fork-knife',
-
-    label:
-      'Kuliner'
-  },
-
-  {
-    icon:
-      'ph-t-shirt',
-
-    label:
-      'Fashion'
-  },
-
-  {
-    icon:
-      'ph-sparkle',
-
-    label:
-      'Kecantikan'
-  },
-
-  {
-    icon:
-      'ph-laptop',
-
-    label:
-      'Digital'
-  },
-
-  {
-    icon:
-      'ph-device-mobile',
-
-    label:
-      'Elektronik'
-  },
-
-  {
-    icon:
-      'ph-house-line',
-
-    label:
-      'Property'
-  },
-
-  {
-    icon:
-      'ph-wallet',
-
-    label:
-      'Finance'
-  },
-
-  {
-    icon:
-      'ph-wrench',
-
-    label:
-      'Jasa'
-  },
-
-  {
-    icon:
-      'ph-hammer',
-
-    label:
-      'Kerajinan'
-  }
-];
-
-
-/* =========================================================
-   58. OPEN CATEGORIES
+   47. CATEGORIES
    ========================================================= */
 
 function openCategories() {
 
-  const content =
-    CATEGORIES
+  const categories =
+    getCategories();
+
+  if (
+    categories.length === 0
+  ) {
+
+    openBottomSheet(
+      `
+        <h2 id="sheetTitle">
+          Kategori
+        </h2>
+
+        <div class="empty-state">
+
+          <i class="ph ph-squares-four"></i>
+
+          <strong class="empty-state-title">
+            Belum ada kategori
+          </strong>
+
+          <p class="empty-state-text">
+            Kategori akan terbentuk dari produk UMKM
+            yang diterbitkan di Pasar UMKM.
+          </p>
+
+        </div>
+      `,
+      'categories'
+    );
+
+    return;
+
+  }
+
+  const template =
+    categories
       .map(
-        category =>
-          createCategoryItem(
-            category.icon,
-            category.label
-          )
+        category => `
+          <button
+            type="button"
+            class="menu-sheet-btn"
+            data-category="${escapeHTML(category)}"
+          >
+
+            <i class="ph ph-tag"></i>
+
+            ${escapeHTML(category)}
+
+          </button>
+        `
       )
       .join('');
 
+  openBottomSheet(
+    `
+      <h2 id="sheetTitle">
+        Kategori
+      </h2>
 
-  openBottomSheet(`
-    <h2 id="sheetTitle">
-      Kategori
-    </h2>
-
-    <p
-      style="
-        margin-top:6px;
-        font-size:10px;
-        color:var(--text-tertiary);
-      "
-    >
-      Telusuri produk berdasarkan jenis usaha.
-    </p>
-
-    <div
-      style="
-        display:grid;
-        grid-template-columns:repeat(3,1fr);
-        gap:9px;
-        margin-top:17px;
-      "
-    >
-      ${content}
-    </div>
-  `);
-}
-
-
-/* =========================================================
-   59. CATEGORY ITEM
-   ========================================================= */
-
-function createCategoryItem(
-  icon,
-  label
-) {
-
-  return `
-    <button
-      type="button"
-      data-category="${escapeHTML(label)}"
-      style="
-        min-height:78px;
-        padding:13px 7px;
-        border-radius:13px 6px 13px 6px;
-        background:var(--forest-50);
-        color:var(--forest-800);
-      "
-    >
-
-      <i
-        class="ph ${icon}"
-        style="
-          display:block;
-          margin-bottom:7px;
-          font-size:22px;
-        "
-        aria-hidden="true"
-      ></i>
-
-      <span
-        style="
-          font-size:9px;
-          font-weight:700;
-        "
-      >
-        ${escapeHTML(label)}
-      </span>
-
-    </button>
-  `;
-}
-
-
-/* =========================================================
-   60. CATEGORY CLICK
-   ========================================================= */
-
-document.addEventListener(
-  'click',
-  event => {
-
-    const button =
-      event.target.closest(
-        '[data-category]'
-      );
-
-
-    if (!button) {
-      return;
-    }
-
-
-    const category =
-      button.dataset.category;
-
-
-    STATE.activeCategory =
-      category;
-
-
-    const results =
-      DATA.posts.filter(
-        post =>
-          String(post.category)
-            .toLowerCase() ===
-          String(category)
-            .toLowerCase()
-      );
-
-
-    closeBottomSheet();
-
-
-    window.setTimeout(
-      () => {
-
-        renderCategoryFeed(
-          category,
-          results
-        );
-
-      },
-      420
-    );
-  }
-);
-
-
-/* =========================================================
-   61. CATEGORY FEED
-   ========================================================= */
-
-function renderCategoryFeed(
-  category,
-  posts
-) {
-
-  if (!DOM.feed) {
-    return;
-  }
-
-
-  const top = `
-    <div
-      style="
-        padding:15px var(--page-gutter) 13px;
-        background:var(--bg-secondary);
-        border-bottom:1px solid var(--border-subtle);
-      "
-    >
-
-      <div
-        style="
-          display:flex;
-          align-items:center;
-          justify-content:space-between;
-          gap:12px;
-        "
-      >
-
-        <div>
-
-          <small
-            style="
-              display:block;
-              font-size:8px;
-              text-transform:uppercase;
-              letter-spacing:.1em;
-              color:var(--text-tertiary);
-            "
-          >
-            Kategori
-          </small>
-
-          <strong
-            style="
-              display:block;
-              margin-top:3px;
-              font-family:var(--font-display);
-              font-size:17px;
-              color:var(--forest-900);
-            "
-          >
-            ${escapeHTML(category)}
-          </strong>
-
-        </div>
-
-
-        <button
-          type="button"
-          data-action="clear-category"
-          style="
-            font-size:10px;
-            font-weight:700;
-            color:var(--forest-700);
-          "
-        >
-          Semua
-        </button>
-
-      </div>
-
-    </div>
-  `;
-
-
-  if (!posts.length) {
-
-    DOM.feed.innerHTML =
-      top +
-      `
-        <div class="empty-state">
-
-          <i
-            class="ph ph-package"
-            aria-hidden="true"
-          ></i>
-
-          <div class="empty-state-title">
-            Belum ada produk ${escapeHTML(category)}
-          </div>
-
-          <div class="empty-state-text">
-            Produk pada kategori ini akan muncul setelah UMKM mulai mengunggahnya.
-          </div>
-
-        </div>
-      `;
-
-    return;
-  }
-
-
-  DOM.feed.innerHTML =
-    top +
-    posts
-      .map(createPostTemplate)
-      .join('');
-
-
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth'
-  });
-}
-
-
-/* =========================================================
-   62. CLEAR CATEGORY
-   ========================================================= */
-
-function clearCategoryFilter() {
-
-  STATE.activeCategory =
-    null;
-
-
-  setActiveNavigation(
-    'home'
+      ${template}
+    `,
+    'categories'
   );
 
+  DOM.sheetContent
+    ?.querySelectorAll(
+      '[data-category]'
+    )
+    .forEach(
+      button => {
 
-  renderFeed();
+        button.addEventListener(
+          'click',
+          () => {
 
+            showCategory(
+              button.dataset.category
+            );
 
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth'
-  });
-}
-
-
-/* =========================================================
-   63. GET STORES
-   ========================================================= */
-
-function getStores() {
-
-  const stores =
-    new Map();
-
-
-  DATA.posts.forEach(
-    post => {
-
-      if (
-        !stores.has(
-          post.author
-        )
-      ) {
-
-        stores.set(
-          post.author,
-          {
-
-            name:
-              post.author,
-
-            avatar:
-              post.avatar,
-
-            category:
-              post.category,
-
-            location:
-              post.location,
-
-            verified:
-              post.verified
           }
         );
+
       }
-    }
-  );
+    );
+
+}
 
 
-  return [
-    ...stores.values()
-  ];
+function showCategory(
+  category
+) {
+
+  STATE.activeCategory =
+    category;
+
+  const posts =
+    DATA.posts.filter(
+      post =>
+        post.product?.category ===
+        category
+    );
+
+  closeBottomSheet();
+
+  renderFeed(posts);
+
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth',
+  });
+
 }
 
 
 /* =========================================================
-   64. STORES
+   48. STORES
    ========================================================= */
 
 function openStores() {
@@ -4483,214 +3406,123 @@ function openStores() {
   const stores =
     getStores();
 
+  if (
+    stores.length === 0
+  ) {
 
-  if (!stores.length) {
+    openBottomSheet(
+      `
+        <h2 id="sheetTitle">
+          Jelajahi UMKM
+        </h2>
 
-    openBottomSheet(`
-      <h2 id="sheetTitle">
-        Jelajahi UMKM
-      </h2>
+        <div class="empty-state">
 
-      ${createSheetEmptyState(
-        'ph-storefront',
-        'Belum ada UMKM',
-        'Pelaku usaha yang bergabung akan muncul di sini.'
-      )}
-    `);
+          <i class="ph ph-storefront"></i>
+
+          <strong class="empty-state-title">
+            Belum ada toko
+          </strong>
+
+          <p class="empty-state-text">
+            UMKM yang bergabung akan tampil di sini.
+          </p>
+
+        </div>
+      `,
+      'stores'
+    );
 
     return;
+
   }
 
-
-  const content =
+  const template =
     stores
       .map(
         store => `
           <button
             type="button"
-            data-store-name="${escapeHTML(store.name)}"
-            style="
-              width:100%;
-              display:flex;
-              align-items:center;
-              gap:11px;
-              padding:12px 0;
-              text-align:left;
-              border-bottom:1px solid var(--border-subtle);
-            "
+            class="menu-sheet-btn"
           >
 
-            <img
-              src="${escapeHTML(store.avatar)}"
-              alt="${escapeHTML(store.name)}"
-              style="
-                width:48px;
-                height:48px;
-                object-fit:cover;
-                border-radius:50%;
-              "
-            >
+            <i class="ph ph-storefront"></i>
 
-            <div
-              style="
-                flex:1;
-                min-width:0;
-              "
-            >
-
-              <strong
-                style="
-                  display:block;
-                  font-size:11px;
-                "
-              >
-                ${escapeHTML(store.name)}
-              </strong>
-
-              <small
-                style="
-                  display:block;
-                  margin-top:3px;
-                  color:var(--text-tertiary);
-                "
-              >
-                ${escapeHTML(store.category)}
-                ·
-                ${escapeHTML(store.location)}
-              </small>
-
-            </div>
-
-            <i
-              class="ph ph-caret-right"
-              style="
-                color:var(--text-tertiary);
-              "
-              aria-hidden="true"
-            ></i>
+            ${escapeHTML(store.name)}
 
           </button>
         `
       )
       .join('');
 
+  openBottomSheet(
+    `
+      <h2 id="sheetTitle">
+        Jelajahi UMKM
+      </h2>
 
-  openBottomSheet(`
-    <h2 id="sheetTitle">
-      Jelajahi UMKM
-    </h2>
+      ${template}
+    `,
+    'stores'
+  );
 
-    <p
-      style="
-        margin-top:6px;
-        font-size:10px;
-        color:var(--text-tertiary);
-      "
-    >
-      Pelaku usaha yang tampil pada Pasar UMKM.
-    </p>
-
-    <div style="margin-top:14px">
-      ${content}
-    </div>
-  `);
 }
 
 
 /* =========================================================
-   65. STORE CLICK
-   ========================================================= */
-
-document.addEventListener(
-  'click',
-  event => {
-
-    const button =
-      event.target.closest(
-        '[data-store-name]'
-      );
-
-
-    if (!button) {
-      return;
-    }
-
-
-    const store =
-      button.dataset.storeName;
-
-
-    const posts =
-      DATA.posts.filter(
-        post =>
-          post.author === store
-      );
-
-
-    if (!posts.length) {
-      return;
-    }
-
-
-    closeBottomSheet();
-
-
-    window.setTimeout(
-      () => {
-
-        STATE.activeCategory =
-          null;
-
-
-        renderFeed(
-          posts
-        );
-
-
-        window.scrollTo({
-          top: 0,
-          behavior: 'smooth'
-        });
-
-
-        showToast(
-          `Menampilkan ${store}`
-        );
-
-      },
-      420
-    );
-  }
-);
-
-
-/* =========================================================
-   66. ORDERS
+   49. ORDERS
    ========================================================= */
 
 function openOrders() {
 
-  if (!STATE.orders.length) {
+  if (!STATE.user) {
 
-    openBottomSheet(`
-      <h2 id="sheetTitle">
-        Pesanan Saya
-      </h2>
+    showToast(
+      'Masuk untuk melihat pesanan.'
+    );
 
-      ${createSheetEmptyState(
-        'ph-receipt',
-        'Belum ada pesanan',
-        'Pesanan yang dibuat akan muncul di sini.'
-      )}
-    `);
+    openLogin();
 
     return;
+
   }
+
+  if (
+    STATE.orders.length === 0
+  ) {
+
+    openBottomSheet(
+      `
+        <h2 id="sheetTitle">
+          Pesanan Saya
+        </h2>
+
+        <div class="empty-state">
+
+          <i class="ph ph-receipt"></i>
+
+          <strong class="empty-state-title">
+            Belum ada pesanan
+          </strong>
+
+          <p class="empty-state-text">
+            Riwayat transaksi akan tampil di sini.
+          </p>
+
+        </div>
+      `,
+      'orders'
+    );
+
+    return;
+
+  }
+
 }
 
 
 /* =========================================================
-   67. FAVORITES
+   50. FAVORITES
    ========================================================= */
 
 function openFavorites() {
@@ -4703,704 +3535,1044 @@ function openFavorites() {
         )
     );
 
+  if (
+    favorites.length === 0
+  ) {
 
-  if (!favorites.length) {
+    openBottomSheet(
+      `
+        <h2 id="sheetTitle">
+          Favorit
+        </h2>
 
-    openBottomSheet(`
+        <div class="empty-state">
+
+          <i class="ph ph-heart"></i>
+
+          <strong class="empty-state-title">
+            Belum ada favorit
+          </strong>
+
+          <p class="empty-state-text">
+            Simpan produk atau postingan agar mudah ditemukan kembali.
+          </p>
+
+        </div>
+      `,
+      'favorites'
+    );
+
+    return;
+
+  }
+
+  closeBottomSheet();
+
+  renderFeed(
+    favorites
+  );
+
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth',
+  });
+
+}
+
+
+/* =========================================================
+   51. SELL
+   ========================================================= */
+
+function openSell() {
+
+  if (!STATE.user) {
+
+    showToast(
+      'Masuk untuk mulai menjual.'
+    );
+
+    openLogin();
+
+    return;
+
+  }
+
+  if (
+    STATE.user.role !== 'seller' &&
+    STATE.user.role !== 'admin'
+  ) {
+
+    openBottomSheet(
+      `
+        <h2 id="sheetTitle">
+          Mulai Jual
+        </h2>
+
+        <div class="empty-state">
+
+          <i class="ph ph-storefront"></i>
+
+          <strong class="empty-state-title">
+            Daftarkan UMKM
+          </strong>
+
+          <p class="empty-state-text">
+            Akun penjual diperlukan sebelum produk dapat dipublikasikan.
+          </p>
+
+        </div>
+      `,
+      'sell-register'
+    );
+
+    return;
+
+  }
+
+  openBottomSheet(
+    `
       <h2 id="sheetTitle">
-        Favorit
+        Mulai Jual
       </h2>
 
-      ${createSheetEmptyState(
-        'ph-heart',
-        'Belum ada favorit',
-        'Simpan produk atau postingan untuk menemukannya kembali.'
-      )}
-    `);
+      <button
+        type="button"
+        class="menu-sheet-btn"
+      >
+        <i class="ph ph-plus-circle"></i>
+        Tambah Produk
+      </button>
 
+      <button
+        type="button"
+        class="menu-sheet-btn"
+      >
+        <i class="ph ph-camera"></i>
+        Buat Postingan
+      </button>
+
+      <button
+        type="button"
+        class="menu-sheet-btn"
+      >
+        <i class="ph ph-storefront"></i>
+        Kelola Toko
+      </button>
+    `,
+    'sell'
+  );
+
+}
+
+
+/* =========================================================
+   52. SELLER PLACEHOLDERS
+   ========================================================= */
+
+function openSellerStore() {
+
+  openBottomSheet(
+    createComingSoonTemplate(
+      'Kelola Toko',
+      'storefront',
+      'Informasi toko dan profil UMKM akan dikelola dari halaman ini.'
+    ),
+    'seller-store'
+  );
+
+}
+
+
+function openSellerProducts() {
+
+  openBottomSheet(
+    createComingSoonTemplate(
+      'Produk Saya',
+      'package',
+      'Produk yang diterbitkan pemilik UMKM akan tampil di sini.'
+    ),
+    'seller-products'
+  );
+
+}
+
+
+function openAdmin() {
+
+  openBottomSheet(
+    createComingSoonTemplate(
+      'Panel Pengelola',
+      'shield-check',
+      'Moderasi UMKM, produk, dan aktivitas platform akan dikelola di sini.'
+    ),
+    'admin'
+  );
+
+}
+
+
+/* =========================================================
+   53. STORIES
+   ========================================================= */
+
+function openStory(
+  storyId
+) {
+
+  const story =
+    DATA.stories.find(
+      item =>
+        item.id ===
+        storyId
+    );
+
+  if (!story) {
     return;
   }
 
+  openBottomSheet(
+    `
+      <h2 id="sheetTitle">
+        ${escapeHTML(story.name)}
+      </h2>
 
-  const content =
-    favorites
+      <div class="empty-state">
+
+        <img
+          src="${escapeHTML(story.avatar)}"
+          alt=""
+          class="story-avatar"
+        >
+
+        <p class="empty-state-text">
+          Konten cerita akan ditampilkan dari data pengguna.
+        </p>
+
+      </div>
+    `,
+    'story'
+  );
+
+}
+
+
+function openAddStory() {
+
+  if (!STATE.user) {
+
+    openLogin();
+
+    return;
+
+  }
+
+  openBottomSheet(
+    createComingSoonTemplate(
+      'Buat Cerita',
+      'camera',
+      'Foto atau video singkat UMKM dapat dipublikasikan dari sini.'
+    ),
+    'add-story'
+  );
+
+}
+
+
+/* =========================================================
+   54. VIDEO
+   ========================================================= */
+
+function playVideo(
+  postId
+) {
+
+  const post =
+    findPost(postId);
+
+  if (
+    !post ||
+    post.media?.type !== 'video'
+  ) {
+
+    return;
+
+  }
+
+  showToast(
+    'Pemutar video akan menggunakan media asli dari server.'
+  );
+
+}
+
+
+/* =========================================================
+   55. SEARCH
+   ========================================================= */
+
+function openSearch() {
+
+  if (!DOM.searchOverlay) {
+    return;
+  }
+
+  closeSideMenu();
+
+  DOM.searchOverlay.hidden =
+    false;
+
+  DOM.searchOverlay.setAttribute(
+    'aria-hidden',
+    'false'
+  );
+
+  STATE.isSearchOpen =
+    true;
+
+  lockBodyScroll();
+
+  renderSearchHint();
+
+  window.setTimeout(
+    () => {
+
+      DOM.searchInput?.focus();
+
+    },
+    50
+  );
+
+}
+
+
+function closeSearch() {
+
+  if (!DOM.searchOverlay) {
+    return;
+  }
+
+  DOM.searchOverlay.hidden =
+    true;
+
+  DOM.searchOverlay.setAttribute(
+    'aria-hidden',
+    'true'
+  );
+
+  STATE.isSearchOpen =
+    false;
+
+  unlockBodyScroll();
+
+}
+
+
+function handleSearchInput(
+  event
+) {
+
+  STATE.searchQuery =
+    event.target.value.trim();
+
+  if (
+    DOM.searchClearButton
+  ) {
+
+    DOM.searchClearButton.hidden =
+      !STATE.searchQuery;
+
+  }
+
+  if (
+    STATE.searchQuery.length <
+    2
+  ) {
+
+    renderSearchHint();
+
+    return;
+
+  }
+
+  renderSearchResults(
+    STATE.searchQuery
+  );
+
+}
+
+
+function clearSearch() {
+
+  STATE.searchQuery =
+    '';
+
+  if (DOM.searchInput) {
+
+    DOM.searchInput.value =
+      '';
+
+    DOM.searchInput.focus();
+
+  }
+
+  if (
+    DOM.searchClearButton
+  ) {
+
+    DOM.searchClearButton.hidden =
+      true;
+
+  }
+
+  renderSearchHint();
+
+}
+
+
+function renderSearchHint() {
+
+  if (!DOM.searchResults) {
+    return;
+  }
+
+  DOM.searchResults.innerHTML =
+    `
+      <div class="empty-state">
+
+        <i
+          class="ph ph-magnifying-glass"
+          aria-hidden="true"
+        ></i>
+
+        <strong class="empty-state-title">
+          Cari Pasar UMKM
+        </strong>
+
+        <p class="empty-state-text">
+          Temukan produk, kategori, atau UMKM lokal.
+        </p>
+
+      </div>
+    `;
+
+}
+
+
+function renderSearchResults(
+  query
+) {
+
+  if (!DOM.searchResults) {
+    return;
+  }
+
+  const normalized =
+    query.toLowerCase();
+
+  const results =
+    DATA.posts.filter(
+      post => {
+
+        const productName =
+          post.product?.name ||
+          '';
+
+        const category =
+          post.product?.category ||
+          '';
+
+        const storeName =
+          post.store?.name ||
+          '';
+
+        const caption =
+          post.caption ||
+          '';
+
+        const haystack =
+          [
+            productName,
+            category,
+            storeName,
+            caption,
+          ]
+            .join(' ')
+            .toLowerCase();
+
+        return haystack.includes(
+          normalized
+        );
+
+      }
+    );
+
+  if (
+    results.length === 0
+  ) {
+
+    DOM.searchResults.innerHTML =
+      `
+        <div class="empty-state">
+
+          <i class="ph ph-magnifying-glass"></i>
+
+          <strong class="empty-state-title">
+            Tidak ditemukan
+          </strong>
+
+          <p class="empty-state-text">
+            Tidak ada hasil untuk
+            “${escapeHTML(query)}”.
+          </p>
+
+        </div>
+      `;
+
+    return;
+
+  }
+
+  DOM.searchResults.innerHTML =
+    results
       .map(
         post => `
           <button
             type="button"
-            data-favorite-post="${post.id}"
-            style="
-              width:100%;
-              display:flex;
-              align-items:center;
-              gap:11px;
-              padding:11px 0;
-              text-align:left;
-              border-bottom:1px solid var(--border-subtle);
-            "
+            class="menu-sheet-btn"
+            data-action="search-post"
+            data-post-id="${escapeHTML(post.id)}"
           >
 
-            <img
-              src="${escapeHTML(post.media)}"
-              alt="${escapeHTML(post.author)}"
-              style="
-                width:54px;
-                height:54px;
-                object-fit:cover;
-                border-radius:11px 5px 11px 5px;
-              "
-            >
+            <i class="ph ph-package"></i>
 
-            <span
-              style="
-                flex:1;
-                min-width:0;
-              "
-            >
-
-              <strong
-                style="
-                  display:block;
-                  font-size:11px;
-                "
-              >
-                ${escapeHTML(
-                  post.product?.name ||
-                  post.author
-                )}
-              </strong>
-
-              <small
-                style="
-                  display:block;
-                  margin-top:3px;
-                  color:var(--text-tertiary);
-                "
-              >
-                ${escapeHTML(post.author)}
-              </small>
-
-            </span>
-
-            <i
-              class="ph-fill ph-heart"
-              style="
-                color:var(--sunset-500);
-              "
-              aria-hidden="true"
-            ></i>
+            ${
+              escapeHTML(
+                post.product?.name ||
+                post.store?.name ||
+                'Postingan UMKM'
+              )
+            }
 
           </button>
         `
       )
       .join('');
 
-
-  openBottomSheet(`
-    <h2 id="sheetTitle">
-      Favorit
-    </h2>
-
-    <div style="margin-top:14px">
-      ${content}
-    </div>
-  `);
 }
 
 
 /* =========================================================
-   68. FAVORITE CLICK
+   56. NOTIFICATIONS
    ========================================================= */
 
-document.addEventListener(
-  'click',
-  event => {
+function openNotifications() {
 
-    const button =
-      event.target.closest(
-        '[data-favorite-post]'
-      );
+  const notifications =
+    DATA.notifications;
 
+  if (
+    notifications.length === 0
+  ) {
 
-    if (!button) {
-      return;
-    }
+    openBottomSheet(
+      `
+        <h2 id="sheetTitle">
+          Notifikasi
+        </h2>
 
+        <div class="empty-state">
 
-    const postId =
-      Number(
-        button.dataset.favoritePost
-      );
+          <i class="ph ph-bell"></i>
 
+          <strong class="empty-state-title">
+            Belum ada notifikasi
+          </strong>
 
-    closeBottomSheet();
+          <p class="empty-state-text">
+            Aktivitas akun dan transaksi akan tampil di sini.
+          </p>
 
-
-    window.setTimeout(
-      () => {
-
-        scrollToPost(
-          postId
-        );
-
-      },
-      420
+        </div>
+      `,
+      'notifications'
     );
+
+    return;
+
   }
-);
 
+  const items =
+    notifications
+      .map(
+        notification =>
+          createNotificationTemplate(
+            notification
+          )
+      )
+      .join('');
 
-/* =========================================================
-   69. ABOUT PASAR UMKM
-   ========================================================= */
-
-function openAbout() {
-
-  openBottomSheet(`
-    <div
-      style="
-        padding-top:3px;
-        text-align:center;
-      "
-    >
-
-      <img
-        src="${ASSETS.appLogo}"
-        alt="${CONFIG.APP_NAME}"
-        style="
-          width:74px;
-          height:74px;
-          object-fit:contain;
-          margin:0 auto;
-        "
-      >
-
-
-      <h2
-        id="sheetTitle"
-        style="
-          margin-top:12px;
-          font-size:24px;
-        "
-      >
-        ${CONFIG.APP_NAME}
+  openBottomSheet(
+    `
+      <h2 id="sheetTitle">
+        Notifikasi
       </h2>
 
-
-      <div
-        style="
-          margin-top:5px;
-          font-size:8px;
-          font-weight:600;
-          letter-spacing:.14em;
-          text-transform:uppercase;
-          color:var(--gold-700);
-        "
-      >
-        Social Marketplace UMKM Lokal
-      </div>
-
-    </div>
-
-
-
-    <div
-      style="
-        max-width:320px;
-        margin:20px auto 0;
-        font-size:11px;
-        line-height:1.75;
-        color:var(--text-secondary);
-      "
-    >
-
-      <p>
-        Pasar UMKM membantu masyarakat menemukan produk,
-        pelaku usaha, dan aktivitas UMKM lokal dalam satu tempat.
-      </p>
-
-      <p style="margin-top:11px">
-        Penjual dapat memperkenalkan produk melalui feed,
-        cerita, katalog, dan interaksi langsung dengan calon pembeli.
-      </p>
-
-    </div>
-
-
-
-    <div
-      style="
-        margin-top:24px;
-        text-align:center;
-      "
-    >
-
-      <div
-        style="
-          font-size:8px;
-          font-weight:600;
-          letter-spacing:.12em;
-          text-transform:uppercase;
-          color:var(--text-tertiary);
-        "
-      >
-        Diinisiasi oleh
-      </div>
-
-
-      <div
-        style="
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          gap:22px;
-          margin-top:17px;
-          padding:18px 14px;
-          border-top:1px solid var(--border-subtle);
-          border-bottom:1px solid var(--border-subtle);
-        "
+      <button
+        type="button"
+        class="menu-sheet-btn"
+        data-action="mark-all-read"
       >
 
+        <i class="ph ph-checks"></i>
 
-        <div
-          style="
-            width:44%;
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-            gap:9px;
-          "
-        >
+        Tandai semua sudah dibaca
 
-          <img
-            src="${ASSETS.hipmiLogo}"
-            alt="Logo HIPMI PT UIN Al Azhaar Lubuklinggau"
-            style="
-              width:82px;
-              height:82px;
-              object-fit:contain;
-            "
-          >
+      </button>
 
-          <span
-            style="
-              max-width:125px;
-              font-size:8px;
-              line-height:1.4;
-              font-weight:700;
-              color:var(--forest-900);
-            "
-          >
-            HIPMI PT
-            UIN Al Azhaar
-            Lubuklinggau
-          </span>
+      ${items}
+    `,
+    'notifications'
+  );
 
-        </div>
-
-
-
-        <div
-          aria-hidden="true"
-          style="
-            width:1px;
-            align-self:stretch;
-            background:var(--border-soft);
-          "
-        ></div>
-
-
-
-        <div
-          style="
-            width:44%;
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-            gap:9px;
-          "
-        >
-
-          <img
-            src="${ASSETS.universityLogo}"
-            alt="Logo Universitas Islam Nusantara Al-Azhaar Lubuklinggau"
-            style="
-              width:82px;
-              height:82px;
-              object-fit:contain;
-            "
-          >
-
-          <span
-            style="
-              max-width:130px;
-              font-size:8px;
-              line-height:1.4;
-              font-weight:700;
-              color:var(--forest-900);
-            "
-          >
-            Universitas Islam Nusantara
-            Al-Azhaar Lubuklinggau
-          </span>
-
-        </div>
-
-      </div>
-
-    </div>
-
-
-
-    <div
-      style="
-        margin-top:20px;
-        padding:15px 4px;
-        text-align:center;
-      "
-    >
-
-      <div
-        style="
-          font-size:8px;
-          font-weight:600;
-          letter-spacing:.1em;
-          text-transform:uppercase;
-          color:var(--text-tertiary);
-        "
-      >
-        Founder & Product Initiator
-      </div>
-
-      <strong
-        style="
-          display:block;
-          margin-top:5px;
-          font-family:var(--font-display);
-          font-size:16px;
-          color:var(--forest-900);
-        "
-      >
-        ${CONFIG.INITIATOR}
-      </strong>
-
-    </div>
-
-
-
-    <div
-      style="
-        margin-top:4px;
-        padding-top:15px;
-        border-top:1px solid var(--border-subtle);
-        text-align:center;
-        font-size:8px;
-        line-height:1.7;
-        color:var(--text-tertiary);
-      "
-    >
-      © 2026 ${CONFIG.APP_NAME}<br>
-      ${CONFIG.LOCATION}, Sumatera Selatan
-    </div>
-  `);
 }
 
 
-/* =========================================================
-   70. HELP
-   ========================================================= */
-
-function openHelp() {
-
-  openBottomSheet(`
-    <h2 id="sheetTitle">
-      Bantuan
-    </h2>
-
-    <p
-      style="
-        margin-top:6px;
-        font-size:10px;
-        color:var(--text-tertiary);
-      "
-    >
-      Informasi penggunaan Pasar UMKM.
-    </p>
-
-
-    <div
-      style="
-        display:grid;
-        gap:8px;
-        margin-top:18px;
-      "
-    >
-
-      ${createHelpItem(
-        'ph-shopping-cart',
-        'Cara membeli produk'
-      )}
-
-      ${createHelpItem(
-        'ph-storefront',
-        'Cara menjadi penjual'
-      )}
-
-      ${createHelpItem(
-        'ph-package',
-        'Pesanan dan pengiriman'
-      )}
-
-      ${createHelpItem(
-        'ph-wallet',
-        'Pembayaran'
-      )}
-
-      ${createHelpItem(
-        'ph-shield-check',
-        'Keamanan akun'
-      )}
-
-      ${createHelpItem(
-        'ph-headset',
-        'Hubungi pengelola'
-      )}
-
-    </div>
-  `);
-}
-
-
-/* =========================================================
-   71. HELP ITEM
-   ========================================================= */
-
-function createHelpItem(
-  icon,
-  label
+function createNotificationTemplate(
+  notification
 ) {
 
   return `
     <button
       type="button"
-      data-help-item="${escapeHTML(label)}"
-      style="
-        width:100%;
-        display:flex;
-        align-items:center;
-        gap:12px;
-        padding:13px;
-        border-radius:12px 6px 12px 6px;
-        background:var(--forest-50);
-        text-align:left;
-      "
+      class="menu-sheet-btn"
+      data-action="notification-item"
+      data-notification-id="${escapeHTML(notification.id)}"
     >
 
       <i
-        class="ph ${icon}"
-        style="
-          font-size:19px;
-          color:var(--forest-700);
-        "
-        aria-hidden="true"
+        class="${getNotificationIcon(notification.type)}"
       ></i>
 
-      <span
-        style="
-          font-size:11px;
-          font-weight:600;
-        "
-      >
-        ${escapeHTML(label)}
-      </span>
-
-      <i
-        class="ph ph-caret-right"
-        style="
-          margin-left:auto;
-          color:var(--text-tertiary);
-        "
-        aria-hidden="true"
-      ></i>
+      ${escapeHTML(notification.title || 'Notifikasi')}
 
     </button>
   `;
+
+}
+
+
+function getNotificationIcon(
+  type
+) {
+
+  switch (type) {
+
+    case 'like':
+      return 'ph ph-heart';
+
+    case 'comment':
+      return 'ph ph-chat-circle';
+
+    case 'order':
+      return 'ph ph-receipt';
+
+    case 'store':
+      return 'ph ph-storefront';
+
+    default:
+      return 'ph ph-bell';
+
+  }
+
+}
+
+
+function openNotificationTarget(
+  notificationId
+) {
+
+  const notification =
+    DATA.notifications.find(
+      item =>
+        item.id ===
+        notificationId
+    );
+
+  if (!notification) {
+    return;
+  }
+
+  notification.unread =
+    false;
+
+  updateHeaderBadges();
+
+  if (
+    notification.targetType ===
+      'post' &&
+    notification.targetId
+  ) {
+
+    closeBottomSheet();
+
+    scrollToPost(
+      notification.targetId
+    );
+
+  }
+
+}
+
+
+function markAllNotificationsRead() {
+
+  DATA.notifications.forEach(
+    notification => {
+
+      notification.unread =
+        false;
+
+    }
+  );
+
+  updateHeaderBadges();
+
+  closeBottomSheet();
+
+  showToast(
+    'Semua notifikasi ditandai sudah dibaca.'
+  );
+
 }
 
 
 /* =========================================================
-   72. HELP CLICK
+   57. MESSAGES
    ========================================================= */
 
-document.addEventListener(
-  'click',
-  event => {
+function openMessages() {
 
-    const button =
-      event.target.closest(
-        '[data-help-item]'
-      );
+  if (
+    DATA.messages.length === 0
+  ) {
 
+    openBottomSheet(
+      `
+        <h2 id="sheetTitle">
+          Pesan
+        </h2>
 
-    if (!button) {
-      return;
-    }
+        <div class="empty-state">
 
+          <i class="ph ph-chat-circle"></i>
 
-    showToast(
-      `${button.dataset.helpItem} sedang disiapkan`
+          <strong class="empty-state-title">
+            Belum ada percakapan
+          </strong>
+
+          <p class="empty-state-text">
+            Pesan antara pembeli dan UMKM akan tampil di sini.
+          </p>
+
+        </div>
+      `,
+      'messages'
     );
+
+    return;
+
   }
-);
+
+  const items =
+    DATA.messages
+      .map(
+        message => `
+          <button
+            type="button"
+            class="menu-sheet-btn"
+            data-action="message-item"
+            data-message-id="${escapeHTML(message.id)}"
+          >
+
+            <i class="ph ph-chat-circle"></i>
+
+            ${escapeHTML(message.title || message.name || 'Percakapan')}
+
+          </button>
+        `
+      )
+      .join('');
+
+  openBottomSheet(
+    `
+      <h2 id="sheetTitle">
+        Pesan
+      </h2>
+
+      ${items}
+    `,
+    'messages'
+  );
+
+}
+
+
+function openMessage(
+  messageId
+) {
+
+  const message =
+    DATA.messages.find(
+      item =>
+        item.id ===
+        messageId
+    );
+
+  if (!message) {
+    return;
+  }
+
+  message.unread =
+    false;
+
+  updateHeaderBadges();
+
+  openBottomSheet(
+    createComingSoonTemplate(
+      message.title ||
+      message.name ||
+      'Percakapan',
+      'chat-circle',
+      'Isi percakapan akan dimuat dari server.'
+    ),
+    'message-thread'
+  );
+
+}
 
 
 /* =========================================================
-   73. ACCOUNT
+   58. HEADER BADGES
    ========================================================= */
 
-function openAccount() {
+function updateHeaderBadges() {
 
-  openBottomSheet(`
-    <h2 id="sheetTitle">
-      Akun
-    </h2>
+  const notificationBadge =
+    DOM.notificationButton
+      ?.querySelector(
+        '.badge-dot'
+      );
+
+  const messageBadge =
+    DOM.messageButton
+      ?.querySelector(
+        '.badge-dot'
+      );
+
+  const unreadNotifications =
+    DATA.notifications.filter(
+      item =>
+        item.unread
+    ).length;
+
+  const unreadMessages =
+    DATA.messages.filter(
+      item =>
+        item.unread
+    ).length;
+
+  setBadge(
+    notificationBadge,
+    unreadNotifications
+  );
+
+  setBadge(
+    messageBadge,
+    unreadMessages
+  );
+
+}
 
 
-    <div
-      style="
-        padding:24px 0 12px;
-        text-align:center;
-      "
-    >
+/* =========================================================
+   59. BADGE HELPER
+   ========================================================= */
 
-      <div
-        style="
-          width:66px;
-          height:66px;
-          margin:0 auto;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          border-radius:20px 9px 20px 9px;
-          background:var(--forest-100);
-          color:var(--forest-700);
-          font-size:29px;
-        "
-      >
+function setBadge(
+  element,
+  value
+) {
 
-        <i
-          class="ph ph-user"
-          aria-hidden="true"
-        ></i>
+  if (!element) {
+    return;
+  }
+
+  const count =
+    Number(value) || 0;
+
+  if (
+    count <= 0
+  ) {
+
+    element.hidden =
+      true;
+
+    element.textContent =
+      '0';
+
+    return;
+
+  }
+
+  element.hidden =
+    false;
+
+  element.textContent =
+    count > 99
+      ? '99+'
+      : String(count);
+
+}
+
+
+/* =========================================================
+   60. ABOUT
+   ========================================================= */
+
+function openAbout() {
+
+  openBottomSheet(
+    `
+      <h2 id="sheetTitle">
+        Tentang Pasar UMKM
+      </h2>
+
+      <div class="empty-state">
+
+        <img
+          src="${ASSETS.logo}"
+          alt="Pasar UMKM Lubuklinggau"
+          class="side-menu-logo"
+        >
+
+        <strong class="empty-state-title">
+          Pasar UMKM
+        </strong>
+
+        <p class="empty-state-text">
+          Platform pemberdayaan dan digitalisasi UMKM lokal
+          untuk membantu masyarakat menemukan, mengenal,
+          dan mendukung produk usaha di Lubuklinggau.
+        </p>
 
       </div>
 
 
-      <h3
-        style="
-          margin-top:13px;
-          font-family:var(--font-display);
-          font-size:17px;
-          color:var(--forest-900);
-        "
-      >
-        Akun Pasar UMKM
-      </h3>
+      <div class="side-account">
+
+        <div class="side-menu-footer-logos">
+
+          <img
+            src="${ASSETS.hipmi}"
+            alt="HIPMI PT UIN Al Azhaar Lubuklinggau"
+            class="side-footer-logo side-footer-logo-hipmi"
+          >
+
+          <img
+            src="${ASSETS.university}"
+            alt="Universitas Islam Nusantara Al-Azhaar Lubuklinggau"
+            class="side-footer-logo"
+          >
+
+        </div>
+
+        <p class="side-menu-footer-label">
+          Diinisiasi oleh
+        </p>
+
+        <strong class="side-menu-footer-name">
+          ${escapeHTML(CONFIG.ORGANIZATION)}
+        </strong>
+
+        <p class="side-menu-footer-label">
+          Founder & Product Initiator
+        </p>
+
+        <strong class="side-menu-footer-name">
+          ${escapeHTML(CONFIG.INITIATOR)}
+        </strong>
+
+      </div>
 
 
-      <p
-        style="
-          max-width:270px;
-          margin:6px auto 0;
-          font-size:10px;
-          line-height:1.6;
-          color:var(--text-tertiary);
-        "
-      >
-        Masuk untuk membeli, menjual, mengelola toko, dan melihat pesanan.
+      <p class="side-menu-footer-label">
+        © ${new Date().getFullYear()} Pasar UMKM ·
+        ${escapeHTML(CONFIG.ORGANIZATION)}
       </p>
+    `,
+    'about'
+  );
 
+}
+
+
+/* =========================================================
+   61. HELP
+   ========================================================= */
+
+function openHelp() {
+
+  openBottomSheet(
+    `
+      <h2 id="sheetTitle">
+        Bantuan
+      </h2>
 
       <button
         type="button"
-        class="btn-primary"
-        data-action="login"
-        style="
-          width:100%;
-          margin-top:18px;
-          padding:12px;
-        "
+        class="menu-sheet-btn"
       >
-        Masuk / Daftar
+        <i class="ph ph-shopping-cart-simple"></i>
+        Cara berbelanja
       </button>
 
-    </div>
-  `);
+      <button
+        type="button"
+        class="menu-sheet-btn"
+      >
+        <i class="ph ph-storefront"></i>
+        Cara mendaftarkan UMKM
+      </button>
+
+      <button
+        type="button"
+        class="menu-sheet-btn"
+      >
+        <i class="ph ph-shield-check"></i>
+        Keamanan akun
+      </button>
+
+      <button
+        type="button"
+        class="menu-sheet-btn"
+      >
+        <i class="ph ph-question"></i>
+        Pertanyaan umum
+      </button>
+    `,
+    'help'
+  );
+
 }
 
 
 /* =========================================================
-   74. LOGIN PLACEHOLDER
-   ========================================================= */
-
-function openLogin() {
-
-  openBottomSheet(`
-    <h2 id="sheetTitle">
-      Masuk
-    </h2>
-
-    <div
-      style="
-        margin-top:18px;
-        padding:19px;
-        border-radius:16px 8px 16px 8px;
-        background:var(--forest-50);
-        text-align:center;
-      "
-    >
-
-      <i
-        class="ph ph-user-circle"
-        style="
-          font-size:35px;
-          color:var(--forest-700);
-        "
-        aria-hidden="true"
-      ></i>
-
-      <strong
-        style="
-          display:block;
-          margin-top:10px;
-          font-size:12px;
-        "
-      >
-        Sistem akun belum diaktifkan
-      </strong>
-
-      <p
-        style="
-          margin-top:6px;
-          font-size:10px;
-          line-height:1.6;
-          color:var(--text-secondary);
-        "
-      >
-        Login dan pendaftaran akan menggunakan backend dan database pada tahap berikutnya.
-      </p>
-
-    </div>
-  `);
-}
-
-
-/* =========================================================
-   75. OPEN BOTTOM SHEET
+   62. BOTTOM SHEET
    ========================================================= */
 
 function openBottomSheet(
-  content
+  html,
+  type = 'generic'
 ) {
 
   if (
@@ -5408,56 +4580,52 @@ function openBottomSheet(
     !DOM.sheetOverlay ||
     !DOM.sheetContent
   ) {
-
     return;
   }
 
-
   DOM.sheetContent.innerHTML =
-    content;
-
+    html;
 
   DOM.sheetOverlay.hidden =
     false;
 
-
   DOM.bottomSheet.hidden =
     false;
-
 
   DOM.sheetOverlay.setAttribute(
     'aria-hidden',
     'false'
   );
 
-
   DOM.bottomSheet.setAttribute(
     'aria-hidden',
     'false'
   );
 
+  STATE.activeSheet =
+    type;
+
+  lockBodyScroll();
 
   requestAnimationFrame(
     () => {
 
-      DOM.sheetOverlay
-        .classList
-        .add('show');
+      DOM.sheetOverlay.classList.add(
+        'show'
+      );
 
+      DOM.bottomSheet.classList.add(
+        'show'
+      );
 
-      DOM.bottomSheet
-        .classList
-        .add('show');
     }
   );
 
-
-  lockBodyScroll();
 }
 
 
 /* =========================================================
-   76. CLOSE BOTTOM SHEET
+   63. CLOSE BOTTOM SHEET
    ========================================================= */
 
 function closeBottomSheet() {
@@ -5466,32 +4634,29 @@ function closeBottomSheet() {
     !DOM.bottomSheet ||
     !DOM.sheetOverlay
   ) {
-
     return;
   }
 
-
-  DOM.sheetOverlay
-    .classList
-    .remove('show');
-
-
-  DOM.bottomSheet
-    .classList
-    .remove('show');
-
-
-  DOM.bottomSheet.setAttribute(
-    'aria-hidden',
-    'true'
+  DOM.sheetOverlay.classList.remove(
+    'show'
   );
 
+  DOM.bottomSheet.classList.remove(
+    'show'
+  );
 
   DOM.sheetOverlay.setAttribute(
     'aria-hidden',
     'true'
   );
 
+  DOM.bottomSheet.setAttribute(
+    'aria-hidden',
+    'true'
+  );
+
+  STATE.activeSheet =
+    null;
 
   window.setTimeout(
     () => {
@@ -5499,644 +4664,346 @@ function closeBottomSheet() {
       DOM.sheetOverlay.hidden =
         true;
 
-
       DOM.bottomSheet.hidden =
         true;
 
+      if (
+        DOM.sheetContent
+      ) {
 
-      unlockBodyScrollIfPossible();
+        DOM.sheetContent.innerHTML =
+          '';
+
+      }
 
     },
-    400
-  );
-}
-
-
-/* =========================================================
-   77. NAVIGATION
-   ========================================================= */
-
-function bindNavigation() {
-
-  DOM.appNavigation
-    ?.querySelectorAll(
-      '[data-nav]'
-    )
-    .forEach(
-      link => {
-
-        link.addEventListener(
-          'click',
-          event => {
-
-            event.preventDefault();
-
-
-            const nav =
-              link.dataset.nav;
-
-
-            setActiveNavigation(
-              nav
-            );
-
-
-            switch (nav) {
-
-              case 'home':
-
-                STATE.activeCategory =
-                  null;
-
-                renderFeed();
-
-                window.scrollTo({
-                  top: 0,
-                  behavior: 'smooth'
-                });
-
-                break;
-
-
-              case 'categories':
-
-                openCategories();
-
-                break;
-
-
-              case 'sell':
-
-                openSellSheet();
-
-                break;
-
-
-              case 'cart':
-
-                openCart();
-
-                break;
-
-
-              case 'account':
-
-                openAccount();
-
-                break;
-            }
-          }
-        );
-      }
-    );
-}
-
-
-/* =========================================================
-   78. ACTIVE NAVIGATION
-   ========================================================= */
-
-function setActiveNavigation(nav) {
-
-  STATE.activeNav =
-    nav;
-
-
-  DOM.appNavigation
-    ?.querySelectorAll(
-      '[data-nav]'
-    )
-    .forEach(
-      link => {
-
-        const active =
-          link.dataset.nav === nav;
-
-
-        link.classList.toggle(
-          'active',
-          active
-        );
-
-
-        const icon =
-          link.querySelector(
-            '.nav-icon-wrap i'
-          );
-
-
-        if (icon) {
-
-          icon.classList.toggle(
-            'ph-fill',
-            active
-          );
-
-
-          icon.classList.toggle(
-            'ph',
-            !active
-          );
-        }
-
-
-        if (active) {
-
-          link.setAttribute(
-            'aria-current',
-            'page'
-          );
-
-        } else {
-
-          link.removeAttribute(
-            'aria-current'
-          );
-        }
-      }
-    );
-}
-
-
-/* =========================================================
-   79. BRAND NAVIGATION
-   ========================================================= */
-
-function bindBrandNavigation() {
-
-  document
-    .querySelectorAll(
-      '.brand[data-nav="home"]'
-    )
-    .forEach(
-      brand => {
-
-        brand.addEventListener(
-          'click',
-          event => {
-
-            event.preventDefault();
-
-
-            STATE.activeCategory =
-              null;
-
-
-            setActiveNavigation(
-              'home'
-            );
-
-
-            renderFeed();
-
-
-            window.scrollTo({
-              top: 0,
-              behavior: 'smooth'
-            });
-          }
-        );
-      }
-    );
-}
-
-
-/* =========================================================
-   80. BIND EVENTS
-   ========================================================= */
-
-function bindEvents() {
-
-  /* SIDE MENU ITEMS */
-
-  DOM.sideMenuContent
-    ?.addEventListener(
-      'click',
-      event => {
-
-        const button =
-          event.target.closest(
-            '[data-menu-action]'
-          );
-
-
-        if (!button) {
-          return;
-        }
-
-
-        handleSideMenuAction(
-          button.dataset.menuAction
-        );
-      }
-    );
-
-
-  /* CLICK DARK AREA TO CLOSE SIDE MENU */
-
-  DOM.sideMenu
-    ?.addEventListener(
-      'click',
-      event => {
-
-        if (
-          event.target ===
-          DOM.sideMenu
-        ) {
-
-          closeSideMenu();
-        }
-      }
-    );
-
-
-  /* SEARCH INPUT */
-
-  DOM.searchInput
-    ?.addEventListener(
-      'input',
-      event => {
-
-        const value =
-          event.target.value;
-
-
-        handleSearch(
-          value
-        );
-
-
-        if (
-          DOM.searchClearButton
-        ) {
-
-          DOM.searchClearButton.hidden =
-            !value;
-        }
-      }
-    );
-
-
-  /* CLEAR SEARCH */
-
-  DOM.searchClearButton
-    ?.addEventListener(
-      'click',
-      () => {
-
-        if (!DOM.searchInput) {
-          return;
-        }
-
-
-        DOM.searchInput.value =
-          '';
-
-
-        DOM.searchClearButton.hidden =
-          true;
-
-
-        STATE.searchQuery =
-          '';
-
-
-        renderSearchHint();
-
-
-        DOM.searchInput.focus();
-      }
-    );
-
-
-  /* BOTTOM SHEET OVERLAY */
-
-  DOM.sheetOverlay
-    ?.addEventListener(
-      'click',
-      closeBottomSheet
-    );
-
-
-  /* ESC */
-
-  document.addEventListener(
-    'keydown',
-    handleEscape
+    330
   );
 
+  unlockBodyScroll();
 
-  /* SCROLL */
-
-  window.addEventListener(
-    'scroll',
-    handleScroll,
-    {
-      passive:
-        true
-    }
-  );
-
-
-  bindNavigation();
-
-  bindBrandNavigation();
 }
 
 
 /* =========================================================
-   81. ESCAPE
+   64. HEADER SCROLL
    ========================================================= */
 
-function handleEscape(event) {
+function handleScroll() {
 
-  if (
-    event.key !== 'Escape'
-  ) {
-
+  if (!DOM.header) {
     return;
   }
 
+  DOM.header.classList.toggle(
+    'scrolled',
+    window.scrollY > 6
+  );
+
+}
+
+
+/* =========================================================
+   65. KEYBOARD
+   ========================================================= */
+
+function handleKeyboard(
+  event
+) {
 
   if (
-    DOM.searchOverlay &&
-    !DOM.searchOverlay.hidden
+    event.key !==
+    'Escape'
+  ) {
+    return;
+  }
+
+  if (
+    STATE.isSearchOpen
   ) {
 
     closeSearch();
 
     return;
+
   }
 
-
   if (
-    DOM.bottomSheet &&
-    !DOM.bottomSheet.hidden
+    STATE.activeSheet
   ) {
 
     closeBottomSheet();
 
     return;
+
   }
 
-
   if (
-    DOM.sideMenu &&
-    !DOM.sideMenu.hidden
+    STATE.isMenuOpen
   ) {
 
     closeSideMenu();
-  }
-}
 
-
-/* =========================================================
-   82. HEADER SCROLL STATE
-   ========================================================= */
-
-function handleScroll() {
-
-  DOM.header
-    ?.classList
-    .toggle(
-      'scrolled',
-      window.scrollY > 8
-    );
-}
-
-
-/* =========================================================
-   83. HEADER BADGES
-   ========================================================= */
-
-function updateHeaderBadges() {
-
-  updateButtonBadge(
-
-    DOM.notificationButton,
-
-    DATA.notifications.filter(
-      item =>
-        item.unread
-    ).length
-  );
-
-
-  updateButtonBadge(
-
-    DOM.messageButton,
-
-    DATA.messages.filter(
-      item =>
-        item.unread
-    ).length
-  );
-}
-
-
-/* =========================================================
-   84. BUTTON BADGE
-   ========================================================= */
-
-function updateButtonBadge(
-  button,
-  count
-) {
-
-  if (!button) {
-    return;
   }
 
-
-  const badge =
-    button.querySelector(
-      '.badge-dot'
-    );
-
-
-  if (!badge) {
-    return;
-  }
-
-
-  const number =
-    Number(count) || 0;
-
-
-  badge.textContent =
-    number > 99
-      ? '99+'
-      : String(number);
-
-
-  badge.hidden =
-    number === 0;
-
-
-  button.classList.toggle(
-    'has-badge',
-    number > 0
-  );
 }
 
 
 /* =========================================================
-   85. CART BADGE
+   66. BODY SCROLL
    ========================================================= */
 
-function updateCartBadge() {
+let bodyLockCount = 0;
 
-  const badge =
-    document.querySelector(
-      '.nav-badge'
-    );
-
-
-  if (!badge) {
-    return;
-  }
-
-
-  const count =
-    STATE.cart.reduce(
-      (
-        total,
-        item
-      ) =>
-        total +
-        Number(item.quantity || 0),
-      0
-    );
-
-
-  badge.textContent =
-    count > 99
-      ? '99+'
-      : String(count);
-
-
-  badge.hidden =
-    count === 0;
-}
-
-
-/* =========================================================
-   86. REFRESH FEED
-   ========================================================= */
-
-function refreshCurrentFeed() {
-
-  if (
-    STATE.activeCategory
-  ) {
-
-    const results =
-      DATA.posts.filter(
-        post =>
-          String(post.category)
-            .toLowerCase() ===
-          String(
-            STATE.activeCategory
-          )
-            .toLowerCase()
-      );
-
-
-    renderCategoryFeed(
-      STATE.activeCategory,
-      results
-    );
-
-
-    return;
-  }
-
-
-  renderFeed();
-}
-
-
-/* =========================================================
-   87. BODY SCROLL LOCK
-   ========================================================= */
 
 function lockBodyScroll() {
 
+  bodyLockCount += 1;
+
   document.body.style.overflow =
     'hidden';
+
 }
 
 
-function unlockBodyScrollIfPossible() {
+function unlockBodyScroll() {
 
-  const searchOpen =
-    DOM.searchOverlay &&
-    !DOM.searchOverlay.hidden;
-
-
-  const menuOpen =
-    DOM.sideMenu &&
-    !DOM.sideMenu.hidden;
-
-
-  const sheetOpen =
-    DOM.bottomSheet &&
-    !DOM.bottomSheet.hidden;
-
+  bodyLockCount =
+    Math.max(
+      0,
+      bodyLockCount - 1
+    );
 
   if (
-    !searchOpen &&
-    !menuOpen &&
-    !sheetOpen
+    bodyLockCount === 0
   ) {
 
     document.body.style.overflow =
       '';
+
   }
+
 }
 
 
 /* =========================================================
-   88. SAVE LOCAL STATE
+   67. FIND POST
    ========================================================= */
 
-function saveState() {
+function findPost(
+  postId
+) {
+
+  return DATA.posts.find(
+    post =>
+      String(post.id) ===
+      String(postId)
+  ) || null;
+
+}
+
+
+/* =========================================================
+   68. FIND PRODUCT
+   ========================================================= */
+
+function findProduct(
+  productId
+) {
+
+  for (
+    const post
+    of DATA.posts
+  ) {
+
+    if (
+      String(post.product?.id) ===
+      String(productId)
+    ) {
+
+      return post.product;
+
+    }
+
+  }
+
+  return null;
+
+}
+
+
+/* =========================================================
+   69. VISIBLE POSTS
+   ========================================================= */
+
+function getVisiblePosts() {
+
+  if (
+    !STATE.activeCategory
+  ) {
+
+    return DATA.posts;
+
+  }
+
+  return DATA.posts.filter(
+    post =>
+      post.product?.category ===
+      STATE.activeCategory
+  );
+
+}
+
+
+/* =========================================================
+   70. GET CATEGORIES
+   ========================================================= */
+
+function getCategories() {
+
+  const categories =
+    DATA.posts
+      .map(
+        post =>
+          post.product?.category
+      )
+      .filter(Boolean);
+
+  return [
+    ...new Set(categories),
+  ];
+
+}
+
+
+/* =========================================================
+   71. GET STORES
+   ========================================================= */
+
+function getStores() {
+
+  const map =
+    new Map();
+
+  DATA.posts.forEach(
+    post => {
+
+      const store =
+        post.store;
+
+      if (
+        !store?.id
+      ) {
+        return;
+      }
+
+      if (
+        !map.has(store.id)
+      ) {
+
+        map.set(
+          store.id,
+          store
+        );
+
+      }
+
+    }
+  );
+
+  return [
+    ...map.values(),
+  ];
+
+}
+
+
+/* =========================================================
+   72. SCROLL TO POST
+   ========================================================= */
+
+function scrollToPost(
+  postId
+) {
+
+  STATE.activeCategory =
+    null;
+
+  renderFeed();
+
+  requestAnimationFrame(
+    () => {
+
+      const element =
+        document.getElementById(
+          `post-${postId}`
+        );
+
+      if (!element) {
+
+        showToast(
+          'Postingan tidak ditemukan.'
+        );
+
+        return;
+
+      }
+
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   73. LOCAL STATE
+   ========================================================= */
+
+function saveLocalState() {
+
+  const payload = {
+
+    likedPosts:
+      [...STATE.likedPosts],
+
+    savedPosts:
+      [...STATE.savedPosts],
+
+    cart:
+      STATE.cart,
+
+  };
 
   try {
 
     localStorage.setItem(
       CONFIG.STORAGE_KEY,
-      JSON.stringify({
-
-        likedPosts:
-          [...STATE.likedPosts],
-
-        savedPosts:
-          [...STATE.savedPosts],
-
-        cart:
-          STATE.cart,
-
-        orders:
-          STATE.orders
-      })
+      JSON.stringify(payload)
     );
 
-  } catch (error) {
+  }
+  catch (error) {
 
     console.warn(
-      'Pasar UMKM: state tidak dapat disimpan.',
+      '[Pasar UMKM] Local state could not be saved.',
       error
     );
+
   }
+
 }
 
 
 /* =========================================================
-   89. RESTORE STATE
+   74. RESTORE LOCAL STATE
    ========================================================= */
 
-function restoreState() {
+function restoreLocalState() {
 
   try {
 
@@ -6145,429 +5012,441 @@ function restoreState() {
         CONFIG.STORAGE_KEY
       );
 
-
     if (!raw) {
       return;
     }
 
-
     const saved =
       JSON.parse(raw);
 
+    if (
+      Array.isArray(
+        saved.likedPosts
+      )
+    ) {
 
-    STATE.likedPosts =
-      new Set(
-        Array.isArray(
+      STATE.likedPosts =
+        new Set(
           saved.likedPosts
-        )
-          ? saved.likedPosts
-          : []
-      );
+        );
 
+    }
 
-    STATE.savedPosts =
-      new Set(
-        Array.isArray(
+    if (
+      Array.isArray(
+        saved.savedPosts
+      )
+    ) {
+
+      STATE.savedPosts =
+        new Set(
           saved.savedPosts
-        )
-          ? saved.savedPosts
-          : []
-      );
+        );
 
+    }
 
-    STATE.cart =
+    if (
       Array.isArray(
         saved.cart
       )
-        ? saved.cart
-        : [];
+    ) {
 
+      STATE.cart =
+        saved.cart;
 
-    STATE.orders =
-      Array.isArray(
-        saved.orders
-      )
-        ? saved.orders
-        : [];
+    }
 
-  } catch (error) {
+  }
+  catch (error) {
 
     console.warn(
-      'Pasar UMKM: state lokal tidak dapat dibaca.',
+      '[Pasar UMKM] Local state could not be restored.',
       error
     );
+
   }
+
 }
 
 
 /* =========================================================
-   90. CLEAR LOCAL STATE
+   75. LOADING
    ========================================================= */
 
-function clearState() {
-
-  try {
-
-    localStorage.removeItem(
-      CONFIG.STORAGE_KEY
-    );
-
-  } catch (error) {
-    // Abaikan.
-  }
-
-
-  STATE.likedPosts.clear();
-
-  STATE.savedPosts.clear();
-
-  STATE.cart = [];
-
-  STATE.orders = [];
-
-  STATE.activeCategory =
-    null;
-
-
-  renderStories();
-
-  renderFeed();
-
-  updateCartBadge();
-
-  updateHeaderBadges();
-
-
-  showToast(
-    'Data lokal direset'
-  );
-}
-
-
-/* =========================================================
-   91. RESET SPLASH
-   DEV ONLY
-   ========================================================= */
-
-function resetSplashIntro() {
-
-  try {
-
-    sessionStorage.removeItem(
-      CONFIG.INTRO_SESSION_KEY
-    );
-
-
-    console.info(
-      'Pasar UMKM: splash akan tampil lagi setelah halaman dimuat ulang.'
-    );
-
-  } catch (error) {
-
-    console.warn(
-      'Splash session tidak dapat direset.'
-    );
-  }
-}
-
-
-/* =========================================================
-   92. EMPTY STATE HELPER
-   ========================================================= */
-
-function createSheetEmptyState(
-  icon,
-  title,
-  description
+function setLoading(
+  loading
 ) {
 
-  return `
-    <div class="empty-state">
+  STATE.loading =
+    Boolean(loading);
 
-      <i
-        class="ph ${icon}"
-        aria-hidden="true"
-      ></i>
-
-      <div class="empty-state-title">
-        ${escapeHTML(title)}
-      </div>
-
-      <div class="empty-state-text">
-        ${escapeHTML(description)}
-      </div>
-
-    </div>
-  `;
-}
-
-
-/* =========================================================
-   93. LOADING
-   ========================================================= */
-
-function hideLoading() {
-
-  if (!DOM.appLoading) {
+  if (!DOM.loading) {
     return;
   }
 
+  DOM.loading.hidden =
+    !STATE.loading;
 
-  DOM.appLoading.hidden =
-    true;
-
-
-  DOM.appLoading.setAttribute(
+  DOM.loading.setAttribute(
     'aria-hidden',
-    'true'
+    String(
+      !STATE.loading
+    )
   );
+
 }
 
 
 /* =========================================================
-   94. TOAST
+   76. TOAST
    ========================================================= */
 
 let toastTimer = null;
 
 
-function showToast(message) {
+function showToast(
+  message
+) {
 
   if (!DOM.toast) {
     return;
   }
 
-
   window.clearTimeout(
     toastTimer
   );
 
-
   DOM.toast.textContent =
-    String(message);
+    message;
 
-
-  DOM.toast
-    .classList
-    .add('show');
-
+  DOM.toast.classList.add(
+    'show'
+  );
 
   toastTimer =
     window.setTimeout(
       () => {
 
-        DOM.toast
-          ?.classList
-          .remove('show');
+        DOM.toast.classList.remove(
+          'show'
+        );
 
       },
-      2300
+      CONFIG.TOAST_DURATION
     );
+
 }
 
 
 /* =========================================================
-   95. CURRENCY
+   77. COMING SOON TEMPLATE
    ========================================================= */
 
-function formatRupiah(value) {
+function createComingSoonTemplate(
+  title,
+  icon,
+  text
+) {
+
+  return `
+    <h2 id="sheetTitle">
+      ${escapeHTML(title)}
+    </h2>
+
+    <div class="empty-state">
+
+      <i
+        class="ph ph-${escapeHTML(icon)}"
+        aria-hidden="true"
+      ></i>
+
+      <strong class="empty-state-title">
+        ${escapeHTML(title)}
+      </strong>
+
+      <p class="empty-state-text">
+        ${escapeHTML(text)}
+      </p>
+
+    </div>
+  `;
+
+}
+
+
+/* =========================================================
+   78. FORMAT RUPIAH
+   ========================================================= */
+
+function formatRupiah(
+  value
+) {
 
   const number =
     Number(value) || 0;
 
-
   return new Intl.NumberFormat(
     'id-ID',
     {
-
       style:
         'currency',
 
       currency:
         'IDR',
 
+      minimumFractionDigits:
+        0,
+
       maximumFractionDigits:
-        0
+        0,
     }
   ).format(number);
+
 }
 
 
 /* =========================================================
-   96. COMPACT NUMBER
+   79. COMPACT NUMBER
    ========================================================= */
 
-function formatCompact(value) {
+function formatCompactNumber(
+  value
+) {
 
   const number =
     Number(value) || 0;
 
-
   return new Intl.NumberFormat(
     'id-ID',
     {
-
       notation:
         number >= 1000
           ? 'compact'
           : 'standard',
 
       maximumFractionDigits:
-        1
+        1,
     }
   ).format(number);
+
 }
 
 
 /* =========================================================
-   97. ESCAPE HTML
+   80. RELATIVE TIME
    ========================================================= */
 
-function escapeHTML(value) {
+function formatRelativeTime(
+  dateValue
+) {
 
-  return String(
-    value ?? ''
-  )
+  if (!dateValue) {
+    return '';
+  }
 
-    .replace(
-      /&/g,
-      '&amp;'
+  const date =
+    new Date(dateValue);
+
+  if (
+    Number.isNaN(
+      date.getTime()
     )
+  ) {
 
-    .replace(
-      /</g,
-      '&lt;'
-    )
+    return '';
 
-    .replace(
-      />/g,
-      '&gt;'
-    )
+  }
 
-    .replace(
-      /"/g,
-      '&quot;'
-    )
+  const now =
+    Date.now();
 
-    .replace(
-      /'/g,
-      '&#039;'
+  const difference =
+    now -
+    date.getTime();
+
+  const seconds =
+    Math.floor(
+      difference / 1000
     );
+
+  if (
+    seconds < 60
+  ) {
+
+    return 'baru saja';
+
+  }
+
+  const minutes =
+    Math.floor(
+      seconds / 60
+    );
+
+  if (
+    minutes < 60
+  ) {
+
+    return `${minutes} menit`;
+
+  }
+
+  const hours =
+    Math.floor(
+      minutes / 60
+    );
+
+  if (
+    hours < 24
+  ) {
+
+    return `${hours} jam`;
+
+  }
+
+  const days =
+    Math.floor(
+      hours / 24
+    );
+
+  if (
+    days < 7
+  ) {
+
+    return `${days} hari`;
+
+  }
+
+  return new Intl.DateTimeFormat(
+    'id-ID',
+    {
+      day:
+        'numeric',
+
+      month:
+        'short',
+
+      year:
+        date.getFullYear() !==
+        new Date().getFullYear()
+          ? 'numeric'
+          : undefined,
+    }
+  ).format(date);
+
 }
 
 
 /* =========================================================
-   98. DEVELOPMENT API
+   81. ESCAPE HTML
+   ========================================================= */
+
+function escapeHTML(
+  value
+) {
+
+  if (
+    value === null ||
+    value === undefined
+  ) {
+
+    return '';
+
+  }
+
+  return String(value)
+    .replaceAll(
+      '&',
+      '&amp;'
+    )
+    .replaceAll(
+      '<',
+      '&lt;'
+    )
+    .replaceAll(
+      '>',
+      '&gt;'
+    )
+    .replaceAll(
+      '"',
+      '&quot;'
+    )
+    .replaceAll(
+      "'",
+      '&#039;'
+    );
+
+}
+
+
+/* =========================================================
+   82. STRUCTURED CLONE FALLBACK
+   ========================================================= */
+
+function structuredCloneSafe(
+  value
+) {
+
+  if (
+    typeof structuredClone ===
+    'function'
+  ) {
+
+    return structuredClone(
+      value
+    );
+
+  }
+
+  return JSON.parse(
+    JSON.stringify(value)
+  );
+
+}
+
+
+/* =========================================================
+   83. DEVELOPMENT API
+   Useful while backend is being connected.
    ========================================================= */
 
 window.PasarUMKM = {
 
-  CONFIG,
+  getState() {
 
-  ASSETS,
+    return STATE;
 
-  DATA,
+  },
 
-  STATE,
+  getData() {
 
+    return DATA;
 
-  renderFeed,
+  },
 
-  renderStories,
+  refresh() {
 
-  renderSideMenu,
+    renderAll();
 
+  },
 
-  openCart,
+  resetIntro() {
 
-  openCategories,
-
-  openSellSheet,
-
-  openAccount,
-
-  openStores,
-
-  openOrders,
-
-  openFavorites,
-
-  openAbout,
-
-  openHelp,
-
-
-  showToast,
-
-  clearState,
-
-  resetSplashIntro,
-
-
-  /*
-   * DEVELOPMENT TEST
-   *
-   * Console:
-   *
-   * PasarUMKM.setDemoMode(false)
-   *
-   * atau:
-   *
-   * PasarUMKM.setDemoMode(true)
-   *
-   * Nilai ini kembali ke CONFIG.DEMO_MODE
-   * setelah reload.
-   */
-  setDemoMode(enabled) {
-
-    const active =
-      Boolean(enabled);
-
-
-    DATA.stories =
-      active
-        ? [...DEMO_DATA.stories]
-        : [];
-
-
-    DATA.posts =
-      active
-        ? [...DEMO_DATA.posts]
-        : [];
-
-
-    DATA.notifications =
-      active
-        ? [...DEMO_DATA.notifications]
-        : [];
-
-
-    DATA.messages =
-      active
-        ? [...DEMO_DATA.messages]
-        : [];
-
-
-    STATE.activeCategory =
-      null;
-
-
-    renderStories();
-
-    renderFeed();
-
-    updateHeaderBadges();
-
-
-    showToast(
-      active
-        ? 'Mode demo aktif'
-        : 'Mode demo nonaktif'
+    sessionStorage.removeItem(
+      CONFIG.INTRO_SESSION_KEY
     );
-  }
+
+    window.location.reload();
+
+  },
+
+  clearLocalState() {
+
+    localStorage.removeItem(
+      CONFIG.STORAGE_KEY
+    );
+
+    window.location.reload();
+
+  },
+
 };
-
-
-/* =========================================================
-   END — PASAR UMKM APP.JS v4.0
-   ========================================================= */
