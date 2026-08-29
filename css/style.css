@@ -4392,3 +4392,189 @@ a:focus-visible {
   }
 
 }
+
+/* =========================================================
+   SOCIAL ACCOUNT PRODUCT GRID
+   ========================================================= */
+
+.social-account-product-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  padding: 4px 2px 18px;
+}
+
+
+.social-product-card {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+
+  background: #ffffff;
+
+  border:
+    1px solid
+    rgba(17, 55, 42, 0.08);
+
+  border-radius: 16px;
+
+  box-shadow:
+    0 4px 18px
+    rgba(15, 45, 35, 0.05);
+}
+
+
+.social-product-media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+
+  background:
+    #f4f1e8;
+}
+
+
+.social-product-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  transition:
+    transform 0.25s ease;
+}
+
+
+.social-product-card:active
+.social-product-media img {
+  transform: scale(0.98);
+}
+
+
+.social-product-body {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+
+  padding:
+    10px 10px 12px;
+}
+
+
+.social-product-category {
+  display: inline-block;
+
+  width: fit-content;
+  max-width: 100%;
+
+  margin-bottom: 5px;
+
+  padding:
+    3px 7px;
+
+  border-radius: 999px;
+
+  background:
+    rgba(20, 77, 58, 0.08);
+
+  color:
+    #14513e;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+.social-product-name {
+  display: -webkit-box;
+
+  overflow: hidden;
+
+  color:
+    #19241f;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  line-height: 1.35;
+
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+
+  min-height: 35px;
+}
+
+
+.social-product-price {
+  margin-top: 7px;
+
+  color:
+    #0f5138;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  line-height: 1.2;
+}
+
+
+.social-product-stock {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  margin-top: 7px;
+
+  color:
+    #76817b;
+
+  font-size: 10px;
+  font-weight: 600;
+}
+
+
+.social-product-stock i {
+  flex: 0 0 auto;
+
+  font-size: 12px;
+}
+
+
+.social-product-status {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+
+  padding:
+    4px 7px;
+
+  border-radius: 999px;
+
+  background:
+    rgba(28, 32, 30, 0.82);
+
+  color:
+    #ffffff;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  backdrop-filter:
+    blur(8px);
+}
+
+
+.social-product-card.is-inactive
+.social-product-media img {
+  opacity: 0.55;
+  filter: grayscale(0.35);
+}
