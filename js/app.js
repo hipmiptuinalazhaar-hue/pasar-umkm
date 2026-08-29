@@ -2324,7 +2324,8 @@ function renderAccount() {
 
 
 /* =========================================================
-   41. LOGIN
+   41. AUTHENTICATION
+   LOGIN / REGISTER
    ========================================================= */
 
 function openLogin() {
@@ -2335,35 +2336,932 @@ function openLogin() {
     return;
   }
 
+  renderAuthSheet('login');
+}
+
+
+function renderAuthSheet(mode = 'login') {
+  const isRegister =
+    mode === 'register';
+
   openBottomSheet(
     `
-      <h2 id="sheetTitle">
-        Masuk / Daftar
-      </h2>
+      <div class="auth-shell" id="authShell">
 
-      <section class="empty-state">
+        <section class="auth-brand">
 
-        <i
-          class="ph ph-user-circle"
-          aria-hidden="true"
-        ></i>
+          <div class="auth-brand-mark">
+            <img
+              src="${escapeHTML(ASSETS.logo)}"
+              alt=""
+              aria-hidden="true"
+            >
+          </div>
 
-        <strong class="empty-state-title">
-          Akun Pasar UMKM
-        </strong>
+          <div
+            id="sheetTitle"
+            class="auth-title"
+            role="heading"
+            aria-level="2"
+          >
+            ${
+              isRegister
+                ? 'Buat akun Pasar UMKM'
+                : 'Selamat datang kembali'
+            }
+          </div>
 
-        <p class="empty-state-text">
-          Sistem akun akan terhubung ke backend agar
-          data pengguna, toko, pesanan, dan transaksi
-          tersimpan dengan aman.
-        </p>
+          <p class="auth-subtitle">
+            ${
+              isRegister
+                ? 'Bergabung dan mulai terhubung dengan ekosistem UMKM lokal Lubuklinggau.'
+                : 'Masuk untuk melanjutkan aktivitas Anda di Pasar UMKM.'
+            }
+          </p>
 
-      </section>
+        </section>
+
+
+        <div class="auth-tabs">
+
+          <button
+            type="button"
+            class="auth-tab ${
+              !isRegister ? 'active' : ''
+            }"
+            data-auth-mode="login"
+          >
+            Masuk
+          </button>
+
+          <button
+            type="button"
+            class="auth-tab ${
+              isRegister ? 'active' : ''
+            }"
+            data-auth-mode="register"
+          >
+            Daftar
+          </button>
+
+        </div>
+
+
+        <div
+          id="authMessage"
+          class="auth-message"
+          aria-live="polite"
+          hidden
+        ></div>
+
+
+        ${
+          isRegister
+            ? createRegisterForm()
+            : createLoginForm()
+        }
+
+
+        <div class="auth-security">
+
+          <i
+            class="ph ph-shield-check"
+            aria-hidden="true"
+          ></i>
+
+          <span>
+            Session akun diamankan menggunakan
+            cookie HttpOnly dan Secure.
+          </span>
+
+        </div>
+
+      </div>
     `,
     'login'
   );
+
+  bindAuthEvents();
+
+  requestAnimationFrame(() => {
+    DOM.sheetContent
+      ?.querySelector('.auth-input')
+      ?.focus();
+  });
 }
 
+
+/* =========================================================
+   LOGIN FORM
+   ========================================================= */
+
+function createLoginForm() {
+  return `
+    <form
+      id="authLoginForm"
+      class="auth-form"
+    >
+
+      <div class="auth-field">
+
+        <label
+          class="auth-label"
+          for="authLoginEmail"
+        >
+          Email
+        </label>
+
+        <div class="auth-input-wrap">
+
+          <i
+            class="ph ph-envelope-simple auth-input-icon"
+            aria-hidden="true"
+          ></i>
+
+          <input
+            id="authLoginEmail"
+            class="auth-input"
+            name="email"
+            type="email"
+            inputmode="email"
+            autocomplete="email"
+            placeholder="nama@email.com"
+            maxlength="255"
+            required
+          >
+
+        </div>
+
+      </div>
+
+
+      <div class="auth-field">
+
+        <label
+          class="auth-label"
+          for="authLoginPassword"
+        >
+          Kata sandi
+        </label>
+
+        <div class="auth-input-wrap">
+
+          <i
+            class="ph ph-lock-key auth-input-icon"
+            aria-hidden="true"
+          ></i>
+
+          <input
+            id="authLoginPassword"
+            class="auth-input"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            placeholder="Masukkan kata sandi"
+            maxlength="128"
+            required
+          >
+
+          <button
+            type="button"
+            class="auth-password-toggle"
+            data-auth-toggle="authLoginPassword"
+            aria-label="Tampilkan kata sandi"
+          >
+            <i
+              class="ph ph-eye"
+              aria-hidden="true"
+            ></i>
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <button
+        type="submit"
+        class="auth-submit"
+      >
+
+        <i
+          class="ph ph-sign-in"
+          aria-hidden="true"
+        ></i>
+
+        <span>
+          Masuk
+        </span>
+
+      </button>
+
+    </form>
+  `;
+}
+
+
+/* =========================================================
+   REGISTER FORM
+   ========================================================= */
+
+function createRegisterForm() {
+  return `
+    <div class="auth-benefits">
+
+      <div class="auth-benefit">
+        <i class="ph ph-user-circle"></i>
+        <span>Satu akun</span>
+      </div>
+
+      <div class="auth-benefit">
+        <i class="ph ph-shield-check"></i>
+        <span>Session aman</span>
+      </div>
+
+      <div class="auth-benefit">
+        <i class="ph ph-storefront"></i>
+        <span>UMKM lokal</span>
+      </div>
+
+    </div>
+
+
+    <form
+      id="authRegisterForm"
+      class="auth-form"
+    >
+
+      <div class="auth-field">
+
+        <label
+          class="auth-label"
+          for="authRegisterName"
+        >
+          Nama lengkap
+        </label>
+
+        <div class="auth-input-wrap">
+
+          <i
+            class="ph ph-user auth-input-icon"
+            aria-hidden="true"
+          ></i>
+
+          <input
+            id="authRegisterName"
+            class="auth-input"
+            name="name"
+            type="text"
+            autocomplete="name"
+            placeholder="Nama lengkap"
+            minlength="2"
+            maxlength="100"
+            required
+          >
+
+        </div>
+
+      </div>
+
+
+      <div class="auth-field">
+
+        <label
+          class="auth-label"
+          for="authRegisterEmail"
+        >
+          Email
+        </label>
+
+        <div class="auth-input-wrap">
+
+          <i
+            class="ph ph-envelope-simple auth-input-icon"
+            aria-hidden="true"
+          ></i>
+
+          <input
+            id="authRegisterEmail"
+            class="auth-input"
+            name="email"
+            type="email"
+            inputmode="email"
+            autocomplete="email"
+            placeholder="nama@email.com"
+            maxlength="255"
+            required
+          >
+
+        </div>
+
+      </div>
+
+
+      <div class="auth-field">
+
+        <label
+          class="auth-label"
+          for="authRegisterPassword"
+        >
+          Kata sandi
+        </label>
+
+        <div class="auth-input-wrap">
+
+          <i
+            class="ph ph-lock-key auth-input-icon"
+            aria-hidden="true"
+          ></i>
+
+          <input
+            id="authRegisterPassword"
+            class="auth-input"
+            name="password"
+            type="password"
+            autocomplete="new-password"
+            placeholder="Minimal 8 karakter"
+            minlength="8"
+            maxlength="128"
+            required
+          >
+
+          <button
+            type="button"
+            class="auth-password-toggle"
+            data-auth-toggle="authRegisterPassword"
+            aria-label="Tampilkan kata sandi"
+          >
+            <i
+              class="ph ph-eye"
+              aria-hidden="true"
+            ></i>
+          </button>
+
+        </div>
+
+        <p class="auth-field-hint">
+          Gunakan minimal 8 karakter.
+        </p>
+
+      </div>
+
+
+      <button
+        type="submit"
+        class="auth-submit"
+      >
+
+        <i
+          class="ph ph-user-plus"
+          aria-hidden="true"
+        ></i>
+
+        <span>
+          Buat Akun
+        </span>
+
+      </button>
+
+    </form>
+  `;
+}
+
+
+/* =========================================================
+   AUTH EVENTS
+   ========================================================= */
+
+function bindAuthEvents() {
+  const root =
+    DOM.sheetContent?.querySelector(
+      '#authShell'
+    );
+
+  if (!root) {
+    return;
+  }
+
+
+  root
+    .querySelectorAll('[data-auth-mode]')
+    .forEach(button => {
+
+      button.addEventListener(
+        'click',
+        () => {
+          renderAuthSheet(
+            button.dataset.authMode
+          );
+        }
+      );
+
+    });
+
+
+  root
+    .querySelectorAll('[data-auth-toggle]')
+    .forEach(button => {
+
+      button.addEventListener(
+        'click',
+        () => {
+          toggleAuthPassword(button);
+        }
+      );
+
+    });
+
+
+  root
+    .querySelector('#authLoginForm')
+    ?.addEventListener(
+      'submit',
+      handleLoginSubmit
+    );
+
+
+  root
+    .querySelector('#authRegisterForm')
+    ?.addEventListener(
+      'submit',
+      handleRegisterSubmit
+    );
+}
+
+
+/* =========================================================
+   PASSWORD TOGGLE
+   ========================================================= */
+
+function toggleAuthPassword(button) {
+  const inputId =
+    button.dataset.authToggle;
+
+  const input =
+    DOM.sheetContent?.querySelector(
+      `#${inputId}`
+    );
+
+  if (!input) {
+    return;
+  }
+
+
+  const show =
+    input.type === 'password';
+
+
+  input.type =
+    show
+      ? 'text'
+      : 'password';
+
+
+  const icon =
+    button.querySelector('i');
+
+
+  if (icon) {
+    icon.className =
+      show
+        ? 'ph ph-eye-slash'
+        : 'ph ph-eye';
+  }
+
+
+  button.setAttribute(
+    'aria-label',
+    show
+      ? 'Sembunyikan kata sandi'
+      : 'Tampilkan kata sandi'
+  );
+
+
+  input.focus();
+}
+
+
+/* =========================================================
+   LOGIN SUBMIT
+   ========================================================= */
+
+async function handleLoginSubmit(event) {
+  event.preventDefault();
+
+  const form =
+    event.currentTarget;
+
+
+  if (!form.checkValidity()) {
+    form.reportValidity();
+    return;
+  }
+
+
+  const formData =
+    new FormData(form);
+
+
+  const email =
+    String(
+      formData.get('email') || ''
+    )
+      .trim()
+      .toLowerCase();
+
+
+  const password =
+    String(
+      formData.get('password') || ''
+    );
+
+
+  const button =
+    form.querySelector(
+      '.auth-submit'
+    );
+
+
+  clearAuthMessage();
+
+  setAuthLoading(
+    button,
+    true
+  );
+
+
+  try {
+    const data =
+      await authRequest(
+        '/api/auth/login',
+        {
+          method: 'POST',
+
+          body:
+            JSON.stringify({
+              email,
+              password
+            })
+        }
+      );
+
+
+    if (!data.user) {
+      throw new Error(
+        'Data akun tidak diterima.'
+      );
+    }
+
+
+    STATE.user =
+      data.user;
+
+
+    renderAccount();
+    renderSidebar();
+    renderStories();
+    updateNavigation();
+
+
+    showToast(
+      data.message ||
+      'Login berhasil.'
+    );
+
+
+    openAccount();
+  } catch (error) {
+    console.error(
+      '[Pasar UMKM] Login error:',
+      error
+    );
+
+
+    setAuthMessage(
+      'error',
+      error.message ||
+      'Email atau kata sandi tidak valid.'
+    );
+  } finally {
+    setAuthLoading(
+      button,
+      false
+    );
+  }
+}
+
+
+/* =========================================================
+   REGISTER SUBMIT
+   ========================================================= */
+
+async function handleRegisterSubmit(event) {
+  event.preventDefault();
+
+  const form =
+    event.currentTarget;
+
+
+  if (!form.checkValidity()) {
+    form.reportValidity();
+    return;
+  }
+
+
+  const formData =
+    new FormData(form);
+
+
+  const name =
+    String(
+      formData.get('name') || ''
+    ).trim();
+
+
+  const email =
+    String(
+      formData.get('email') || ''
+    )
+      .trim()
+      .toLowerCase();
+
+
+  const password =
+    String(
+      formData.get('password') || ''
+    );
+
+
+  const button =
+    form.querySelector(
+      '.auth-submit'
+    );
+
+
+  clearAuthMessage();
+
+  setAuthLoading(
+    button,
+    true
+  );
+
+
+  try {
+    await authRequest(
+      '/api/auth/register',
+      {
+        method: 'POST',
+
+        body:
+          JSON.stringify({
+            name,
+            email,
+            password
+          })
+      }
+    );
+
+
+    /*
+     * Setelah daftar berhasil,
+     * login otomatis.
+     */
+    const loginData =
+      await authRequest(
+        '/api/auth/login',
+        {
+          method: 'POST',
+
+          body:
+            JSON.stringify({
+              email,
+              password
+            })
+        }
+      );
+
+
+    if (!loginData.user) {
+      throw new Error(
+        'Akun berhasil dibuat, tetapi session belum tersedia.'
+      );
+    }
+
+
+    STATE.user =
+      loginData.user;
+
+
+    renderAccount();
+    renderSidebar();
+    renderStories();
+    updateNavigation();
+
+
+    showToast(
+      'Akun berhasil dibuat.'
+    );
+
+
+    openAccount();
+  } catch (error) {
+    console.error(
+      '[Pasar UMKM] Register error:',
+      error
+    );
+
+
+    setAuthMessage(
+      'error',
+      error.message ||
+      'Pendaftaran belum berhasil.'
+    );
+  } finally {
+    setAuthLoading(
+      button,
+      false
+    );
+  }
+}
+
+
+/* =========================================================
+   AUTH REQUEST
+   ========================================================= */
+
+async function authRequest(
+  endpoint,
+  options = {}
+) {
+  const response =
+    await fetch(
+      endpoint,
+      {
+        credentials: 'include',
+
+        cache: 'no-store',
+
+        ...options,
+
+        headers: {
+          Accept:
+            'application/json',
+
+          'Content-Type':
+            'application/json',
+
+          ...options.headers
+        }
+      }
+    );
+
+
+  const data =
+    await response
+      .json()
+      .catch(() => ({}));
+
+
+  if (
+    !response.ok ||
+    data.ok !== true
+  ) {
+    throw new Error(
+      data.error ||
+      data.message ||
+      `Permintaan gagal (${response.status}).`
+    );
+  }
+
+
+  return data;
+}
+
+
+/* =========================================================
+   AUTH MESSAGE
+   ========================================================= */
+
+function setAuthMessage(
+  type,
+  message
+) {
+  const element =
+    DOM.sheetContent?.querySelector(
+      '#authMessage'
+    );
+
+
+  if (!element) {
+    return;
+  }
+
+
+  const success =
+    type === 'success';
+
+
+  element.className =
+    `auth-message ${
+      success
+        ? 'success'
+        : 'error'
+    }`;
+
+
+  element.innerHTML = `
+    <i
+      class="ph ${
+        success
+          ? 'ph-check-circle'
+          : 'ph-warning-circle'
+      }"
+      aria-hidden="true"
+    ></i>
+
+    <span></span>
+  `;
+
+
+  const text =
+    element.querySelector('span');
+
+
+  if (text) {
+    text.textContent =
+      String(message || '');
+  }
+
+
+  element.hidden = false;
+}
+
+
+function clearAuthMessage() {
+  const element =
+    DOM.sheetContent?.querySelector(
+      '#authMessage'
+    );
+
+
+  if (!element) {
+    return;
+  }
+
+
+  element.hidden = true;
+
+  element.textContent = '';
+}
+
+
+/* =========================================================
+   AUTH LOADING BUTTON
+   ========================================================= */
+
+function setAuthLoading(
+  button,
+  loading
+) {
+  if (!button) {
+    return;
+  }
+
+
+  if (loading) {
+    button.disabled = true;
+
+    button.dataset.originalHtml =
+      button.innerHTML;
+
+
+    button.innerHTML = `
+      <span
+        class="auth-spinner"
+        aria-hidden="true"
+      ></span>
+
+      <span>
+        Memproses...
+      </span>
+    `;
+
+    return;
+  }
+
+
+  button.disabled = false;
+
+
+  if (
+    button.dataset.originalHtml
+  ) {
+    button.innerHTML =
+      button.dataset.originalHtml;
+
+    delete button.dataset.originalHtml;
+  }
+}
 
 /* =========================================================
    42. ACCOUNT
