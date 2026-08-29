@@ -1673,6 +1673,29 @@ function runAction(action, element) {
       );
       break;
 
+    case 'account-menu':
+  openAccountMenu();
+  break;
+
+case 'account-edit':
+  openAccountEditInfo();
+  break;
+
+case 'account-share':
+  shareAccountProfile();
+  break;
+
+case 'account-tab':
+  switchAccountTab(
+    element.dataset.tab,
+    element
+  );
+  break;
+
+case 'account-logout':
+  logoutFromAccount();
+  break;
+        
     case 'close-sheet':
       closeBottomSheet();
       break;
@@ -1741,45 +1764,1072 @@ function runMenuAction(action) {
    29. MAIN NAVIGATION
    ========================================================= */
 
-function navigate(target) {
-  STATE.activeNav = target;
+/* =========================================================
+   42. SOCIAL COMMERCE ACCOUNT
+   ========================================================= */
 
-  closeSideMenu();
-
-  switch (target) {
-    case 'home':
-      STATE.activeCategory = null;
-      renderFeed();
-
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
-      break;
-
-    case 'categories':
-      openAllCategories();
-      break;
-
-    case 'sell':
-      openSell();
-      break;
-
-    case 'cart':
-      openCart();
-      break;
-
-    case 'account':
-      openAccount();
-      break;
-
-    default:
-      break;
+async function openAccount() {
+  if (!STATE.user) {
+    openLogin();
+    return;
   }
 
+  closeBottomSheet();
+  closeSideMenu();
+
+  STATE.activeNav = 'account';
   updateNavigation();
+
+  const app =
+    document.querySelector('.app');
+
+  app?.classList.add(
+    'account-profile-active'
+  );
+
+  if (DOM.storiesSection) {
+    DOM.storiesSection.hidden = true;
+  }
+
+  if (DOM.homeDiscovery) {
+    DOM.homeDiscovery.hidden = true;
+  }
+
+  if (!DOM.feed) {
+    return;
+  }
+
+  DOM.feed.innerHTML = `
+    <section class="social-account-page">
+
+      <section class="social-account-empty">
+
+        <div class="social-account-empty-icon">
+          <i class="ph ph-user-circle"></i>
+        </div>
+
+        <strong>
+          Memuat profil
+        </strong>
+
+        <p>
+          Menyiapkan halaman akun Anda.
+        </p>
+
+      </section>
+
+    </section>
+  `;
+
+  let store = null;
+
+  if (
+    STATE.user.role === 'seller' ||
+    STATE.user.role === 'admin'
+  ) {
+    try {
+      store =
+        await loadCurrentAccountStore();
+    } catch (error) {
+      console.error(
+        '[Pasar UMKM] Store profile error:',
+        error
+      );
+    }
+  }
+
+  renderSocialAccountProfile(store);
+
+  window.scrollTo({
+    top: 0,
+    behavior: 'auto'
+  });
 }
 
+
+/* =========================================================
+   CURRENT USER STORE
+   ========================================================= */
+
+async function loadCurrentAccountStore() {
+  const response =
+    await fetch(
+      '/api/stores/me',
+      {
+        method: 'GET',
+
+        credentials:
+          'include',
+
+        headers: {
+          Accept:
+            'application/json'
+        },
+
+        cache:
+          'no-store'
+      }
+    );
+
+  if (response.status === 401) {
+    return null;
+  }
+
+  const data =
+    await response
+      .json()
+      .catch(() => ({}));
+
+  if (
+    !response.ok ||
+    data.ok !== true
+  ) {
+    throw new Error(
+      data.error ||
+      'Profil UMKM belum dapat dimuat.'
+    );
+  }
+
+  if (
+    data.has_store !== true ||
+    !data.store
+  ) {
+    return null;
+  }
+
+  return data.store;
+}
+
+
+/* =========================================================
+   ACCOUNT RENDER
+   ========================================================= */
+
+function renderSocialAccountProfile(
+  store = null
+) {
+  if (
+    !STATE.user ||
+    !DOM.feed
+  ) {
+    return;
+  }
+
+  DOM.feed.innerHTML =
+    createSocialAccountProfileTemplate(
+      STATE.user,
+      store
+    );
+}
+
+
+/* =========================================================
+   ACCOUNT TEMPLATE
+   ========================================================= */
+
+function createSocialAccountProfileTemplate(
+  user,
+  store
+) {
+  const isSeller =
+    user.role === 'seller' ||
+    user.role === 'admin';
+
+  const avatarUrl =
+    String(
+      user.avatar_url ||
+      store?.logo_url ||
+      ''
+    ).trim();
+
+  const avatarTemplate =
+    avatarUrl
+      ? `
+          <img
+            src="${escapeHTML(avatarUrl)}"
+            alt="${escapeHTML(
+              user.name || 'Pengguna'
+            )}"
+          >
+        `
+      : `
+          <i
+            class="ph ph-user"
+            aria-hidden="true"
+          ></i>
+        `;
+
+  const bio =
+    store?.description ||
+    (
+      store
+        ? `Pemilik ${store.name}`
+        : 'Pengguna Pasar UMKM'
+    );
+
+  const location =
+    store
+      ? [
+          store.district,
+          store.city,
+          store.province
+        ]
+          .filter(Boolean)
+          .join(', ')
+      : '';
+
+  const storeBadge =
+    store
+      ? `
+          <div class="social-account-seller-badge">
+
+            <i
+              class="ph ph-storefront"
+              aria-hidden="true"
+            ></i>
+
+            <span>
+              ${escapeHTML(store.name)}
+            </span>
+
+          </div>
+        `
+      : '';
+
+  const verification =
+    store?.verification_status
+      ? `
+          <div class="social-account-status">
+
+            <i
+              class="ph ${
+                store.verification_status ===
+                'verified'
+                  ? 'ph-seal-check'
+                  : 'ph-clock'
+              }"
+              aria-hidden="true"
+            ></i>
+
+            <span>
+              ${
+                store.verification_status ===
+                'verified'
+                  ? 'UMKM terverifikasi'
+                  : 'Verifikasi UMKM sedang diproses'
+              }
+            </span>
+
+          </div>
+        `
+      : '';
+
+  const sellerCenter =
+    isSeller && store
+      ? `
+          <button
+            type="button"
+            class="social-account-commerce"
+            data-menu-action="store"
+          >
+
+            <span
+              class="social-account-commerce-icon"
+            >
+              <i
+                class="ph ph-storefront"
+                aria-hidden="true"
+              ></i>
+            </span>
+
+            <span
+              class="social-account-commerce-copy"
+            >
+
+              <strong>
+                ${escapeHTML(store.name)}
+              </strong>
+
+              <span>
+                Kelola toko dan aktivitas usaha
+              </span>
+
+            </span>
+
+            <span
+              class="social-account-commerce-arrow"
+            >
+              <i
+                class="ph ph-caret-right"
+                aria-hidden="true"
+              ></i>
+            </span>
+
+          </button>
+        `
+      : '';
+
+  const highlights =
+    isSeller && store
+      ? `
+          <button
+            type="button"
+            class="social-account-highlight"
+            data-menu-action="store"
+          >
+            <span
+              class="social-account-highlight-ring"
+            >
+              <span
+                class="social-account-highlight-inner"
+              >
+                <i class="ph ph-storefront"></i>
+              </span>
+            </span>
+
+            <span
+              class="social-account-highlight-label"
+            >
+              Toko
+            </span>
+          </button>
+
+
+          <button
+            type="button"
+            class="social-account-highlight"
+            data-menu-action="seller-products"
+          >
+            <span
+              class="social-account-highlight-ring"
+            >
+              <span
+                class="social-account-highlight-inner"
+              >
+                <i class="ph ph-package"></i>
+              </span>
+            </span>
+
+            <span
+              class="social-account-highlight-label"
+            >
+              Produk
+            </span>
+          </button>
+
+
+          <button
+            type="button"
+            class="social-account-highlight"
+            data-menu-action="orders"
+          >
+            <span
+              class="social-account-highlight-ring"
+            >
+              <span
+                class="social-account-highlight-inner"
+              >
+                <i class="ph ph-receipt"></i>
+              </span>
+            </span>
+
+            <span
+              class="social-account-highlight-label"
+            >
+              Pesanan
+            </span>
+          </button>
+
+
+          <button
+            type="button"
+            class="social-account-highlight"
+            data-menu-action="favorites"
+          >
+            <span
+              class="social-account-highlight-ring"
+            >
+              <span
+                class="social-account-highlight-inner"
+              >
+                <i class="ph ph-heart"></i>
+              </span>
+            </span>
+
+            <span
+              class="social-account-highlight-label"
+            >
+              Favorit
+            </span>
+          </button>
+        `
+      : `
+          <button
+            type="button"
+            class="social-account-highlight"
+            data-menu-action="orders"
+          >
+            <span
+              class="social-account-highlight-ring"
+            >
+              <span
+                class="social-account-highlight-inner"
+              >
+                <i class="ph ph-receipt"></i>
+              </span>
+            </span>
+
+            <span
+              class="social-account-highlight-label"
+            >
+              Pesanan
+            </span>
+          </button>
+
+
+          <button
+            type="button"
+            class="social-account-highlight"
+            data-menu-action="favorites"
+          >
+            <span
+              class="social-account-highlight-ring"
+            >
+              <span
+                class="social-account-highlight-inner"
+              >
+                <i class="ph ph-heart"></i>
+              </span>
+            </span>
+
+            <span
+              class="social-account-highlight-label"
+            >
+              Favorit
+            </span>
+          </button>
+
+
+          <button
+            type="button"
+            class="social-account-highlight"
+            data-menu-action="help"
+          >
+            <span
+              class="social-account-highlight-ring"
+            >
+              <span
+                class="social-account-highlight-inner"
+              >
+                <i class="ph ph-question"></i>
+              </span>
+            </span>
+
+            <span
+              class="social-account-highlight-label"
+            >
+              Bantuan
+            </span>
+          </button>
+        `;
+
+
+  return `
+    <section class="social-account-page">
+
+
+      <!-- TOP BAR -->
+
+      <header class="social-account-topbar">
+
+        <div class="social-account-username">
+
+          <strong>
+            ${escapeHTML(
+              user.name ||
+              'Pengguna'
+            )}
+          </strong>
+
+        </div>
+
+
+        <div class="social-account-top-actions">
+
+          <button
+            type="button"
+            class="social-account-top-button"
+            data-action="account-share"
+            aria-label="Bagikan profil"
+          >
+            <i
+              class="ph ph-share-network"
+              aria-hidden="true"
+            ></i>
+          </button>
+
+
+          <button
+            type="button"
+            class="social-account-top-button"
+            data-action="account-menu"
+            aria-label="Menu akun"
+          >
+            <i
+              class="ph ph-list"
+              aria-hidden="true"
+            ></i>
+          </button>
+
+        </div>
+
+      </header>
+
+
+      <!-- PROFILE HEADER -->
+
+      <section class="social-account-header">
+
+        <div class="social-account-main">
+
+
+          <!-- AVATAR -->
+
+          <div class="social-account-avatar-wrap">
+
+            <div class="social-account-avatar">
+              ${avatarTemplate}
+            </div>
+
+            <button
+              type="button"
+              class="social-account-avatar-add"
+              data-action="account-edit"
+              aria-label="Ubah profil"
+            >
+              <i class="ph ph-plus"></i>
+            </button>
+
+          </div>
+
+
+          <!-- SOCIAL STATS -->
+
+          <div class="social-account-stats">
+
+            <div class="social-account-stat">
+
+              <strong>
+                0
+              </strong>
+
+              <span>
+                Postingan
+              </span>
+
+            </div>
+
+
+            <div class="social-account-stat">
+
+              <strong>
+                0
+              </strong>
+
+              <span>
+                Pengikut
+              </span>
+
+            </div>
+
+
+            <div class="social-account-stat">
+
+              <strong>
+                0
+              </strong>
+
+              <span>
+                Mengikuti
+              </span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- BIO -->
+
+        <div class="social-account-bio">
+
+          <div class="social-account-name-row">
+
+            <h1 class="social-account-name">
+              ${escapeHTML(
+                user.name ||
+                'Pengguna'
+              )}
+            </h1>
+
+          </div>
+
+
+          <div class="social-account-role">
+            ${escapeHTML(
+              formatRole(user.role)
+            )}
+          </div>
+
+
+          ${storeBadge}
+
+          ${verification}
+
+
+          <p class="social-account-description">
+            ${escapeHTML(bio)}
+          </p>
+
+
+          ${
+            location
+              ? `
+                  <div class="social-account-link">
+
+                    <i
+                      class="ph ph-map-pin"
+                      aria-hidden="true"
+                    ></i>
+
+                    <span>
+                      ${escapeHTML(location)}
+                    </span>
+
+                  </div>
+                `
+              : ''
+          }
+
+        </div>
+
+
+        <!-- PROFILE ACTIONS -->
+
+        <div class="social-account-actions">
+
+          <button
+            type="button"
+            class="social-account-action"
+            data-action="account-edit"
+          >
+            <i
+              class="ph ph-pencil-simple"
+            ></i>
+
+            <span>
+              Edit profil
+            </span>
+          </button>
+
+
+          <button
+            type="button"
+            class="social-account-action"
+            data-action="account-share"
+          >
+            <i
+              class="ph ph-share-network"
+            ></i>
+
+            <span>
+              Bagikan profil
+            </span>
+          </button>
+
+        </div>
+
+      </section>
+
+
+      <!-- SELLER CENTER -->
+
+      ${sellerCenter}
+
+
+      <!-- HIGHLIGHTS -->
+
+      <div class="social-account-highlights">
+        ${highlights}
+      </div>
+
+
+      <!-- TABS -->
+
+      <nav
+        class="social-account-tabs"
+        aria-label="Konten profil"
+      >
+
+        <button
+          type="button"
+          class="social-account-tab active"
+          data-action="account-tab"
+          data-tab="posts"
+          aria-label="Postingan"
+        >
+          <i class="ph ph-squares-four"></i>
+        </button>
+
+
+        <button
+          type="button"
+          class="social-account-tab"
+          data-action="account-tab"
+          data-tab="videos"
+          aria-label="Video"
+        >
+          <i class="ph ph-play-square"></i>
+        </button>
+
+
+        <button
+          type="button"
+          class="social-account-tab"
+          data-action="account-tab"
+          data-tab="products"
+          aria-label="Produk"
+        >
+          <i class="ph ph-shopping-bag"></i>
+        </button>
+
+
+        <button
+          type="button"
+          class="social-account-tab"
+          data-action="account-tab"
+          data-tab="saved"
+          aria-label="Disimpan"
+        >
+          <i class="ph ph-bookmark-simple"></i>
+        </button>
+
+      </nav>
+
+
+      <!-- TAB CONTENT -->
+
+      <div id="socialAccountContent">
+        ${createAccountTabContent('posts')}
+      </div>
+
+
+    </section>
+  `;
+}
+
+
+/* =========================================================
+   ACCOUNT TAB CONTENT
+   ========================================================= */
+
+function createAccountTabContent(tab) {
+  switch (tab) {
+
+    case 'videos':
+      return `
+        <section class="social-account-empty">
+
+          <div class="social-account-empty-icon">
+            <i class="ph ph-play"></i>
+          </div>
+
+          <strong>
+            Belum ada video
+          </strong>
+
+          <p>
+            Video yang diterbitkan akun ini
+            akan tampil di sini.
+          </p>
+
+        </section>
+      `;
+
+
+    case 'products':
+      return `
+        <section class="social-account-empty">
+
+          <div class="social-account-empty-icon">
+            <i class="ph ph-shopping-bag"></i>
+          </div>
+
+          <strong>
+            Belum ada produk
+          </strong>
+
+          <p>
+            Produk dari toko pengguna
+            akan tampil di sini.
+          </p>
+
+        </section>
+      `;
+
+
+    case 'saved':
+      return `
+        <section class="social-account-empty">
+
+          <div class="social-account-empty-icon">
+            <i class="ph ph-bookmark-simple"></i>
+          </div>
+
+          <strong>
+            Belum ada yang disimpan
+          </strong>
+
+          <p>
+            Postingan dan produk favorit
+            akan tersedia di sini.
+          </p>
+
+        </section>
+      `;
+
+
+    case 'posts':
+    default:
+      return `
+        <section class="social-account-empty">
+
+          <div class="social-account-empty-icon">
+            <i class="ph ph-squares-four"></i>
+          </div>
+
+          <strong>
+            Belum ada postingan
+          </strong>
+
+          <p>
+            Postingan pertama akun ini
+            akan tampil di grid profil.
+          </p>
+
+        </section>
+      `;
+  }
+}
+
+
+/* =========================================================
+   ACCOUNT TAB SWITCH
+   ========================================================= */
+
+function switchAccountTab(
+  tab,
+  button
+) {
+  const page =
+    document.querySelector(
+      '.social-account-page'
+    );
+
+  if (!page) {
+    return;
+  }
+
+  page
+    .querySelectorAll(
+      '.social-account-tab'
+    )
+    .forEach(item => {
+      item.classList.toggle(
+        'active',
+        item === button
+      );
+    });
+
+  const content =
+    page.querySelector(
+      '#socialAccountContent'
+    );
+
+  if (content) {
+    content.innerHTML =
+      createAccountTabContent(tab);
+  }
+}
+
+
+/* =========================================================
+   ACCOUNT MENU
+   ========================================================= */
+
+function openAccountMenu() {
+  openBottomSheet(
+    `
+      <h2 id="sheetTitle">
+        Akun
+      </h2>
+
+
+      <button
+        type="button"
+        class="menu-sheet-btn"
+        data-action="account-edit"
+      >
+        <i class="ph ph-user-circle"></i>
+        Edit Profil
+      </button>
+
+
+      ${
+        STATE.user?.role === 'seller' ||
+        STATE.user?.role === 'admin'
+          ? `
+              <button
+                type="button"
+                class="menu-sheet-btn"
+                data-menu-action="store"
+              >
+                <i class="ph ph-storefront"></i>
+                Kelola Toko
+              </button>
+            `
+          : ''
+      }
+
+
+      <button
+        type="button"
+        class="menu-sheet-btn"
+        data-action="account-logout"
+      >
+        <i class="ph ph-sign-out"></i>
+        Keluar
+      </button>
+    `,
+    'account-menu'
+  );
+}
+
+
+/* =========================================================
+   EDIT ACCOUNT
+   ========================================================= */
+
+function openAccountEditInfo() {
+  openBottomSheet(
+    createInformationState(
+      'Edit Profil',
+      'user-circle',
+      'Foto profil, bio, username, dan informasi akun akan dikelola melalui fitur Edit Profil.'
+    ),
+    'account-edit'
+  );
+}
+
+
+/* =========================================================
+   SHARE ACCOUNT
+   ========================================================= */
+
+async function shareAccountProfile() {
+  const url =
+    `${window.location.origin}` +
+    `${window.location.pathname}` +
+    '#account';
+
+  try {
+
+    if (navigator.share) {
+      await navigator.share({
+        title:
+          STATE.user?.name ||
+          CONFIG.APP_NAME,
+
+        text:
+          'Lihat profil saya di Pasar UMKM.',
+
+        url
+      });
+
+      return;
+    }
+
+
+    await navigator.clipboard.writeText(
+      url
+    );
+
+    showToast(
+      'Tautan profil berhasil disalin.'
+    );
+
+  } catch (error) {
+
+    if (
+      error.name !==
+      'AbortError'
+    ) {
+      console.error(
+        '[Pasar UMKM] Account share error:',
+        error
+      );
+    }
+  }
+}
+
+
+/* =========================================================
+   LOGOUT FROM ACCOUNT
+   ========================================================= */
+
+function logoutFromAccount() {
+  leaveAccountProfile();
+
+  STATE.activeNav =
+    'home';
+
+  updateNavigation();
+
+  logout();
+}
+
+
+/* =========================================================
+   LEAVE ACCOUNT PROFILE
+   ========================================================= */
+
+function leaveAccountProfile() {
+  const app =
+    document.querySelector('.app');
+
+  if (
+    !app?.classList.contains(
+      'account-profile-active'
+    )
+  ) {
+    return;
+  }
+
+  app.classList.remove(
+    'account-profile-active'
+  );
+
+  if (DOM.homeDiscovery) {
+    DOM.homeDiscovery.hidden = false;
+  }
+
+  renderStories();
+
+  if (DOM.feed) {
+    renderFeed();
+  }
+}
 
 /* =========================================================
    30. NAV ACTIVE STATE
@@ -3437,66 +4487,1071 @@ function setAuthLoading(
 }
 
 /* =========================================================
-   42. ACCOUNT
+   42. SOCIAL COMMERCE ACCOUNT
    ========================================================= */
 
-function openAccount() {
+async function openAccount() {
   if (!STATE.user) {
     openLogin();
     return;
   }
 
-  openBottomSheet(
-    `
-      <h2 id="sheetTitle">
-        Akun Saya
-      </h2>
+  closeBottomSheet();
+  closeSideMenu();
 
-      <section class="side-account">
+  STATE.activeNav = 'account';
+  updateNavigation();
 
-        <div class="side-account-user-main">
+  const app =
+    document.querySelector('.app');
 
-          <div class="side-account-avatar">
-            <i class="ph ph-user"></i>
-          </div>
+  app?.classList.add(
+    'account-profile-active'
+  );
 
-          <div class="side-account-user-info">
+  if (DOM.storiesSection) {
+    DOM.storiesSection.hidden = true;
+  }
 
-            <strong class="side-account-user-name">
-              ${escapeHTML(
-                STATE.user.name ||
-                'Pengguna'
-              )}
-            </strong>
+  if (DOM.homeDiscovery) {
+    DOM.homeDiscovery.hidden = true;
+  }
 
-            <span class="side-account-user-role">
-              ${escapeHTML(
-                formatRole(
-                  STATE.user.role
-                )
-              )}
+  if (!DOM.feed) {
+    return;
+  }
+
+  DOM.feed.innerHTML = `
+    <section class="social-account-page">
+
+      <section class="social-account-empty">
+
+        <div class="social-account-empty-icon">
+          <i class="ph ph-user-circle"></i>
+        </div>
+
+        <strong>
+          Memuat profil
+        </strong>
+
+        <p>
+          Menyiapkan halaman akun Anda.
+        </p>
+
+      </section>
+
+    </section>
+  `;
+
+  let store = null;
+
+  if (
+    STATE.user.role === 'seller' ||
+    STATE.user.role === 'admin'
+  ) {
+    try {
+      store =
+        await loadCurrentAccountStore();
+    } catch (error) {
+      console.error(
+        '[Pasar UMKM] Store profile error:',
+        error
+      );
+    }
+  }
+
+  renderSocialAccountProfile(store);
+
+  window.scrollTo({
+    top: 0,
+    behavior: 'auto'
+  });
+}
+
+
+/* =========================================================
+   CURRENT USER STORE
+   ========================================================= */
+
+async function loadCurrentAccountStore() {
+  const response =
+    await fetch(
+      '/api/stores/me',
+      {
+        method: 'GET',
+
+        credentials:
+          'include',
+
+        headers: {
+          Accept:
+            'application/json'
+        },
+
+        cache:
+          'no-store'
+      }
+    );
+
+  if (response.status === 401) {
+    return null;
+  }
+
+  const data =
+    await response
+      .json()
+      .catch(() => ({}));
+
+  if (
+    !response.ok ||
+    data.ok !== true
+  ) {
+    throw new Error(
+      data.error ||
+      'Profil UMKM belum dapat dimuat.'
+    );
+  }
+
+  if (
+    data.has_store !== true ||
+    !data.store
+  ) {
+    return null;
+  }
+
+  return data.store;
+}
+
+
+/* =========================================================
+   ACCOUNT RENDER
+   ========================================================= */
+
+function renderSocialAccountProfile(
+  store = null
+) {
+  if (
+    !STATE.user ||
+    !DOM.feed
+  ) {
+    return;
+  }
+
+  DOM.feed.innerHTML =
+    createSocialAccountProfileTemplate(
+      STATE.user,
+      store
+    );
+}
+
+
+/* =========================================================
+   ACCOUNT TEMPLATE
+   ========================================================= */
+
+function createSocialAccountProfileTemplate(
+  user,
+  store
+) {
+  const isSeller =
+    user.role === 'seller' ||
+    user.role === 'admin';
+
+  const avatarUrl =
+    String(
+      user.avatar_url ||
+      store?.logo_url ||
+      ''
+    ).trim();
+
+  const avatarTemplate =
+    avatarUrl
+      ? `
+          <img
+            src="${escapeHTML(avatarUrl)}"
+            alt="${escapeHTML(
+              user.name || 'Pengguna'
+            )}"
+          >
+        `
+      : `
+          <i
+            class="ph ph-user"
+            aria-hidden="true"
+          ></i>
+        `;
+
+  const bio =
+    store?.description ||
+    (
+      store
+        ? `Pemilik ${store.name}`
+        : 'Pengguna Pasar UMKM'
+    );
+
+  const location =
+    store
+      ? [
+          store.district,
+          store.city,
+          store.province
+        ]
+          .filter(Boolean)
+          .join(', ')
+      : '';
+
+  const storeBadge =
+    store
+      ? `
+          <div class="social-account-seller-badge">
+
+            <i
+              class="ph ph-storefront"
+              aria-hidden="true"
+            ></i>
+
+            <span>
+              ${escapeHTML(store.name)}
             </span>
 
           </div>
+        `
+      : '';
+
+  const verification =
+    store?.verification_status
+      ? `
+          <div class="social-account-status">
+
+            <i
+              class="ph ${
+                store.verification_status ===
+                'verified'
+                  ? 'ph-seal-check'
+                  : 'ph-clock'
+              }"
+              aria-hidden="true"
+            ></i>
+
+            <span>
+              ${
+                store.verification_status ===
+                'verified'
+                  ? 'UMKM terverifikasi'
+                  : 'Verifikasi UMKM sedang diproses'
+              }
+            </span>
+
+          </div>
+        `
+      : '';
+
+  const sellerCenter =
+    isSeller && store
+      ? `
+          <button
+            type="button"
+            class="social-account-commerce"
+            data-menu-action="store"
+          >
+
+            <span
+              class="social-account-commerce-icon"
+            >
+              <i
+                class="ph ph-storefront"
+                aria-hidden="true"
+              ></i>
+            </span>
+
+            <span
+              class="social-account-commerce-copy"
+            >
+
+              <strong>
+                ${escapeHTML(store.name)}
+              </strong>
+
+              <span>
+                Kelola toko dan aktivitas usaha
+              </span>
+
+            </span>
+
+            <span
+              class="social-account-commerce-arrow"
+            >
+              <i
+                class="ph ph-caret-right"
+                aria-hidden="true"
+              ></i>
+            </span>
+
+          </button>
+        `
+      : '';
+
+  const highlights =
+    isSeller && store
+      ? `
+          <button
+            type="button"
+            class="social-account-highlight"
+            data-menu-action="store"
+          >
+            <span
+              class="social-account-highlight-ring"
+            >
+              <span
+                class="social-account-highlight-inner"
+              >
+                <i class="ph ph-storefront"></i>
+              </span>
+            </span>
+
+            <span
+              class="social-account-highlight-label"
+            >
+              Toko
+            </span>
+          </button>
+
+
+          <button
+            type="button"
+            class="social-account-highlight"
+            data-menu-action="seller-products"
+          >
+            <span
+              class="social-account-highlight-ring"
+            >
+              <span
+                class="social-account-highlight-inner"
+              >
+                <i class="ph ph-package"></i>
+              </span>
+            </span>
+
+            <span
+              class="social-account-highlight-label"
+            >
+              Produk
+            </span>
+          </button>
+
+
+          <button
+            type="button"
+            class="social-account-highlight"
+            data-menu-action="orders"
+          >
+            <span
+              class="social-account-highlight-ring"
+            >
+              <span
+                class="social-account-highlight-inner"
+              >
+                <i class="ph ph-receipt"></i>
+              </span>
+            </span>
+
+            <span
+              class="social-account-highlight-label"
+            >
+              Pesanan
+            </span>
+          </button>
+
+
+          <button
+            type="button"
+            class="social-account-highlight"
+            data-menu-action="favorites"
+          >
+            <span
+              class="social-account-highlight-ring"
+            >
+              <span
+                class="social-account-highlight-inner"
+              >
+                <i class="ph ph-heart"></i>
+              </span>
+            </span>
+
+            <span
+              class="social-account-highlight-label"
+            >
+              Favorit
+            </span>
+          </button>
+        `
+      : `
+          <button
+            type="button"
+            class="social-account-highlight"
+            data-menu-action="orders"
+          >
+            <span
+              class="social-account-highlight-ring"
+            >
+              <span
+                class="social-account-highlight-inner"
+              >
+                <i class="ph ph-receipt"></i>
+              </span>
+            </span>
+
+            <span
+              class="social-account-highlight-label"
+            >
+              Pesanan
+            </span>
+          </button>
+
+
+          <button
+            type="button"
+            class="social-account-highlight"
+            data-menu-action="favorites"
+          >
+            <span
+              class="social-account-highlight-ring"
+            >
+              <span
+                class="social-account-highlight-inner"
+              >
+                <i class="ph ph-heart"></i>
+              </span>
+            </span>
+
+            <span
+              class="social-account-highlight-label"
+            >
+              Favorit
+            </span>
+          </button>
+
+
+          <button
+            type="button"
+            class="social-account-highlight"
+            data-menu-action="help"
+          >
+            <span
+              class="social-account-highlight-ring"
+            >
+              <span
+                class="social-account-highlight-inner"
+              >
+                <i class="ph ph-question"></i>
+              </span>
+            </span>
+
+            <span
+              class="social-account-highlight-label"
+            >
+              Bantuan
+            </span>
+          </button>
+        `;
+
+
+  return `
+    <section class="social-account-page">
+
+
+      <!-- TOP BAR -->
+
+      <header class="social-account-topbar">
+
+        <div class="social-account-username">
+
+          <strong>
+            ${escapeHTML(
+              user.name ||
+              'Pengguna'
+            )}
+          </strong>
+
+        </div>
+
+
+        <div class="social-account-top-actions">
+
+          <button
+            type="button"
+            class="social-account-top-button"
+            data-action="account-share"
+            aria-label="Bagikan profil"
+          >
+            <i
+              class="ph ph-share-network"
+              aria-hidden="true"
+            ></i>
+          </button>
+
+
+          <button
+            type="button"
+            class="social-account-top-button"
+            data-action="account-menu"
+            aria-label="Menu akun"
+          >
+            <i
+              class="ph ph-list"
+              aria-hidden="true"
+            ></i>
+          </button>
+
+        </div>
+
+      </header>
+
+
+      <!-- PROFILE HEADER -->
+
+      <section class="social-account-header">
+
+        <div class="social-account-main">
+
+
+          <!-- AVATAR -->
+
+          <div class="social-account-avatar-wrap">
+
+            <div class="social-account-avatar">
+              ${avatarTemplate}
+            </div>
+
+            <button
+              type="button"
+              class="social-account-avatar-add"
+              data-action="account-edit"
+              aria-label="Ubah profil"
+            >
+              <i class="ph ph-plus"></i>
+            </button>
+
+          </div>
+
+
+          <!-- SOCIAL STATS -->
+
+          <div class="social-account-stats">
+
+            <div class="social-account-stat">
+
+              <strong>
+                0
+              </strong>
+
+              <span>
+                Postingan
+              </span>
+
+            </div>
+
+
+            <div class="social-account-stat">
+
+              <strong>
+                0
+              </strong>
+
+              <span>
+                Pengikut
+              </span>
+
+            </div>
+
+
+            <div class="social-account-stat">
+
+              <strong>
+                0
+              </strong>
+
+              <span>
+                Mengikuti
+              </span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- BIO -->
+
+        <div class="social-account-bio">
+
+          <div class="social-account-name-row">
+
+            <h1 class="social-account-name">
+              ${escapeHTML(
+                user.name ||
+                'Pengguna'
+              )}
+            </h1>
+
+          </div>
+
+
+          <div class="social-account-role">
+            ${escapeHTML(
+              formatRole(user.role)
+            )}
+          </div>
+
+
+          ${storeBadge}
+
+          ${verification}
+
+
+          <p class="social-account-description">
+            ${escapeHTML(bio)}
+          </p>
+
+
+          ${
+            location
+              ? `
+                  <div class="social-account-link">
+
+                    <i
+                      class="ph ph-map-pin"
+                      aria-hidden="true"
+                    ></i>
+
+                    <span>
+                      ${escapeHTML(location)}
+                    </span>
+
+                  </div>
+                `
+              : ''
+          }
+
+        </div>
+
+
+        <!-- PROFILE ACTIONS -->
+
+        <div class="social-account-actions">
+
+          <button
+            type="button"
+            class="social-account-action"
+            data-action="account-edit"
+          >
+            <i
+              class="ph ph-pencil-simple"
+            ></i>
+
+            <span>
+              Edit profil
+            </span>
+          </button>
+
+
+          <button
+            type="button"
+            class="social-account-action"
+            data-action="account-share"
+          >
+            <i
+              class="ph ph-share-network"
+            ></i>
+
+            <span>
+              Bagikan profil
+            </span>
+          </button>
 
         </div>
 
       </section>
 
 
+      <!-- SELLER CENTER -->
+
+      ${sellerCenter}
+
+
+      <!-- HIGHLIGHTS -->
+
+      <div class="social-account-highlights">
+        ${highlights}
+      </div>
+
+
+      <!-- TABS -->
+
+      <nav
+        class="social-account-tabs"
+        aria-label="Konten profil"
+      >
+
+        <button
+          type="button"
+          class="social-account-tab active"
+          data-action="account-tab"
+          data-tab="posts"
+          aria-label="Postingan"
+        >
+          <i class="ph ph-squares-four"></i>
+        </button>
+
+
+        <button
+          type="button"
+          class="social-account-tab"
+          data-action="account-tab"
+          data-tab="videos"
+          aria-label="Video"
+        >
+          <i class="ph ph-play-square"></i>
+        </button>
+
+
+        <button
+          type="button"
+          class="social-account-tab"
+          data-action="account-tab"
+          data-tab="products"
+          aria-label="Produk"
+        >
+          <i class="ph ph-shopping-bag"></i>
+        </button>
+
+
+        <button
+          type="button"
+          class="social-account-tab"
+          data-action="account-tab"
+          data-tab="saved"
+          aria-label="Disimpan"
+        >
+          <i class="ph ph-bookmark-simple"></i>
+        </button>
+
+      </nav>
+
+
+      <!-- TAB CONTENT -->
+
+      <div id="socialAccountContent">
+        ${createAccountTabContent('posts')}
+      </div>
+
+
+    </section>
+  `;
+}
+
+
+/* =========================================================
+   ACCOUNT TAB CONTENT
+   ========================================================= */
+
+function createAccountTabContent(tab) {
+  switch (tab) {
+
+    case 'videos':
+      return `
+        <section class="social-account-empty">
+
+          <div class="social-account-empty-icon">
+            <i class="ph ph-play"></i>
+          </div>
+
+          <strong>
+            Belum ada video
+          </strong>
+
+          <p>
+            Video yang diterbitkan akun ini
+            akan tampil di sini.
+          </p>
+
+        </section>
+      `;
+
+
+    case 'products':
+      return `
+        <section class="social-account-empty">
+
+          <div class="social-account-empty-icon">
+            <i class="ph ph-shopping-bag"></i>
+          </div>
+
+          <strong>
+            Belum ada produk
+          </strong>
+
+          <p>
+            Produk dari toko pengguna
+            akan tampil di sini.
+          </p>
+
+        </section>
+      `;
+
+
+    case 'saved':
+      return `
+        <section class="social-account-empty">
+
+          <div class="social-account-empty-icon">
+            <i class="ph ph-bookmark-simple"></i>
+          </div>
+
+          <strong>
+            Belum ada yang disimpan
+          </strong>
+
+          <p>
+            Postingan dan produk favorit
+            akan tersedia di sini.
+          </p>
+
+        </section>
+      `;
+
+
+    case 'posts':
+    default:
+      return `
+        <section class="social-account-empty">
+
+          <div class="social-account-empty-icon">
+            <i class="ph ph-squares-four"></i>
+          </div>
+
+          <strong>
+            Belum ada postingan
+          </strong>
+
+          <p>
+            Postingan pertama akun ini
+            akan tampil di grid profil.
+          </p>
+
+        </section>
+      `;
+  }
+}
+
+
+/* =========================================================
+   ACCOUNT TAB SWITCH
+   ========================================================= */
+
+function switchAccountTab(
+  tab,
+  button
+) {
+  const page =
+    document.querySelector(
+      '.social-account-page'
+    );
+
+  if (!page) {
+    return;
+  }
+
+  page
+    .querySelectorAll(
+      '.social-account-tab'
+    )
+    .forEach(item => {
+      item.classList.toggle(
+        'active',
+        item === button
+      );
+    });
+
+  const content =
+    page.querySelector(
+      '#socialAccountContent'
+    );
+
+  if (content) {
+    content.innerHTML =
+      createAccountTabContent(tab);
+  }
+}
+
+
+/* =========================================================
+   ACCOUNT MENU
+   ========================================================= */
+
+function openAccountMenu() {
+  openBottomSheet(
+    `
+      <h2 id="sheetTitle">
+        Akun
+      </h2>
+
+
       <button
         type="button"
         class="menu-sheet-btn"
-        data-action="logout"
+        data-action="account-edit"
+      >
+        <i class="ph ph-user-circle"></i>
+        Edit Profil
+      </button>
+
+
+      ${
+        STATE.user?.role === 'seller' ||
+        STATE.user?.role === 'admin'
+          ? `
+              <button
+                type="button"
+                class="menu-sheet-btn"
+                data-menu-action="store"
+              >
+                <i class="ph ph-storefront"></i>
+                Kelola Toko
+              </button>
+            `
+          : ''
+      }
+
+
+      <button
+        type="button"
+        class="menu-sheet-btn"
+        data-action="account-logout"
       >
         <i class="ph ph-sign-out"></i>
         Keluar
       </button>
     `,
-    'account'
+    'account-menu'
   );
 }
 
+
+/* =========================================================
+   EDIT ACCOUNT
+   ========================================================= */
+
+function openAccountEditInfo() {
+  openBottomSheet(
+    createInformationState(
+      'Edit Profil',
+      'user-circle',
+      'Foto profil, bio, username, dan informasi akun akan dikelola melalui fitur Edit Profil.'
+    ),
+    'account-edit'
+  );
+}
+
+
+/* =========================================================
+   SHARE ACCOUNT
+   ========================================================= */
+
+async function shareAccountProfile() {
+  const url =
+    `${window.location.origin}` +
+    `${window.location.pathname}` +
+    '#account';
+
+  try {
+
+    if (navigator.share) {
+      await navigator.share({
+        title:
+          STATE.user?.name ||
+          CONFIG.APP_NAME,
+
+        text:
+          'Lihat profil saya di Pasar UMKM.',
+
+        url
+      });
+
+      return;
+    }
+
+
+    await navigator.clipboard.writeText(
+      url
+    );
+
+    showToast(
+      'Tautan profil berhasil disalin.'
+    );
+
+  } catch (error) {
+
+    if (
+      error.name !==
+      'AbortError'
+    ) {
+      console.error(
+        '[Pasar UMKM] Account share error:',
+        error
+      );
+    }
+  }
+}
+
+
+/* =========================================================
+   LOGOUT FROM ACCOUNT
+   ========================================================= */
+
+function logoutFromAccount() {
+  leaveAccountProfile();
+
+  STATE.activeNav =
+    'home';
+
+  updateNavigation();
+
+  logout();
+}
+
+
+/* =========================================================
+   LEAVE ACCOUNT PROFILE
+   ========================================================= */
+
+function leaveAccountProfile() {
+  const app =
+    document.querySelector('.app');
+
+  if (
+    !app?.classList.contains(
+      'account-profile-active'
+    )
+  ) {
+    return;
+  }
+
+  app.classList.remove(
+    'account-profile-active'
+  );
+
+  if (DOM.homeDiscovery) {
+    DOM.homeDiscovery.hidden = false;
+  }
+
+  renderStories();
+
+  if (DOM.feed) {
+    renderFeed();
+  }
+}
 
 async function logout() {
   const logoutButtons =
