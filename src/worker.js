@@ -81,8 +81,6 @@ export default {
           }
         });
       } catch (error) {
-        console.error("Database connection error:", error);
-
         return Response.json(
           {
             ok: false,
@@ -96,7 +94,10 @@ export default {
     // ==========================================
     // API CATEGORIES
     // ==========================================
-    if (url.pathname === "/api/categories" && request.method === "GET") {
+    if (
+      url.pathname === "/api/categories" &&
+      request.method === "GET"
+    ) {
       try {
         const sql = neon(env.DATABASE_URL);
 
@@ -119,8 +120,6 @@ export default {
           categories
         });
       } catch (error) {
-        console.error("Categories API error:", error);
-
         return Response.json(
           {
             ok: false,
@@ -138,14 +137,24 @@ export default {
       url.pathname === "/api/auth/register" &&
       request.method === "POST"
     ) {
+      let stage = "start";
+
       try {
+        // 1. Baca data
+        stage = "parse_body";
+
         const body = await request.json();
 
         const name = String(body.name || "").trim();
-        const email = String(body.email || "").trim().toLowerCase();
+        const email = String(body.email || "")
+          .trim()
+          .toLowerCase();
+
         const password = String(body.password || "");
 
-        // Validasi nama
+        // 2. Validasi
+        stage = "validation";
+
         if (name.length < 2 || name.length > 100) {
           return Response.json(
             {
@@ -156,7 +165,6 @@ export default {
           );
         }
 
-        // Validasi email
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         if (!emailPattern.test(email) || email.length > 255) {
@@ -169,7 +177,6 @@ export default {
           );
         }
 
-        // Validasi password
         if (password.length < 8 || password.length > 128) {
           return Response.json(
             {
@@ -180,9 +187,14 @@ export default {
           );
         }
 
+        // 3. Siapkan database
+        stage = "database_init";
+
         const sql = neon(env.DATABASE_URL);
 
-        // Cek email
+        // 4. Cek email
+        stage = "check_email";
+
         const existingUser = await sql`
           SELECT id
           FROM users
@@ -200,10 +212,14 @@ export default {
           );
         }
 
-        // Hash password
+        // 5. Hash password
+        stage = "hash_password";
+
         const passwordHash = await hashPassword(password);
 
-        // Simpan user
+        // 6. Simpan user
+        stage = "insert_user";
+
         const users = await sql`
           INSERT INTO users (
             name,
@@ -223,6 +239,8 @@ export default {
             created_at
         `;
 
+        stage = "complete";
+
         return Response.json(
           {
             ok: true,
@@ -237,11 +255,27 @@ export default {
         return Response.json(
           {
             ok: false,
-            error: "Terjadi kesalahan saat membuat akun."
+            error: "Register gagal.",
+            stage: stage,
+            error_name: error?.name || "UnknownError",
+            error_code: error?.code || null
           },
           { status: 500 }
         );
       }
+    }
+
+    // ==========================================
+    // API ROUTE TIDAK DITEMUKAN
+    // ==========================================
+    if (url.pathname.startsWith("/api/")) {
+      return Response.json(
+        {
+          ok: false,
+          error: "API endpoint tidak ditemukan."
+        },
+        { status: 404 }
+      );
     }
 
     // ==========================================
