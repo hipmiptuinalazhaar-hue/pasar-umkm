@@ -18,15 +18,10 @@ function getCookie(request, name) {
 
   for (const cookie of cookies) {
     const [key, ...valueParts] =
-      cookie
-        .trim()
-        .split("=");
+      cookie.trim().split("=");
 
     if (key === name) {
-      return (
-        valueParts.join("=") ||
-        null
-      );
+      return valueParts.join("=") || null;
     }
   }
 
@@ -88,9 +83,7 @@ function createStoreSlug(name) {
       .replace(/-/g, "")
       .slice(0, 8);
 
-  return `${
-    base || "umkm"
-  }-${suffix}`;
+  return `${base || "umkm"}-${suffix}`;
 }
 
 
@@ -152,12 +145,10 @@ export default {
                 true,
 
               name:
-                result[0]
-                  .database,
+                result[0].database,
 
               tables:
-                result[0]
-                  .tables
+                result[0].tables
             }
           },
           {
@@ -278,7 +269,7 @@ export default {
 
 
     // ========================================
-    // API STORES
+    // API STORES - GET
     // ========================================
 
     if (
@@ -331,7 +322,7 @@ export default {
 
       } catch (error) {
         console.error(
-          "Stores error:",
+          "Stores GET error:",
           error
         );
 
@@ -341,6 +332,430 @@ export default {
 
             error:
               "Gagal memuat data UMKM."
+          },
+          {
+            status: 500,
+
+            headers: {
+              "Cache-Control":
+                "no-store"
+            }
+          }
+        );
+      }
+    }
+
+
+    // ========================================
+    // API STORES - CREATE
+    // ========================================
+
+    if (
+      url.pathname ===
+        "/api/stores" &&
+
+      request.method ===
+        "POST"
+    ) {
+      try {
+
+        // ====================================
+        // SESSION
+        // ====================================
+
+        const sessionToken =
+          getCookie(
+            request,
+            "__Host-pasar_umkm_session"
+          );
+
+        if (!sessionToken) {
+          return Response.json(
+            {
+              ok: false,
+
+              error:
+                "Silakan masuk terlebih dahulu."
+            },
+            {
+              status: 401,
+
+              headers: {
+                "Cache-Control":
+                  "no-store"
+              }
+            }
+          );
+        }
+
+
+        const sql =
+          neon(
+            env.DATABASE_URL
+          );
+
+
+        // ====================================
+        // CURRENT USER
+        // ====================================
+
+        const sessions =
+          await sql`
+            SELECT
+              u.id,
+              u.name,
+              u.email,
+              u.role
+
+            FROM
+              sessions s
+
+            JOIN
+              users u
+
+              ON
+                u.id =
+                s.user_id
+
+            WHERE
+              s.token_hash =
+                encode(
+                  digest(
+                    ${sessionToken},
+                    'sha256'
+                  ),
+                  'hex'
+                )
+
+              AND
+              s.expires_at >
+                NOW()
+
+              AND
+              u.is_active =
+                TRUE
+
+            LIMIT 1
+          `;
+
+
+        if (
+          sessions.length ===
+          0
+        ) {
+          return Response.json(
+            {
+              ok: false,
+
+              error:
+                "Session tidak valid atau sudah berakhir."
+            },
+            {
+              status: 401,
+
+              headers: {
+                "Cache-Control":
+                  "no-store",
+
+                "Set-Cookie":
+                  "__Host-pasar_umkm_session=; " +
+                  "Path=/; " +
+                  "HttpOnly; " +
+                  "Secure; " +
+                  "SameSite=Lax; " +
+                  "Max-Age=0"
+              }
+            }
+          );
+        }
+
+
+        const currentUser =
+          sessions[0];
+
+
+        // ====================================
+        // BODY
+        // ====================================
+
+        let body;
+
+        try {
+          body =
+            await request.json();
+        } catch {
+          return Response.json(
+            {
+              ok: false,
+
+              error:
+                "Data UMKM tidak valid."
+            },
+            {
+              status: 400,
+
+              headers: {
+                "Cache-Control":
+                  "no-store"
+              }
+            }
+          );
+        }
+
+
+        const name =
+          String(
+            body.name || ""
+          )
+            .trim()
+            .replace(
+              /\s+/g,
+              " "
+            );
+
+
+        // ====================================
+        // VALIDATION
+        // ====================================
+
+        if (
+          name.length < 3
+        ) {
+          return Response.json(
+            {
+              ok: false,
+
+              error:
+                "Nama UMKM minimal 3 karakter."
+            },
+            {
+              status: 400,
+
+              headers: {
+                "Cache-Control":
+                  "no-store"
+              }
+            }
+          );
+        }
+
+
+        if (
+          name.length > 100
+        ) {
+          return Response.json(
+            {
+              ok: false,
+
+              error:
+                "Nama UMKM maksimal 100 karakter."
+            },
+            {
+              status: 400,
+
+              headers: {
+                "Cache-Control":
+                  "no-store"
+              }
+            }
+          );
+        }
+
+
+        // ====================================
+        // ONE USER = ONE STORE
+        // ====================================
+
+        const existingStores =
+          await sql`
+            SELECT
+              id,
+              name
+
+            FROM
+              stores
+
+            WHERE
+              owner_id =
+                ${currentUser.id}
+
+            LIMIT 1
+          `;
+
+
+        if (
+          existingStores.length >
+          0
+        ) {
+          return Response.json(
+            {
+              ok: false,
+
+              error:
+                "Akun ini sudah memiliki UMKM.",
+
+              store:
+                existingStores[0]
+            },
+            {
+              status: 409,
+
+              headers: {
+                "Cache-Control":
+                  "no-store"
+              }
+            }
+          );
+        }
+
+
+        // ====================================
+        // CREATE STORE
+        // ====================================
+
+        const slug =
+          createStoreSlug(name);
+
+
+        const stores =
+          await sql`
+            INSERT INTO stores (
+              owner_id,
+              name,
+              slug
+            )
+
+            VALUES (
+              ${currentUser.id},
+              ${name},
+              ${slug}
+            )
+
+            RETURNING
+              id,
+              owner_id,
+              name,
+              slug,
+              verification_status,
+              is_active,
+              city,
+              province,
+              created_at
+          `;
+
+
+        const store =
+          stores[0];
+
+
+        // ====================================
+        // BUYER -> SELLER
+        // ====================================
+
+        let finalRole =
+          currentUser.role;
+
+
+        if (
+          currentUser.role ===
+          "buyer"
+        ) {
+          const updatedUsers =
+            await sql`
+              UPDATE
+                users
+
+              SET
+                role =
+                  'seller'
+
+              WHERE
+                id =
+                  ${currentUser.id}
+
+              RETURNING
+                role
+            `;
+
+          if (
+            updatedUsers.length >
+            0
+          ) {
+            finalRole =
+              updatedUsers[0].role;
+          }
+        }
+
+
+        return Response.json(
+          {
+            ok: true,
+
+            message:
+              "UMKM berhasil didaftarkan.",
+
+            store,
+
+            user: {
+              id:
+                currentUser.id,
+
+              name:
+                currentUser.name,
+
+              email:
+                currentUser.email,
+
+              role:
+                finalRole
+            }
+          },
+          {
+            status: 201,
+
+            headers: {
+              "Cache-Control":
+                "no-store"
+            }
+          }
+        );
+
+      } catch (error) {
+        console.error(
+          "Stores POST error:",
+          error
+        );
+
+
+        if (
+          error?.code ===
+          "23505"
+        ) {
+          return Response.json(
+            {
+              ok: false,
+
+              error:
+                "UMKM tersebut sudah terdaftar."
+            },
+            {
+              status: 409,
+
+              headers: {
+                "Cache-Control":
+                  "no-store"
+              }
+            }
+          );
+        }
+
+
+        return Response.json(
+          {
+            ok: false,
+
+            error:
+              "Gagal mendaftarkan UMKM."
           },
           {
             status: 500,
@@ -394,12 +809,9 @@ export default {
           );
 
 
-        // ====================================
-        // VALIDATION
-        // ====================================
-
         stage =
           "validation";
+
 
         if (
           name.length < 2 ||
@@ -427,9 +839,9 @@ export default {
         const emailPattern =
           /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+
         if (
-          !emailPattern
-            .test(email) ||
+          !emailPattern.test(email) ||
           email.length > 255
         ) {
           return Response.json(
@@ -455,6 +867,7 @@ export default {
           new TextEncoder()
             .encode(password)
             .length;
+
 
         if (
           passwordBytes < 8
@@ -503,18 +916,16 @@ export default {
         stage =
           "database_init";
 
+
         const sql =
           neon(
             env.DATABASE_URL
           );
 
 
-        // ====================================
-        // CHECK EMAIL
-        // ====================================
-
         stage =
           "check_email";
+
 
         const existingUser =
           await sql`
@@ -526,10 +937,11 @@ export default {
 
             WHERE
               email =
-              ${email}
+                ${email}
 
             LIMIT 1
           `;
+
 
         if (
           existingUser.length >
@@ -554,12 +966,9 @@ export default {
         }
 
 
-        // ====================================
-        // INSERT USER
-        // ====================================
-
         stage =
           "insert_user";
+
 
         const users =
           await sql`
@@ -717,10 +1126,11 @@ export default {
 
             WHERE
               email =
-              ${email}
+                ${email}
 
               AND
-              is_active = TRUE
+              is_active =
+                TRUE
 
               AND
               password_hash =
@@ -734,7 +1144,8 @@ export default {
 
 
         if (
-          users.length === 0
+          users.length ===
+          0
         ) {
           return Response.json(
             {
@@ -758,10 +1169,6 @@ export default {
         const user =
           users[0];
 
-
-        // ====================================
-        // CREATE SESSION
-        // ====================================
 
         const sessionToken =
           createSessionToken();
@@ -791,10 +1198,6 @@ export default {
           )
         `;
 
-
-        // ====================================
-        // LAST LOGIN
-        // ====================================
 
         await sql`
           UPDATE
@@ -1165,14 +1568,13 @@ export default {
 
 
     // ========================================
-    // API TIDAK DITEMUKAN
+    // API 404
     // ========================================
 
     if (
-      url.pathname
-        .startsWith(
-          "/api/"
-        )
+      url.pathname.startsWith(
+        "/api/"
+      )
     ) {
       return Response.json(
         {
