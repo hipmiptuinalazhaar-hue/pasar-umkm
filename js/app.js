@@ -4325,26 +4325,108 @@ function createAccountTabContent(tab) {
       `;
 
 
-    case 'products':
-      return `
-        <section class="social-account-empty">
+    case 'products': {
+  const products =
+    Array.isArray(STATE.accountProducts)
+      ? STATE.accountProducts
+      : [];
 
-          <div class="social-account-empty-icon">
-            <i class="ph ph-shopping-bag"></i>
+
+  if (!products.length) {
+    return `
+      <section class="social-account-empty">
+
+        <div class="social-account-empty-icon">
+          <i class="ph ph-shopping-bag"></i>
+        </div>
+
+        <strong>
+          Belum ada produk
+        </strong>
+
+        <p>
+          Produk yang ditambahkan ke toko
+          akan tampil di sini.
+        </p>
+
+      </section>
+    `;
+  }
+
+
+  return products
+    .map(product => `
+      <section
+        class="product-card"
+        data-product-id="${escapeHTML(
+          product.id || ''
+        )}"
+      >
+
+        <img
+          class="product-img"
+          src="${escapeHTML(
+            product.image_url ||
+            product.thumbnail_url ||
+            ASSETS.logo
+          )}"
+          alt="${escapeHTML(
+            product.name ||
+            'Produk UMKM'
+          )}"
+          loading="lazy"
+          decoding="async"
+        >
+
+
+        <div class="product-info">
+
+          ${
+            product.category_name
+              ? `
+                  <div class="product-badge">
+                    ${escapeHTML(
+                      product.category_name
+                    )}
+                  </div>
+                `
+              : ''
+          }
+
+
+          <div class="product-name">
+            ${escapeHTML(
+              product.name ||
+              'Produk UMKM'
+            )}
           </div>
 
-          <strong>
-            Belum ada produk
-          </strong>
 
-          <p>
-            Produk dari toko pengguna
-            akan tampil di sini.
-          </p>
+          <div class="product-price">
+            ${formatRupiah(
+              product.price
+            )}
+          </div>
 
-        </section>
-      `;
 
+          <div class="product-meta">
+            <span>
+              Stok:
+              ${escapeHTML(
+                product.stock ?? 0
+              )}
+              ${escapeHTML(
+                product.unit || ''
+              )}
+            </span>
+          </div>
+
+        </div>
+
+      </section>
+    `)
+    .join('');
+}
 
     case 'saved':
       return `
