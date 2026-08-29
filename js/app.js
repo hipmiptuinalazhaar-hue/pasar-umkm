@@ -4358,6 +4358,122 @@ function createAccountTabContent(tab) {
   }
 
 
+  return `
+    <div class="social-account-product-grid">
+
+      ${products
+        .map(product => {
+
+          const image =
+            product.image_url ||
+            product.thumbnail_url ||
+            ASSETS.logo;
+
+
+          const inactive =
+            product.is_active === false;
+
+
+          return `
+            <article
+              class="
+                social-product-card
+                ${inactive
+                  ? 'is-inactive'
+                  : ''
+                }
+              "
+              data-product-id="${escapeHTML(
+                product.id || ''
+              )}"
+            >
+
+              <div class="social-product-media">
+
+                <img
+                  src="${escapeHTML(image)}"
+                  alt="${escapeHTML(
+                    product.name ||
+                    'Produk UMKM'
+                  )}"
+                  loading="lazy"
+                  decoding="async"
+                >
+
+                ${
+                  inactive
+                    ? `
+                        <span class="social-product-status">
+                          Nonaktif
+                        </span>
+                      `
+                    : ''
+                }
+
+              </div>
+
+
+              <div class="social-product-body">
+
+                ${
+                  product.category_name
+                    ? `
+                        <span class="social-product-category">
+                          ${escapeHTML(
+                            product.category_name
+                          )}
+                        </span>
+                      `
+                    : ''
+                }
+
+
+                <strong class="social-product-name">
+                  ${escapeHTML(
+                    product.name ||
+                    'Produk UMKM'
+                  )}
+                </strong>
+
+
+                <div class="social-product-price">
+                  ${formatRupiah(
+                    product.price
+                  )}
+                </div>
+
+
+                <div class="social-product-stock">
+                  <i class="ph ph-package"></i>
+
+                  <span>
+                    Stok
+                    ${escapeHTML(
+                      product.stock ?? 0
+                    )}
+
+                    ${
+                      product.unit
+                        ? escapeHTML(
+                            product.unit
+                          )
+                        : ''
+                    }
+                  </span>
+                </div>
+
+              </div>
+
+            </article>
+          `;
+        })
+        .join('')}
+
+    </div>
+  `;
+}
+
+
   return products
     .map(product => `
       <section
