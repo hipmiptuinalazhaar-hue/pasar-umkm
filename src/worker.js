@@ -1,54 +1,5 @@
 import { neon } from "@neondatabase/serverless";
 
-// ==========================================
-// PASSWORD HASHING
-// ==========================================
-function bufferToBase64(buffer) {
-  const bytes = new Uint8Array(buffer);
-  let binary = "";
-
-  for (const byte of bytes) {
-    binary += String.fromCharCode(byte);
-  }
-
-  return btoa(binary);
-}
-
-async function hashPassword(password) {
-  const encoder = new TextEncoder();
-
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-
-  const keyMaterial = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(password),
-    "PBKDF2",
-    false,
-    ["deriveBits"]
-  );
-
-  const iterations = 310000;
-
-  const hash = await crypto.subtle.deriveBits(
-    {
-      name: "PBKDF2",
-      hash: "SHA-256",
-      salt,
-      iterations
-    },
-    keyMaterial,
-    256
-  );
-
-  return [
-    "pbkdf2",
-    "sha256",
-    iterations,
-    bufferToBase64(salt),
-    bufferToBase64(hash)
-  ].join("$");
-}
-
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -140,19 +91,24 @@ export default {
       let stage = "start";
 
       try {
-        // 1. Baca data
+        // --------------------------------------
+        // 1. BACA REQUEST
+        // --------------------------------------
         stage = "parse_body";
 
         const body = await request.json();
 
         const name = String(body.name || "").trim();
+
         const email = String(body.email || "")
           .trim()
           .toLowerCase();
 
         const password = String(body.password || "");
 
-        // 2. Validasi
+        // --------------------------------------
+        // 2. VALIDASI
+        // --------------------------------------
         stage = "validation";
 
         if (name.length < 2 || name.length > 100) {
@@ -177,7 +133,10 @@ export default {
           );
         }
 
-        if (password.length < 8 || password.length > 128) {
+        const passwordBytes =
+          new TextEncoder().encode(password).length;
+
+        if (passwordBytes < 8) {
           return Response.json(
             {
               ok: false,
@@ -187,12 +146,26 @@ export default {
           );
         }
 
-        // 3. Siapkan database
+        if (passwordBytes > 72) {
+          return Response.json(
+            {
+              ok: false,
+              error: "Password terlalu panjang."
+            },
+            { status: 400 }
+          );
+        }
+
+        // --------------------------------------
+        // 3. DATABASE
+        // --------------------------------------
         stage = "database_init";
 
         const sql = neon(env.DATABASE_URL);
 
-        // 4. Cek email
+        // --------------------------------------
+        // 4. CEK EMAIL
+        // --------------------------------------
         stage = "check_email";
 
         const existingUser = await sql`
@@ -212,12 +185,10 @@ export default {
           );
         }
 
-        // 5. Hash password
-        stage = "hash_password";
-
-        const passwordHash = await hashPassword(password);
-
-        // 6. Simpan user
+        // --------------------------------------
+        // 5. HASH PASSWORD + SIMPAN USER
+        // bcrypt dijalankan oleh PostgreSQL pgcrypto
+        // --------------------------------------
         stage = "insert_user";
 
         const users = await sql`
@@ -229,7 +200,10 @@ export default {
           VALUES (
             ${name},
             ${email},
-            ${passwordHash}
+            crypt(
+              ${password},
+              gen_salt('bf', 12)
+            )
           )
           RETURNING
             id,
@@ -256,7 +230,7 @@ export default {
           {
             ok: false,
             error: "Register gagal.",
-            stage: stage,
+            stage,
             error_name: error?.name || "UnknownError",
             error_code: error?.code || null
           },
@@ -266,7 +240,7 @@ export default {
     }
 
     // ==========================================
-    // API ROUTE TIDAK DITEMUKAN
+    // API TIDAK DITEMUKAN
     // ==========================================
     if (url.pathname.startsWith("/api/")) {
       return Response.json(
