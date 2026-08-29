@@ -11,7 +11,7 @@
 
   <meta
     name="theme-color"
-    content="#0f4f35"
+    content="#0f5f41"
   >
 
   <meta
@@ -56,8 +56,11 @@
 
   <title>Pasar UMKM — Lubuklinggau</title>
 
+  <!-- =====================================================
+       FONT
+       Marketplace-style typography
+       ===================================================== -->
 
-  <!-- Fonts -->
   <link
     rel="preconnect"
     href="https://fonts.googleapis.com"
@@ -70,19 +73,23 @@
   >
 
   <link
-    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
     rel="stylesheet"
   >
 
+  <!-- =====================================================
+       ICONS
+       ===================================================== -->
 
-  <!-- Icons -->
   <script
     src="https://unpkg.com/@phosphor-icons/web"
     defer
   ></script>
 
+  <!-- =====================================================
+       STYLES
+       ===================================================== -->
 
-  <!-- Styles -->
   <link
     rel="stylesheet"
     href="css/tokens.css"
@@ -92,6 +99,7 @@
     rel="stylesheet"
     href="css/style.css"
   >
+
 </head>
 
 
@@ -100,9 +108,7 @@
 
   <!-- =====================================================
        SPLASH
-       Logo only.
-       Tidak ada copy tambahan.
-       Tidak ada loading palsu.
+       Logo only
        ===================================================== -->
 
   <section
@@ -130,9 +136,8 @@
   </section>
 
 
-
   <!-- =====================================================
-       APP ROOT
+       APP
        ===================================================== -->
 
   <div
@@ -143,7 +148,7 @@
 
     <!-- ===================================================
          HEADER
-         Logo utama tanpa wordmark tambahan.
+         Logo + Search Compact + Actions
          =================================================== -->
 
     <header
@@ -155,9 +160,10 @@
 
 
         <!-- Menu -->
+
         <button
           type="button"
-          class="header-btn"
+          class="header-btn header-menu-btn"
           id="menuButton"
           data-action="menu"
           aria-label="Buka menu"
@@ -173,7 +179,8 @@
         </button>
 
 
-        <!-- Brand -->
+        <!-- Logo -->
+
         <a
           href="#"
           class="brand brand-logo-only"
@@ -185,8 +192,8 @@
             src="assets/logo.png"
             alt="Pasar UMKM Lubuklinggau"
             class="brand-logo"
-            width="118"
-            height="60"
+            width="108"
+            height="52"
             fetchpriority="high"
             decoding="async"
           >
@@ -194,28 +201,35 @@
         </a>
 
 
+        <!-- Compact Search -->
+
+        <button
+          type="button"
+          class="header-search"
+          id="headerSearchButton"
+          data-action="search"
+          aria-label="Cari produk atau UMKM"
+        >
+
+          <i
+            class="ph ph-magnifying-glass"
+            aria-hidden="true"
+          ></i>
+
+          <span class="header-search-text">
+            Cari UMKM...
+          </span>
+
+        </button>
+
+
         <!-- Header actions -->
+
         <div class="header-actions">
 
 
-          <!-- Search -->
-          <button
-            type="button"
-            class="header-btn"
-            id="searchButton"
-            data-action="search"
-            aria-label="Cari"
-          >
-
-            <i
-              class="ph ph-magnifying-glass"
-              aria-hidden="true"
-            ></i>
-
-          </button>
-
-
           <!-- Notifications -->
+
           <button
             type="button"
             class="header-btn has-counter"
@@ -241,6 +255,7 @@
 
 
           <!-- Messages -->
+
           <button
             type="button"
             class="header-btn has-counter"
@@ -264,13 +279,11 @@
 
           </button>
 
-
         </div>
 
       </div>
 
     </header>
-
 
 
     <!-- ===================================================
@@ -285,10 +298,12 @@
 
       <!-- ===============================================
            STORIES
+           JS dapat menyembunyikan section ini jika kosong
            =============================================== -->
 
       <section
         class="stories-section"
+        id="storiesSection"
         aria-label="Cerita UMKM"
       >
 
@@ -301,6 +316,86 @@
 
       </section>
 
+
+      <!-- ===============================================
+           HOME DISCOVERY
+           Tetap berguna meski feed kosong
+           =============================================== -->
+
+      <section
+        class="home-discovery"
+        id="homeDiscovery"
+      >
+
+        <div class="discovery-card">
+
+          <div class="discovery-copy">
+
+            <span class="discovery-eyebrow">
+              PASAR UMKM LUBUKLINGGAU
+            </span>
+
+            <h1 class="discovery-title">
+              Temukan usaha lokal di sekitarmu.
+            </h1>
+
+            <p class="discovery-text">
+              Jelajahi produk dan UMKM lokal dalam satu tempat.
+            </p>
+
+          </div>
+
+
+          <div class="discovery-actions">
+
+            <button
+              type="button"
+              class="btn-primary"
+              data-menu-action="stores"
+            >
+              Jelajahi UMKM
+            </button>
+
+            <button
+              type="button"
+              class="btn-secondary"
+              data-action="sell"
+            >
+              Mulai Jual
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- Quick categories -->
+
+        <div class="home-section-head">
+
+          <h2 class="home-section-title">
+            Kategori
+          </h2>
+
+          <button
+            type="button"
+            class="home-section-link"
+            data-nav="categories"
+          >
+            Lihat semua
+          </button>
+
+        </div>
+
+
+        <div
+          class="quick-categories"
+          id="quickCategories"
+        >
+          <!-- Rendered by JS -->
+        </div>
+
+      </section>
 
 
       <!-- ===============================================
@@ -315,9 +410,7 @@
         <!-- Rendered by JS -->
       </section>
 
-
     </main>
-
 
 
     <!-- ===================================================
@@ -332,6 +425,7 @@
 
 
       <!-- Home -->
+
       <a
         href="#"
         class="nav-link active"
@@ -356,6 +450,7 @@
 
 
       <!-- Categories -->
+
       <a
         href="#"
         class="nav-link"
@@ -379,6 +474,7 @@
 
 
       <!-- Sell -->
+
       <a
         href="#"
         class="nav-link nav-create"
@@ -403,6 +499,7 @@
 
 
       <!-- Cart -->
+
       <a
         href="#"
         class="nav-link"
@@ -434,6 +531,7 @@
 
 
       <!-- Account -->
+
       <a
         href="#"
         class="nav-link"
@@ -455,12 +553,9 @@
 
       </a>
 
-
     </nav>
 
-
   </div>
-
 
 
   <!-- =====================================================
@@ -477,9 +572,11 @@
     <div class="side-menu-inner">
 
 
-      <!-- Top -->
-      <div class="side-menu-top">
+      <!-- ===============================================
+           Sidebar top
+           =============================================== -->
 
+      <div class="side-menu-top">
 
         <div class="side-menu-brand">
 
@@ -487,8 +584,8 @@
             src="assets/logo.png"
             alt="Pasar UMKM Lubuklinggau"
             class="side-menu-logo"
-            width="138"
-            height="72"
+            width="150"
+            height="74"
             decoding="async"
           >
 
@@ -510,19 +607,22 @@
 
         </button>
 
-
       </div>
 
 
+      <!-- ===============================================
+           Account status
+           =============================================== -->
 
-      <!-- Account status -->
       <section
         class="side-account"
         id="sideAccount"
         aria-label="Akun pengguna"
       >
 
-        <!-- Default: belum login -->
+
+        <!-- Guest -->
+
         <div
           class="side-account-guest"
           id="sideAccountGuest"
@@ -539,7 +639,8 @@
             </strong>
 
             <p class="side-account-text">
-              Masuk untuk menyimpan favorit, berbelanja, dan mengelola toko.
+              Masuk untuk menyimpan favorit, berbelanja,
+              dan mengelola toko.
             </p>
 
           </div>
@@ -565,7 +666,8 @@
         </div>
 
 
-        <!-- Logged in state, hidden until JS activates -->
+        <!-- Logged in -->
+
         <div
           class="side-account-user"
           id="sideAccountUser"
@@ -646,12 +748,13 @@
 
         </div>
 
-
       </section>
 
 
+      <!-- ===============================================
+           Dynamic menu
+           =============================================== -->
 
-      <!-- Menu content -->
       <div
         class="side-menu-content"
         id="sideMenuContent"
@@ -660,49 +763,34 @@
       </div>
 
 
-      <!-- Institutional footer -->
+      <!-- ===============================================
+           Sidebar footer
+           No institutional logos here
+           =============================================== -->
+
       <footer class="side-menu-footer">
 
-        <div class="side-menu-footer-logos">
-
-          <img
-            src="assets/branding/logo-hipmi-pt.png"
-            alt="HIPMI PT UIN Al Azhaar Lubuklinggau"
-            class="side-footer-logo side-footer-logo-hipmi"
-            width="46"
-            height="46"
-            loading="lazy"
-            decoding="async"
-          >
-
-          <img
-            src="assets/branding/logo-uin-alazhaar.png"
-            alt="Universitas Islam Nusantara Al-Azhaar Lubuklinggau"
-            class="side-footer-logo"
-            width="42"
-            height="42"
-            loading="lazy"
-            decoding="async"
-          >
-
-        </div>
-
+        <span class="side-footer-eyebrow">
+          PASAR UMKM
+        </span>
 
         <p class="side-menu-footer-label">
-          Sebuah inisiatif dari
+          Inisiatif HIPMI PT
         </p>
 
         <strong class="side-menu-footer-name">
-          HIPMI PT UIN Al Azhaar Lubuklinggau
+          UIN Al Azhaar Lubuklinggau
         </strong>
 
-      </footer>
+        <span class="side-menu-copyright">
+          © 2026 Pasar UMKM
+        </span>
 
+      </footer>
 
     </div>
 
   </aside>
-
 
 
   <!-- =====================================================
@@ -754,7 +842,6 @@
       </div>
 
 
-
       <div class="search-input-wrap">
 
         <i
@@ -770,6 +857,7 @@
           placeholder="Cari produk, UMKM, kategori..."
           aria-label="Cari produk atau UMKM"
         >
+
 
         <button
           type="button"
@@ -789,7 +877,6 @@
       </div>
 
 
-
       <div
         class="search-results"
         id="searchResults"
@@ -798,15 +885,13 @@
         <!-- Rendered by JS -->
       </div>
 
-
     </div>
 
   </section>
 
 
-
   <!-- =====================================================
-       BOTTOM SHEET OVERLAY
+       SHEET OVERLAY
        ===================================================== -->
 
   <div
@@ -815,7 +900,6 @@
     aria-hidden="true"
     hidden
   ></div>
-
 
 
   <!-- =====================================================
@@ -847,7 +931,6 @@
   </section>
 
 
-
   <!-- =====================================================
        TOAST
        ===================================================== -->
@@ -861,10 +944,9 @@
   ></div>
 
 
-
   <!-- =====================================================
-       APP LOADING
-       hanya dipakai bila ada proses nyata.
+       LOADING
+       only for real processes
        ===================================================== -->
 
   <div
@@ -880,7 +962,6 @@
     ></div>
 
   </div>
-
 
 
   <!-- =====================================================
