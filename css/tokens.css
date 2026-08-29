@@ -1,14 +1,14 @@
 /* =========================================================
    PASAR UMKM
-   DESIGN TOKENS v5.0
-   Local Commerce Editorial System
+   DESIGN TOKENS v6.0
+   Marketplace UI System
    ========================================================= */
 
 :root {
 
 
   /* =======================================================
-     01. BRAND — FOREST
+     01. BRAND — FOREST GREEN
      ======================================================= */
 
   --forest-950: #06291d;
@@ -45,174 +45,195 @@
      03. COMMERCE ACCENT
      ======================================================= */
 
-  --sunset-900: #773311;
-  --sunset-800: #924017;
-  --sunset-700: #ad4b1d;
-  --sunset-600: #c85b26;
-  --sunset-500: #df713b;
-  --sunset-400: #eb8f63;
-  --sunset-300: #f2af91;
-  --sunset-200: #f8cdbb;
-  --sunset-100: #fbe7de;
-  --sunset-50: #fff5f0;
+  --commerce-900: #7a3218;
+  --commerce-800: #933c1c;
+  --commerce-700: #ad4a22;
+  --commerce-600: #c85b2b;
+  --commerce-500: #df7040;
+  --commerce-400: #eb8f68;
+  --commerce-300: #f2af93;
+  --commerce-200: #f8cebd;
+  --commerce-100: #fbe8df;
+  --commerce-50: #fff6f1;
 
 
   /* =======================================================
-     04. PAPER / NEUTRALS
+     04. NEUTRALS
      ======================================================= */
 
-  --paper-0: #ffffff;
-  --paper-25: #fefdf9;
-  --paper-50: #fbfaf5;
-  --paper-100: #f6f3ea;
-  --paper-150: #f1eee4;
-  --paper-200: #e9e5db;
-  --paper-300: #dad5c9;
+  --white: #ffffff;
 
-  --ink-950: #111713;
-  --ink-900: #172019;
-  --ink-800: #263028;
-  --ink-700: #3d473f;
-  --ink-600: #58615a;
-  --ink-500: #747c75;
-  --ink-400: #939a94;
-  --ink-300: #b2b7b3;
-  --ink-200: #cfd3cf;
-  --ink-100: #e6e8e6;
-  --ink-50: #f4f5f4;
+  --neutral-950: #111612;
+  --neutral-900: #181d19;
+  --neutral-850: #202621;
+  --neutral-800: #2c332d;
+  --neutral-700: #414942;
+  --neutral-600: #59615a;
+  --neutral-500: #737b74;
+  --neutral-400: #929992;
+  --neutral-300: #b0b6b1;
+  --neutral-250: #c1c6c2;
+  --neutral-200: #d1d5d2;
+  --neutral-150: #e0e3e0;
+  --neutral-100: #e9ebe9;
+  --neutral-75: #f0f1f0;
+  --neutral-50: #f5f6f5;
+  --neutral-25: #fafbfa;
 
 
   /* =======================================================
-     05. SEMANTIC SURFACES
+     05. WARM MARKETPLACE BACKGROUND
      ======================================================= */
 
-  --surface-page: var(--paper-50);
-  --surface-primary: var(--paper-0);
-  --surface-secondary: var(--paper-25);
-  --surface-soft: var(--paper-100);
-  --surface-muted: var(--paper-150);
+  --cream-100: #f4f1e8;
+  --cream-75: #f7f5ef;
+  --cream-50: #faf9f5;
+  --cream-25: #fdfcf9;
+
+
+  /* =======================================================
+     06. SEMANTIC SURFACES
+     ======================================================= */
+
+  --surface-page: var(--cream-50);
+  --surface-primary: var(--white);
+  --surface-secondary: var(--neutral-25);
+  --surface-soft: var(--neutral-50);
+  --surface-muted: var(--cream-75);
 
   --surface-brand-soft: var(--forest-50);
   --surface-brand-muted: var(--forest-100);
 
   --surface-gold-soft: var(--gold-50);
-  --surface-gold-muted: var(--gold-100);
-
-  --surface-commerce-soft: var(--sunset-50);
+  --surface-commerce-soft: var(--commerce-50);
 
   --surface-dark: var(--forest-950);
-  --surface-overlay: rgba(6, 41, 29, 0.42);
-  --surface-overlay-heavy: rgba(7, 18, 12, 0.68);
+
+  --surface-overlay:
+    rgba(8, 25, 17, 0.42);
+
+  --surface-overlay-heavy:
+    rgba(7, 18, 12, 0.66);
 
 
   /* =======================================================
-     06. TEXT
+     07. TEXT
      ======================================================= */
 
-  --text-primary: var(--ink-950);
-  --text-secondary: var(--ink-700);
-  --text-tertiary: var(--ink-500);
-  --text-muted: var(--ink-400);
+  --text-primary: var(--neutral-950);
+  --text-secondary: var(--neutral-700);
+  --text-tertiary: var(--neutral-500);
+  --text-muted: var(--neutral-400);
+
+  --text-brand: var(--forest-700);
+  --text-brand-strong: var(--forest-900);
+
+  --text-commerce: var(--commerce-700);
+  --text-gold: var(--gold-700);
+
   --text-inverse: #ffffff;
 
-  --text-brand: var(--forest-800);
-  --text-brand-strong: var(--forest-950);
 
-  --text-gold: var(--gold-700);
-  --text-commerce: var(--sunset-700);
+  /* =======================================================
+     08. BORDER
+     ======================================================= */
+
+  --border-subtle:
+    rgba(24, 29, 25, 0.07);
+
+  --border-soft:
+    rgba(24, 29, 25, 0.11);
+
+  --border-default:
+    rgba(24, 29, 25, 0.16);
+
+  --border-strong:
+    rgba(24, 29, 25, 0.23);
+
+  --border-brand-soft:
+    rgba(18, 96, 63, 0.13);
+
+  --border-brand:
+    rgba(18, 96, 63, 0.24);
+
+  --border-gold-soft:
+    rgba(168, 121, 16, 0.18);
 
 
   /* =======================================================
-     07. BORDERS
+     09. STATUS COLORS
      ======================================================= */
 
-  --border-subtle: rgba(23, 32, 25, 0.07);
-  --border-soft: rgba(23, 32, 25, 0.11);
-  --border-default: rgba(23, 32, 25, 0.16);
-  --border-strong: rgba(23, 32, 25, 0.24);
+  --success-700: #147247;
+  --success-100: #e4f4eb;
 
-  --border-brand-soft: rgba(18, 96, 63, 0.13);
-  --border-brand: rgba(18, 96, 63, 0.24);
+  --warning-700: #956200;
+  --warning-100: #fff3d7;
 
-  --border-gold-soft: rgba(168, 121, 16, 0.18);
-
-
-  /* =======================================================
-     08. STATUS COLORS
-     ======================================================= */
-
-  --success-700: #157347;
-  --success-100: #e2f3e9;
-
-  --warning-700: #9a6500;
-  --warning-100: #fff3d6;
-
-  --danger-700: #b23a2d;
+  --danger-700: #b43c30;
   --danger-100: #fde9e6;
 
-  --info-700: #32617e;
-  --info-100: #e7f1f7;
+  --info-700: #326581;
+  --info-100: #e8f1f6;
 
 
   /* =======================================================
-     09. SHADOWS
-     intentionally varied
+     10. TYPOGRAPHY
+     Marketplace-style
      ======================================================= */
 
-  --shadow-xs:
-    0 1px 2px rgba(13, 31, 21, 0.04);
+  --font-ui:
+    'Plus Jakarta Sans',
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
 
-  --shadow-sm:
-    0 3px 10px rgba(13, 31, 21, 0.06);
-
-  --shadow-md:
-    0 8px 24px rgba(13, 31, 21, 0.08);
-
-  --shadow-lg:
-    0 18px 46px rgba(13, 31, 21, 0.12);
-
-  --shadow-xl:
-    0 26px 72px rgba(7, 24, 15, 0.16);
-
-  --shadow-floating:
-    0 10px 32px rgba(8, 55, 37, 0.17);
-
-  --shadow-nav:
-    0 -8px 28px rgba(11, 40, 27, 0.07);
-
-  --shadow-sheet:
-    0 -18px 48px rgba(7, 22, 14, 0.16);
-
-  --shadow-gold:
-    0 8px 22px rgba(197, 143, 24, 0.17);
+  --font-display:
+    var(--font-ui);
 
 
-  /* =======================================================
-     10. RADII
-     varied on purpose
-     ======================================================= */
+  /* Font sizes */
 
-  --radius-2xs: 4px;
-  --radius-xs: 6px;
-  --radius-sm: 9px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 22px;
-  --radius-2xl: 28px;
-  --radius-pill: 999px;
-  --radius-circle: 50%;
+  --text-2xs: 9px;
+  --text-xs: 10px;
+  --text-sm: 11px;
+  --text-base: 12px;
+  --text-md: 13px;
+  --text-lg: 14px;
+  --text-xl: 16px;
+  --text-2xl: 18px;
+  --text-3xl: 21px;
+  --text-4xl: 24px;
+  --text-5xl: 30px;
 
-  --radius-editorial-sm:
-    10px 5px 10px 5px;
 
-  --radius-editorial-md:
-    14px 7px 14px 7px;
+  /* Font weights */
 
-  --radius-editorial-lg:
-    18px 8px 18px 8px;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-extrabold: 800;
 
-  --radius-editorial-xl:
-    24px 10px 24px 10px;
+
+  /* Line height */
+
+  --leading-tight: 1.18;
+  --leading-snug: 1.3;
+  --leading-normal: 1.45;
+  --leading-relaxed: 1.58;
+  --leading-loose: 1.72;
+
+
+  /* Letter spacing */
+
+  --tracking-tight: -0.018em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.035em;
+  --tracking-wider: 0.075em;
+  --tracking-caps: 0.11em;
 
 
   /* =======================================================
@@ -238,23 +259,72 @@
 
 
   /* =======================================================
-     12. LAYOUT
+     12. RADII
+     Marketplace-friendly
+     ======================================================= */
+
+  --radius-2xs: 4px;
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-3xl: 24px;
+
+  --radius-pill: 999px;
+  --radius-circle: 50%;
+
+
+  /* =======================================================
+     13. SHADOWS
+     restrained, practical
+     ======================================================= */
+
+  --shadow-xs:
+    0 1px 2px rgba(13, 31, 21, 0.04);
+
+  --shadow-sm:
+    0 2px 8px rgba(13, 31, 21, 0.06);
+
+  --shadow-md:
+    0 6px 20px rgba(13, 31, 21, 0.08);
+
+  --shadow-lg:
+    0 14px 36px rgba(13, 31, 21, 0.11);
+
+  --shadow-xl:
+    0 24px 64px rgba(7, 24, 15, 0.15);
+
+  --shadow-floating:
+    0 8px 28px rgba(8, 55, 37, 0.16);
+
+  --shadow-nav:
+    0 -6px 20px rgba(11, 40, 27, 0.06);
+
+  --shadow-sheet:
+    0 -16px 44px rgba(7, 22, 14, 0.15);
+
+
+  /* =======================================================
+     14. LAYOUT
      ======================================================= */
 
   --content-max-width: 430px;
 
-  --header-height: 58px;
-  --bottom-nav-height: 60px;
+  --header-height: 60px;
+  --bottom-nav-height: 62px;
 
   --page-gutter: 14px;
   --page-gutter-small: 11px;
 
-  --story-size: 58px;
-  --story-avatar-size: 50px;
-
-  --side-menu-width: min(84vw, 330px);
+  --side-menu-width:
+    min(84vw, 330px);
 
   --sheet-max-width: 430px;
+
+  --story-size: 56px;
+  --story-avatar-size: 50px;
 
   --safe-top:
     env(safe-area-inset-top, 0px);
@@ -264,66 +334,121 @@
 
 
   /* =======================================================
-     13. TYPOGRAPHY
+     15. HEADER
      ======================================================= */
 
-  --font-ui:
-    'DM Sans',
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
+  --header-bg:
+    rgba(255, 255, 255, 0.97);
 
-  --font-display:
-    'Fraunces',
-    Georgia,
-    serif;
+  --header-border:
+    rgba(24, 29, 25, 0.07);
 
+  --header-search-bg:
+    var(--neutral-50);
 
-  /* Font sizes */
+  --header-search-border:
+    rgba(24, 29, 25, 0.08);
 
-  --text-2xs: 8px;
-  --text-xs: 9px;
-  --text-sm: 10px;
-  --text-base: 11px;
-  --text-md: 12px;
-  --text-lg: 13px;
-  --text-xl: 15px;
-  --text-2xl: 17px;
-  --text-3xl: 20px;
-  --text-4xl: 24px;
-  --text-5xl: 30px;
-
-
-  /* Font weights */
-
-  --weight-regular: 400;
-  --weight-medium: 500;
-  --weight-semibold: 600;
-  --weight-bold: 700;
-
-
-  /* Line height */
-
-  --leading-tight: 1.15;
-  --leading-snug: 1.3;
-  --leading-normal: 1.45;
-  --leading-relaxed: 1.62;
-  --leading-loose: 1.75;
-
-
-  /* Tracking */
-
-  --tracking-tight: -0.025em;
-  --tracking-normal: 0;
-  --tracking-wide: 0.06em;
-  --tracking-wider: 0.11em;
-  --tracking-caps: 0.13em;
+  --header-search-text:
+    var(--neutral-500);
 
 
   /* =======================================================
-     14. MOTION
+     16. NAVIGATION
+     ======================================================= */
+
+  --nav-bg:
+    rgba(255, 255, 255, 0.98);
+
+  --nav-active-bg:
+    var(--forest-50);
+
+  --nav-active-color:
+    var(--forest-700);
+
+  --nav-inactive-color:
+    var(--neutral-500);
+
+
+  /* =======================================================
+     17. DISCOVERY / HOME HERO
+     ======================================================= */
+
+  --discovery-bg:
+    var(--forest-900);
+
+  --discovery-text:
+    #ffffff;
+
+  --discovery-muted:
+    rgba(255, 255, 255, 0.74);
+
+  --discovery-eyebrow:
+    var(--gold-400);
+
+
+  /* =======================================================
+     18. BUTTONS
+     ======================================================= */
+
+  --button-primary-bg:
+    var(--forest-700);
+
+  --button-primary-hover:
+    var(--forest-800);
+
+  --button-primary-text:
+    #ffffff;
+
+  --button-secondary-bg:
+    var(--white);
+
+  --button-secondary-text:
+    var(--forest-800);
+
+  --button-secondary-border:
+    rgba(255, 255, 255, 0.18);
+
+
+  /* =======================================================
+     19. SHEETS
+     ======================================================= */
+
+  --sheet-bg:
+    var(--white);
+
+  --sheet-handle:
+    var(--neutral-200);
+
+
+  /* =======================================================
+     20. TOAST
+     ======================================================= */
+
+  --toast-bg:
+    var(--neutral-950);
+
+  --toast-text:
+    #ffffff;
+
+
+  /* =======================================================
+     21. MEDIA
+     ======================================================= */
+
+  --media-bg:
+    var(--neutral-100);
+
+  --media-overlay:
+    linear-gradient(
+      180deg,
+      rgba(7, 22, 14, 0) 58%,
+      rgba(7, 22, 14, 0.42) 100%
+    );
+
+
+  /* =======================================================
+     22. MOTION
      ======================================================= */
 
   --ease-standard:
@@ -345,68 +470,27 @@
 
 
   /* =======================================================
-     15. SPLASH
-     logo only
+     23. SPLASH
      ======================================================= */
 
-  --splash-bg: var(--paper-25);
+  --splash-bg:
+    var(--white);
 
   --splash-logo-width:
     clamp(180px, 58vw, 260px);
 
   --splash-enter-duration:
-    720ms;
+    650ms;
 
   --splash-hold-duration:
-    380ms;
+    360ms;
 
   --splash-exit-duration:
-    420ms;
+    380ms;
 
 
   /* =======================================================
-     16. GRADIENTS
-     no purple-blue nonsense
-     ======================================================= */
-
-  --gradient-brand:
-    linear-gradient(
-      135deg,
-      var(--forest-900) 0%,
-      var(--forest-700) 100%
-    );
-
-  --gradient-brand-soft:
-    linear-gradient(
-      180deg,
-      rgba(241, 248, 244, 0.96) 0%,
-      rgba(255, 255, 255, 0.98) 100%
-    );
-
-  --gradient-gold:
-    linear-gradient(
-      135deg,
-      var(--gold-700) 0%,
-      var(--gold-400) 100%
-    );
-
-  --gradient-paper:
-    linear-gradient(
-      180deg,
-      var(--paper-25) 0%,
-      var(--paper-50) 100%
-    );
-
-  --gradient-commerce:
-    linear-gradient(
-      135deg,
-      var(--sunset-700) 0%,
-      var(--sunset-500) 100%
-    );
-
-
-  /* =======================================================
-     17. INTERACTION
+     24. INTERACTION
      ======================================================= */
 
   --tap-scale: 0.97;
@@ -419,72 +503,59 @@
 
 
   /* =======================================================
-     18. Z-INDEX
+     25. Z-INDEX
      ======================================================= */
 
   --z-base: 1;
-
   --z-sticky: 50;
-
   --z-header: 100;
-
   --z-nav: 110;
-
   --z-side-menu: 500;
-
   --z-search: 700;
-
   --z-overlay: 800;
-
   --z-sheet: 900;
-
   --z-toast: 1200;
-
   --z-loading: 1800;
-
   --z-splash: 2500;
 
 
   /* =======================================================
-     19. MEDIA
+     26. GRADIENTS
+     subtle and functional only
      ======================================================= */
 
-  --media-bg: #e9ece8;
+  --gradient-brand:
+    linear-gradient(
+      135deg,
+      var(--forest-800) 0%,
+      var(--forest-600) 100%
+    );
 
-  --media-overlay:
+  --gradient-brand-soft:
     linear-gradient(
       180deg,
-      rgba(7, 22, 14, 0) 55%,
-      rgba(7, 22, 14, 0.42) 100%
+      var(--forest-50) 0%,
+      var(--white) 100%
+    );
+
+  --gradient-gold:
+    linear-gradient(
+      135deg,
+      var(--gold-700) 0%,
+      var(--gold-400) 100%
+    );
+
+  --gradient-commerce:
+    linear-gradient(
+      135deg,
+      var(--commerce-700) 0%,
+      var(--commerce-500) 100%
     );
 
 
   /* =======================================================
-     20. COMPONENT SEMANTICS
-     ======================================================= */
-
-  --header-bg:
-    rgba(255, 255, 255, 0.94);
-
-  --header-border:
-    rgba(23, 32, 25, 0.07);
-
-  --nav-bg:
-    rgba(255, 255, 255, 0.97);
-
-  --sheet-bg:
-    var(--paper-0);
-
-  --toast-bg:
-    var(--forest-950);
-
-  --toast-text:
-    #ffffff;
-
-
-  /* =======================================================
-     21. LEGACY / COMPATIBILITY ALIASES
-     keeps old JS/CSS from exploding while refactoring
+     27. COMPATIBILITY ALIASES
+     keeps previous CSS/JS from immediately breaking
      ======================================================= */
 
   --bg-primary:
@@ -518,20 +589,19 @@
     var(--shadow-lg);
 
   --radius-card:
-    var(--radius-editorial-md);
+    var(--radius-lg);
 
   --radius-button:
-    var(--radius-editorial-sm);
+    var(--radius-md);
 
   --radius-modal:
-    var(--radius-editorial-xl);
+    var(--radius-2xl);
 
 }
 
 
 /* =========================================================
    ACCESSIBILITY
-   Reduced motion
    ========================================================= */
 
 @media
