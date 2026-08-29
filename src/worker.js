@@ -484,6 +484,59 @@ export default {
     }
 
     // ==========================================
+    // AUTH - LOGOUT
+    // ==========================================
+    if (
+      url.pathname === "/api/auth/logout" &&
+      request.method === "POST"
+    ) {
+      try {
+        const sessionToken = getCookie(
+          request,
+          "__Host-pasar_umkm_session"
+        );
+
+        if (sessionToken) {
+          const sql = neon(env.DATABASE_URL);
+
+          await sql`
+            DELETE FROM sessions
+            WHERE token_hash = encode(
+              digest(${sessionToken}, 'sha256'),
+              'hex'
+            )
+          `;
+        }
+
+        return Response.json(
+          {
+            ok: true,
+            message: "Logout berhasil."
+          },
+          {
+            status: 200,
+            headers: {
+              "Cache-Control": "no-store",
+              "Set-Cookie":
+                "__Host-pasar_umkm_session=; " +
+                "Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0"
+            }
+          }
+        );
+      } catch (error) {
+        console.error("Logout error:", error);
+
+        return Response.json(
+          {
+            ok: false,
+            error: "Terjadi kesalahan saat logout."
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+    // ==========================================
     // API TIDAK DITEMUKAN
     // ==========================================
     if (url.pathname.startsWith("/api/")) {
