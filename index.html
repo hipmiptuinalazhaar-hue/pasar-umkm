@@ -11,54 +11,19 @@
 
   <meta
     name="theme-color"
-    content="#0f5f41"
-  >
-
-  <meta
-    name="color-scheme"
-    content="light"
+    content="#083725"
   >
 
   <meta
     name="description"
-    content="Pasar UMKM adalah social marketplace untuk menemukan, mendukung, dan membeli produk UMKM lokal Lubuklinggau."
+    content="Pasar UMKM Lubuklinggau, platform digital untuk menemukan produk, layanan, dan usaha lokal."
   >
 
-  <meta
-    name="keywords"
-    content="Pasar UMKM, UMKM Lubuklinggau, marketplace lokal, produk lokal, HIPMI PT UIN Al Azhaar Lubuklinggau"
-  >
+  <title>Pasar UMKM Lubuklinggau</title>
 
-  <meta
-    name="author"
-    content="Pasar UMKM"
-  >
-
-  <meta
-    name="application-name"
-    content="Pasar UMKM"
-  >
-
-  <meta
-    name="apple-mobile-web-app-capable"
-    content="yes"
-  >
-
-  <meta
-    name="apple-mobile-web-app-status-bar-style"
-    content="default"
-  >
-
-  <meta
-    name="apple-mobile-web-app-title"
-    content="Pasar UMKM"
-  >
-
-  <title>Pasar UMKM — Lubuklinggau</title>
 
   <!-- =====================================================
        FONT
-       Marketplace-style typography
        ===================================================== -->
 
   <link
@@ -77,17 +42,16 @@
     rel="stylesheet"
   >
 
+
   <!-- =====================================================
        ICONS
        ===================================================== -->
 
-  <script
-    src="https://unpkg.com/@phosphor-icons/web"
-    defer
-  ></script>
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
 
   <!-- =====================================================
-       STYLES
+       CSS
        ===================================================== -->
 
   <link
@@ -108,178 +72,157 @@
 
   <!-- =====================================================
        SPLASH
-       Logo only
        ===================================================== -->
 
-  <section
-    class="splash-intro"
+  <div
     id="splashIntro"
-    aria-label="Membuka Pasar UMKM"
+    class="splash-intro"
+    aria-hidden="true"
   >
 
-    <div
-      class="splash-stage"
-      aria-hidden="true"
-    >
+    <div class="splash-content">
 
       <img
         src="assets/logo.png"
-        alt=""
+        alt="Pasar UMKM"
         class="splash-logo"
-        width="260"
-        height="180"
-        decoding="async"
       >
+
+      <div
+        class="splash-loader"
+        aria-hidden="true"
+      ></div>
 
     </div>
 
-  </section>
+  </div>
 
 
   <!-- =====================================================
        APP
        ===================================================== -->
 
-  <div
-    class="app"
-    id="app"
-  >
+  <div class="app">
 
 
     <!-- ===================================================
          HEADER
-         Logo + Search Compact + Actions
          =================================================== -->
 
     <header
-      class="app-header"
       id="header"
+      class="app-header"
     >
 
-      <div class="header-main">
+
+      <!-- MENU -->
+
+      <button
+        id="menuButton"
+        class="header-icon-button"
+        type="button"
+        data-action="menu"
+        aria-label="Buka menu"
+      >
+
+        <i
+          class="ph ph-list"
+          aria-hidden="true"
+        ></i>
+
+      </button>
 
 
-        <!-- Menu -->
+      <!-- BRAND -->
+
+      <a
+        href="#"
+        class="header-brand"
+        data-nav="home"
+        aria-label="Pasar UMKM"
+      >
+
+        <img
+          src="assets/logo.png"
+          alt="Pasar UMKM"
+          class="header-logo"
+        >
+
+      </a>
+
+
+      <!-- SEARCH -->
+
+      <button
+        id="headerSearchButton"
+        class="header-search"
+        type="button"
+        data-action="search"
+        aria-label="Cari produk dan UMKM"
+      >
+
+        <i
+          class="ph ph-magnifying-glass"
+          aria-hidden="true"
+        ></i>
+
+        <span>
+          Cari produk & UMKM...
+        </span>
+
+      </button>
+
+
+      <!-- HEADER ACTIONS -->
+
+      <div class="header-actions">
+
+
+        <!-- NOTIFICATION -->
 
         <button
+          id="notificationButton"
+          class="header-icon-button"
           type="button"
-          class="header-btn header-menu-btn"
-          id="menuButton"
-          data-action="menu"
-          aria-label="Buka menu"
-          aria-controls="sideMenu"
-          aria-expanded="false"
+          data-action="notifications"
+          aria-label="Notifikasi"
         >
 
           <i
-            class="ph ph-list"
+            class="ph ph-bell"
             aria-hidden="true"
           ></i>
+
+          <span
+            class="badge-dot"
+            hidden
+          ></span>
 
         </button>
 
 
-        <!-- Logo -->
-
-        <a
-          href="#"
-          class="brand brand-logo-only"
-          data-nav="home"
-          aria-label="Pasar UMKM, kembali ke beranda"
-        >
-
-          <img
-            src="assets/logo.png"
-            alt="Pasar UMKM Lubuklinggau"
-            class="brand-logo"
-            width="108"
-            height="52"
-            fetchpriority="high"
-            decoding="async"
-          >
-
-        </a>
-
-
-        <!-- Compact Search -->
+        <!-- MESSAGE -->
 
         <button
+          id="messageButton"
+          class="header-icon-button"
           type="button"
-          class="header-search"
-          id="headerSearchButton"
-          data-action="search"
-          aria-label="Cari produk atau UMKM"
+          data-action="messages"
+          aria-label="Pesan"
         >
 
           <i
-            class="ph ph-magnifying-glass"
+            class="ph ph-chat-circle"
             aria-hidden="true"
           ></i>
 
-          <span class="header-search-text">
-            Cari UMKM...
-          </span>
+          <span
+            class="badge-dot"
+            hidden
+          ></span>
 
         </button>
 
-
-        <!-- Header actions -->
-
-        <div class="header-actions">
-
-
-          <!-- Notifications -->
-
-          <button
-            type="button"
-            class="header-btn has-counter"
-            id="notificationButton"
-            data-action="notifications"
-            aria-label="Notifikasi"
-          >
-
-            <i
-              class="ph ph-bell"
-              aria-hidden="true"
-            ></i>
-
-            <span
-              class="badge-dot"
-              aria-hidden="true"
-              hidden
-            >
-              0
-            </span>
-
-          </button>
-
-
-          <!-- Messages -->
-
-          <button
-            type="button"
-            class="header-btn has-counter"
-            id="messageButton"
-            data-action="messages"
-            aria-label="Pesan"
-          >
-
-            <i
-              class="ph ph-chat-circle"
-              aria-hidden="true"
-            ></i>
-
-            <span
-              class="badge-dot"
-              aria-hidden="true"
-              hidden
-            >
-              0
-            </span>
-
-          </button>
-
-        </div>
 
       </div>
 
@@ -287,100 +230,113 @@
 
 
     <!-- ===================================================
-         MAIN
+         MAIN CONTENT
          =================================================== -->
 
-    <main
-      class="app-main"
-      id="mainContent"
-    >
+    <main class="app-main">
 
 
-      <!-- ===============================================
+      <!-- =================================================
            STORIES
-           JS dapat menyembunyikan section ini jika kosong
-           =============================================== -->
+           Automatically hidden by JS if empty
+           ================================================= -->
 
       <section
-        class="stories-section"
         id="storiesSection"
-        aria-label="Cerita UMKM"
+        class="stories-section"
+        hidden
       >
 
         <div
-          class="stories-track"
           id="stories"
-        >
-          <!-- Rendered by JS -->
-        </div>
+          class="stories"
+        ></div>
 
       </section>
 
 
-      <!-- ===============================================
-           HOME DISCOVERY
-           Tetap berguna meski feed kosong
-           =============================================== -->
+      <!-- =================================================
+           DISCOVERY / HERO
+           ================================================= -->
 
       <section
-        class="home-discovery"
         id="homeDiscovery"
+        class="home-discovery"
       >
+
+
+        <!-- HERO -->
 
         <div class="discovery-card">
 
-          <div class="discovery-copy">
+          <p class="discovery-eyebrow">
+            PASAR UMKM LUBUKLINGGAU
+          </p>
 
-            <span class="discovery-eyebrow">
-              PASAR UMKM LUBUKLINGGAU
-            </span>
 
-            <h1 class="discovery-title">
-              Temukan usaha lokal di sekitarmu.
-            </h1>
+          <h1 class="discovery-title">
+            Temukan usaha lokal di sekitarmu.
+          </h1>
 
-            <p class="discovery-text">
-              Jelajahi produk dan UMKM lokal dalam satu tempat.
-            </p>
 
-          </div>
+          <p class="discovery-text">
+            Jelajahi produk dan UMKM lokal dalam satu tempat.
+          </p>
 
 
           <div class="discovery-actions">
+
 
             <button
               type="button"
               class="btn-primary"
               data-menu-action="stores"
             >
+
+              <i
+                class="ph ph-storefront"
+                aria-hidden="true"
+              ></i>
+
               Jelajahi UMKM
+
             </button>
+
 
             <button
               type="button"
               class="btn-secondary"
               data-action="sell"
             >
+
+              <i
+                class="ph ph-plus-circle"
+                aria-hidden="true"
+              ></i>
+
               Mulai Jual
+
             </button>
+
 
           </div>
 
         </div>
 
 
-        <!-- Quick categories -->
+        <!-- CATEGORY HEADER -->
 
         <div class="home-section-head">
 
-          <h2 class="home-section-title">
+          <h2>
             Kategori
           </h2>
 
+
           <button
             type="button"
-            class="home-section-link"
-            data-nav="categories"
+            class="section-link"
+            data-action="all-categories"
           >
             Lihat semua
           </button>
@@ -388,27 +344,33 @@
         </div>
 
 
+        <!--
+          Hanya 4 kategori utama dirender JS:
+          Kuliner
+          Fashion
+          Jasa
+          Finance
+        -->
+
         <div
-          class="quick-categories"
           id="quickCategories"
-        >
-          <!-- Rendered by JS -->
-        </div>
+          class="quick-categories"
+        ></div>
+
 
       </section>
 
 
-      <!-- ===============================================
+      <!-- =================================================
            FEED
-           =============================================== -->
+           ================================================= -->
 
       <section
-        class="feed"
         id="feed"
+        class="feed"
         aria-live="polite"
-      >
-        <!-- Rendered by JS -->
-      </section>
+      ></section>
+
 
     </main>
 
@@ -418,71 +380,65 @@
          =================================================== -->
 
     <nav
-      class="app-nav"
       id="appNavigation"
+      class="app-navigation"
       aria-label="Navigasi utama"
     >
 
 
-      <!-- Home -->
+      <!-- HOME -->
 
-      <a
-        href="#"
-        class="nav-link active"
+      <button
+        type="button"
+        class="nav-item active"
         data-nav="home"
+        aria-label="Beranda"
         aria-current="page"
       >
 
-        <span class="nav-icon-wrap">
+        <i
+          class="ph-fill ph-house"
+          aria-hidden="true"
+        ></i>
 
-          <i
-            class="ph-fill ph-house"
-            aria-hidden="true"
-          ></i>
-
-        </span>
-
-        <span class="nav-label">
+        <span>
           Beranda
         </span>
 
-      </a>
+      </button>
 
 
-      <!-- Categories -->
+      <!-- CATEGORY -->
 
-      <a
-        href="#"
-        class="nav-link"
+      <button
+        type="button"
+        class="nav-item"
         data-nav="categories"
+        aria-label="Kategori"
       >
 
-        <span class="nav-icon-wrap">
+        <i
+          class="ph ph-squares-four"
+          aria-hidden="true"
+        ></i>
 
-          <i
-            class="ph ph-squares-four"
-            aria-hidden="true"
-          ></i>
-
-        </span>
-
-        <span class="nav-label">
+        <span>
           Kategori
         </span>
 
-      </a>
+      </button>
 
 
-      <!-- Sell -->
+      <!-- SELL -->
 
-      <a
-        href="#"
-        class="nav-link nav-create"
+      <button
+        type="button"
+        class="nav-item nav-item-create"
         data-nav="sell"
         aria-label="Mulai jual"
       >
 
-        <span class="create-btn">
+        <span class="nav-create-icon">
 
           <i
             class="ph ph-plus"
@@ -491,69 +447,62 @@
 
         </span>
 
-        <span class="nav-label">
+        <span>
           Jual
         </span>
 
-      </a>
+      </button>
 
 
-      <!-- Cart -->
+      <!-- CART -->
 
-      <a
-        href="#"
-        class="nav-link"
+      <button
+        type="button"
+        class="nav-item"
         data-nav="cart"
+        aria-label="Keranjang"
       >
 
-        <span class="nav-icon-wrap">
+        <i
+          class="ph ph-shopping-cart-simple"
+          aria-hidden="true"
+        ></i>
 
-          <i
-            class="ph ph-shopping-cart-simple"
-            aria-hidden="true"
-          ></i>
-
-          <span
-            class="nav-badge"
-            aria-hidden="true"
-            hidden
-          >
-            0
-          </span>
-
-        </span>
-
-        <span class="nav-label">
+        <span>
           Keranjang
         </span>
 
-      </a>
+        <span
+          class="nav-badge"
+          hidden
+        ></span>
+
+      </button>
 
 
-      <!-- Account -->
+      <!-- ACCOUNT -->
 
-      <a
-        href="#"
-        class="nav-link"
+      <button
+        type="button"
+        class="nav-item"
         data-nav="account"
+        aria-label="Akun"
       >
 
-        <span class="nav-icon-wrap">
+        <i
+          class="ph ph-user"
+          aria-hidden="true"
+        ></i>
 
-          <i
-            class="ph ph-user-circle"
-            aria-hidden="true"
-          ></i>
-
-        </span>
-
-        <span class="nav-label">
+        <span>
           Akun
         </span>
 
-      </a>
+      </button>
+
 
     </nav>
+
 
   </div>
 
@@ -562,40 +511,35 @@
        SIDE MENU
        ===================================================== -->
 
-  <aside
-    class="side-menu"
+  <div
     id="sideMenu"
-    aria-hidden="true"
+    class="side-menu-overlay"
     hidden
+    aria-hidden="true"
   >
 
-    <div class="side-menu-inner">
+    <aside
+      class="side-menu-panel"
+      aria-label="Menu Pasar UMKM"
+    >
 
 
-      <!-- ===============================================
-           Sidebar top
-           =============================================== -->
+      <!-- SIDEBAR HEADER -->
 
-      <div class="side-menu-top">
+      <div class="side-menu-head">
 
-        <div class="side-menu-brand">
 
-          <img
-            src="assets/logo.png"
-            alt="Pasar UMKM Lubuklinggau"
-            class="side-menu-logo"
-            width="150"
-            height="74"
-            decoding="async"
-          >
-
-        </div>
+        <img
+          src="assets/logo.png"
+          alt="Pasar UMKM"
+          class="side-menu-logo"
+        >
 
 
         <button
-          type="button"
-          class="header-btn"
           id="closeMenuButton"
+          class="side-menu-close"
+          type="button"
           data-action="close-menu"
           aria-label="Tutup menu"
         >
@@ -607,215 +551,173 @@
 
         </button>
 
+
       </div>
 
 
-      <!-- ===============================================
-           Account status
-           =============================================== -->
+      <!-- =================================================
+           GUEST ACCOUNT
+           ================================================= -->
 
       <section
+        id="sideAccountGuest"
         class="side-account"
-        id="sideAccount"
-        aria-label="Akun pengguna"
       >
 
+        <p class="side-account-guest-title">
+          Selamat datang
+        </p>
 
-        <!-- Guest -->
 
-        <div
-          class="side-account-guest"
-          id="sideAccountGuest"
+        <p class="side-account-guest-text">
+          Masuk untuk belanja, menyimpan produk, dan mengelola UMKM.
+        </p>
+
+
+        <button
+          type="button"
+          class="btn-primary"
+          data-action="login"
         >
-
-          <div class="side-account-copy">
-
-            <span class="side-account-eyebrow">
-              Akun
-            </span>
-
-            <strong class="side-account-title">
-              Belum masuk
-            </strong>
-
-            <p class="side-account-text">
-              Masuk untuk menyimpan favorit, berbelanja,
-              dan mengelola toko.
-            </p>
-
-          </div>
-
-
-          <button
-            type="button"
-            class="side-account-login"
-            data-action="login"
-          >
-
-            <i
-              class="ph ph-sign-in"
-              aria-hidden="true"
-            ></i>
-
-            <span>
-              Masuk / Daftar
-            </span>
-
-          </button>
-
-        </div>
-
-
-        <!-- Logged in -->
-
-        <div
-          class="side-account-user"
-          id="sideAccountUser"
-          hidden
-        >
-
-          <div class="side-account-user-main">
-
-            <div class="side-account-avatar">
-
-              <i
-                class="ph ph-user"
-                aria-hidden="true"
-              ></i>
-
-            </div>
-
-
-            <div class="side-account-user-info">
-
-              <strong
-                class="side-account-user-name"
-                id="sideAccountUserName"
-              >
-                Pengguna
-              </strong>
-
-              <span
-                class="side-account-user-role"
-                id="sideAccountUserRole"
-              >
-                Pembeli
-              </span>
-
-            </div>
-
-          </div>
-
-
-          <div class="side-account-user-actions">
-
-            <button
-              type="button"
-              class="side-account-action"
-              data-menu-action="profile"
-            >
-
-              <i
-                class="ph ph-user-circle"
-                aria-hidden="true"
-              ></i>
-
-              <span>
-                Profil Saya
-              </span>
-
-            </button>
-
-
-            <button
-              type="button"
-              class="side-account-action side-account-action-danger"
-              data-action="logout"
-            >
-
-              <i
-                class="ph ph-sign-out"
-                aria-hidden="true"
-              ></i>
-
-              <span>
-                Keluar
-              </span>
-
-            </button>
-
-          </div>
-
-        </div>
+          Masuk / Daftar
+        </button>
 
       </section>
 
 
-      <!-- ===============================================
-           Dynamic menu
-           =============================================== -->
+      <!-- =================================================
+           LOGGED USER ACCOUNT
+           ================================================= -->
 
-      <div
-        class="side-menu-content"
-        id="sideMenuContent"
+      <section
+        id="sideAccountUser"
+        class="side-account"
+        hidden
       >
-        <!-- Rendered by JS -->
-      </div>
+
+        <div class="side-account-user-main">
 
 
-      <!-- ===============================================
-           Sidebar footer
-           No institutional logos here
-           =============================================== -->
+          <div class="side-account-avatar">
+
+            <i
+              class="ph ph-user"
+              aria-hidden="true"
+            ></i>
+
+          </div>
+
+
+          <div class="side-account-user-info">
+
+            <strong
+              id="sideAccountUserName"
+              class="side-account-user-name"
+            >
+              Pengguna
+            </strong>
+
+
+            <span
+              id="sideAccountUserRole"
+              class="side-account-user-role"
+            >
+              Pembeli
+            </span>
+
+          </div>
+
+
+        </div>
+
+
+        <button
+          type="button"
+          class="menu-sheet-btn"
+          data-action="logout"
+          style="margin-top:10px;"
+        >
+
+          <i
+            class="ph ph-sign-out"
+            aria-hidden="true"
+          ></i>
+
+          Keluar
+
+        </button>
+
+      </section>
+
+
+      <!-- =================================================
+           DYNAMIC MENU
+           Filled by JS
+           ================================================= -->
+
+      <nav
+        id="sideMenuContent"
+        class="side-menu-content"
+        aria-label="Menu samping"
+      ></nav>
+
+
+      <!-- =================================================
+           SIDEBAR FOOTER
+           ================================================= -->
 
       <footer class="side-menu-footer">
 
-        <span class="side-footer-eyebrow">
+        <div class="side-menu-footer-brand">
           PASAR UMKM
-        </span>
+        </div>
+
 
         <p class="side-menu-footer-label">
           Inisiatif HIPMI PT
         </p>
 
-        <strong class="side-menu-footer-name">
-          UIN Al Azhaar Lubuklinggau
-        </strong>
 
-        <span class="side-menu-copyright">
-          © 2026 Pasar UMKM
+        <span class="side-menu-footer-name">
+          UIN Al Azhaar Lubuklinggau
         </span>
+
+
+        <p class="side-menu-footer-copyright">
+          © 2026 Pasar UMKM
+        </p>
 
       </footer>
 
-    </div>
 
-  </aside>
+    </aside>
+
+  </div>
 
 
   <!-- =====================================================
-       SEARCH
+       SEARCH OVERLAY
        ===================================================== -->
 
-  <section
-    class="search-overlay"
+  <div
     id="searchOverlay"
-    role="dialog"
-    aria-modal="true"
-    aria-hidden="true"
-    aria-labelledby="searchTitle"
+    class="search-overlay"
     hidden
+    aria-hidden="true"
   >
 
-    <div class="search-panel">
+    <div class="search-shell">
 
 
-      <div class="search-panel-header">
+      <!-- SEARCH HEADER -->
+
+      <header class="search-head">
+
 
         <button
-          type="button"
-          class="header-btn"
           id="closeSearchButton"
+          type="button"
+          class="search-close"
           data-action="close-search"
           aria-label="Tutup pencarian"
         >
@@ -828,66 +730,59 @@
         </button>
 
 
-        <div class="search-heading">
+        <div class="search-box">
 
-          <span
-            class="search-eyebrow"
-            id="searchTitle"
-          >
-            Pencarian
-          </span>
-
-        </div>
-
-      </div>
-
-
-      <div class="search-input-wrap">
-
-        <i
-          class="ph ph-magnifying-glass"
-          aria-hidden="true"
-        ></i>
-
-        <input
-          type="search"
-          id="searchInput"
-          autocomplete="off"
-          enterkeyhint="search"
-          placeholder="Cari produk, UMKM, kategori..."
-          aria-label="Cari produk atau UMKM"
-        >
-
-
-        <button
-          type="button"
-          class="search-clear"
-          id="searchClearButton"
-          aria-label="Hapus pencarian"
-          hidden
-        >
 
           <i
-            class="ph ph-x-circle"
+            class="ph ph-magnifying-glass"
             aria-hidden="true"
           ></i>
 
-        </button>
 
-      </div>
+          <input
+            id="searchInput"
+            type="search"
+            inputmode="search"
+            autocomplete="off"
+            placeholder="Cari produk, kategori, atau UMKM..."
+            aria-label="Cari di Pasar UMKM"
+          >
 
+
+          <button
+            id="searchClearButton"
+            type="button"
+            class="search-clear"
+            aria-label="Hapus pencarian"
+            hidden
+          >
+
+            <i
+              class="ph-fill ph-x-circle"
+              aria-hidden="true"
+            ></i>
+
+          </button>
+
+
+        </div>
+
+
+      </header>
+
+
+      <!-- RESULTS -->
 
       <div
-        class="search-results"
         id="searchResults"
+        class="search-results"
         aria-live="polite"
-      >
-        <!-- Rendered by JS -->
-      </div>
+      ></div>
+
 
     </div>
 
-  </section>
+  </div>
 
 
   <!-- =====================================================
@@ -895,10 +790,10 @@
        ===================================================== -->
 
   <div
-    class="sheet-overlay"
     id="sheetOverlay"
-    aria-hidden="true"
+    class="sheet-overlay"
     hidden
+    aria-hidden="true"
   ></div>
 
 
@@ -907,26 +802,18 @@
        ===================================================== -->
 
   <section
-    class="bottom-sheet"
     id="bottomSheet"
+    class="bottom-sheet"
+    hidden
     role="dialog"
     aria-modal="true"
-    aria-hidden="true"
     aria-labelledby="sheetTitle"
-    hidden
   >
 
     <div
-      class="sheet-handle"
-      aria-hidden="true"
-    ></div>
-
-    <div
-      class="sheet-content"
       id="sheetContent"
-    >
-      <!-- Rendered by JS -->
-    </div>
+      class="sheet-content"
+    ></div>
 
   </section>
 
@@ -936,29 +823,27 @@
        ===================================================== -->
 
   <div
-    class="toast"
     id="toast"
+    class="toast"
     role="status"
     aria-live="polite"
-    aria-atomic="true"
   ></div>
 
 
   <!-- =====================================================
        LOADING
-       only for real processes
        ===================================================== -->
 
   <div
-    class="app-loading"
     id="appLoading"
-    aria-hidden="true"
+    class="app-loading"
     hidden
+    aria-hidden="true"
   >
 
     <div
       class="loading-spinner"
-      aria-hidden="true"
+      aria-label="Memuat"
     ></div>
 
   </div>
@@ -975,5 +860,4 @@
 
 
 </body>
-
 </html>
