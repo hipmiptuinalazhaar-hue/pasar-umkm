@@ -1,14 +1,14 @@
 /* =========================================================
    PASAR UMKM
-   APP.JS v5.0
-   Frontend Application Controller
+   APP.JS v6.0
+   Marketplace Frontend Controller
    ========================================================= */
 
 'use strict';
 
 
 /* =========================================================
-   01. CONFIGURATION
+   01. CONFIG
    ========================================================= */
 
 const CONFIG = {
@@ -20,43 +20,27 @@ const CONFIG = {
   ORGANIZATION:
     'HIPMI PT UIN Al Azhaar Lubuklinggau',
 
-  UNIVERSITY:
-    'Universitas Islam Nusantara Al-Azhaar Lubuklinggau',
-
   INITIATOR:
     'Capryan Agusto',
 
-  /*
-   * Production must remain FALSE.
-   *
-   * Demo data is intentionally disabled so a newly launched
-   * marketplace does not pretend to already have likes,
-   * orders, chats or products.
-   */
   DEMO_MODE: false,
 
-  /*
-   * Later replace this with your Cloudflare Worker API.
-   *
-   * Example:
-   * https://api-pasar-umkm.example.workers.dev
-   */
   API_BASE_URL: '',
 
   STORAGE_KEY:
-    'pasarUmkmFrontendStateV5',
+    'pasarUmkmFrontendStateV6',
 
   SESSION_KEY:
-    'pasarUmkmSessionV5',
+    'pasarUmkmSessionV6',
 
   INTRO_SESSION_KEY:
-    'pasarUmkmIntroSeen',
+    'pasarUmkmIntroSeenV6',
 
-  SPLASH_HOLD_MS: 1150,
+  SPLASH_HOLD_MS: 1050,
 
-  SPLASH_EXIT_MS: 420,
+  SPLASH_EXIT_MS: 380,
 
-  TOAST_DURATION: 2400,
+  TOAST_DURATION: 2300,
 
 };
 
@@ -80,98 +64,49 @@ const ASSETS = {
 
 
 /* =========================================================
-   03. DEVELOPMENT DATA
-   Disabled while DEMO_MODE = false.
+   03. BASE CATEGORIES
+   These are navigation categories, not fake activity.
+   ========================================================= */
+
+const BASE_CATEGORIES = [
+
+  {
+    id: 'kuliner',
+    name: 'Kuliner',
+    icon: 'fork-knife',
+  },
+
+  {
+    id: 'fashion',
+    name: 'Fashion',
+    icon: 't-shirt',
+  },
+
+  {
+    id: 'kerajinan',
+    name: 'Kerajinan',
+    icon: 'paint-brush',
+  },
+
+  {
+    id: 'jasa',
+    name: 'Jasa',
+    icon: 'briefcase',
+  },
+
+];
+
+
+/* =========================================================
+   04. DEMO DATA
+   Disabled in production.
    ========================================================= */
 
 const DEMO_DATA = {
 
-  stories: [
+  stories: [],
 
-    {
-      id: 'story-1',
-      name: 'Madi Craft',
-      avatar:
-        'https://images.unsplash.com/photo-1528698827591-e19ccd7bc23d?auto=format&fit=crop&w=300&q=80',
-      hasUpdate: true,
-      live: false,
-    },
-
-    {
-      id: 'story-2',
-      name: 'Maepi Art',
-      avatar:
-        'https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?auto=format&fit=crop&w=300&q=80',
-      hasUpdate: true,
-      live: false,
-    },
-
-  ],
-
-
-  posts: [
-
-    {
-      id: 'post-1',
-
-      store: {
-        id: 'store-1',
-        name: 'Contoh UMKM',
-        avatar:
-          'https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=200&q=80',
-        verified: false,
-      },
-
-      location:
-        'Lubuklinggau',
-
-      createdAt:
-        '2026-08-29T06:00:00+07:00',
-
-      caption:
-        'Contoh tampilan produk untuk pengujian antarmuka.',
-
-      media: {
-        type: 'image',
-        src:
-          'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=80',
-        aspect: 'square',
-      },
-
-      likes: 0,
-
-      comments: 0,
-
-      product: {
-
-        id: 'product-1',
-
-        name:
-          'Produk Contoh',
-
-        image:
-          'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=500&q=80',
-
-        price: 75000,
-
-        originalPrice: null,
-
-        sold: 0,
-
-        rating: null,
-
-        category:
-          'Produk Lokal',
-
-        storeId:
-          'store-1',
-
-      },
-
-    },
-
-  ],
-
+  posts: [],
 
   notifications: [],
 
@@ -181,7 +116,7 @@ const DEMO_DATA = {
 
 
 /* =========================================================
-   04. APPLICATION DATA
+   05. DATA
    ========================================================= */
 
 const DATA = {
@@ -210,7 +145,7 @@ const DATA = {
 
 
 /* =========================================================
-   05. APPLICATION STATE
+   06. STATE
    ========================================================= */
 
 const STATE = {
@@ -254,14 +189,14 @@ const STATE = {
 
 
 /* =========================================================
-   06. DOM CACHE
+   07. DOM CACHE
    ========================================================= */
 
 const DOM = {};
 
 
 /* =========================================================
-   07. INITIALIZATION
+   08. INIT
    ========================================================= */
 
 document.addEventListener(
@@ -313,7 +248,7 @@ async function init() {
 
 
 /* =========================================================
-   08. CACHE DOM
+   09. CACHE DOM
    ========================================================= */
 
 function cacheDOM() {
@@ -328,9 +263,24 @@ function cacheDOM() {
       'header'
     );
 
+  DOM.storiesSection =
+    document.getElementById(
+      'storiesSection'
+    );
+
   DOM.stories =
     document.getElementById(
       'stories'
+    );
+
+  DOM.homeDiscovery =
+    document.getElementById(
+      'homeDiscovery'
+    );
+
+  DOM.quickCategories =
+    document.getElementById(
+      'quickCategories'
     );
 
   DOM.feed =
@@ -378,9 +328,9 @@ function cacheDOM() {
       'sideAccountUserRole'
     );
 
-  DOM.searchButton =
+  DOM.headerSearchButton =
     document.getElementById(
-      'searchButton'
+      'headerSearchButton'
     );
 
   DOM.searchOverlay =
@@ -452,7 +402,7 @@ function cacheDOM() {
 
 
 /* =========================================================
-   09. INITIAL DATA
+   10. INITIAL DATA
    ========================================================= */
 
 async function loadInitialData() {
@@ -461,10 +411,6 @@ async function loadInitialData() {
     return;
   }
 
-  /*
-   * Until API_BASE_URL exists, production starts honestly
-   * with an empty marketplace.
-   */
   if (!CONFIG.API_BASE_URL) {
     return;
   }
@@ -531,7 +477,7 @@ async function loadInitialData() {
 
 
 /* =========================================================
-   10. API CLIENT
+   11. API
    ========================================================= */
 
 async function apiRequest(
@@ -543,12 +489,9 @@ async function apiRequest(
     return null;
   }
 
-  const url =
-    `${CONFIG.API_BASE_URL}${endpoint}`;
-
   const response =
     await fetch(
-      url,
+      `${CONFIG.API_BASE_URL}${endpoint}`,
       {
         credentials:
           'include',
@@ -566,10 +509,9 @@ async function apiRequest(
 
   if (!response.ok) {
 
-    const message =
-      `API error ${response.status}`;
-
-    throw new Error(message);
+    throw new Error(
+      `API error ${response.status}`
+    );
 
   }
 
@@ -594,7 +536,7 @@ async function apiRequest(
 
 
 /* =========================================================
-   11. SPLASH
+   12. SPLASH
    ========================================================= */
 
 function setupSplashIntro() {
@@ -621,16 +563,16 @@ function setupSplashIntro() {
     '1'
   );
 
-  const prefersReducedMotion =
+  const reduced =
     window.matchMedia(
       '(prefers-reduced-motion: reduce)'
     ).matches;
 
-  if (prefersReducedMotion) {
+  if (reduced) {
 
     window.setTimeout(
       finishSplash,
-      120
+      100
     );
 
     return;
@@ -687,12 +629,14 @@ function hideSplashImmediately() {
 
 
 /* =========================================================
-   12. GLOBAL RENDER
+   13. RENDER ALL
    ========================================================= */
 
 function renderAll() {
 
   renderStories();
+
+  renderQuickCategories();
 
   renderFeed();
 
@@ -710,40 +654,39 @@ function renderAll() {
 
 
 /* =========================================================
-   13. STORIES
+   14. STORIES
    ========================================================= */
 
 function renderStories() {
 
-  if (!DOM.stories) {
+  if (
+    !DOM.stories ||
+    !DOM.storiesSection
+  ) {
     return;
   }
-
-  const addStory =
-    STATE.user
-      ? createAddStoryTemplate()
-      : '';
 
   if (
     DATA.stories.length === 0
   ) {
 
-    if (STATE.user) {
+    DOM.stories.innerHTML =
+      '';
 
-      DOM.stories.innerHTML =
-        addStory;
-
-    }
-    else {
-
-      DOM.stories.innerHTML =
-        createStoriesEmptyTemplate();
-
-    }
+    DOM.storiesSection.hidden =
+      true;
 
     return;
 
   }
+
+  DOM.storiesSection.hidden =
+    false;
+
+  const addStory =
+    STATE.user
+      ? createAddStoryTemplate()
+      : '';
 
   const stories =
     DATA.stories
@@ -768,40 +711,18 @@ function createAddStoryTemplate() {
       aria-label="Tambahkan cerita"
     >
       <span class="story-ring">
+
         <i
           class="ph ph-plus"
           aria-hidden="true"
         ></i>
+
       </span>
 
       <span class="story-name">
         Cerita Anda
       </span>
-    </button>
-  `;
 
-}
-
-
-function createStoriesEmptyTemplate() {
-
-  return `
-    <button
-      type="button"
-      class="story-item story-add"
-      data-action="explore-stories"
-      aria-label="Belum ada cerita UMKM"
-    >
-      <span class="story-ring">
-        <i
-          class="ph ph-storefront"
-          aria-hidden="true"
-        ></i>
-      </span>
-
-      <span class="story-name">
-        UMKM Lokal
-      </span>
     </button>
   `;
 
@@ -817,15 +738,10 @@ function createStoryTemplate(
       ? 'has-update'
       : '';
 
-  const liveClass =
-    story.live
-      ? 'live'
-      : '';
-
   return `
     <button
       type="button"
-      class="story-item ${updateClass} ${liveClass}"
+      class="story-item ${updateClass}"
       data-action="open-story"
       data-story-id="${escapeHTML(story.id)}"
       aria-label="Cerita ${escapeHTML(story.name)}"
@@ -854,11 +770,63 @@ function createStoryTemplate(
 
 
 /* =========================================================
-   14. FEED
+   15. QUICK CATEGORIES
+   ========================================================= */
+
+function renderQuickCategories() {
+
+  if (!DOM.quickCategories) {
+    return;
+  }
+
+  DOM.quickCategories.innerHTML =
+    BASE_CATEGORIES
+      .map(
+        createQuickCategoryTemplate
+      )
+      .join('');
+
+}
+
+
+function createQuickCategoryTemplate(
+  category
+) {
+
+  return `
+    <button
+      type="button"
+      class="quick-category"
+      data-action="quick-category"
+      data-category="${escapeHTML(category.name)}"
+      aria-label="Kategori ${escapeHTML(category.name)}"
+    >
+
+      <span class="quick-category-icon">
+
+        <i
+          class="ph ph-${escapeHTML(category.icon)}"
+          aria-hidden="true"
+        ></i>
+
+      </span>
+
+      <span class="quick-category-label">
+        ${escapeHTML(category.name)}
+      </span>
+
+    </button>
+  `;
+
+}
+
+
+/* =========================================================
+   16. FEED
    ========================================================= */
 
 function renderFeed(
-  posts = DATA.posts
+  posts = getVisiblePosts()
 ) {
 
   if (!DOM.feed) {
@@ -887,7 +855,46 @@ function renderFeed(
 }
 
 
+/* =========================================================
+   17. EMPTY FEED
+   ========================================================= */
+
 function createFeedEmptyTemplate() {
+
+  const category =
+    STATE.activeCategory;
+
+  if (category) {
+
+    return `
+      <div class="empty-state">
+
+        <i
+          class="ph ph-package"
+          aria-hidden="true"
+        ></i>
+
+        <strong class="empty-state-title">
+          Belum ada produk ${escapeHTML(category)}
+        </strong>
+
+        <p class="empty-state-text">
+          Produk dari kategori ini akan tampil
+          setelah UMKM mulai menerbitkannya.
+        </p>
+
+        <button
+          type="button"
+          class="btn-primary"
+          data-nav="home"
+        >
+          Kembali ke Beranda
+        </button>
+
+      </div>
+    `;
+
+  }
 
   return `
     <div class="empty-state">
@@ -898,12 +905,12 @@ function createFeedEmptyTemplate() {
       ></i>
 
       <strong class="empty-state-title">
-        Belum ada postingan
+        Pasar sedang bertumbuh
       </strong>
 
       <p class="empty-state-text">
-        Produk dan cerita dari UMKM Lubuklinggau
-        akan tampil di sini saat mulai dipublikasikan.
+        Produk dan postingan dari UMKM lokal
+        akan muncul di sini setelah mulai dipublikasikan.
       </p>
 
       ${
@@ -923,7 +930,7 @@ function createFeedEmptyTemplate() {
               class="btn-primary"
               data-action="login"
             >
-              Masuk untuk Memulai
+              Daftarkan UMKM
             </button>
           `
       }
@@ -935,7 +942,7 @@ function createFeedEmptyTemplate() {
 
 
 /* =========================================================
-   15. POST TEMPLATE
+   18. POST TEMPLATE
    ========================================================= */
 
 function createPostTemplate(
@@ -1023,7 +1030,7 @@ function createPostTemplate(
           class="action-btn ${saved ? 'saved' : ''}"
           data-action="save"
           data-post-id="${escapeHTML(post.id)}"
-          aria-label="Simpan postingan"
+          aria-label="Simpan"
           aria-pressed="${saved}"
         >
 
@@ -1036,13 +1043,12 @@ function createPostTemplate(
 
       </div>
 
-
       ${createPostStats(post)}
 
       ${createPostCaption(post)}
 
       ${
-        post.comments > 0
+        Number(post.comments) > 0
           ? `
             <button
               type="button"
@@ -1056,11 +1062,9 @@ function createPostTemplate(
           : ''
       }
 
-
       <div class="post-time">
         ${formatRelativeTime(post.createdAt)}
       </div>
-
 
       ${
         post.product
@@ -1075,6 +1079,10 @@ function createPostTemplate(
 
 }
 
+
+/* =========================================================
+   19. POST HEADER
+   ========================================================= */
 
 function createPostHeader(
   post
@@ -1157,7 +1165,7 @@ function createPostHeader(
 
 
 /* =========================================================
-   16. MEDIA
+   20. POST MEDIA
    ========================================================= */
 
 function createPostMedia(
@@ -1245,31 +1253,32 @@ function createPostMedia(
 
 
 /* =========================================================
-   17. POST STATS
+   21. POST STATS
    ========================================================= */
 
 function createPostStats(
   post
 ) {
 
-  const likes =
+  const baseLikes =
     Number(post.likes) || 0;
 
-  const localLiked =
+  const localLike =
     STATE.likedPosts.has(
       post.id
     );
 
-  const finalLikes =
-    likes + (localLiked ? 1 : 0);
+  const total =
+    baseLikes +
+    (localLike ? 1 : 0);
 
-  if (finalLikes <= 0) {
+  if (total <= 0) {
     return '';
   }
 
   return `
     <div class="post-stats">
-      ${formatCompactNumber(finalLikes)} suka
+      ${formatCompactNumber(total)} suka
     </div>
   `;
 
@@ -1277,7 +1286,7 @@ function createPostStats(
 
 
 /* =========================================================
-   18. POST CAPTION
+   22. CAPTION
    ========================================================= */
 
 function createPostCaption(
@@ -1308,7 +1317,7 @@ function createPostCaption(
 
 
 /* =========================================================
-   19. PRODUCT TEMPLATE
+   23. PRODUCT
    ========================================================= */
 
 function createProductTemplate(
@@ -1369,11 +1378,9 @@ function createProductTemplate(
             : ''
         }
 
-
         <div class="product-name">
           ${escapeHTML(product.name || 'Produk UMKM')}
         </div>
-
 
         ${
           rating || sold
@@ -1394,7 +1401,6 @@ function createProductTemplate(
             `
             : ''
         }
-
 
         <div class="product-price">
 
@@ -1449,7 +1455,7 @@ function createProductTemplate(
 
 
 /* =========================================================
-   20. EVENTS
+   24. EVENTS
    ========================================================= */
 
 function bindEvents() {
@@ -1467,23 +1473,15 @@ function bindEvents() {
     }
   );
 
-  if (DOM.searchInput) {
+  DOM.searchInput?.addEventListener(
+    'input',
+    handleSearchInput
+  );
 
-    DOM.searchInput.addEventListener(
-      'input',
-      handleSearchInput
-    );
-
-  }
-
-  if (DOM.searchClearButton) {
-
-    DOM.searchClearButton.addEventListener(
-      'click',
-      clearSearch
-    );
-
-  }
+  DOM.searchClearButton?.addEventListener(
+    'click',
+    clearSearch
+  );
 
   document.addEventListener(
     'keydown',
@@ -1494,7 +1492,7 @@ function bindEvents() {
 
 
 /* =========================================================
-   21. GLOBAL CLICK ROUTER
+   25. GLOBAL CLICK
    ========================================================= */
 
 function handleGlobalClick(
@@ -1526,11 +1524,8 @@ function handleGlobalClick(
 
   if (actionElement) {
 
-    const action =
-      actionElement.dataset.action;
-
     handleAction(
-      action,
+      actionElement.dataset.action,
       actionElement
     );
 
@@ -1579,7 +1574,7 @@ function handleGlobalClick(
 
 
 /* =========================================================
-   22. ACTION ROUTER
+   26. ACTION ROUTER
    ========================================================= */
 
 function handleAction(
@@ -1627,6 +1622,15 @@ function handleAction(
     case 'messages':
 
       openMessages();
+
+      break;
+
+
+    case 'quick-category':
+
+      showCategory(
+        element.dataset.category
+      );
 
       break;
 
@@ -1767,27 +1771,11 @@ function handleAction(
       break;
 
 
-    case 'explore-stories':
-
-      showToast(
-        'Cerita UMKM akan muncul ketika tersedia.'
-      );
-
-      break;
-
-
     case 'play-video':
 
       playVideo(
         element.dataset.postId
       );
-
-      break;
-
-
-    case 'close-sheet':
-
-      closeBottomSheet();
 
       break;
 
@@ -1845,7 +1833,7 @@ function handleAction(
 
 
 /* =========================================================
-   23. NAVIGATION
+   27. NAVIGATION
    ========================================================= */
 
 function navigate(
@@ -1914,7 +1902,7 @@ function navigate(
 
 
 /* =========================================================
-   24. UPDATE NAVIGATION
+   28. UPDATE NAV
    ========================================================= */
 
 function updateNavigation() {
@@ -1931,16 +1919,16 @@ function updateNavigation() {
   links.forEach(
     link => {
 
-      const isActive =
+      const active =
         link.dataset.nav ===
         STATE.activeNav;
 
       link.classList.toggle(
         'active',
-        isActive
+        active
       );
 
-      if (isActive) {
+      if (active) {
 
         link.setAttribute(
           'aria-current',
@@ -1959,25 +1947,24 @@ function updateNavigation() {
       const icon =
         link.querySelector('i');
 
-      if (!icon) {
-        return;
-      }
-
       if (
+        !icon ||
         link.dataset.nav ===
-        'sell'
+          'sell'
       ) {
+
         return;
+
       }
 
       icon.classList.toggle(
         'ph-fill',
-        isActive
+        active
       );
 
       icon.classList.toggle(
         'ph',
-        !isActive
+        !active
       );
 
     }
@@ -1987,10 +1974,100 @@ function updateNavigation() {
 
 
 /* =========================================================
-   25. LIKE
+   29. CATEGORY
    ========================================================= */
 
-async function toggleLike(
+function showCategory(
+  category
+) {
+
+  STATE.activeCategory =
+    category;
+
+  STATE.activeNav =
+    'categories';
+
+  updateNavigation();
+
+  closeBottomSheet();
+
+  const posts =
+    DATA.posts.filter(
+      post =>
+        normalizeText(
+          post.product?.category
+        ) ===
+        normalizeText(
+          category
+        )
+    );
+
+  renderFeed(posts);
+
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth',
+  });
+
+}
+
+
+/* =========================================================
+   30. CATEGORIES SHEET
+   ========================================================= */
+
+function openCategories() {
+
+  const realCategories =
+    getCategories();
+
+  const categories =
+    mergeCategories(
+      BASE_CATEGORIES.map(
+        item => item.name
+      ),
+      realCategories
+    );
+
+  const template =
+    categories
+      .map(
+        category => `
+          <button
+            type="button"
+            class="menu-sheet-btn"
+            data-action="quick-category"
+            data-category="${escapeHTML(category)}"
+          >
+
+            <i class="ph ph-tag"></i>
+
+            ${escapeHTML(category)}
+
+          </button>
+        `
+      )
+      .join('');
+
+  openBottomSheet(
+    `
+      <h2 id="sheetTitle">
+        Kategori
+      </h2>
+
+      ${template}
+    `,
+    'categories'
+  );
+
+}
+
+
+/* =========================================================
+   31. LIKE
+   ========================================================= */
+
+function toggleLike(
   postId
 ) {
 
@@ -2019,39 +2096,13 @@ async function toggleLike(
 
   saveLocalState();
 
-  renderFeed(
-    getVisiblePosts()
-  );
-
-  if (
-    CONFIG.API_BASE_URL &&
-    STATE.user
-  ) {
-
-    try {
-
-      await apiRequest(
-        `/posts/${encodeURIComponent(postId)}/like`,
-        {
-          method:
-            'POST',
-        }
-      );
-
-    }
-    catch (error) {
-
-      console.error(error);
-
-    }
-
-  }
+  renderFeed();
 
 }
 
 
 /* =========================================================
-   26. SAVE
+   32. SAVE
    ========================================================= */
 
 function toggleSave(
@@ -2091,15 +2142,13 @@ function toggleSave(
 
   saveLocalState();
 
-  renderFeed(
-    getVisiblePosts()
-  );
+  renderFeed();
 
 }
 
 
 /* =========================================================
-   27. COMMENTS
+   33. COMMENTS
    ========================================================= */
 
 function openComments(
@@ -2135,7 +2184,8 @@ function openComments(
         </strong>
 
         <p class="empty-state-text">
-          Percakapan tentang produk ini akan tampil di sini.
+          Percakapan tentang postingan ini
+          akan tampil di sini.
         </p>
 
       </div>
@@ -2147,7 +2197,7 @@ function openComments(
 
 
 /* =========================================================
-   28. SHARE
+   34. SHARE
    ========================================================= */
 
 async function sharePost(
@@ -2164,10 +2214,6 @@ async function sharePost(
   const url =
     `${window.location.origin}${window.location.pathname}#post-${encodeURIComponent(postId)}`;
 
-  const title =
-    post.product?.name ||
-    CONFIG.APP_NAME;
-
   try {
 
     if (
@@ -2175,9 +2221,13 @@ async function sharePost(
     ) {
 
       await navigator.share({
-        title,
+        title:
+          post.product?.name ||
+          CONFIG.APP_NAME,
+
         text:
           post.caption || '',
+
         url,
       });
 
@@ -2211,7 +2261,7 @@ async function sharePost(
 
 
 /* =========================================================
-   29. POST MENU
+   35. POST MENU
    ========================================================= */
 
 function openPostMenu(
@@ -2238,10 +2288,7 @@ function openPostMenu(
         data-post-id="${escapeHTML(postId)}"
       >
 
-        <i
-          class="ph ph-bookmark-simple"
-          aria-hidden="true"
-        ></i>
+        <i class="ph ph-bookmark-simple"></i>
 
         Simpan postingan
 
@@ -2255,10 +2302,7 @@ function openPostMenu(
         data-post-id="${escapeHTML(postId)}"
       >
 
-        <i
-          class="ph ph-share-network"
-          aria-hidden="true"
-        ></i>
+        <i class="ph ph-share-network"></i>
 
         Bagikan
 
@@ -2271,7 +2315,7 @@ function openPostMenu(
 
 
 /* =========================================================
-   30. CART
+   36. CART
    ========================================================= */
 
 function addToCart(
@@ -2307,9 +2351,7 @@ function addToCart(
         1,
 
       product:
-        structuredCloneSafe(
-          product
-        ),
+        cloneSafe(product),
     });
 
   }
@@ -2325,10 +2367,6 @@ function addToCart(
 }
 
 
-/* =========================================================
-   31. BUY NOW
-   ========================================================= */
-
 function buyNow(
   productId
 ) {
@@ -2343,7 +2381,7 @@ function buyNow(
 
 
 /* =========================================================
-   32. OPEN CART
+   37. OPEN CART
    ========================================================= */
 
 function openCart() {
@@ -2370,7 +2408,7 @@ function openCart() {
           </strong>
 
           <p class="empty-state-text">
-            Produk yang Anda pilih akan tersimpan di sini.
+            Produk yang kamu pilih akan tersimpan di sini.
           </p>
 
         </div>
@@ -2389,9 +2427,6 @@ function openCart() {
       )
       .join('');
 
-  const total =
-    calculateCartTotal();
-
   openBottomSheet(
     `
       <h2 id="sheetTitle">
@@ -2409,7 +2444,7 @@ function openCart() {
           </div>
 
           <div class="product-price">
-            ${formatRupiah(total)}
+            ${formatRupiah(calculateCartTotal())}
           </div>
 
         </div>
@@ -2431,10 +2466,7 @@ function openCart() {
         data-action="clear-cart"
       >
 
-        <i
-          class="ph ph-trash"
-          aria-hidden="true"
-        ></i>
+        <i class="ph ph-trash"></i>
 
         Kosongkan keranjang
 
@@ -2526,10 +2558,6 @@ function createCartItemTemplate(
 }
 
 
-/* =========================================================
-   33. CART QUANTITY
-   ========================================================= */
-
 function changeCartQuantity(
   productId,
   amount
@@ -2569,10 +2597,6 @@ function changeCartQuantity(
 }
 
 
-/* =========================================================
-   34. REMOVE CART
-   ========================================================= */
-
 function removeFromCart(
   productId
 ) {
@@ -2593,10 +2617,6 @@ function removeFromCart(
 }
 
 
-/* =========================================================
-   35. CLEAR CART
-   ========================================================= */
-
 function clearCart() {
 
   STATE.cart = [];
@@ -2613,10 +2633,6 @@ function clearCart() {
 
 }
 
-
-/* =========================================================
-   36. CART TOTAL
-   ========================================================= */
 
 function calculateCartTotal() {
 
@@ -2650,7 +2666,7 @@ function calculateCartTotal() {
 
 
 /* =========================================================
-   37. CHECKOUT
+   38. CHECKOUT
    ========================================================= */
 
 function checkout() {
@@ -2667,21 +2683,6 @@ function checkout() {
 
   }
 
-  if (
-    STATE.cart.length === 0
-  ) {
-
-    showToast(
-      'Keranjang masih kosong.'
-    );
-
-    return;
-
-  }
-
-  /*
-   * Real payment / order creation belongs in backend.
-   */
   openBottomSheet(
     `
       <h2 id="sheetTitle">
@@ -2700,8 +2701,8 @@ function checkout() {
         </strong>
 
         <p class="empty-state-text">
-          Checkout akan diproses melalui sistem transaksi
-          setelah backend pembayaran dan pesanan diaktifkan.
+          Transaksi akan diproses setelah
+          sistem pesanan dan pembayaran diaktifkan.
         </p>
 
       </div>
@@ -2713,7 +2714,7 @@ function checkout() {
 
 
 /* =========================================================
-   38. CART BADGE
+   39. CART BADGE
    ========================================================= */
 
 function updateCartBadge() {
@@ -2726,10 +2727,6 @@ function updateCartBadge() {
     DOM.navigation.querySelector(
       '.nav-badge'
     );
-
-  if (!badge) {
-    return;
-  }
 
   const count =
     STATE.cart.reduce(
@@ -2753,7 +2750,7 @@ function updateCartBadge() {
 
 
 /* =========================================================
-   39. SIDE MENU
+   40. SIDE MENU
    ========================================================= */
 
 function renderSideMenu() {
@@ -2813,7 +2810,6 @@ function renderSideMenu() {
         Beranda
       </button>
 
-
       <button
         type="button"
         class="menu-sheet-btn"
@@ -2822,7 +2818,6 @@ function renderSideMenu() {
         <i class="ph ph-squares-four"></i>
         Kategori
       </button>
-
 
       <button
         type="button"
@@ -2833,7 +2828,6 @@ function renderSideMenu() {
         Jelajahi UMKM
       </button>
 
-
       <button
         type="button"
         class="menu-sheet-btn"
@@ -2842,7 +2836,6 @@ function renderSideMenu() {
         <i class="ph ph-receipt"></i>
         Pesanan Saya
       </button>
-
 
       <button
         type="button"
@@ -2857,7 +2850,6 @@ function renderSideMenu() {
 
       ${adminMenu}
 
-
       <button
         type="button"
         class="menu-sheet-btn"
@@ -2866,7 +2858,6 @@ function renderSideMenu() {
         <i class="ph ph-info"></i>
         Tentang Pasar UMKM
       </button>
-
 
       <button
         type="button"
@@ -2882,7 +2873,7 @@ function renderSideMenu() {
 
 
 /* =========================================================
-   40. SIDE MENU OPEN/CLOSE
+   41. SIDE MENU OPEN/CLOSE
    ========================================================= */
 
 function openSideMenu() {
@@ -2944,7 +2935,7 @@ function closeSideMenu() {
 
 
 /* =========================================================
-   41. ACCOUNT STATE
+   42. ACCOUNT
    ========================================================= */
 
 function renderAccountState() {
@@ -2984,7 +2975,7 @@ function renderAccountState() {
 
 
 /* =========================================================
-   42. LOGIN
+   43. LOGIN
    ========================================================= */
 
 function openLogin() {
@@ -2999,15 +2990,10 @@ function openLogin() {
 
   }
 
-  /*
-   * Authentication must be implemented server-side.
-   * No fake production login is created here.
-   */
-
   openBottomSheet(
     `
       <h2 id="sheetTitle">
-        Masuk ke Pasar UMKM
+        Masuk / Daftar
       </h2>
 
       <div class="empty-state">
@@ -3022,8 +3008,8 @@ function openLogin() {
         </strong>
 
         <p class="empty-state-text">
-          Sistem login akan terhubung ke backend agar akun,
-          transaksi, toko, dan data pengguna tersimpan dengan aman.
+          Login dan pendaftaran akan terhubung ke backend
+          agar akun dan data transaksi tersimpan dengan aman.
         </p>
 
       </div>
@@ -3035,36 +3021,10 @@ function openLogin() {
 
 
 /* =========================================================
-   43. LOGOUT
+   44. LOGOUT
    ========================================================= */
 
-async function logout() {
-
-  if (!STATE.user) {
-    return;
-  }
-
-  if (
-    CONFIG.API_BASE_URL
-  ) {
-
-    try {
-
-      await apiRequest(
-        '/auth/logout',
-        {
-          method: 'POST',
-        }
-      );
-
-    }
-    catch (error) {
-
-      console.error(error);
-
-    }
-
-  }
+function logout() {
 
   STATE.user =
     null;
@@ -3089,7 +3049,7 @@ async function logout() {
 
 
 /* =========================================================
-   44. ACCOUNT
+   45. OPEN ACCOUNT
    ========================================================= */
 
 function openAccount() {
@@ -3141,7 +3101,7 @@ function openAccount() {
 
         <i class="ph ph-sign-out"></i>
 
-        Keluar dari akun
+        Keluar
 
       </button>
     `,
@@ -3150,10 +3110,6 @@ function openAccount() {
 
 }
 
-
-/* =========================================================
-   45. USER ROLE
-   ========================================================= */
 
 function formatUserRole(
   role
@@ -3167,7 +3123,6 @@ function formatUserRole(
     case 'admin':
       return 'Pengelola';
 
-    case 'buyer':
     default:
       return 'Pembeli';
 
@@ -3277,128 +3232,7 @@ function handleMenuAction(
 
 
 /* =========================================================
-   47. CATEGORIES
-   ========================================================= */
-
-function openCategories() {
-
-  const categories =
-    getCategories();
-
-  if (
-    categories.length === 0
-  ) {
-
-    openBottomSheet(
-      `
-        <h2 id="sheetTitle">
-          Kategori
-        </h2>
-
-        <div class="empty-state">
-
-          <i class="ph ph-squares-four"></i>
-
-          <strong class="empty-state-title">
-            Belum ada kategori
-          </strong>
-
-          <p class="empty-state-text">
-            Kategori akan terbentuk dari produk UMKM
-            yang diterbitkan di Pasar UMKM.
-          </p>
-
-        </div>
-      `,
-      'categories'
-    );
-
-    return;
-
-  }
-
-  const template =
-    categories
-      .map(
-        category => `
-          <button
-            type="button"
-            class="menu-sheet-btn"
-            data-category="${escapeHTML(category)}"
-          >
-
-            <i class="ph ph-tag"></i>
-
-            ${escapeHTML(category)}
-
-          </button>
-        `
-      )
-      .join('');
-
-  openBottomSheet(
-    `
-      <h2 id="sheetTitle">
-        Kategori
-      </h2>
-
-      ${template}
-    `,
-    'categories'
-  );
-
-  DOM.sheetContent
-    ?.querySelectorAll(
-      '[data-category]'
-    )
-    .forEach(
-      button => {
-
-        button.addEventListener(
-          'click',
-          () => {
-
-            showCategory(
-              button.dataset.category
-            );
-
-          }
-        );
-
-      }
-    );
-
-}
-
-
-function showCategory(
-  category
-) {
-
-  STATE.activeCategory =
-    category;
-
-  const posts =
-    DATA.posts.filter(
-      post =>
-        post.product?.category ===
-        category
-    );
-
-  closeBottomSheet();
-
-  renderFeed(posts);
-
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth',
-  });
-
-}
-
-
-/* =========================================================
-   48. STORES
+   47. STORES
    ========================================================= */
 
 function openStores() {
@@ -3421,7 +3255,7 @@ function openStores() {
           <i class="ph ph-storefront"></i>
 
           <strong class="empty-state-title">
-            Belum ada toko
+            Belum ada UMKM
           </strong>
 
           <p class="empty-state-text">
@@ -3470,7 +3304,7 @@ function openStores() {
 
 
 /* =========================================================
-   49. ORDERS
+   48. ORDERS
    ========================================================= */
 
 function openOrders() {
@@ -3487,42 +3321,34 @@ function openOrders() {
 
   }
 
-  if (
-    STATE.orders.length === 0
-  ) {
+  openBottomSheet(
+    `
+      <h2 id="sheetTitle">
+        Pesanan Saya
+      </h2>
 
-    openBottomSheet(
-      `
-        <h2 id="sheetTitle">
-          Pesanan Saya
-        </h2>
+      <div class="empty-state">
 
-        <div class="empty-state">
+        <i class="ph ph-receipt"></i>
 
-          <i class="ph ph-receipt"></i>
+        <strong class="empty-state-title">
+          Belum ada pesanan
+        </strong>
 
-          <strong class="empty-state-title">
-            Belum ada pesanan
-          </strong>
+        <p class="empty-state-text">
+          Riwayat transaksi akan tampil di sini.
+        </p>
 
-          <p class="empty-state-text">
-            Riwayat transaksi akan tampil di sini.
-          </p>
-
-        </div>
-      `,
-      'orders'
-    );
-
-    return;
-
-  }
+      </div>
+    `,
+    'orders'
+  );
 
 }
 
 
 /* =========================================================
-   50. FAVORITES
+   49. FAVORITES
    ========================================================= */
 
 function openFavorites() {
@@ -3554,7 +3380,7 @@ function openFavorites() {
           </strong>
 
           <p class="empty-state-text">
-            Simpan produk atau postingan agar mudah ditemukan kembali.
+            Simpan postingan agar mudah ditemukan kembali.
           </p>
 
         </div>
@@ -3572,16 +3398,11 @@ function openFavorites() {
     favorites
   );
 
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth',
-  });
-
 }
 
 
 /* =========================================================
-   51. SELL
+   50. SELL
    ========================================================= */
 
 function openSell() {
@@ -3618,12 +3439,12 @@ function openSell() {
           </strong>
 
           <p class="empty-state-text">
-            Akun penjual diperlukan sebelum produk dapat dipublikasikan.
+            Akun penjual diperlukan sebelum produk dipublikasikan.
           </p>
 
         </div>
       `,
-      'sell-register'
+      'seller-register'
     );
 
     return;
@@ -3667,7 +3488,7 @@ function openSell() {
 
 
 /* =========================================================
-   52. SELLER PLACEHOLDERS
+   51. SELLER/ADMIN
    ========================================================= */
 
 function openSellerStore() {
@@ -3676,7 +3497,7 @@ function openSellerStore() {
     createComingSoonTemplate(
       'Kelola Toko',
       'storefront',
-      'Informasi toko dan profil UMKM akan dikelola dari halaman ini.'
+      'Profil dan informasi UMKM akan dikelola dari halaman ini.'
     ),
     'seller-store'
   );
@@ -3690,7 +3511,7 @@ function openSellerProducts() {
     createComingSoonTemplate(
       'Produk Saya',
       'package',
-      'Produk yang diterbitkan pemilik UMKM akan tampil di sini.'
+      'Produk yang diterbitkan akan tampil di sini.'
     ),
     'seller-products'
   );
@@ -3704,7 +3525,7 @@ function openAdmin() {
     createComingSoonTemplate(
       'Panel Pengelola',
       'shield-check',
-      'Moderasi UMKM, produk, dan aktivitas platform akan dikelola di sini.'
+      'Moderasi UMKM dan aktivitas platform akan dikelola di sini.'
     ),
     'admin'
   );
@@ -3713,7 +3534,7 @@ function openAdmin() {
 
 
 /* =========================================================
-   53. STORIES
+   52. STORY
    ========================================================= */
 
 function openStory(
@@ -3746,7 +3567,7 @@ function openStory(
         >
 
         <p class="empty-state-text">
-          Konten cerita akan ditampilkan dari data pengguna.
+          Konten cerita akan dimuat dari server.
         </p>
 
       </div>
@@ -3780,7 +3601,7 @@ function openAddStory() {
 
 
 /* =========================================================
-   54. VIDEO
+   53. VIDEO
    ========================================================= */
 
 function playVideo(
@@ -3800,14 +3621,14 @@ function playVideo(
   }
 
   showToast(
-    'Pemutar video akan menggunakan media asli dari server.'
+    'Video akan menggunakan media asli dari server.'
   );
 
 }
 
 
 /* =========================================================
-   55. SEARCH
+   54. SEARCH
    ========================================================= */
 
 function openSearch() {
@@ -3839,7 +3660,7 @@ function openSearch() {
       DOM.searchInput?.focus();
 
     },
-    50
+    40
   );
 
 }
@@ -3939,10 +3760,7 @@ function renderSearchHint() {
     `
       <div class="empty-state">
 
-        <i
-          class="ph ph-magnifying-glass"
-          aria-hidden="true"
-        ></i>
+        <i class="ph ph-magnifying-glass"></i>
 
         <strong class="empty-state-title">
           Cari Pasar UMKM
@@ -3967,39 +3785,25 @@ function renderSearchResults(
   }
 
   const normalized =
-    query.toLowerCase();
+    normalizeText(query);
 
   const results =
     DATA.posts.filter(
       post => {
 
-        const productName =
-          post.product?.name ||
-          '';
-
-        const category =
-          post.product?.category ||
-          '';
-
-        const storeName =
-          post.store?.name ||
-          '';
-
-        const caption =
-          post.caption ||
-          '';
-
         const haystack =
           [
-            productName,
-            category,
-            storeName,
-            caption,
+            post.product?.name,
+            post.product?.category,
+            post.store?.name,
+            post.caption,
           ]
-            .join(' ')
-            .toLowerCase();
+            .filter(Boolean)
+            .join(' ');
 
-        return haystack.includes(
+        return normalizeText(
+          haystack
+        ).includes(
           normalized
         );
 
@@ -4062,16 +3866,13 @@ function renderSearchResults(
 
 
 /* =========================================================
-   56. NOTIFICATIONS
+   55. NOTIFICATIONS
    ========================================================= */
 
 function openNotifications() {
 
-  const notifications =
-    DATA.notifications;
-
   if (
-    notifications.length === 0
+    DATA.notifications.length === 0
   ) {
 
     openBottomSheet(
@@ -4102,12 +3903,9 @@ function openNotifications() {
   }
 
   const items =
-    notifications
+    DATA.notifications
       .map(
-        notification =>
-          createNotificationTemplate(
-            notification
-          )
+        createNotificationTemplate
       )
       .join('');
 
@@ -4149,9 +3947,7 @@ function createNotificationTemplate(
       data-notification-id="${escapeHTML(notification.id)}"
     >
 
-      <i
-        class="${getNotificationIcon(notification.type)}"
-      ></i>
+      <i class="${getNotificationIcon(notification.type)}"></i>
 
       ${escapeHTML(notification.title || 'Notifikasi')}
 
@@ -4240,14 +4036,14 @@ function markAllNotificationsRead() {
   closeBottomSheet();
 
   showToast(
-    'Semua notifikasi ditandai sudah dibaca.'
+    'Semua notifikasi sudah dibaca.'
   );
 
 }
 
 
 /* =========================================================
-   57. MESSAGES
+   56. MESSAGES
    ========================================================= */
 
 function openMessages() {
@@ -4352,7 +4148,7 @@ function openMessage(
 
 
 /* =========================================================
-   58. HEADER BADGES
+   57. HEADER BADGES
    ========================================================= */
 
 function updateHeaderBadges() {
@@ -4394,10 +4190,6 @@ function updateHeaderBadges() {
 }
 
 
-/* =========================================================
-   59. BADGE HELPER
-   ========================================================= */
-
 function setBadge(
   element,
   value
@@ -4436,7 +4228,8 @@ function setBadge(
 
 
 /* =========================================================
-   60. ABOUT
+   58. ABOUT
+   Logos moved here, not sidebar.
    ========================================================= */
 
 function openAbout() {
@@ -4461,8 +4254,8 @@ function openAbout() {
 
         <p class="empty-state-text">
           Platform pemberdayaan dan digitalisasi UMKM lokal
-          untuk membantu masyarakat menemukan, mengenal,
-          dan mendukung produk usaha di Lubuklinggau.
+          untuk membantu masyarakat menemukan dan mendukung
+          usaha di Lubuklinggau.
         </p>
 
       </div>
@@ -4503,12 +4296,6 @@ function openAbout() {
         </strong>
 
       </div>
-
-
-      <p class="side-menu-footer-label">
-        © ${new Date().getFullYear()} Pasar UMKM ·
-        ${escapeHTML(CONFIG.ORGANIZATION)}
-      </p>
     `,
     'about'
   );
@@ -4517,7 +4304,7 @@ function openAbout() {
 
 
 /* =========================================================
-   61. HELP
+   59. HELP
    ========================================================= */
 
 function openHelp() {
@@ -4567,7 +4354,7 @@ function openHelp() {
 
 
 /* =========================================================
-   62. BOTTOM SHEET
+   60. BOTTOM SHEET
    ========================================================= */
 
 function openBottomSheet(
@@ -4624,10 +4411,6 @@ function openBottomSheet(
 }
 
 
-/* =========================================================
-   63. CLOSE BOTTOM SHEET
-   ========================================================= */
-
 function closeBottomSheet() {
 
   if (
@@ -4677,7 +4460,7 @@ function closeBottomSheet() {
       }
 
     },
-    330
+    320
   );
 
   unlockBodyScroll();
@@ -4686,16 +4469,12 @@ function closeBottomSheet() {
 
 
 /* =========================================================
-   64. HEADER SCROLL
+   61. SCROLL
    ========================================================= */
 
 function handleScroll() {
 
-  if (!DOM.header) {
-    return;
-  }
-
-  DOM.header.classList.toggle(
+  DOM.header?.classList.toggle(
     'scrolled',
     window.scrollY > 6
   );
@@ -4704,7 +4483,7 @@ function handleScroll() {
 
 
 /* =========================================================
-   65. KEYBOARD
+   62. KEYBOARD
    ========================================================= */
 
 function handleKeyboard(
@@ -4750,7 +4529,7 @@ function handleKeyboard(
 
 
 /* =========================================================
-   66. BODY SCROLL
+   63. BODY SCROLL LOCK
    ========================================================= */
 
 let bodyLockCount = 0;
@@ -4787,7 +4566,7 @@ function unlockBodyScroll() {
 
 
 /* =========================================================
-   67. FIND POST
+   64. FINDERS
    ========================================================= */
 
 function findPost(
@@ -4802,10 +4581,6 @@ function findPost(
 
 }
 
-
-/* =========================================================
-   68. FIND PRODUCT
-   ========================================================= */
 
 function findProduct(
   productId
@@ -4833,7 +4608,7 @@ function findProduct(
 
 
 /* =========================================================
-   69. VISIBLE POSTS
+   65. VISIBLE POSTS
    ========================================================= */
 
 function getVisiblePosts() {
@@ -4848,15 +4623,19 @@ function getVisiblePosts() {
 
   return DATA.posts.filter(
     post =>
-      post.product?.category ===
-      STATE.activeCategory
+      normalizeText(
+        post.product?.category
+      ) ===
+      normalizeText(
+        STATE.activeCategory
+      )
   );
 
 }
 
 
 /* =========================================================
-   70. GET CATEGORIES
+   66. GET CATEGORIES
    ========================================================= */
 
 function getCategories() {
@@ -4877,7 +4656,7 @@ function getCategories() {
 
 
 /* =========================================================
-   71. GET STORES
+   67. GET STORES
    ========================================================= */
 
 function getStores() {
@@ -4919,7 +4698,51 @@ function getStores() {
 
 
 /* =========================================================
-   72. SCROLL TO POST
+   68. MERGE CATEGORIES
+   ========================================================= */
+
+function mergeCategories(
+  base,
+  dynamic
+) {
+
+  const map =
+    new Map();
+
+  [
+    ...base,
+    ...dynamic,
+  ].forEach(
+    category => {
+
+      const key =
+        normalizeText(
+          category
+        );
+
+      if (
+        !map.has(key)
+      ) {
+
+        map.set(
+          key,
+          category
+        );
+
+      }
+
+    }
+  );
+
+  return [
+    ...map.values(),
+  ];
+
+}
+
+
+/* =========================================================
+   69. SCROLL TO POST
    ========================================================= */
 
 function scrollToPost(
@@ -4961,7 +4784,7 @@ function scrollToPost(
 
 
 /* =========================================================
-   73. LOCAL STATE
+   70. LOCAL STATE
    ========================================================= */
 
 function saveLocalState() {
@@ -4990,7 +4813,7 @@ function saveLocalState() {
   catch (error) {
 
     console.warn(
-      '[Pasar UMKM] Local state could not be saved.',
+      '[Pasar UMKM] Local state not saved.',
       error
     );
 
@@ -4998,10 +4821,6 @@ function saveLocalState() {
 
 }
 
-
-/* =========================================================
-   74. RESTORE LOCAL STATE
-   ========================================================= */
 
 function restoreLocalState() {
 
@@ -5060,7 +4879,7 @@ function restoreLocalState() {
   catch (error) {
 
     console.warn(
-      '[Pasar UMKM] Local state could not be restored.',
+      '[Pasar UMKM] Local state not restored.',
       error
     );
 
@@ -5070,7 +4889,7 @@ function restoreLocalState() {
 
 
 /* =========================================================
-   75. LOADING
+   71. LOADING
    ========================================================= */
 
 function setLoading(
@@ -5089,16 +4908,14 @@ function setLoading(
 
   DOM.loading.setAttribute(
     'aria-hidden',
-    String(
-      !STATE.loading
-    )
+    String(!STATE.loading)
   );
 
 }
 
 
 /* =========================================================
-   76. TOAST
+   72. TOAST
    ========================================================= */
 
 let toastTimer = null;
@@ -5139,7 +4956,7 @@ function showToast(
 
 
 /* =========================================================
-   77. COMING SOON TEMPLATE
+   73. TEMPLATE HELPER
    ========================================================= */
 
 function createComingSoonTemplate(
@@ -5175,15 +4992,12 @@ function createComingSoonTemplate(
 
 
 /* =========================================================
-   78. FORMAT RUPIAH
+   74. FORMAT RUPIAH
    ========================================================= */
 
 function formatRupiah(
   value
 ) {
-
-  const number =
-    Number(value) || 0;
 
   return new Intl.NumberFormat(
     'id-ID',
@@ -5200,13 +5014,15 @@ function formatRupiah(
       maximumFractionDigits:
         0,
     }
-  ).format(number);
+  ).format(
+    Number(value) || 0
+  );
 
 }
 
 
 /* =========================================================
-   79. COMPACT NUMBER
+   75. FORMAT NUMBER
    ========================================================= */
 
 function formatCompactNumber(
@@ -5233,7 +5049,7 @@ function formatCompactNumber(
 
 
 /* =========================================================
-   80. RELATIVE TIME
+   76. RELATIVE TIME
    ========================================================= */
 
 function formatRelativeTime(
@@ -5257,11 +5073,8 @@ function formatRelativeTime(
 
   }
 
-  const now =
-    Date.now();
-
   const difference =
-    now -
+    Date.now() -
     date.getTime();
 
   const seconds =
@@ -5337,7 +5150,24 @@ function formatRelativeTime(
 
 
 /* =========================================================
-   81. ESCAPE HTML
+   77. NORMALIZE TEXT
+   ========================================================= */
+
+function normalizeText(
+  value
+) {
+
+  return String(
+    value || ''
+  )
+    .trim()
+    .toLowerCase();
+
+}
+
+
+/* =========================================================
+   78. ESCAPE HTML
    ========================================================= */
 
 function escapeHTML(
@@ -5354,35 +5184,20 @@ function escapeHTML(
   }
 
   return String(value)
-    .replaceAll(
-      '&',
-      '&amp;'
-    )
-    .replaceAll(
-      '<',
-      '&lt;'
-    )
-    .replaceAll(
-      '>',
-      '&gt;'
-    )
-    .replaceAll(
-      '"',
-      '&quot;'
-    )
-    .replaceAll(
-      "'",
-      '&#039;'
-    );
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
 
 }
 
 
 /* =========================================================
-   82. STRUCTURED CLONE FALLBACK
+   79. CLONE
    ========================================================= */
 
-function structuredCloneSafe(
+function cloneSafe(
   value
 ) {
 
@@ -5405,8 +5220,7 @@ function structuredCloneSafe(
 
 
 /* =========================================================
-   83. DEVELOPMENT API
-   Useful while backend is being connected.
+   80. DEVELOPMENT UTILITIES
    ========================================================= */
 
 window.PasarUMKM = {
