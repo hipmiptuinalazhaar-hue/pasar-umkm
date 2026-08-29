@@ -4843,14 +4843,15 @@ function openSell() {
       </section>
 
 
-      <button
-        type="button"
-        class="menu-sheet-btn"
-      >
-        <i class="ph ph-plus-circle"></i>
+     <button
+  type="button"
+  class="menu-sheet-btn"
+  data-action="product-create"
+>
+  <i class="ph ph-plus-circle"></i>
 
-        Tambah Produk
-      </button>
+  Tambah Produk
+</button>
 
 
       <button
