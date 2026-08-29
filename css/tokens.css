@@ -1,5 +1,6 @@
 /* =========================================================
-   PASAR UMKM — DESIGN TOKENS v4.0
+   PASAR UMKM
+   DESIGN TOKENS v5.0
    Local Commerce Editorial System
    ========================================================= */
 
@@ -7,180 +8,217 @@
 
 
   /* =======================================================
-     01. BRAND COLOR — HIJAU DAUN BASAH
+     01. BRAND — FOREST
      ======================================================= */
 
-  --forest-950: #062419;
-  --forest-900: #083b28;
-  --forest-850: #0a4c31;
-  --forest-800: #0d6640;
-  --forest-750: #0f7848;
-  --forest-700: #128c4e;
-  --forest-650: #169b57;
-  --forest-600: #1aad5f;
-  --forest-500: #3dd47a;
-
-  --forest-200: #cdebd9;
-  --forest-150: #dcefe4;
-  --forest-100: #e8f5ee;
-  --forest-75:  #edf8f1;
-  --forest-50:  #f4faf6;
+  --forest-950: #06291d;
+  --forest-900: #083725;
+  --forest-850: #0a402b;
+  --forest-800: #0d4b32;
+  --forest-700: #12603f;
+  --forest-600: #17784d;
+  --forest-500: #24915e;
+  --forest-400: #48aa78;
+  --forest-300: #7fc59d;
+  --forest-200: #b9e0c9;
+  --forest-100: #dff1e6;
+  --forest-50: #f1f8f4;
 
 
   /* =======================================================
-     02. GOLD ACCENT — WARM METAL, NOT YELLOW NEON
+     02. BRAND — GOLD
      ======================================================= */
 
-  --gold-800: #5f470f;
-  --gold-700: #755714;
-  --gold-600: #8b6914;
-  --gold-500: #b8860b;
-  --gold-450: #c89423;
-  --gold-400: #d4a574;
-  --gold-300: #e7c992;
-  --gold-200: #f0d9a7;
-  --gold-100: #f7ead0;
+  --gold-900: #6f4d05;
+  --gold-800: #89630b;
+  --gold-700: #a87910;
+  --gold-600: #c58f18;
+  --gold-500: #dfa72f;
+  --gold-400: #edbd5d;
+  --gold-300: #f4d38b;
+  --gold-200: #f8e4b8;
+  --gold-100: #fcf2dc;
+  --gold-50: #fff9ed;
 
 
   /* =======================================================
      03. COMMERCE ACCENT
      ======================================================= */
 
-  --sunset-700: #a72e16;
-  --sunset-600: #c73e1d;
-  --sunset-500: #ee4d2d;
-  --sunset-450: #f35c3d;
-  --sunset-400: #ff6b4a;
-  --sunset-100: #fff0eb;
+  --sunset-900: #773311;
+  --sunset-800: #924017;
+  --sunset-700: #ad4b1d;
+  --sunset-600: #c85b26;
+  --sunset-500: #df713b;
+  --sunset-400: #eb8f63;
+  --sunset-300: #f2af91;
+  --sunset-200: #f8cdbb;
+  --sunset-100: #fbe7de;
+  --sunset-50: #fff5f0;
 
 
   /* =======================================================
-     04. NEUTRAL SURFACES
+     04. PAPER / NEUTRALS
      ======================================================= */
 
-  --paper-0:    #ffffff;
-  --paper-25:   #fcfcfa;
-  --paper-50:   #f9f8f4;
-  --paper-75:   #f6f5f0;
-  --paper-100:  #f1efe8;
-  --paper-150:  #ebe8df;
-  --paper-200:  #e2ded3;
+  --paper-0: #ffffff;
+  --paper-25: #fefdf9;
+  --paper-50: #fbfaf5;
+  --paper-100: #f6f3ea;
+  --paper-150: #f1eee4;
+  --paper-200: #e9e5db;
+  --paper-300: #dad5c9;
 
-  --ink-950: #171815;
-  --ink-900: #1f211d;
-  --ink-800: #2c2f29;
-  --ink-700: #3b3f38;
-  --ink-600: #52574e;
-  --ink-500: #6b7167;
-  --ink-400: #898f85;
-  --ink-300: #a7aca3;
-  --ink-200: #c5c9c1;
-  --ink-100: #e0e2dc;
+  --ink-950: #111713;
+  --ink-900: #172019;
+  --ink-800: #263028;
+  --ink-700: #3d473f;
+  --ink-600: #58615a;
+  --ink-500: #747c75;
+  --ink-400: #939a94;
+  --ink-300: #b2b7b3;
+  --ink-200: #cfd3cf;
+  --ink-100: #e6e8e6;
+  --ink-50: #f4f5f4;
 
 
   /* =======================================================
-     05. SEMANTIC SURFACE TOKENS
+     05. SEMANTIC SURFACES
      ======================================================= */
 
-  --bg-primary:   var(--paper-50);
-  --bg-secondary: var(--paper-0);
-  --bg-tertiary:  var(--paper-75);
-  --bg-muted:     var(--paper-100);
+  --surface-page: var(--paper-50);
+  --surface-primary: var(--paper-0);
+  --surface-secondary: var(--paper-25);
+  --surface-soft: var(--paper-100);
+  --surface-muted: var(--paper-150);
 
-  --surface-card:       var(--paper-0);
-  --surface-elevated:   var(--paper-0);
-  --surface-soft:       var(--forest-50);
-  --surface-warm:       #fffaf1;
-  --surface-overlay:    rgba(10, 20, 14, 0.46);
-  --surface-overlay-strong: rgba(8, 16, 11, 0.72);
+  --surface-brand-soft: var(--forest-50);
+  --surface-brand-muted: var(--forest-100);
+
+  --surface-gold-soft: var(--gold-50);
+  --surface-gold-muted: var(--gold-100);
+
+  --surface-commerce-soft: var(--sunset-50);
+
+  --surface-dark: var(--forest-950);
+  --surface-overlay: rgba(6, 41, 29, 0.42);
+  --surface-overlay-heavy: rgba(7, 18, 12, 0.68);
 
 
   /* =======================================================
-     06. TEXT TOKENS
+     06. TEXT
      ======================================================= */
 
-  --text-primary:   var(--ink-950);
-  --text-secondary: var(--ink-600);
-  --text-tertiary:  var(--ink-400);
-  --text-muted:     var(--ink-300);
+  --text-primary: var(--ink-950);
+  --text-secondary: var(--ink-700);
+  --text-tertiary: var(--ink-500);
+  --text-muted: var(--ink-400);
+  --text-inverse: #ffffff;
 
-  --text-brand:     var(--forest-800);
-  --text-accent:    var(--gold-600);
-  --text-danger:    var(--sunset-600);
-  --text-inverse:   #ffffff;
+  --text-brand: var(--forest-800);
+  --text-brand-strong: var(--forest-950);
+
+  --text-gold: var(--gold-700);
+  --text-commerce: var(--sunset-700);
 
 
   /* =======================================================
-     07. BORDER TOKENS
+     07. BORDERS
      ======================================================= */
 
-  --border-subtle: rgba(24, 32, 26, 0.055);
-  --border-soft:   rgba(24, 32, 26, 0.08);
-  --border-default: rgba(24, 32, 26, 0.12);
-  --border-strong: rgba(24, 32, 26, 0.18);
+  --border-subtle: rgba(23, 32, 25, 0.07);
+  --border-soft: rgba(23, 32, 25, 0.11);
+  --border-default: rgba(23, 32, 25, 0.16);
+  --border-strong: rgba(23, 32, 25, 0.24);
 
-  --border-brand-soft: rgba(18, 140, 78, 0.18);
-  --border-gold-soft: rgba(184, 134, 11, 0.18);
+  --border-brand-soft: rgba(18, 96, 63, 0.13);
+  --border-brand: rgba(18, 96, 63, 0.24);
+
+  --border-gold-soft: rgba(168, 121, 16, 0.18);
 
 
   /* =======================================================
-     08. SHADOW SYSTEM
-     Different depth for different purposes.
+     08. STATUS COLORS
      ======================================================= */
 
-  --shadow-hairline:
-    0 1px 0 rgba(20, 27, 22, 0.04);
+  --success-700: #157347;
+  --success-100: #e2f3e9;
+
+  --warning-700: #9a6500;
+  --warning-100: #fff3d6;
+
+  --danger-700: #b23a2d;
+  --danger-100: #fde9e6;
+
+  --info-700: #32617e;
+  --info-100: #e7f1f7;
+
+
+  /* =======================================================
+     09. SHADOWS
+     intentionally varied
+     ======================================================= */
 
   --shadow-xs:
-    0 2px 6px rgba(14, 22, 17, 0.045);
+    0 1px 2px rgba(13, 31, 21, 0.04);
 
   --shadow-sm:
-    0 4px 12px rgba(14, 22, 17, 0.06);
+    0 3px 10px rgba(13, 31, 21, 0.06);
 
   --shadow-md:
-    0 10px 24px rgba(14, 22, 17, 0.085);
+    0 8px 24px rgba(13, 31, 21, 0.08);
 
   --shadow-lg:
-    0 18px 44px rgba(14, 22, 17, 0.13);
+    0 18px 46px rgba(13, 31, 21, 0.12);
 
   --shadow-xl:
-    0 26px 70px rgba(14, 22, 17, 0.18);
+    0 26px 72px rgba(7, 24, 15, 0.16);
 
-  --shadow-brand:
-    0 12px 30px rgba(18, 140, 78, 0.16);
+  --shadow-floating:
+    0 10px 32px rgba(8, 55, 37, 0.17);
+
+  --shadow-nav:
+    0 -8px 28px rgba(11, 40, 27, 0.07);
+
+  --shadow-sheet:
+    0 -18px 48px rgba(7, 22, 14, 0.16);
 
   --shadow-gold:
-    0 10px 28px rgba(184, 134, 11, 0.12);
+    0 8px 22px rgba(197, 143, 24, 0.17);
 
 
   /* =======================================================
-     09. RADIUS SYSTEM
-     Intentionally varied to avoid generic uniform cards.
+     10. RADII
+     varied on purpose
      ======================================================= */
 
   --radius-2xs: 4px;
-  --radius-xs:  7px;
-  --radius-sm:  10px;
-  --radius-md:  14px;
-  --radius-lg:  18px;
-  --radius-xl:  24px;
-  --radius-2xl: 30px;
+  --radius-xs: 6px;
+  --radius-sm: 9px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-2xl: 28px;
   --radius-pill: 999px;
+  --radius-circle: 50%;
 
-  /* Contextual radius */
-  --radius-button: 11px;
-  --radius-control: 10px;
-  --radius-card: 16px;
-  --radius-product: 13px;
-  --radius-sheet: 26px;
-  --radius-story: 50%;
+  --radius-editorial-sm:
+    10px 5px 10px 5px;
+
+  --radius-editorial-md:
+    14px 7px 14px 7px;
+
+  --radius-editorial-lg:
+    18px 8px 18px 8px;
+
+  --radius-editorial-xl:
+    24px 10px 24px 10px;
 
 
   /* =======================================================
-     10. SPACING SCALE
+     11. SPACING
      ======================================================= */
 
-  --space-0: 0;
   --space-1: 4px;
   --space-2: 6px;
   --space-3: 8px;
@@ -193,35 +231,45 @@
   --space-10: 24px;
   --space-11: 28px;
   --space-12: 32px;
-  --space-13: 40px;
-  --space-14: 48px;
-  --space-15: 64px;
+  --space-13: 36px;
+  --space-14: 40px;
+  --space-15: 48px;
+  --space-16: 56px;
 
 
   /* =======================================================
-     11. LAYOUT TOKENS
+     12. LAYOUT
      ======================================================= */
 
   --content-max-width: 430px;
 
-  --header-height: 56px;
-  --bottom-nav-height: 58px;
-
-  --side-menu-width: min(84vw, 340px);
+  --header-height: 58px;
+  --bottom-nav-height: 60px;
 
   --page-gutter: 14px;
   --page-gutter-small: 11px;
-  --section-gap: 18px;
+
+  --story-size: 58px;
+  --story-avatar-size: 50px;
+
+  --side-menu-width: min(84vw, 330px);
+
+  --sheet-max-width: 430px;
+
+  --safe-top:
+    env(safe-area-inset-top, 0px);
+
+  --safe-bottom:
+    env(safe-area-inset-bottom, 0px);
 
 
   /* =======================================================
-     12. TYPOGRAPHY
-     DM Sans = interface
-     Fraunces = display / identity
+     13. TYPOGRAPHY
      ======================================================= */
 
   --font-ui:
     'DM Sans',
+    system-ui,
     -apple-system,
     BlinkMacSystemFont,
     'Segoe UI',
@@ -230,26 +278,25 @@
   --font-display:
     'Fraunces',
     Georgia,
-    'Times New Roman',
     serif;
 
 
-  /* Font size */
+  /* Font sizes */
 
-  --text-2xs: 9px;
-  --text-xs: 10px;
-  --text-sm: 11px;
+  --text-2xs: 8px;
+  --text-xs: 9px;
+  --text-sm: 10px;
+  --text-base: 11px;
   --text-md: 12px;
-  --text-base: 13px;
-  --text-lg: 14px;
-  --text-xl: 16px;
-  --text-2xl: 18px;
-  --text-3xl: 22px;
-  --text-4xl: 28px;
-  --text-5xl: 36px;
+  --text-lg: 13px;
+  --text-xl: 15px;
+  --text-2xl: 17px;
+  --text-3xl: 20px;
+  --text-4xl: 24px;
+  --text-5xl: 30px;
 
 
-  /* Font weight */
+  /* Font weights */
 
   --weight-regular: 400;
   --weight-medium: 500;
@@ -259,216 +306,248 @@
 
   /* Line height */
 
-  --leading-tight: 1.1;
-  --leading-snug: 1.25;
+  --leading-tight: 1.15;
+  --leading-snug: 1.3;
   --leading-normal: 1.45;
-  --leading-relaxed: 1.65;
-  --leading-loose: 1.8;
+  --leading-relaxed: 1.62;
+  --leading-loose: 1.75;
 
 
   /* Tracking */
 
   --tracking-tight: -0.025em;
   --tracking-normal: 0;
-  --tracking-wide: 0.04em;
-  --tracking-label: 0.08em;
+  --tracking-wide: 0.06em;
+  --tracking-wider: 0.11em;
+  --tracking-caps: 0.13em;
 
 
   /* =======================================================
-     13. MOTION SYSTEM
-     Motion should explain state changes, not decorate noise.
+     14. MOTION
      ======================================================= */
 
   --ease-standard:
     cubic-bezier(0.2, 0.8, 0.2, 1);
 
-  --ease-emphasized:
+  --ease-enter:
     cubic-bezier(0.16, 1, 0.3, 1);
-
-  --ease-soft:
-    cubic-bezier(0.33, 1, 0.68, 1);
 
   --ease-exit:
     cubic-bezier(0.4, 0, 1, 1);
 
-  --ease-enter:
-    cubic-bezier(0, 0, 0.2, 1);
+  --ease-soft:
+    cubic-bezier(0.22, 0.61, 0.36, 1);
 
-  --ease-spring:
-    cubic-bezier(0.22, 1.35, 0.36, 1);
-
-
-  /* Durations */
-
-  --duration-instant: 90ms;
-  --duration-fast: 150ms;
-  --duration-normal: 240ms;
-  --duration-slow: 380ms;
-  --duration-emphasis: 520ms;
-
-  /* Splash-specific */
-
-  --splash-enter-duration: 620ms;
-  --splash-meet-duration: 480ms;
-  --splash-hold-duration: 520ms;
-  --splash-exit-duration: 420ms;
+  --duration-fast: 140ms;
+  --duration-normal: 220ms;
+  --duration-medium: 320ms;
+  --duration-slow: 460ms;
 
 
   /* =======================================================
-     14. GRADIENTS
-     No purple-blue SaaS nonsense.
+     15. SPLASH
+     logo only
+     ======================================================= */
+
+  --splash-bg: var(--paper-25);
+
+  --splash-logo-width:
+    clamp(180px, 58vw, 260px);
+
+  --splash-enter-duration:
+    720ms;
+
+  --splash-hold-duration:
+    380ms;
+
+  --splash-exit-duration:
+    420ms;
+
+
+  /* =======================================================
+     16. GRADIENTS
+     no purple-blue nonsense
      ======================================================= */
 
   --gradient-brand:
     linear-gradient(
       135deg,
-      var(--forest-850) 0%,
-      var(--forest-700) 58%,
-      var(--forest-600) 100%
+      var(--forest-900) 0%,
+      var(--forest-700) 100%
     );
 
   --gradient-brand-soft:
     linear-gradient(
       180deg,
-      rgba(18, 140, 78, 0.08) 0%,
-      rgba(18, 140, 78, 0.02) 100%
+      rgba(241, 248, 244, 0.96) 0%,
+      rgba(255, 255, 255, 0.98) 100%
     );
 
   --gradient-gold:
     linear-gradient(
       135deg,
       var(--gold-700) 0%,
-      var(--gold-450) 55%,
-      var(--gold-300) 100%
+      var(--gold-400) 100%
     );
 
   --gradient-paper:
     linear-gradient(
       180deg,
-      #fffef9 0%,
-      #f8f6ef 100%
+      var(--paper-25) 0%,
+      var(--paper-50) 100%
+    );
+
+  --gradient-commerce:
+    linear-gradient(
+      135deg,
+      var(--sunset-700) 0%,
+      var(--sunset-500) 100%
     );
 
 
   /* =======================================================
-     15. INTERACTION TOKENS
+     17. INTERACTION
      ======================================================= */
 
   --tap-scale: 0.97;
-  --hover-lift: -2px;
 
   --focus-ring:
-    0 0 0 3px rgba(18, 140, 78, 0.18);
+    0 0 0 3px rgba(36, 145, 94, 0.18);
 
   --focus-ring-strong:
-    0 0 0 4px rgba(18, 140, 78, 0.24);
+    0 0 0 3px rgba(36, 145, 94, 0.28);
 
 
   /* =======================================================
-     16. Z-INDEX LAYERS
+     18. Z-INDEX
      ======================================================= */
 
   --z-base: 1;
-  --z-header: 900;
-  --z-nav: 950;
 
-  --z-overlay: 1200;
-  --z-menu: 1300;
+  --z-sticky: 50;
 
-  --z-sheet-overlay: 1400;
-  --z-sheet: 1500;
+  --z-header: 100;
 
-  --z-search: 1600;
+  --z-nav: 110;
 
-  --z-toast: 1800;
+  --z-side-menu: 500;
+
+  --z-search: 700;
+
+  --z-overlay: 800;
+
+  --z-sheet: 900;
+
+  --z-toast: 1200;
+
+  --z-loading: 1800;
 
   --z-splash: 2500;
 
 
   /* =======================================================
-     17. SPLASH INTRO TOKENS
+     19. MEDIA
      ======================================================= */
 
-  --splash-bg: #f8f7f1;
-  --splash-ink: var(--forest-900);
-  --splash-accent: var(--gold-500);
+  --media-bg: #e9ece8;
 
-  --splash-cart-size: 58px;
-  --splash-logo-size: 88px;
-
-  --splash-gap: 14px;
-
-
-  /* =======================================================
-     18. IMAGE / MEDIA
-     ======================================================= */
-
-  --image-bg: #eceae2;
-  --image-overlay:
+  --media-overlay:
     linear-gradient(
       180deg,
-      rgba(0, 0, 0, 0) 55%,
-      rgba(0, 0, 0, 0.12) 100%
+      rgba(7, 22, 14, 0) 55%,
+      rgba(7, 22, 14, 0.42) 100%
     );
 
 
   /* =======================================================
-     19. STATUS COLORS
+     20. COMPONENT SEMANTICS
      ======================================================= */
 
-  --success: #168a4d;
-  --success-soft: #eaf7ef;
+  --header-bg:
+    rgba(255, 255, 255, 0.94);
 
-  --warning: #9b6b13;
-  --warning-soft: #fff7e5;
+  --header-border:
+    rgba(23, 32, 25, 0.07);
 
-  --danger: #c7422b;
-  --danger-soft: #fff0ed;
+  --nav-bg:
+    rgba(255, 255, 255, 0.97);
 
-  --info: #2e6d8f;
-  --info-soft: #edf6fb;
+  --sheet-bg:
+    var(--paper-0);
+
+  --toast-bg:
+    var(--forest-950);
+
+  --toast-text:
+    #ffffff;
 
 
   /* =======================================================
-     20. LEGACY ALIASES
-     Temporary compatibility for old CSS / JS.
+     21. LEGACY / COMPATIBILITY ALIASES
+     keeps old JS/CSS from exploding while refactoring
      ======================================================= */
 
-  --r-sm: var(--radius-sm);
-  --r-md: var(--radius-md);
-  --r-lg: var(--radius-lg);
-  --r-xl: var(--radius-xl);
-  --r-full: var(--radius-pill);
+  --bg-primary:
+    var(--surface-primary);
 
-  --shadow-1: var(--shadow-xs);
-  --shadow-2: var(--shadow-sm);
-  --shadow-3: var(--shadow-md);
-  --shadow-4: var(--shadow-lg);
+  --bg-secondary:
+    var(--surface-secondary);
 
-  --ease-smooth: var(--ease-standard);
-  --ease-dramatic: var(--ease-emphasized);
+  --bg-tertiary:
+    var(--surface-soft);
 
-  --font-sans: var(--font-ui);
+  --primary:
+    var(--forest-700);
+
+  --primary-dark:
+    var(--forest-900);
+
+  --accent:
+    var(--gold-600);
+
+  --danger:
+    var(--danger-700);
+
+  --success:
+    var(--success-700);
+
+  --shadow-card:
+    var(--shadow-sm);
+
+  --shadow-modal:
+    var(--shadow-lg);
+
+  --radius-card:
+    var(--radius-editorial-md);
+
+  --radius-button:
+    var(--radius-editorial-sm);
+
+  --radius-modal:
+    var(--radius-editorial-xl);
+
 }
 
 
 /* =========================================================
-   ACCESSIBILITY / USER MOTION PREFERENCE
+   ACCESSIBILITY
+   Reduced motion
    ========================================================= */
 
-@media (prefers-reduced-motion: reduce) {
+@media
+(prefers-reduced-motion: reduce) {
 
   :root {
 
-    --duration-instant: 1ms;
     --duration-fast: 1ms;
     --duration-normal: 1ms;
+    --duration-medium: 1ms;
     --duration-slow: 1ms;
-    --duration-emphasis: 1ms;
 
     --splash-enter-duration: 1ms;
-    --splash-meet-duration: 1ms;
     --splash-hold-duration: 1ms;
     --splash-exit-duration: 1ms;
+
   }
+
 }
