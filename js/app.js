@@ -94,7 +94,9 @@ const STATE = {
 
   cart: [],
 
-  menuOpen: false,
+accountProducts: [],
+
+menuOpen: false,
   searchOpen: false,
   activeSheet: null,
 
