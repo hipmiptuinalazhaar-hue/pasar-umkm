@@ -3107,3 +3107,45 @@ a:focus-visible {
   }
 
 }
+
+/* =========================================================
+   STORE REGISTER MICRO POLISH
+   ========================================================= */
+
+#storeRegisterShell .auth-submit,
+#storeRegisterShell .btn-primary.auth-submit {
+  background: #073d2b !important;
+  background-color: #073d2b !important;
+  background-image: none !important;
+
+  border: 0 !important;
+
+  color: #ffffff !important;
+
+  box-shadow:
+    0 12px 28px rgba(7, 61, 43, 0.20) !important;
+}
+
+#storeRegisterShell .auth-submit:hover,
+#storeRegisterShell .btn-primary.auth-submit:hover {
+  background: #094b35 !important;
+  background-color: #094b35 !important;
+  background-image: none !important;
+}
+
+
+/* scrollbar benar-benar hilang */
+
+.bottom-sheet:has(#storeRegisterShell),
+.bottom-sheet:has(#storeRegisterShell) .sheet-content,
+#storeRegisterShell {
+  scrollbar-width: none !important;
+}
+
+.bottom-sheet:has(#storeRegisterShell)::-webkit-scrollbar,
+.bottom-sheet:has(#storeRegisterShell) .sheet-content::-webkit-scrollbar,
+#storeRegisterShell::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+}
