@@ -48,7 +48,47 @@ export default {
       }
     }
 
-    // Semua URL selain /api/* tetap mengambil website statis.
+    // ==========================================
+    // API CATEGORIES
+    // ==========================================
+    if (url.pathname === "/api/categories" && request.method === "GET") {
+      try {
+        const sql = neon(env.DATABASE_URL);
+
+        const categories = await sql`
+          SELECT
+            id,
+            name,
+            slug,
+            icon,
+            sort_order,
+            is_home
+          FROM categories
+          WHERE is_active = TRUE
+          ORDER BY sort_order ASC, name ASC
+        `;
+
+        return Response.json({
+          ok: true,
+          count: categories.length,
+          categories
+        });
+      } catch (error) {
+        console.error("Categories API error:", error);
+
+        return Response.json(
+          {
+            ok: false,
+            error: "Failed to load categories"
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+    // ==========================================
+    // STATIC WEBSITE
+    // ==========================================
     return env.ASSETS.fetch(request);
   }
 };
