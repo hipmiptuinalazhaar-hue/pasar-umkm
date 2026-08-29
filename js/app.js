@@ -1897,59 +1897,6 @@ async function openAccount() {
 }
 
 
-/* =========================================================
-   CURRENT USER STORE
-   ========================================================= */
-
-async function loadCurrentAccountStore() {
-  const response =
-    await fetch(
-      '/api/stores/me',
-      {
-        method: 'GET',
-
-        credentials:
-          'include',
-
-        headers: {
-          Accept:
-            'application/json'
-        },
-
-        cache:
-          'no-store'
-      }
-    );
-
-  if (response.status === 401) {
-    return null;
-  }
-
-  const data =
-    await response
-      .json()
-      .catch(() => ({}));
-
-  if (
-    !response.ok ||
-    data.ok !== true
-  ) {
-    throw new Error(
-      data.error ||
-      'Profil UMKM belum dapat dimuat.'
-    );
-  }
-
-  if (
-    data.has_store !== true ||
-    !data.store
-  ) {
-    return null;
-  }
-
-  return data.store;
-}
-
 
 /* =========================================================
    ACCOUNT RENDER
@@ -4672,6 +4619,49 @@ async function loadCurrentAccountStore() {
   return data.store;
 }
 
+async function loadCurrentAccountProducts() {
+  const response =
+    await fetch(
+      '/api/products/me',
+      {
+        method: 'GET',
+        credentials: 'include',
+
+        headers: {
+          Accept: 'application/json'
+        },
+
+        cache: 'no-store'
+      }
+    );
+
+
+  if (response.status === 401) {
+    return [];
+  }
+
+
+  const data =
+    await response
+      .json()
+      .catch(() => ({}));
+
+
+  if (
+    !response.ok ||
+    data.ok !== true
+  ) {
+    throw new Error(
+      data.error ||
+      'Produk toko belum dapat dimuat.'
+    );
+  }
+
+
+  return Array.isArray(data.products)
+    ? data.products
+    : [];
+}
 
 /* =========================================================
    ACCOUNT RENDER
