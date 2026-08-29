@@ -2427,17 +2427,83 @@ function openAccount() {
 }
 
 
-function logout() {
-  STATE.user = null;
+async function logout() {
+  const logoutButtons =
+    document.querySelectorAll(
+      '[data-action="logout"]'
+    );
 
-  renderAccount();
-  renderSidebar();
-  renderStories();
+  logoutButtons.forEach((button) => {
+    button.disabled = true;
+  });
 
-  closeBottomSheet();
-  closeSideMenu();
+  try {
+    const response =
+      await fetch(
+        '/api/auth/logout',
+        {
+          method: 'POST',
 
-  showToast('Anda telah keluar.');
+          credentials: 'include',
+
+          headers: {
+            Accept: 'application/json'
+          },
+
+          cache: 'no-store'
+        }
+      );
+
+
+    const data =
+      await response
+        .json()
+        .catch(() => ({}));
+
+
+    if (
+      !response.ok ||
+      data.ok !== true
+    ) {
+      throw new Error(
+        data.error ||
+        `Logout gagal: ${response.status}`
+      );
+    }
+
+
+    STATE.user = null;
+
+
+    renderAccount();
+    renderSidebar();
+    renderStories();
+
+
+    closeBottomSheet();
+    closeSideMenu();
+
+
+    showToast(
+      data.message ||
+      'Anda telah keluar.'
+    );
+  } catch (error) {
+    console.error(
+      '[Pasar UMKM] Logout error:',
+      error
+    );
+
+
+    logoutButtons.forEach((button) => {
+      button.disabled = false;
+    });
+
+
+    showToast(
+      'Gagal keluar. Silakan coba lagi.'
+    );
+  }
 }
 
 
