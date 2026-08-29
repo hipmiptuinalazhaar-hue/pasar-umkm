@@ -3149,3 +3149,1246 @@ a:focus-visible {
   height: 0 !important;
   display: none !important;
 }
+
+/* =========================================================
+   40. SOCIAL COMMERCE ACCOUNT
+   Profile UI
+   Social Media × E-Commerce
+   ========================================================= */
+
+
+/* =========================================================
+   ACCOUNT VIEW MODE
+   app.js nanti cukup menambahkan:
+   .account-profile-active ke .app
+   ========================================================= */
+
+.app.account-profile-active .app-header {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform:
+    translate(-50%, -100%);
+}
+
+.app.account-profile-active .app-main {
+  padding-top:
+    env(safe-area-inset-top);
+}
+
+
+/* =========================================================
+   PAGE
+   ========================================================= */
+
+.social-account-page {
+  width: 100%;
+  min-height: 100vh;
+
+  padding:
+    0
+    0
+    calc(
+      var(--bottom-nav-height, 62px) +
+      18px +
+      env(safe-area-inset-bottom)
+    );
+
+  background:
+    var(--surface-primary, #ffffff);
+
+  color:
+    var(--text-primary, #111612);
+}
+
+
+/* =========================================================
+   TOP BAR
+   ========================================================= */
+
+.social-account-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+
+  min-height:
+    calc(
+      54px +
+      env(safe-area-inset-top)
+    );
+
+  padding:
+    calc(
+      8px +
+      env(safe-area-inset-top)
+    )
+    14px
+    8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  background:
+    rgba(255, 255, 255, 0.96);
+
+  border-bottom:
+    1px solid
+    rgba(17, 22, 18, 0.05);
+
+  backdrop-filter:
+    blur(16px);
+
+  -webkit-backdrop-filter:
+    blur(16px);
+}
+
+
+/* username */
+
+.social-account-username {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 6px;
+}
+
+.social-account-username strong {
+  min-width: 0;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  color:
+    var(--text-primary, #111612);
+
+  font-size: 15px;
+  font-weight: 800;
+
+  letter-spacing:
+    -0.025em;
+}
+
+
+/* verification icon */
+
+.social-account-verified {
+  width: 17px;
+  height: 17px;
+
+  flex: 0 0 17px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+
+  background:
+    var(--forest-600, #17784d);
+
+  color: #ffffff;
+
+  font-size: 10px;
+}
+
+
+/* top actions */
+
+.social-account-top-actions {
+  display: flex;
+  align-items: center;
+
+  gap: 2px;
+}
+
+.social-account-top-button {
+  width: 38px;
+  height: 38px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 12px;
+
+  color:
+    var(--text-primary, #111612);
+
+  transition:
+    background 140ms ease,
+    transform 140ms ease;
+}
+
+.social-account-top-button:hover {
+  background:
+    var(--surface-soft, #f5f7f5);
+}
+
+.social-account-top-button:active {
+  transform:
+    scale(0.93);
+}
+
+.social-account-top-button i {
+  font-size: 22px;
+}
+
+
+/* =========================================================
+   PROFILE HEADER
+   ========================================================= */
+
+.social-account-header {
+  padding:
+    20px
+    16px
+    0;
+}
+
+
+/* avatar + statistics */
+
+.social-account-main {
+  display: grid;
+
+  grid-template-columns:
+    88px
+    minmax(0, 1fr);
+
+  gap: 22px;
+
+  align-items: center;
+}
+
+
+/* =========================================================
+   AVATAR
+   ========================================================= */
+
+.social-account-avatar-wrap {
+  position: relative;
+
+  width: 88px;
+  height: 88px;
+}
+
+.social-account-avatar {
+  width: 88px;
+  height: 88px;
+
+  display: grid;
+  place-items: center;
+
+  overflow: hidden;
+
+  border-radius: 50%;
+
+  background:
+    var(--forest-50, #f1f8f4);
+
+  border:
+    1px solid
+    var(--border-soft, #e7ebe8);
+}
+
+.social-account-avatar img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.social-account-avatar > i {
+  color:
+    var(--forest-700, #12603f);
+
+  font-size: 34px;
+}
+
+
+/* plus avatar */
+
+.social-account-avatar-add {
+  position: absolute;
+
+  right: -1px;
+  bottom: -1px;
+
+  width: 27px;
+  height: 27px;
+
+  display: grid;
+  place-items: center;
+
+  border:
+    3px solid #ffffff;
+
+  border-radius: 50%;
+
+  background:
+    var(--forest-700, #12603f);
+
+  color: #ffffff;
+}
+
+.social-account-avatar-add i {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   STATS
+   ========================================================= */
+
+.social-account-stats {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  align-items: center;
+}
+
+.social-account-stat {
+  min-width: 0;
+
+  text-align: center;
+}
+
+.social-account-stat strong {
+  display: block;
+
+  color:
+    var(--text-primary, #111612);
+
+  font-size: 16px;
+  font-weight: 800;
+
+  line-height: 1.15;
+
+  letter-spacing:
+    -0.025em;
+}
+
+.social-account-stat span {
+  display: block;
+
+  margin-top: 4px;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  color:
+    var(--text-secondary, #4d5850);
+
+  font-size: 9px;
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   BIO
+   ========================================================= */
+
+.social-account-bio {
+  margin-top: 17px;
+}
+
+.social-account-name-row {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+}
+
+.social-account-name {
+  margin: 0;
+
+  color:
+    var(--text-primary, #111612);
+
+  font-size: 12px;
+  font-weight: 800;
+
+  line-height: 1.35;
+}
+
+
+/* account role */
+
+.social-account-role {
+  width: fit-content;
+
+  margin-top: 4px;
+
+  color:
+    var(--text-tertiary, #6e786f);
+
+  font-size: 9px;
+  font-weight: 500;
+}
+
+
+/* seller badge */
+
+.social-account-seller-badge {
+  width: fit-content;
+
+  margin-top: 8px;
+
+  padding:
+    5px
+    8px;
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 5px;
+
+  border-radius: 999px;
+
+  background:
+    var(--forest-50, #f1f8f4);
+
+  color:
+    var(--forest-700, #12603f);
+
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.social-account-seller-badge i {
+  font-size: 12px;
+}
+
+
+/* bio description */
+
+.social-account-description {
+  max-width: 100%;
+
+  margin:
+    9px
+    0
+    0;
+
+  color:
+    var(--text-secondary, #4d5850);
+
+  font-size: 10px;
+
+  line-height: 1.55;
+
+  white-space: pre-line;
+}
+
+
+/* profile link */
+
+.social-account-link {
+  width: fit-content;
+
+  max-width: 100%;
+
+  margin-top: 7px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  color:
+    var(--forest-700, #12603f);
+
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.social-account-link i {
+  flex: 0 0 auto;
+
+  font-size: 14px;
+}
+
+.social-account-link span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   PROFILE BUTTONS
+   ========================================================= */
+
+.social-account-actions {
+  margin-top: 16px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 7px;
+}
+
+.social-account-action {
+  min-width: 0;
+  min-height: 39px;
+
+  padding:
+    0
+    12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  border:
+    1px solid
+    var(--border-soft, #e7ebe8);
+
+  border-radius: 10px;
+
+  background:
+    var(--surface-soft, #f7f8f7);
+
+  color:
+    var(--text-primary, #111612);
+
+  font-size: 9px;
+  font-weight: 700;
+
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    transform 140ms ease;
+}
+
+.social-account-action:hover {
+  background: #ffffff;
+
+  border-color:
+    var(--border-default, #dce2dd);
+}
+
+.social-account-action:active {
+  transform:
+    scale(0.97);
+}
+
+.social-account-action i {
+  font-size: 15px;
+}
+
+
+/* seller action */
+
+.social-account-action.primary {
+  background:
+    var(--forest-700, #12603f);
+
+  border-color:
+    var(--forest-700, #12603f);
+
+  color: #ffffff;
+}
+
+.social-account-action.primary:hover {
+  background:
+    var(--forest-800, #0d4b32);
+
+  border-color:
+    var(--forest-800, #0d4b32);
+}
+
+
+/* =========================================================
+   SELLER CENTER SHORTCUT
+   ========================================================= */
+
+.social-account-commerce {
+  margin:
+    14px
+    16px
+    0;
+
+  padding:
+    13px;
+
+  display: grid;
+
+  grid-template-columns:
+    38px
+    minmax(0, 1fr)
+    auto;
+
+  align-items: center;
+
+  gap: 10px;
+
+  border:
+    1px solid
+    var(--forest-100, #dff1e6);
+
+  border-radius: 14px;
+
+  background:
+    var(--forest-50, #f1f8f4);
+}
+
+.social-account-commerce-icon {
+  width: 38px;
+  height: 38px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 11px;
+
+  background:
+    var(--forest-700, #12603f);
+
+  color: #ffffff;
+}
+
+.social-account-commerce-icon i {
+  font-size: 18px;
+}
+
+.social-account-commerce-copy {
+  min-width: 0;
+}
+
+.social-account-commerce-copy strong {
+  display: block;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  color:
+    var(--forest-900, #083725);
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.social-account-commerce-copy span {
+  display: block;
+
+  margin-top: 2px;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  color:
+    var(--forest-700, #12603f);
+
+  font-size: 8px;
+}
+
+.social-account-commerce-arrow {
+  width: 30px;
+  height: 30px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 9px;
+
+  color:
+    var(--forest-700, #12603f);
+}
+
+.social-account-commerce-arrow i {
+  font-size: 17px;
+}
+
+
+/* =========================================================
+   HIGHLIGHTS
+   ========================================================= */
+
+.social-account-highlights {
+  margin-top: 20px;
+
+  padding:
+    0
+    16px
+    17px;
+
+  display: flex;
+
+  gap: 15px;
+
+  overflow-x: auto;
+
+  overscroll-behavior-x:
+    contain;
+
+  scrollbar-width: none;
+}
+
+.social-account-highlights::-webkit-scrollbar {
+  display: none;
+}
+
+.social-account-highlight {
+  width: 62px;
+
+  flex:
+    0 0 62px;
+
+  text-align: center;
+}
+
+.social-account-highlight-ring {
+  width: 58px;
+  height: 58px;
+
+  margin: 0 auto;
+
+  padding: 2px;
+
+  display: grid;
+  place-items: center;
+
+  border:
+    1px solid
+    var(--border-default, #dce2dd);
+
+  border-radius: 50%;
+
+  background: #ffffff;
+}
+
+.social-account-highlight-inner {
+  width: 50px;
+  height: 50px;
+
+  display: grid;
+  place-items: center;
+
+  overflow: hidden;
+
+  border-radius: 50%;
+
+  background:
+    var(--surface-soft, #f5f7f5);
+
+  color:
+    var(--forest-700, #12603f);
+}
+
+.social-account-highlight-inner img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.social-account-highlight-inner i {
+  font-size: 21px;
+}
+
+.social-account-highlight-label {
+  display: block;
+
+  margin-top: 6px;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  color:
+    var(--text-secondary, #4d5850);
+
+  font-size: 8px;
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   PROFILE CONTENT TABS
+   ========================================================= */
+
+.social-account-tabs {
+  position: sticky;
+
+  top:
+    calc(
+      54px +
+      env(safe-area-inset-top)
+    );
+
+  z-index: 15;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, 1fr);
+
+  min-height: 47px;
+
+  border-top:
+    1px solid
+    var(--border-subtle, #edf0ed);
+
+  border-bottom:
+    1px solid
+    var(--border-subtle, #edf0ed);
+
+  background:
+    rgba(255, 255, 255, 0.97);
+
+  backdrop-filter:
+    blur(14px);
+
+  -webkit-backdrop-filter:
+    blur(14px);
+}
+
+.social-account-tab {
+  position: relative;
+
+  min-height: 46px;
+
+  display: grid;
+  place-items: center;
+
+  color:
+    var(--text-muted, #8b948c);
+}
+
+.social-account-tab i {
+  font-size: 20px;
+}
+
+.social-account-tab.active {
+  color:
+    var(--forest-800, #0d4b32);
+}
+
+.social-account-tab.active::after {
+  content: "";
+
+  position: absolute;
+
+  left: 22%;
+  right: 22%;
+  bottom: -1px;
+
+  height: 2px;
+
+  border-radius:
+    999px
+    999px
+    0
+    0;
+
+  background:
+    var(--forest-700, #12603f);
+}
+
+
+/* =========================================================
+   PROFILE GRID
+   ========================================================= */
+
+.social-account-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 2px;
+
+  background:
+    var(--border-subtle, #edf0ed);
+}
+
+.social-account-grid-item {
+  position: relative;
+
+  width: 100%;
+
+  aspect-ratio: 1 / 1;
+
+  overflow: hidden;
+
+  background:
+    var(--surface-soft, #f5f7f5);
+}
+
+.social-account-grid-item img,
+.social-account-grid-item video {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.social-account-grid-indicator {
+  position: absolute;
+
+  top: 7px;
+  right: 7px;
+
+  color: #ffffff;
+
+  font-size: 16px;
+
+  filter:
+    drop-shadow(
+      0 2px 4px
+      rgba(0, 0, 0, 0.28)
+    );
+}
+
+
+/* =========================================================
+   PRODUCT GRID MODE
+   ========================================================= */
+
+.social-account-products {
+  padding: 10px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 8px;
+
+  background:
+    var(--surface-page, #faf9f5);
+}
+
+.social-account-product {
+  overflow: hidden;
+
+  border:
+    1px solid
+    var(--border-subtle, #edf0ed);
+
+  border-radius: 13px;
+
+  background: #ffffff;
+}
+
+.social-account-product-image {
+  width: 100%;
+
+  aspect-ratio:
+    1 / 1;
+
+  object-fit: cover;
+
+  background:
+    var(--surface-soft, #f5f7f5);
+}
+
+.social-account-product-body {
+  padding: 9px;
+}
+
+.social-account-product-name {
+  overflow: hidden;
+
+  display: -webkit-box;
+
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+
+  color:
+    var(--text-primary, #111612);
+
+  font-size: 9px;
+  font-weight: 700;
+
+  line-height: 1.4;
+}
+
+.social-account-product-price {
+  margin-top: 5px;
+
+  color:
+    var(--commerce-700, #ad4a22);
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   EMPTY PROFILE CONTENT
+   No fake posts, followers or products
+   ========================================================= */
+
+.social-account-empty {
+  min-height: 220px;
+
+  padding:
+    36px
+    24px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  background: #ffffff;
+}
+
+.social-account-empty-icon {
+  width: 52px;
+  height: 52px;
+
+  display: grid;
+  place-items: center;
+
+  border:
+    1px solid
+    var(--border-soft, #e7ebe8);
+
+  border-radius: 50%;
+
+  color:
+    var(--forest-700, #12603f);
+
+  font-size: 23px;
+}
+
+.social-account-empty strong {
+  margin-top: 12px;
+
+  color:
+    var(--text-primary, #111612);
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.social-account-empty p {
+  max-width: 260px;
+
+  margin:
+    6px
+    0
+    0;
+
+  color:
+    var(--text-tertiary, #6e786f);
+
+  font-size: 9px;
+
+  line-height: 1.6;
+}
+
+
+/* =========================================================
+   LOGOUT / SETTINGS AREA
+   ========================================================= */
+
+.social-account-settings {
+  padding:
+    18px
+    16px
+    4px;
+
+  background:
+    var(--surface-page, #faf9f5);
+}
+
+.social-account-settings-button {
+  width: 100%;
+  min-height: 43px;
+
+  padding:
+    0
+    12px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  border:
+    1px solid
+    var(--border-subtle, #edf0ed);
+
+  border-radius: 11px;
+
+  background: #ffffff;
+
+  color:
+    var(--text-secondary, #4d5850);
+
+  text-align: left;
+
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.social-account-settings-button i {
+  width: 20px;
+
+  color:
+    var(--forest-700, #12603f);
+
+  font-size: 17px;
+
+  text-align: center;
+}
+
+.social-account-settings-button.danger {
+  color: #a83e34;
+}
+
+.social-account-settings-button.danger i {
+  color: #a83e34;
+}
+
+
+/* =========================================================
+   ACCOUNT NAV AVATAR
+   Untuk tombol Akun paling kanan navbar
+   ========================================================= */
+
+.nav-account-avatar {
+  width: 23px;
+  height: 23px;
+
+  display: grid;
+  place-items: center;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    var(--border-default, #dce2dd);
+
+  border-radius: 50%;
+
+  background:
+    var(--surface-soft, #f5f7f5);
+
+  color:
+    var(--text-tertiary, #6e786f);
+}
+
+.nav-account-avatar img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.nav-account-avatar i {
+  font-size: 15px !important;
+}
+
+.nav-item.active
+.nav-account-avatar {
+  border:
+    2px solid
+    var(--forest-700, #12603f);
+}
+
+
+/* =========================================================
+   STATUS PENDING SELLER
+   ========================================================= */
+
+.social-account-status {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 4px;
+
+  margin-top: 7px;
+
+  color:
+    var(--gold-800, #89630b);
+
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.social-account-status i {
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 370px) {
+
+  .social-account-header {
+    padding-left: 13px;
+    padding-right: 13px;
+  }
+
+  .social-account-main {
+    grid-template-columns:
+      78px
+      minmax(0, 1fr);
+
+    gap: 15px;
+  }
+
+  .social-account-avatar-wrap,
+  .social-account-avatar {
+    width: 78px;
+    height: 78px;
+  }
+
+  .social-account-stat strong {
+    font-size: 14px;
+  }
+
+  .social-account-stat span {
+    font-size: 8px;
+  }
+
+  .social-account-actions {
+    gap: 5px;
+  }
+
+  .social-account-action {
+    padding:
+      0
+      8px;
+
+    font-size: 8px;
+  }
+
+}
+
+
+/* =========================================================
+   DESKTOP PREVIEW
+   Tetap terasa seperti aplikasi mobile, bukan dashboard ERP.
+   ========================================================= */
+
+@media (min-width: 700px) {
+
+  .social-account-page {
+    min-height: 100vh;
+  }
+
+}
