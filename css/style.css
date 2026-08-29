@@ -2424,3 +2424,515 @@ a:focus-visible {
   }
 
 }
+
+/* =========================================================
+   PASAR UMKM SELLER ONBOARDING
+   Modern mobile marketplace UI
+   ========================================================= */
+
+
+/* ---------------------------------------------------------
+   SHEET KHUSUS PENDAFTARAN UMKM
+   --------------------------------------------------------- */
+
+.bottom-sheet:has(#storeRegisterShell) {
+  background: #ffffff;
+  border-radius: 30px 30px 0 0;
+  box-shadow:
+    0 -20px 60px rgba(9, 30, 21, 0.14),
+    0 -2px 10px rgba(9, 30, 21, 0.04);
+  overflow: hidden;
+}
+
+.bottom-sheet:has(#storeRegisterShell) .sheet-content {
+  padding:
+    8px
+    22px
+    calc(28px + env(safe-area-inset-bottom));
+}
+
+
+/* ---------------------------------------------------------
+   ROOT
+   --------------------------------------------------------- */
+
+#storeRegisterShell {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 10px 0 0;
+}
+
+
+/* ---------------------------------------------------------
+   HEADER / BRAND
+   --------------------------------------------------------- */
+
+#storeRegisterShell .auth-brand {
+  display: block;
+  text-align: left;
+  margin: 4px 0 30px;
+  padding: 0;
+}
+
+
+/* ikon kecil, bukan kotak raksasa zaman warnet */
+
+#storeRegisterShell .auth-brand-mark {
+  width: 48px;
+  height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 0 0 22px;
+
+  border-radius: 15px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #0b4a34,
+      #073625
+    );
+
+  color: #ffffff;
+
+  box-shadow:
+    0 9px 24px rgba(7, 54, 37, 0.18);
+}
+
+#storeRegisterShell .auth-brand-mark i {
+  font-size: 23px !important;
+  line-height: 1;
+}
+
+
+/* ---------------------------------------------------------
+   TITLE
+   --------------------------------------------------------- */
+
+#storeRegisterShell .auth-title {
+  margin: 0;
+
+  font-size: clamp(25px, 5vw, 31px);
+  font-weight: 800;
+  line-height: 1.13;
+  letter-spacing: -0.04em;
+
+  color: #111814;
+
+  text-align: left;
+}
+
+
+/* ---------------------------------------------------------
+   SUBTITLE
+   --------------------------------------------------------- */
+
+#storeRegisterShell .auth-subtitle {
+  max-width: 430px;
+
+  margin:
+    10px
+    0
+    0;
+
+  color: #717a75;
+
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.65;
+
+  text-align: left;
+}
+
+
+/* ---------------------------------------------------------
+   FORM
+   --------------------------------------------------------- */
+
+#storeRegisterShell .auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+
+/* ---------------------------------------------------------
+   FIELD
+   --------------------------------------------------------- */
+
+#storeRegisterShell .auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+
+/* ---------------------------------------------------------
+   LABEL
+   --------------------------------------------------------- */
+
+#storeRegisterShell .auth-label {
+  color: #212925;
+
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+
+  letter-spacing: -0.01em;
+}
+
+
+/* ---------------------------------------------------------
+   INPUT WRAPPER
+   --------------------------------------------------------- */
+
+#storeRegisterShell .auth-input-wrap {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+  min-height: 58px;
+
+  background: #f6f8f7;
+
+  border:
+    1px solid
+    #e6eae8;
+
+  border-radius: 17px;
+
+  box-shadow: none;
+
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+
+/* fokus modern, halus */
+
+#storeRegisterShell .auth-input-wrap:focus-within {
+  background: #ffffff;
+
+  border-color: #0b6042;
+
+  box-shadow:
+    0 0 0 4px rgba(11, 96, 66, 0.09),
+    0 8px 24px rgba(11, 96, 66, 0.06);
+}
+
+
+/* ---------------------------------------------------------
+   INPUT ICON
+   --------------------------------------------------------- */
+
+#storeRegisterShell .auth-input-icon {
+  position: absolute;
+
+  left: 18px;
+
+  color: #77817b;
+
+  font-size: 20px;
+
+  pointer-events: none;
+}
+
+
+/* ---------------------------------------------------------
+   INPUT
+   --------------------------------------------------------- */
+
+#storeRegisterShell .auth-input {
+  width: 100%;
+  height: 58px;
+
+  padding:
+    0
+    18px
+    0
+    50px;
+
+  background: transparent;
+
+  border: 0;
+  outline: 0;
+
+  color: #111814;
+
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+
+  box-shadow: none;
+}
+
+#storeRegisterShell .auth-input::placeholder {
+  color: #a5ada8;
+  font-weight: 500;
+}
+
+
+/* hilangkan efek autofill browser yang suka merusak segalanya */
+
+#storeRegisterShell .auth-input:-webkit-autofill,
+#storeRegisterShell .auth-input:-webkit-autofill:hover,
+#storeRegisterShell .auth-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #111814;
+
+  transition:
+    background-color
+    9999s ease-in-out
+    0s;
+}
+
+
+/* ---------------------------------------------------------
+   HELPER TEXT
+   override inline style lama
+   --------------------------------------------------------- */
+
+#storeRegisterShell .empty-state-text {
+  margin: -4px 2px 2px !important;
+
+  color: #8a938e !important;
+
+  font-size: 12px !important;
+  font-weight: 500;
+  line-height: 1.55 !important;
+
+  text-align: left !important;
+}
+
+
+/* ---------------------------------------------------------
+   PRIMARY BUTTON
+   --------------------------------------------------------- */
+
+#storeRegisterShell .auth-submit,
+#storeRegisterShell .btn-primary.auth-submit {
+  width: 100%;
+  min-height: 56px;
+
+  margin-top: 3px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 9px;
+
+  border: 0;
+  border-radius: 17px;
+
+  background: #093d2b;
+
+  color: #ffffff;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 800;
+
+  letter-spacing: -0.01em;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 12px 28px rgba(9, 61, 43, 0.18);
+
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    background 140ms ease;
+}
+
+#storeRegisterShell .auth-submit:hover,
+#storeRegisterShell .btn-primary.auth-submit:hover {
+  background: #0b4b35;
+
+  box-shadow:
+    0 14px 32px rgba(9, 61, 43, 0.23);
+}
+
+#storeRegisterShell .auth-submit:active,
+#storeRegisterShell .btn-primary.auth-submit:active {
+  transform: scale(0.985);
+}
+
+#storeRegisterShell .auth-submit i {
+  font-size: 19px;
+}
+
+
+/* ---------------------------------------------------------
+   SECURITY / INFO
+   --------------------------------------------------------- */
+
+#storeRegisterShell .auth-security {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  margin-top: 22px;
+  padding: 0 2px;
+
+  background: transparent;
+  border: 0;
+
+  color: #7d8781;
+
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+#storeRegisterShell .auth-security i {
+  flex: 0 0 auto;
+
+  color: #16714e;
+
+  font-size: 17px;
+}
+
+
+/* ---------------------------------------------------------
+   ERROR MESSAGE
+   --------------------------------------------------------- */
+
+#storeRegisterShell .auth-message {
+  margin:
+    -10px
+    0
+    18px;
+
+  padding:
+    12px
+    14px;
+
+  border-radius: 14px;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+#storeRegisterShell .auth-message.error {
+  background: #fff4f2;
+
+  border:
+    1px solid
+    #ffd9d3;
+
+  color: #a73627;
+}
+
+#storeRegisterShell .auth-message.success {
+  background: #effaf4;
+
+  border:
+    1px solid
+    #d0eedc;
+
+  color: #17613f;
+}
+
+
+/* ---------------------------------------------------------
+   LOADING
+   --------------------------------------------------------- */
+
+#storeRegisterShell .auth-submit:disabled {
+  cursor: wait;
+  opacity: 0.74;
+  transform: none;
+}
+
+
+/* ---------------------------------------------------------
+   MOBILE
+   --------------------------------------------------------- */
+
+@media (max-width: 600px) {
+
+  .bottom-sheet:has(#storeRegisterShell) {
+    width: 100%;
+    max-width: none;
+
+    border-radius:
+      26px
+      26px
+      0
+      0;
+  }
+
+  .bottom-sheet:has(#storeRegisterShell) .sheet-content {
+    padding:
+      6px
+      20px
+      calc(24px + env(safe-area-inset-bottom));
+  }
+
+  #storeRegisterShell {
+    padding-top: 8px;
+  }
+
+  #storeRegisterShell .auth-brand {
+    margin-bottom: 27px;
+  }
+
+  #storeRegisterShell .auth-title {
+    font-size: 27px;
+  }
+
+}
+
+
+/* ---------------------------------------------------------
+   DESKTOP
+   --------------------------------------------------------- */
+
+@media (min-width: 768px) {
+
+  .bottom-sheet:has(#storeRegisterShell) {
+    width: min(540px, calc(100vw - 40px));
+
+    left: 50%;
+    right: auto;
+
+    transform:
+      translateX(-50%)
+      translateY(100%);
+
+    border-radius:
+      28px
+      28px
+      0
+      0;
+  }
+
+  .bottom-sheet:has(#storeRegisterShell).show {
+    transform:
+      translateX(-50%)
+      translateY(0);
+  }
+
+  .bottom-sheet:has(#storeRegisterShell) .sheet-content {
+    padding:
+      12px
+      34px
+      34px;
+  }
+
+  #storeRegisterShell .auth-brand {
+    margin-top: 5px;
+  }
+
+}
