@@ -1,5 +1,23 @@
 import { neon } from "@neondatabase/serverless";
 
+// ==========================================
+// SESSION TOKEN
+// ==========================================
+function createSessionToken() {
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+
+  let binary = "";
+
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -91,9 +109,6 @@ export default {
       let stage = "start";
 
       try {
-        // --------------------------------------
-        // 1. BACA REQUEST
-        // --------------------------------------
         stage = "parse_body";
 
         const body = await request.json();
@@ -106,9 +121,6 @@ export default {
 
         const password = String(body.password || "");
 
-        // --------------------------------------
-        // 2. VALIDASI
-        // --------------------------------------
         stage = "validation";
 
         if (name.length < 2 || name.length > 100) {
@@ -156,16 +168,10 @@ export default {
           );
         }
 
-        // --------------------------------------
-        // 3. DATABASE
-        // --------------------------------------
         stage = "database_init";
 
         const sql = neon(env.DATABASE_URL);
 
-        // --------------------------------------
-        // 4. CEK EMAIL
-        // --------------------------------------
         stage = "check_email";
 
         const existingUser = await sql`
@@ -185,10 +191,6 @@ export default {
           );
         }
 
-        // --------------------------------------
-        // 5. HASH PASSWORD + SIMPAN USER
-        // bcrypt dijalankan oleh PostgreSQL pgcrypto
-        // --------------------------------------
         stage = "insert_user";
 
         const users = await sql`
@@ -213,8 +215,6 @@ export default {
             created_at
         `;
 
-        stage = "complete";
-
         return Response.json(
           {
             ok: true,
@@ -233,6 +233,123 @@ export default {
             stage,
             error_name: error?.name || "UnknownError",
             error_code: error?.code || null
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+    // ==========================================
+    // AUTH - LOGIN
+    // ==========================================
+    if (
+      url.pathname === "/api/auth/login" &&
+      request.method === "POST"
+    ) {
+      try {
+        const body = await request.json();
+
+        const email = String(body.email || "")
+          .trim()
+          .toLowerCase();
+
+        const password = String(body.password || "");
+
+        if (!email || !password) {
+          return Response.json(
+            {
+              ok: false,
+              error: "Email dan password wajib diisi."
+            },
+            { status: 400 }
+          );
+        }
+
+        const sql = neon(env.DATABASE_URL);
+
+        // Cek email + password secara langsung di PostgreSQL.
+        const users = await sql`
+          SELECT
+            id,
+            name,
+            email,
+            role
+          FROM users
+          WHERE email = ${email}
+            AND is_active = TRUE
+            AND password_hash = crypt(
+              ${password},
+              password_hash
+            )
+          LIMIT 1
+        `;
+
+        if (users.length === 0) {
+          return Response.json(
+            {
+              ok: false,
+              error: "Email atau password salah."
+            },
+            {
+              status: 401,
+              headers: {
+                "Cache-Control": "no-store"
+              }
+            }
+          );
+        }
+
+        const user = users[0];
+
+        // Buat token acak.
+        const sessionToken = createSessionToken();
+
+        // Hanya HASH token yang disimpan ke database.
+        await sql`
+          INSERT INTO sessions (
+            user_id,
+            token_hash,
+            expires_at
+          )
+          VALUES (
+            ${user.id},
+            encode(
+              digest(${sessionToken}, 'sha256'),
+              'hex'
+            ),
+            NOW() + INTERVAL '7 days'
+          )
+        `;
+
+        await sql`
+          UPDATE users
+          SET last_login_at = NOW()
+          WHERE id = ${user.id}
+        `;
+
+        return Response.json(
+          {
+            ok: true,
+            message: "Login berhasil.",
+            user
+          },
+          {
+            status: 200,
+            headers: {
+              "Cache-Control": "no-store",
+              "Set-Cookie":
+                `__Host-pasar_umkm_session=${sessionToken}; ` +
+                `Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800`
+            }
+          }
+        );
+      } catch (error) {
+        console.error("Login error:", error);
+
+        return Response.json(
+          {
+            ok: false,
+            error: "Terjadi kesalahan saat login."
           },
           { status: 500 }
         );
