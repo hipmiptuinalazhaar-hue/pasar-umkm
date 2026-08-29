@@ -1,6 +1,29 @@
 import { neon } from "@neondatabase/serverless";
 
 // ==========================================
+// COOKIE HELPER
+// ==========================================
+function getCookie(request, name) {
+  const cookieHeader = request.headers.get("Cookie");
+
+  if (!cookieHeader) {
+    return null;
+  }
+
+  const cookies = cookieHeader.split(";");
+
+  for (const cookie of cookies) {
+    const [key, ...valueParts] = cookie.trim().split("=");
+
+    if (key === name) {
+      return valueParts.join("=") || null;
+    }
+  }
+
+  return null;
+}
+
+// ==========================================
 // SESSION TOKEN
 // ==========================================
 function createSessionToken() {
@@ -267,7 +290,6 @@ export default {
 
         const sql = neon(env.DATABASE_URL);
 
-        // Cek email + password secara langsung di PostgreSQL.
         const users = await sql`
           SELECT
             id,
@@ -301,10 +323,8 @@ export default {
 
         const user = users[0];
 
-        // Buat token acak.
         const sessionToken = createSessionToken();
 
-        // Hanya HASH token yang disimpan ke database.
         await sql`
           INSERT INTO sessions (
             user_id,
@@ -350,6 +370,113 @@ export default {
           {
             ok: false,
             error: "Terjadi kesalahan saat login."
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+    // ==========================================
+    // AUTH - ME
+    // ==========================================
+    if (
+      url.pathname === "/api/auth/me" &&
+      request.method === "GET"
+    ) {
+      try {
+        const sessionToken = getCookie(
+          request,
+          "__Host-pasar_umkm_session"
+        );
+
+        if (!sessionToken) {
+          return Response.json(
+            {
+              ok: false,
+              authenticated: false,
+              error: "Belum login."
+            },
+            {
+              status: 401,
+              headers: {
+                "Cache-Control": "no-store"
+              }
+            }
+          );
+        }
+
+        const sql = neon(env.DATABASE_URL);
+
+        const sessions = await sql`
+          SELECT
+            s.id AS session_id,
+            u.id,
+            u.name,
+            u.email,
+            u.role,
+            u.avatar_url
+          FROM sessions s
+          JOIN users u
+            ON u.id = s.user_id
+          WHERE s.token_hash = encode(
+              digest(${sessionToken}, 'sha256'),
+              'hex'
+            )
+            AND s.expires_at > NOW()
+            AND u.is_active = TRUE
+          LIMIT 1
+        `;
+
+        if (sessions.length === 0) {
+          return Response.json(
+            {
+              ok: false,
+              authenticated: false,
+              error: "Session tidak valid atau sudah berakhir."
+            },
+            {
+              status: 401,
+              headers: {
+                "Cache-Control": "no-store"
+              }
+            }
+          );
+        }
+
+        const session = sessions[0];
+
+        await sql`
+          UPDATE sessions
+          SET last_used_at = NOW()
+          WHERE id = ${session.session_id}
+        `;
+
+        return Response.json(
+          {
+            ok: true,
+            authenticated: true,
+            user: {
+              id: session.id,
+              name: session.name,
+              email: session.email,
+              role: session.role,
+              avatar_url: session.avatar_url
+            }
+          },
+          {
+            headers: {
+              "Cache-Control": "no-store"
+            }
+          }
+        );
+      } catch (error) {
+        console.error("Auth me error:", error);
+
+        return Response.json(
+          {
+            ok: false,
+            authenticated: false,
+            error: "Gagal memeriksa session."
           },
           { status: 500 }
         );
