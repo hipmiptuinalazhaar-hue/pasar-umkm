@@ -86,6 +86,34 @@ function createStoreSlug(name) {
   return `${base || "umkm"}-${suffix}`;
 }
 
+function createProductSlug(name) {
+  const base =
+    String(name || "")
+      .trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(
+        /[\u0300-\u036f]/g,
+        ""
+      )
+      .replace(
+        /[^a-z0-9]+/g,
+        "-"
+      )
+      .replace(
+        /^-+|-+$/g,
+        ""
+      )
+      .slice(0, 60);
+
+  const suffix =
+    crypto
+      .randomUUID()
+      .replace(/-/g, "")
+      .slice(0, 8);
+
+  return `${base || "produk"}-${suffix}`;
+}
 
 // ==========================================
 // CLOUDFLARE WORKER
