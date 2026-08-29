@@ -59,6 +59,42 @@ function createSessionToken() {
 
 
 // ==========================================
+// STORE SLUG
+// ==========================================
+
+function createStoreSlug(name) {
+  const base =
+    String(name || "")
+      .trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(
+        /[\u0300-\u036f]/g,
+        ""
+      )
+      .replace(
+        /[^a-z0-9]+/g,
+        "-"
+      )
+      .replace(
+        /^-+|-+$/g,
+        ""
+      )
+      .slice(0, 60);
+
+  const suffix =
+    crypto
+      .randomUUID()
+      .replace(/-/g, "")
+      .slice(0, 8);
+
+  return `${
+    base || "umkm"
+  }-${suffix}`;
+}
+
+
+// ==========================================
 // CLOUDFLARE WORKER
 // ==========================================
 
@@ -73,11 +109,14 @@ export default {
     // ========================================
 
     if (
-      url.pathname === "/api/health"
+      url.pathname ===
+      "/api/health"
     ) {
       try {
         const sql =
-          neon(env.DATABASE_URL);
+          neon(
+            env.DATABASE_URL
+          );
 
         const result =
           await sql`
@@ -93,30 +132,41 @@ export default {
                   information_schema.tables
 
                 WHERE
-                  table_schema = 'public'
+                  table_schema =
+                  'public'
               ) AS tables
           `;
 
-        return Response.json({
-          ok: true,
+        return Response.json(
+          {
+            ok: true,
 
-          app:
-            "Pasar UMKM",
+            app:
+              "Pasar UMKM",
 
-          backend:
-            "Cloudflare Workers",
+            backend:
+              "Cloudflare Workers",
 
-          database: {
-            connected:
-              true,
+            database: {
+              connected:
+                true,
 
-            name:
-              result[0].database,
+              name:
+                result[0]
+                  .database,
 
-            tables:
-              result[0].tables
+              tables:
+                result[0]
+                  .tables
+            }
+          },
+          {
+            headers: {
+              "Cache-Control":
+                "no-store"
+            }
           }
-        });
+        );
 
       } catch (error) {
         console.error(
@@ -132,7 +182,12 @@ export default {
               "Database connection failed"
           },
           {
-            status: 500
+            status: 500,
+
+            headers: {
+              "Cache-Control":
+                "no-store"
+            }
           }
         );
       }
@@ -152,7 +207,9 @@ export default {
     ) {
       try {
         const sql =
-          neon(env.DATABASE_URL);
+          neon(
+            env.DATABASE_URL
+          );
 
         const categories =
           await sql`
@@ -233,7 +290,9 @@ export default {
     ) {
       try {
         const sql =
-          neon(env.DATABASE_URL);
+          neon(
+            env.DATABASE_URL
+          );
 
         const stores =
           await sql`
@@ -243,6 +302,9 @@ export default {
 
             FROM
               stores
+
+            WHERE
+              is_active = TRUE
 
             ORDER BY
               name ASC
@@ -366,7 +428,8 @@ export default {
           /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         if (
-          !emailPattern.test(email) ||
+          !emailPattern
+            .test(email) ||
           email.length > 255
         ) {
           return Response.json(
@@ -437,15 +500,13 @@ export default {
         }
 
 
-        // ====================================
-        // DATABASE
-        // ====================================
-
         stage =
           "database_init";
 
         const sql =
-          neon(env.DATABASE_URL);
+          neon(
+            env.DATABASE_URL
+          );
 
 
         // ====================================
@@ -464,13 +525,15 @@ export default {
               users
 
             WHERE
-              email = ${email}
+              email =
+              ${email}
 
             LIMIT 1
           `;
 
         if (
-          existingUser.length > 0
+          existingUser.length >
+          0
         ) {
           return Response.json(
             {
@@ -512,7 +575,10 @@ export default {
 
               crypt(
                 ${password},
-                gen_salt('bf', 12)
+                gen_salt(
+                  'bf',
+                  12
+                )
               )
             )
 
@@ -633,12 +699,10 @@ export default {
 
 
         const sql =
-          neon(env.DATABASE_URL);
+          neon(
+            env.DATABASE_URL
+          );
 
-
-        // ====================================
-        // VERIFY USER + PASSWORD
-        // ====================================
 
         const users =
           await sql`
@@ -652,7 +716,8 @@ export default {
               users
 
             WHERE
-              email = ${email}
+              email =
+              ${email}
 
               AND
               is_active = TRUE
@@ -721,13 +786,14 @@ export default {
             ),
 
             NOW() +
-              INTERVAL '7 days'
+              INTERVAL
+              '7 days'
           )
         `;
 
 
         // ====================================
-        // UPDATE LAST LOGIN
+        // LAST LOGIN
         // ====================================
 
         await sql`
@@ -739,13 +805,10 @@ export default {
               NOW()
 
           WHERE
-            id = ${user.id}
+            id =
+              ${user.id}
         `;
 
-
-        // ====================================
-        // LOGIN RESPONSE
-        // ====================================
 
         return Response.json(
           {
@@ -843,12 +906,10 @@ export default {
 
 
         const sql =
-          neon(env.DATABASE_URL);
+          neon(
+            env.DATABASE_URL
+          );
 
-
-        // ====================================
-        // FIND SESSION
-        // ====================================
 
         const sessions =
           await sql`
@@ -883,17 +944,20 @@ export default {
                 )
 
               AND
-              s.expires_at > NOW()
+              s.expires_at >
+                NOW()
 
               AND
-              u.is_active = TRUE
+              u.is_active =
+                TRUE
 
             LIMIT 1
           `;
 
 
         if (
-          sessions.length === 0
+          sessions.length ===
+          0
         ) {
           return Response.json(
             {
@@ -929,10 +993,6 @@ export default {
           sessions[0];
 
 
-        // ====================================
-        // UPDATE SESSION LAST USED
-        // ====================================
-
         await sql`
           UPDATE
             sessions
@@ -946,10 +1006,6 @@ export default {
               ${session.session_id}
         `;
 
-
-        // ====================================
-        // AUTH RESPONSE
-        // ====================================
 
         return Response.json(
           {
@@ -1035,7 +1091,9 @@ export default {
 
         if (sessionToken) {
           const sql =
-            neon(env.DATABASE_URL);
+            neon(
+              env.DATABASE_URL
+            );
 
 
           await sql`
@@ -1111,9 +1169,10 @@ export default {
     // ========================================
 
     if (
-      url.pathname.startsWith(
-        "/api/"
-      )
+      url.pathname
+        .startsWith(
+          "/api/"
+        )
     ) {
       return Response.json(
         {
