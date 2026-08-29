@@ -58,93 +58,10 @@ const ASSETS = Object.freeze({
 
 /* =========================================================
    03. CATEGORY SYSTEM
+   Loaded from backend / Neon PostgreSQL
    ========================================================= */
 
-/*
- * Semua kategori tersedia di sini.
- *
- * home: true
- * = tampil di 4 shortcut homepage.
- *
- * Urutan HOME sengaja:
- * Kuliner, Fashion, Jasa, Finance.
- */
-
-const CATEGORIES = Object.freeze([
-  {
-    id: 'kuliner',
-    name: 'Kuliner',
-    icon: 'fork-knife',
-    home: true
-  },
-  {
-    id: 'fashion',
-    name: 'Fashion',
-    icon: 't-shirt',
-    home: true
-  },
-  {
-    id: 'jasa',
-    name: 'Jasa',
-    icon: 'briefcase',
-    home: true
-  },
-  {
-    id: 'finance',
-    name: 'Finance',
-    icon: 'wallet',
-    home: true
-  },
-  {
-    id: 'kerajinan',
-    name: 'Kerajinan',
-    icon: 'paint-brush',
-    home: false
-  },
-  {
-    id: 'kecantikan',
-    name: 'Kecantikan',
-    icon: 'sparkle',
-    home: false
-  },
-  {
-    id: 'pertanian',
-    name: 'Pertanian',
-    icon: 'plant',
-    home: false
-  },
-  {
-    id: 'otomotif',
-    name: 'Otomotif',
-    icon: 'car',
-    home: false
-  },
-  {
-    id: 'elektronik',
-    name: 'Elektronik',
-    icon: 'device-mobile',
-    home: false
-  },
-  {
-    id: 'rumah-dekorasi',
-    name: 'Rumah & Dekorasi',
-    icon: 'house-line',
-    home: false
-  },
-  {
-    id: 'digital-teknologi',
-    name: 'Digital & Teknologi',
-    icon: 'laptop',
-    home: false
-  },
-  {
-    id: 'lainnya',
-    name: 'Lainnya',
-    icon: 'dots-three-circle',
-    home: false
-  }
-]);
-
+let CATEGORIES = [];
 
 /* =========================================================
    04. DATA STORE
@@ -339,36 +256,199 @@ function cacheDOM() {
    ========================================================= */
 
 async function loadInitialData() {
-  // Cek dulu apakah user masih punya session login
+  /*
+   * Pulihkan session akun terlebih dahulu.
+   */
   await restoreAuthSession();
 
-  // Data marketplace lain nanti kita hubungkan belakangan
+
+  /*
+   * Ambil kategori nyata dari backend / Neon.
+   */
+  await loadCategories();
+
+
+  /*
+   * Data marketplace lain seperti posts,
+   * stores, messages, dan orders
+   * masih menunggu bootstrap backend.
+   */
   if (!CONFIG.API_BASE_URL) {
     return;
   }
 
-  const bootstrap = await apiRequest('/api/bootstrap');
+
+  const bootstrap =
+    await apiRequest('/api/bootstrap');
+
 
   if (!bootstrap) {
     return;
   }
 
-  DATA.stories = ensureArray(bootstrap.stories);
-  DATA.posts = ensureArray(bootstrap.posts);
-  DATA.stores = ensureArray(bootstrap.stores);
-  DATA.notifications = ensureArray(bootstrap.notifications);
-  DATA.messages = ensureArray(bootstrap.messages);
-  DATA.orders = ensureArray(bootstrap.orders);
+
+  DATA.stories =
+    ensureArray(
+      bootstrap.stories
+    );
+
+
+  DATA.posts =
+    ensureArray(
+      bootstrap.posts
+    );
+
+
+  DATA.stores =
+    ensureArray(
+      bootstrap.stores
+    );
+
+
+  DATA.notifications =
+    ensureArray(
+      bootstrap.notifications
+    );
+
+
+  DATA.messages =
+    ensureArray(
+      bootstrap.messages
+    );
+
+
+  DATA.orders =
+    ensureArray(
+      bootstrap.orders
+    );
+
 
   if (bootstrap.user) {
-    STATE.user = bootstrap.user;
+    STATE.user =
+      bootstrap.user;
   }
 
-  if (Array.isArray(bootstrap.cart)) {
-    STATE.cart = bootstrap.cart;
+
+  if (
+    Array.isArray(
+      bootstrap.cart
+    )
+  ) {
+    STATE.cart =
+      bootstrap.cart;
   }
 }
 
+
+/* =========================================================
+   LOAD CATEGORIES
+   ========================================================= */
+
+async function loadCategories() {
+  try {
+    const response =
+      await fetch(
+        '/api/categories',
+        {
+          method: 'GET',
+
+          credentials: 'include',
+
+          headers: {
+            Accept:
+              'application/json'
+          },
+
+          cache: 'no-store'
+        }
+      );
+
+
+    if (!response.ok) {
+      throw new Error(
+        `Categories request failed: ${response.status}`
+      );
+    }
+
+
+    const data =
+      await response.json();
+
+
+    if (
+      data.ok !== true ||
+      !Array.isArray(
+        data.categories
+      )
+    ) {
+      throw new Error(
+        'Format data kategori tidak valid.'
+      );
+    }
+
+
+    CATEGORIES =
+      data.categories
+        .map(category => ({
+          id:
+            String(
+              category.id || ''
+            ),
+
+          slug:
+            String(
+              category.slug || ''
+            ),
+
+          name:
+            String(
+              category.name || ''
+            ),
+
+          icon:
+            String(
+              category.icon ||
+              'tag'
+            ),
+
+          home:
+            Boolean(
+              category.is_home
+            ),
+
+          sortOrder:
+            Number(
+              category.sort_order
+            ) || 0
+        }))
+        .filter(category => {
+          return (
+            category.id &&
+            category.name
+          );
+        })
+        .sort(
+          (a, b) =>
+            a.sortOrder -
+            b.sortOrder
+        );
+
+
+  } catch (error) {
+    console.error(
+      '[Pasar UMKM] Categories load error:',
+      error
+    );
+
+
+    CATEGORIES = [];
+
+
+    showToast(
+      'Kategori belum dapat dimuat.'
+    );
+  }
+}
 
 /* =========================================================
    RESTORE AUTH SESSION
