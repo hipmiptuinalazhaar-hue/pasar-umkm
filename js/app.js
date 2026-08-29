@@ -2538,7 +2538,7 @@ function createSocialAccountProfileTemplate(
           data-tab="videos"
           aria-label="Video"
         >
-          <i class="ph ph-play-square"></i>
+          <i class="ph ph-film-strip"></i>
         </button>
 
 
@@ -5260,7 +5260,7 @@ function createSocialAccountProfileTemplate(
           data-tab="videos"
           aria-label="Video"
         >
-          <i class="ph ph-play-square"></i>
+          <i class="ph ph-film-strip"></i>
         </button>
 
 
