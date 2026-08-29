@@ -4313,7 +4313,7 @@ function createAccountTabContent(tab) {
         <section class="social-account-empty">
 
           <div class="social-account-empty-icon">
-            <i class="ph ph-play"></i>
+            <i class="ph ph-film-strip"></i>
           </div>
 
           <strong>
@@ -4330,223 +4330,152 @@ function createAccountTabContent(tab) {
 
 
     case 'products': {
-  const products =
-    Array.isArray(STATE.accountProducts)
-      ? STATE.accountProducts
-      : [];
+      const products =
+        Array.isArray(STATE.accountProducts)
+          ? STATE.accountProducts
+          : [];
 
 
-  if (!products.length) {
-    return `
-      <section class="social-account-empty">
+      if (!products.length) {
+        return `
+          <section class="social-account-empty">
 
-        <div class="social-account-empty-icon">
-          <i class="ph ph-shopping-bag"></i>
-        </div>
+            <div class="social-account-empty-icon">
+              <i class="ph ph-shopping-bag"></i>
+            </div>
 
-        <strong>
-          Belum ada produk
-        </strong>
+            <strong>
+              Belum ada produk
+            </strong>
 
-        <p>
-          Produk yang ditambahkan ke toko
-          akan tampil di sini.
-        </p>
+            <p>
+              Produk yang ditambahkan ke toko
+              akan tampil di sini.
+            </p>
 
-      </section>
-    `;
-  }
-
-
-  return `
-    <div class="social-account-product-grid">
-
-      ${products
-        .map(product => {
-
-          const image =
-            product.image_url ||
-            product.thumbnail_url ||
-            ASSETS.logo;
+          </section>
+        `;
+      }
 
 
-          const inactive =
-            product.is_active === false;
+      return `
+        <div class="social-account-product-grid">
+
+          ${products
+            .map(product => {
+
+              const image =
+                product.image_url ||
+                product.thumbnail_url ||
+                ASSETS.logo;
 
 
-          return `
-            <article
-              class="
-                social-product-card
-                ${inactive
-                  ? 'is-inactive'
-                  : ''
-                }
-              "
-              data-product-id="${escapeHTML(
-                product.id || ''
-              )}"
-            >
-
-              <div class="social-product-media">
-
-                <img
-                  src="${escapeHTML(image)}"
-                  alt="${escapeHTML(
-                    product.name ||
-                    'Produk UMKM'
-                  )}"
-                  loading="lazy"
-                  decoding="async"
-                >
-
-                ${
-                  inactive
-                    ? `
-                        <span class="social-product-status">
-                          Nonaktif
-                        </span>
-                      `
-                    : ''
-                }
-
-              </div>
+              const inactive =
+                product.is_active === false;
 
 
-              <div class="social-product-body">
-
-                ${
-                  product.category_name
-                    ? `
-                        <span class="social-product-category">
-                          ${escapeHTML(
-                            product.category_name
-                          )}
-                        </span>
-                      `
-                    : ''
-                }
-
-
-                <strong class="social-product-name">
-                  ${escapeHTML(
-                    product.name ||
-                    'Produk UMKM'
-                  )}
-                </strong>
-
-
-                <div class="social-product-price">
-                  ${formatRupiah(
-                    product.price
-                  )}
-                </div>
-
-
-                <div class="social-product-stock">
-                  <i class="ph ph-package"></i>
-
-                  <span>
-                    Stok
-                    ${escapeHTML(
-                      product.stock ?? 0
-                    )}
-
+              return `
+                <article
+                  class="
+                    social-product-card
                     ${
-                      product.unit
-                        ? escapeHTML(
-                            product.unit
-                          )
+                      inactive
+                        ? 'is-inactive'
                         : ''
                     }
-                  </span>
-                </div>
+                  "
+                  data-product-id="${escapeHTML(
+                    product.id || ''
+                  )}"
+                >
 
-              </div>
+                  <div class="social-product-media">
 
-            </article>
-          `;
-        })
-        .join('')}
+                    <img
+                      src="${escapeHTML(image)}"
+                      alt="${escapeHTML(
+                        product.name ||
+                        'Produk UMKM'
+                      )}"
+                      loading="lazy"
+                      decoding="async"
+                    >
 
-    </div>
-  `;
-}
+                    ${
+                      inactive
+                        ? `
+                            <span class="social-product-status">
+                              Nonaktif
+                            </span>
+                          `
+                        : ''
+                    }
 
-
-  return products
-    .map(product => `
-      <section
-        class="product-card"
-        data-product-id="${escapeHTML(
-          product.id || ''
-        )}"
-      >
-
-        <img
-          class="product-img"
-          src="${escapeHTML(
-            product.image_url ||
-            product.thumbnail_url ||
-            ASSETS.logo
-          )}"
-          alt="${escapeHTML(
-            product.name ||
-            'Produk UMKM'
-          )}"
-          loading="lazy"
-          decoding="async"
-        >
-
-
-        <div class="product-info">
-
-          ${
-            product.category_name
-              ? `
-                  <div class="product-badge">
-                    ${escapeHTML(
-                      product.category_name
-                    )}
                   </div>
-                `
-              : ''
-          }
 
 
-          <div class="product-name">
-            ${escapeHTML(
-              product.name ||
-              'Produk UMKM'
-            )}
-          </div>
+                  <div class="social-product-body">
+
+                    ${
+                      product.category_name
+                        ? `
+                            <span class="social-product-category">
+                              ${escapeHTML(
+                                product.category_name
+                              )}
+                            </span>
+                          `
+                        : ''
+                    }
 
 
-          <div class="product-price">
-            ${formatRupiah(
-              product.price
-            )}
-          </div>
+                    <strong class="social-product-name">
+                      ${escapeHTML(
+                        product.name ||
+                        'Produk UMKM'
+                      )}
+                    </strong>
 
 
-          <div class="product-meta">
-            <span>
-              Stok:
-              ${escapeHTML(
-                product.stock ?? 0
-              )}
-              ${escapeHTML(
-                product.unit || ''
-              )}
-            </span>
-          </div>
+                    <div class="social-product-price">
+                      ${formatRupiah(
+                        product.price
+                      )}
+                    </div>
+
+
+                    <div class="social-product-stock">
+
+                      <i class="ph ph-package"></i>
+
+                      <span>
+                        Stok
+                        ${escapeHTML(
+                          product.stock ?? 0
+                        )}
+
+                        ${
+                          product.unit
+                            ? escapeHTML(
+                                product.unit
+                              )
+                            : ''
+                        }
+                      </span>
+
+                    </div>
+
+                  </div>
+
+                </article>
+              `;
+            })
+            .join('')}
 
         </div>
+      `;
+    }
 
-      </section>
-    `)
-    .join('');
-}
 
     case 'saved':
       return `
@@ -4591,7 +4520,6 @@ function createAccountTabContent(tab) {
       `;
   }
 }
-
 
 /* =========================================================
    ACCOUNT TAB SWITCH
