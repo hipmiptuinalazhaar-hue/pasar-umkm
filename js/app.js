@@ -1644,6 +1644,10 @@ function runAction(action, element) {
       openSell();
       break;
 
+        case 'product-create':
+  openProductCreateForm();
+  break;
+        
     case 'open-story':
       openStory(
         element.dataset.storyId
