@@ -339,6 +339,10 @@ function cacheDOM() {
    ========================================================= */
 
 async function loadInitialData() {
+  // Cek dulu apakah user masih punya session login
+  await restoreAuthSession();
+
+  // Data marketplace lain nanti kita hubungkan belakangan
   if (!CONFIG.API_BASE_URL) {
     return;
   }
@@ -366,6 +370,54 @@ async function loadInitialData() {
 }
 
 
+/* =========================================================
+   RESTORE AUTH SESSION
+   ========================================================= */
+
+async function restoreAuthSession() {
+  try {
+    const response = await fetch('/api/auth/me', {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        Accept: 'application/json'
+      },
+      cache: 'no-store'
+    });
+
+    // 401 = user memang belum login
+    if (response.status === 401) {
+      STATE.user = null;
+      return;
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `Auth check failed: ${response.status}`
+      );
+    }
+
+    const data = await response.json();
+
+    if (
+      data.ok === true &&
+      data.authenticated === true &&
+      data.user
+    ) {
+      STATE.user = data.user;
+      return;
+    }
+
+    STATE.user = null;
+  } catch (error) {
+    console.error(
+      '[Pasar UMKM] Auth session check error:',
+      error
+    );
+
+    STATE.user = null;
+  }
+}
 /* =========================================================
    10. API CLIENT
    ========================================================= */
