@@ -1764,6 +1764,54 @@ function runMenuAction(action) {
    29. MAIN NAVIGATION
    ========================================================= */
 
+function navigate(target) {
+  if (
+    target !== 'account' &&
+    typeof leaveAccountProfile === 'function'
+  ) {
+    leaveAccountProfile();
+  }
+
+  STATE.activeNav = target;
+
+  closeSideMenu();
+
+  switch (target) {
+    case 'home':
+      STATE.activeCategory = null;
+      renderFeed();
+
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+
+      break;
+
+    case 'categories':
+      openAllCategories();
+      break;
+
+    case 'sell':
+      openSell();
+      break;
+
+    case 'cart':
+      openCart();
+      break;
+
+    case 'account':
+      openAccount();
+      break;
+
+    default:
+      break;
+  }
+
+  updateNavigation();
+}
+
+
 /* =========================================================
    42. SOCIAL COMMERCE ACCOUNT
    ========================================================= */
