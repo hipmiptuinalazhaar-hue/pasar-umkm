@@ -1,0 +1,13 @@
+{
+  "name": "pasar-umkm",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-08-29",
+
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/api/*"
+    ]
+  }
+}
