@@ -2395,7 +2395,446 @@ if (
       }
     }
 
+// ========================================
+// PRODUCT IMAGE UPLOAD
+// POST /api/uploads/product-image
+// ========================================
 
+if (
+  url.pathname ===
+    "/api/uploads/product-image" &&
+  request.method === "POST"
+) {
+  try {
+    const sessionToken =
+      getCookie(
+        request,
+        "__Host-pasar_umkm_session"
+      );
+
+
+    // =====================================
+    // AUTH
+    // =====================================
+
+    if (!sessionToken) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Silakan masuk terlebih dahulu."
+        },
+        {
+          status: 401,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const sql =
+      neon(env.DATABASE_URL);
+
+
+    const sessions =
+      await sql`
+        SELECT
+          u.id,
+          u.role
+
+        FROM
+          sessions s
+
+        JOIN
+          users u
+          ON u.id = s.user_id
+
+        WHERE
+          s.token_hash =
+            encode(
+              digest(
+                ${sessionToken},
+                'sha256'
+              ),
+              'hex'
+            )
+
+          AND
+          s.expires_at > NOW()
+
+          AND
+          u.is_active = TRUE
+
+        LIMIT 1
+      `;
+
+
+    if (
+      sessions.length === 0
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Session tidak valid atau sudah berakhir."
+        },
+        {
+          status: 401,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const currentUser =
+      sessions[0];
+
+
+    if (
+      currentUser.role !== "seller" &&
+      currentUser.role !== "admin"
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Hanya seller yang dapat mengunggah foto produk."
+        },
+        {
+          status: 403,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    // =====================================
+    // STORE
+    // =====================================
+
+    const stores =
+      await sql`
+        SELECT
+          id
+
+        FROM
+          stores
+
+        WHERE
+          owner_id =
+            ${currentUser.id}
+
+        LIMIT 1
+      `;
+
+
+    if (
+      stores.length === 0
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "UMKM belum ditemukan."
+        },
+        {
+          status: 403,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const store =
+      stores[0];
+
+
+    // =====================================
+    // READ IMAGE
+    // =====================================
+
+    const formData =
+      await request.formData();
+
+
+    const file =
+      formData.get("file");
+
+
+    if (
+      !(file instanceof File)
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Foto produk belum dipilih."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const allowedTypes =
+      new Set([
+        "image/jpeg",
+        "image/png",
+        "image/webp"
+      ]);
+
+
+    if (
+      !allowedTypes.has(
+        file.type
+      )
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Format foto harus JPG, PNG, atau WEBP."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const MAX_IMAGE_SIZE =
+      5 * 1024 * 1024;
+
+
+    if (
+      file.size >
+      MAX_IMAGE_SIZE
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Ukuran foto maksimal 5 MB."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    // =====================================
+    // CLOUDINARY CONFIG
+    // =====================================
+
+    const cloudName =
+      env.CLOUDINARY_CLOUD_NAME;
+
+    const apiKey =
+      env.CLOUDINARY_API_KEY;
+
+    const apiSecret =
+      env.CLOUDINARY_API_SECRET;
+
+
+    if (
+      !cloudName ||
+      !apiKey ||
+      !apiSecret
+    ) {
+      console.error(
+        "Cloudinary configuration missing"
+      );
+
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Penyimpanan foto belum dikonfigurasi."
+        },
+        {
+          status: 500,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    // =====================================
+    // CLOUDINARY UPLOAD
+    // =====================================
+
+    const uploadBody =
+      new FormData();
+
+
+    uploadBody.append(
+      "file",
+      file
+    );
+
+
+    uploadBody.append(
+      "public_id",
+      `pasar-umkm/products/${store.id}/${crypto.randomUUID()}`
+    );
+
+
+    uploadBody.append(
+      "overwrite",
+      "false"
+    );
+
+
+    const credentials =
+      btoa(
+        `${apiKey}:${apiSecret}`
+      );
+
+
+    const cloudinaryResponse =
+      await fetch(
+        `https://api.cloudinary.com/v1_1/${encodeURIComponent(
+          cloudName
+        )}/image/upload`,
+        {
+          method: "POST",
+
+          headers: {
+            Authorization:
+              `Basic ${credentials}`
+          },
+
+          body:
+            uploadBody
+        }
+      );
+
+
+    const cloudinaryData =
+      await cloudinaryResponse
+        .json()
+        .catch(() => ({}));
+
+
+    if (
+      !cloudinaryResponse.ok ||
+      !cloudinaryData.secure_url
+    ) {
+      console.error(
+        "Cloudinary upload error:",
+        cloudinaryData
+      );
+
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Foto gagal diunggah."
+        },
+        {
+          status: 502,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    // =====================================
+    // RESPONSE
+    // =====================================
+
+    return Response.json(
+      {
+        ok: true,
+
+        message:
+          "Foto berhasil diunggah.",
+
+        image: {
+          url:
+            cloudinaryData.secure_url,
+
+          public_id:
+            cloudinaryData.public_id,
+
+          width:
+            cloudinaryData.width || null,
+
+          height:
+            cloudinaryData.height || null,
+
+          format:
+            cloudinaryData.format || null,
+
+          bytes:
+            cloudinaryData.bytes || null
+        }
+      },
+      {
+        status: 201,
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+
+
+  } catch (error) {
+    console.error(
+      "Product image upload error:",
+      error
+    );
+
+
+    return Response.json(
+      {
+        ok: false,
+        error:
+          "Terjadi kesalahan saat mengunggah foto."
+      },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+  }
+}
     // ========================================
     // API 404
     // ========================================
