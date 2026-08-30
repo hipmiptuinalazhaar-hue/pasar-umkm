@@ -485,68 +485,120 @@ export default {
 
 
     // ========================================
-    // STORES - PUBLIC LIST
-    // ========================================
+// STORES - PUBLIC LIST
+// GET /api/stores
+// ========================================
 
-    if (
-      url.pathname ===
-        "/api/stores" &&
-      request.method === "GET"
-    ) {
-      try {
-        const sql =
-          neon(env.DATABASE_URL);
+if (
+  url.pathname === "/api/stores" &&
+  request.method === "GET"
+) {
+  try {
+    const sql =
+      neon(env.DATABASE_URL);
 
-        const stores =
-          await sql`
+    const stores =
+      await sql`
+        SELECT
+          s.id,
+
+          s.category_id,
+
+          c.name
+            AS category_name,
+
+          s.name,
+          s.slug,
+
+          s.description,
+
+          s.logo_url,
+          s.cover_url,
+
+          s.phone,
+          s.whatsapp,
+
+          s.address,
+          s.district,
+          s.city,
+          s.province,
+
+          s.verification_status,
+          s.verified_at,
+
+          s.created_at,
+
+          (
             SELECT
-              id,
-              name
+              COUNT(*)::int
             FROM
-              stores
+              products p
             WHERE
-              is_active = TRUE
-            ORDER BY
-              name ASC
-          `;
+              p.store_id = s.id
+              AND
+              p.is_active = TRUE
+          ) AS product_count
 
-        return Response.json(
-          {
-            ok: true,
-            count: stores.length,
-            stores
-          },
-          {
-            headers: {
-              "Cache-Control":
-                "no-store"
-            }
-          }
-        );
+        FROM
+          stores s
 
-      } catch (error) {
-        console.error(
-          "Stores GET error:",
-          error
-        );
+        LEFT JOIN
+          categories c
+        ON
+          c.id = s.category_id
 
-        return Response.json(
-          {
-            ok: false,
-            error:
-              "Gagal memuat data UMKM."
-          },
-          {
-            status: 500,
-            headers: {
-              "Cache-Control":
-                "no-store"
-            }
-          }
-        );
+        WHERE
+          s.is_active = TRUE
+
+        ORDER BY
+          CASE
+            WHEN
+              s.verification_status =
+              'verified'
+            THEN 0
+            ELSE 1
+          END,
+          s.name ASC
+      `;
+
+    return Response.json(
+      {
+        ok: true,
+        count:
+          stores.length,
+        stores
+      },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
       }
-    }
+    );
 
+  } catch (error) {
+    console.error(
+      "Stores GET error:",
+      error
+    );
+
+    return Response.json(
+      {
+        ok: false,
+        error:
+          "Gagal memuat data UMKM."
+      },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+  }
+}
 // ========================================
 // PRODUCTS - PUBLIC LIST
 // GET /api/products
