@@ -8456,3 +8456,295 @@ input::placeholder {
   font-size: 8.5px;
 }
 
+/* =========================================================
+   PASAR UMKM - PREMIUM BOTTOM SHEET
+   SAFE VISUAL POLISH ONLY
+   ========================================================= */
+
+
+/* SHEET SURFACE */
+
+.bottom-sheet {
+  background:
+    rgba(255, 255, 255, 0.985);
+
+  border-radius:
+    24px
+    24px
+    0
+    0;
+
+  box-shadow:
+    0 -18px 50px
+    rgba(15, 25, 30, 0.15);
+
+  border-top:
+    1px solid
+    rgba(255, 255, 255, 0.75);
+}
+
+
+/* =========================================================
+   DRAG HANDLE
+   ========================================================= */
+
+.bottom-sheet::before {
+  width: 38px;
+  height: 4px;
+
+  margin:
+    9px
+    auto
+    3px;
+
+  border-radius: 999px;
+
+  background:
+    rgba(20, 28, 31, 0.16);
+}
+
+
+/* =========================================================
+   CONTENT
+   ========================================================= */
+
+.bottom-sheet .sheet-content {
+  padding:
+    13px
+    16px
+    calc(
+      26px +
+      env(safe-area-inset-bottom)
+    );
+
+  scrollbar-width:
+    none;
+}
+
+
+.bottom-sheet
+.sheet-content::-webkit-scrollbar {
+  display: none;
+}
+
+
+/* =========================================================
+   TITLE
+   ========================================================= */
+
+.bottom-sheet
+.sheet-content
+h2 {
+  margin:
+    0
+    0
+    15px;
+
+  color:
+    #141a1c;
+
+  font-size: 18px;
+
+  line-height: 1.25;
+
+  font-weight: 800;
+
+  letter-spacing:
+    -0.035em;
+}
+
+
+/* =========================================================
+   MENU ITEMS
+   Dipakai menu titik tiga,
+   notifikasi, dll.
+   ========================================================= */
+
+.bottom-sheet
+.menu-sheet-btn {
+  min-height: 48px;
+
+  padding:
+    0
+    13px;
+
+  gap: 11px;
+
+  border-radius: 13px;
+
+  color:
+    #3e4843;
+
+  font-size: 11px;
+
+  font-weight: 650;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.13s ease;
+}
+
+
+.bottom-sheet
+.menu-sheet-btn i {
+  width: 23px;
+
+  flex: 0 0 23px;
+
+  font-size: 19px;
+
+  color:
+    #65706a;
+
+  text-align: center;
+}
+
+
+/* TAP FEEDBACK */
+
+.bottom-sheet
+.menu-sheet-btn:active {
+  transform:
+    scale(0.985);
+
+  background:
+    rgba(18, 96, 63, 0.065);
+
+  color:
+    var(
+      --forest-800,
+      #0d4b32
+    );
+}
+
+
+.bottom-sheet
+.menu-sheet-btn:active i {
+  color:
+    var(
+      --forest-700,
+      #12603f
+    );
+}
+
+
+/* =========================================================
+   EMPTY STATE
+   Keranjang kosong,
+   notifikasi kosong, dll.
+   ========================================================= */
+
+.bottom-sheet
+.empty-state {
+  padding:
+    30px
+    18px;
+
+  border:
+    1px solid
+    rgba(15, 25, 30, 0.055);
+
+  border-radius: 18px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff,
+      #fafcfb
+    );
+}
+
+
+.bottom-sheet
+.empty-state > i {
+  width: 54px;
+  height: 54px;
+
+  margin:
+    0
+    auto
+    14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 16px;
+
+  background:
+    rgba(18, 96, 63, 0.07);
+
+  color:
+    var(
+      --forest-700,
+      #12603f
+    );
+
+  font-size: 25px;
+}
+
+
+.bottom-sheet
+.empty-state-title {
+  color:
+    #18201c;
+
+  font-size: 14px;
+
+  line-height: 1.35;
+
+  font-weight: 800;
+
+  letter-spacing:
+    -0.02em;
+}
+
+
+.bottom-sheet
+.empty-state-text {
+  max-width: 290px;
+
+  margin:
+    7px
+    auto
+    0;
+
+  color:
+    rgba(24, 32, 28, 0.54);
+
+  font-size: 11px;
+
+  line-height: 1.55;
+}
+
+
+/* =========================================================
+   DESKTOP HOVER
+   ========================================================= */
+
+@media (hover: hover) {
+
+  .bottom-sheet
+  .menu-sheet-btn:hover {
+    background:
+      rgba(18, 96, 63, 0.05);
+
+    color:
+      var(
+        --forest-800,
+        #0d4b32
+      );
+  }
+
+
+  .bottom-sheet
+  .menu-sheet-btn:hover i {
+    color:
+      var(
+        --forest-700,
+        #12603f
+      );
+  }
+
+}
