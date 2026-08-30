@@ -10153,3 +10153,402 @@ h2 {
   }
 
 }
+
+/* =========================================================
+   PASAR UMKM
+   PREMIUM PRODUCT DETAIL
+   SAFE / SCOPED ONLY
+   ========================================================= */
+
+
+/*
+  Hanya auth-shell yang child pertamanya
+  adalah product-image-preview.
+
+  Jadi TIDAK mengenai:
+  - Tambah Produk
+  - Edit Produk
+  - Login
+  - Register
+  - modal lain
+*/
+
+#bottomSheet
+.auth-shell:has(> .product-image-preview:first-child) {
+  width: 100%;
+}
+
+
+/* =========================================================
+   PRODUCT IMAGE HERO
+   ========================================================= */
+
+#bottomSheet
+.auth-shell:has(> .product-image-preview:first-child)
+> .product-image-preview {
+  width: 100%;
+
+  aspect-ratio: 1 / 1;
+
+  margin:
+    0
+    0
+    14px;
+
+  overflow: hidden;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border:
+    1px solid
+    rgba(15, 25, 30, 0.055);
+
+  border-radius: 18px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #f8faf9 0%,
+      #f2f6f4 100%
+    );
+}
+
+
+#bottomSheet
+.auth-shell:has(> .product-image-preview:first-child)
+> .product-image-preview
+img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: contain;
+
+  object-position: center;
+}
+
+
+/* =========================================================
+   CATEGORY
+   ========================================================= */
+
+#bottomSheet
+.auth-shell:has(> .product-image-preview:first-child)
+> .product-badge {
+  width: fit-content;
+
+  max-width: 100%;
+
+  margin:
+    0
+    0
+    8px;
+
+  padding:
+    5px
+    9px;
+
+  overflow: hidden;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+
+  border-radius: 999px;
+
+  background:
+    rgba(18, 96, 63, 0.07);
+
+  color:
+    var(
+      --forest-700,
+      #12603f
+    );
+
+  font-size: 8.5px;
+
+  line-height: 1;
+
+  font-weight: 750;
+
+  letter-spacing:
+    0.025em;
+}
+
+
+/* =========================================================
+   PRODUCT NAME
+   ========================================================= */
+
+#bottomSheet
+.auth-shell:has(> .product-image-preview:first-child)
+> .auth-title {
+  margin:
+    0
+    0
+    7px;
+
+  color:
+    #151d18;
+
+  font-size: 20px;
+
+  line-height: 1.27;
+
+  font-weight: 850;
+
+  letter-spacing:
+    -0.035em;
+}
+
+
+/* =========================================================
+   PRICE
+   ========================================================= */
+
+#bottomSheet
+.auth-shell:has(> .product-image-preview:first-child)
+> .product-price {
+  margin-top: 2px;
+
+  color:
+    var(
+      --forest-800,
+      #0d4b32
+    );
+
+  font-size: 22px;
+
+  line-height: 1.15;
+
+  font-weight: 900;
+
+  letter-spacing:
+    -0.04em;
+}
+
+
+/* =========================================================
+   STOCK CHIP
+   ========================================================= */
+
+#bottomSheet
+.auth-shell:has(> .product-image-preview:first-child)
+> .product-meta {
+  width: fit-content;
+
+  margin-top: 10px;
+
+  padding:
+    6px
+    9px;
+
+  border:
+    1px solid
+    rgba(18, 96, 63, 0.08);
+
+  border-radius: 9px;
+
+  background:
+    #f7faf8;
+
+  color:
+    rgba(23, 32, 27, 0.64);
+
+  font-size: 9.5px;
+
+  line-height: 1.25;
+
+  font-weight: 650;
+}
+
+
+/* =========================================================
+   DESCRIPTION
+   ========================================================= */
+
+#bottomSheet
+.auth-shell:has(> .product-image-preview:first-child)
+> .auth-subtitle {
+  margin:
+    15px
+    0
+    0;
+
+  padding-top: 14px;
+
+  border-top:
+    1px solid
+    rgba(15, 25, 30, 0.055);
+
+  color:
+    rgba(24, 32, 28, 0.64);
+
+  font-size: 11px;
+
+  line-height: 1.65;
+
+  font-weight: 400;
+}
+
+
+/* =========================================================
+   EDIT BUTTON
+   ========================================================= */
+
+#bottomSheet
+.auth-shell:has(> .product-image-preview:first-child)
+> .btn-primary {
+  width: 100%;
+
+  min-height: 46px;
+
+  margin-top: 18px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 8px;
+
+  border-radius: 13px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #12603f 0%,
+      #16805a 100%
+    );
+
+  color: #ffffff;
+
+  box-shadow:
+    0 7px 18px
+    rgba(18, 96, 63, 0.16);
+
+  font-size: 11px;
+
+  font-weight: 750;
+}
+
+
+#bottomSheet
+.auth-shell:has(> .product-image-preview:first-child)
+> .btn-primary
+i {
+  font-size: 17px;
+}
+
+
+/* =========================================================
+   DELETE BUTTON
+   Secondary destructive action
+   ========================================================= */
+
+#bottomSheet
+.auth-shell:has(> .product-image-preview:first-child)
+> .menu-sheet-btn[data-action="product-delete-confirm"] {
+  width: 100%;
+
+  min-height: 44px;
+
+  margin-top: 7px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 8px;
+
+  border:
+    1px solid
+    rgba(198, 48, 48, 0.10);
+
+  border-radius: 12px;
+
+  background:
+    rgba(198, 48, 48, 0.035);
+
+  color:
+    #ad3434;
+
+  font-size: 10.5px;
+
+  font-weight: 700;
+}
+
+
+#bottomSheet
+.auth-shell:has(> .product-image-preview:first-child)
+> .menu-sheet-btn[data-action="product-delete-confirm"]
+i {
+  color:
+    #b33b3b;
+
+  font-size: 16px;
+}
+
+
+/* =========================================================
+   DESKTOP HOVER
+   ========================================================= */
+
+@media (hover: hover) {
+
+  #bottomSheet
+  .auth-shell:has(> .product-image-preview:first-child)
+  > .btn-primary:hover {
+    filter:
+      brightness(1.04);
+  }
+
+
+  #bottomSheet
+  .auth-shell:has(> .product-image-preview:first-child)
+  > .menu-sheet-btn[data-action="product-delete-confirm"]:hover {
+    background:
+      rgba(198, 48, 48, 0.065);
+
+    border-color:
+      rgba(198, 48, 48, 0.16);
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 767px) {
+
+  #bottomSheet
+  .auth-shell:has(> .product-image-preview:first-child)
+  > .product-image-preview {
+    border-radius: 16px;
+  }
+
+
+  #bottomSheet
+  .auth-shell:has(> .product-image-preview:first-child)
+  > .auth-title {
+    font-size: 18px;
+  }
+
+
+  #bottomSheet
+  .auth-shell:has(> .product-image-preview:first-child)
+  > .product-price {
+    font-size: 20px;
+  }
+
+}
