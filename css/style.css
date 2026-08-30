@@ -11840,3 +11840,377 @@ i {
   }
 
 }
+
+/* =========================================================
+   FIX CART ITEM LAYOUT
+   UI/UX MAX PRO
+   Mengatasi tombol vertikal + kartu terlalu tinggi
+   ========================================================= */
+
+
+/* ITEM PRODUK */
+
+#bottomSheet
+.product-card:has(
+  .product-actions
+  [data-action="cart-increase"]
+) {
+  width: 100% !important;
+
+  min-height: 0 !important;
+
+  margin-bottom: 10px !important;
+
+  padding: 11px !important;
+
+  display: grid !important;
+
+  grid-template-columns:
+    78px
+    minmax(0, 1fr) !important;
+
+  grid-template-rows:
+    auto
+    auto !important;
+
+  grid-template-areas:
+    "image info"
+    "image actions" !important;
+
+  column-gap: 12px !important;
+  row-gap: 8px !important;
+
+  align-items: start !important;
+
+  border:
+    1px solid
+    rgba(15, 25, 30, 0.07) !important;
+
+  border-radius: 16px !important;
+
+  background: #ffffff !important;
+
+  box-shadow:
+    0 4px 16px
+    rgba(15, 25, 30, 0.035) !important;
+}
+
+
+/* =========================================================
+   IMAGE
+   ========================================================= */
+
+#bottomSheet
+.product-card:has(
+  .product-actions
+  [data-action="cart-increase"]
+)
+> .product-img {
+  grid-area: image !important;
+
+  width: 78px !important;
+  height: 78px !important;
+
+  margin: 0 !important;
+
+  align-self: start !important;
+
+  display: block !important;
+
+  object-fit: contain !important;
+
+  object-position: center !important;
+
+  border-radius: 12px !important;
+
+  border:
+    1px solid
+    rgba(15, 25, 30, 0.05) !important;
+
+  background:
+    #f6f8f7 !important;
+}
+
+
+/* =========================================================
+   INFO
+   ========================================================= */
+
+#bottomSheet
+.product-card:has(
+  .product-actions
+  [data-action="cart-increase"]
+)
+> .product-info {
+  grid-area: info !important;
+
+  width: 100% !important;
+
+  min-width: 0 !important;
+
+  margin: 0 !important;
+
+  padding: 1px 0 0 !important;
+
+  text-align: left !important;
+
+  align-self: start !important;
+}
+
+
+/* NAMA */
+
+#bottomSheet
+.product-card:has(
+  .product-actions
+  [data-action="cart-increase"]
+)
+.product-name {
+  margin: 0 !important;
+
+  color: #17201b !important;
+
+  font-size: 11.5px !important;
+
+  line-height: 1.35 !important;
+
+  font-weight: 750 !important;
+
+  text-align: left !important;
+
+  display: -webkit-box !important;
+
+  -webkit-line-clamp: 2;
+
+  -webkit-box-orient: vertical;
+
+  overflow: hidden;
+}
+
+
+/* HARGA */
+
+#bottomSheet
+.product-card:has(
+  .product-actions
+  [data-action="cart-increase"]
+)
+.product-price {
+  margin-top: 5px !important;
+
+  color:
+    var(
+      --forest-800,
+      #0d4b32
+    ) !important;
+
+  font-size: 13.5px !important;
+
+  line-height: 1.2 !important;
+
+  font-weight: 850 !important;
+
+  text-align: left !important;
+}
+
+
+/* JUMLAH */
+
+#bottomSheet
+.product-card:has(
+  .product-actions
+  [data-action="cart-increase"]
+)
+.product-meta {
+  margin-top: 4px !important;
+
+  color:
+    rgba(23, 32, 27, 0.48) !important;
+
+  font-size: 9px !important;
+
+  line-height: 1.3 !important;
+
+  font-weight: 550 !important;
+
+  text-align: left !important;
+}
+
+
+/* =========================================================
+   ACTION BAR
+   ========================================================= */
+
+#bottomSheet
+.product-card:has(
+  .product-actions
+  [data-action="cart-increase"]
+)
+> .product-actions {
+  grid-area: actions !important;
+
+  width: 100% !important;
+
+  margin: 0 !important;
+
+  padding: 0 !important;
+
+  display: flex !important;
+
+  flex-direction: row !important;
+
+  flex-wrap: nowrap !important;
+
+  align-items: center !important;
+
+  justify-content: flex-start !important;
+
+  gap: 6px !important;
+
+  align-self: end !important;
+}
+
+
+/* =========================================================
+   QUANTITY BUTTONS
+   ========================================================= */
+
+#bottomSheet
+.product-card
+.btn-icon[data-action="cart-increase"],
+
+#bottomSheet
+.product-card
+.btn-icon[data-action="cart-decrease"] {
+  width: 31px !important;
+  height: 31px !important;
+
+  min-width: 31px !important;
+
+  margin: 0 !important;
+
+  padding: 0 !important;
+
+  display: flex !important;
+
+  align-items: center !important;
+
+  justify-content: center !important;
+
+  border-radius: 9px !important;
+
+  border:
+    1px solid
+    rgba(15, 25, 30, 0.075) !important;
+
+  background:
+    #f5f7f6 !important;
+}
+
+
+/* URUTAN NORMAL:
+   minus lalu plus */
+
+#bottomSheet
+.btn-icon[data-action="cart-decrease"] {
+  order: 1 !important;
+}
+
+
+#bottomSheet
+.btn-icon[data-action="cart-increase"] {
+  order: 2 !important;
+
+  background:
+    rgba(18, 96, 63, 0.075) !important;
+
+  color:
+    #12603f !important;
+}
+
+
+/* =========================================================
+   DELETE
+   ========================================================= */
+
+#bottomSheet
+.product-card
+.btn-icon[data-action="remove-cart"] {
+  order: 3 !important;
+
+  width: 31px !important;
+  height: 31px !important;
+
+  min-width: 31px !important;
+
+  margin:
+    0
+    0
+    0
+    auto !important;
+
+  padding: 0 !important;
+
+  display: flex !important;
+
+  align-items: center !important;
+
+  justify-content: center !important;
+
+  border-radius: 9px !important;
+
+  border:
+    1px solid
+    rgba(190, 48, 48, 0.09) !important;
+
+  background:
+    rgba(190, 48, 48, 0.035) !important;
+
+  color:
+    #ad3a3a !important;
+}
+
+
+/* ICON */
+
+#bottomSheet
+.product-card:has(
+  [data-action="cart-increase"]
+)
+.btn-icon i {
+  font-size: 14px !important;
+}
+
+
+/* =========================================================
+   MOBILE KECIL
+   ========================================================= */
+
+@media (max-width: 360px) {
+
+  #bottomSheet
+  .product-card:has(
+    .product-actions
+    [data-action="cart-increase"]
+  ) {
+    grid-template-columns:
+      68px
+      minmax(0, 1fr) !important;
+
+    column-gap: 10px !important;
+
+    padding: 9px !important;
+  }
+
+
+  #bottomSheet
+  .product-card:has(
+    .product-actions
+    [data-action="cart-increase"]
+  )
+  > .product-img {
+    width: 68px !important;
+    height: 68px !important;
+  }
+
+}
