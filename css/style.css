@@ -6368,3 +6368,370 @@ a:focus-visible {
   }
 
 }
+
+/* =========================================================
+   PASAR UMKM - PREMIUM HOME HERO
+   ========================================================= */
+
+.home-discovery {
+  width: 100%;
+
+  padding:
+    12px
+    12px
+    5px;
+}
+
+
+/* HERO CONTAINER */
+
+.home-discovery .discovery-card {
+  position: relative;
+
+  width: 100%;
+
+  overflow: hidden;
+
+  padding:
+    20px
+    18px
+    18px;
+
+  border-radius: 22px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.16);
+
+  background:
+    linear-gradient(
+      145deg,
+      #0f747e 0%,
+      #1498aa 58%,
+      #21a7b6 100%
+    );
+
+  box-shadow:
+    0 12px 32px
+    rgba(15, 116, 126, 0.14);
+
+  isolation: isolate;
+}
+
+
+/* CAHAYA DEKORATIF HALUS */
+
+.home-discovery .discovery-card::before {
+  content: '';
+
+  position: absolute;
+
+  width: 180px;
+  height: 180px;
+
+  top: -100px;
+  right: -55px;
+
+  border-radius: 50%;
+
+  background:
+    rgba(255, 255, 255, 0.11);
+
+  filter:
+    blur(2px);
+
+  z-index: -1;
+}
+
+
+.home-discovery .discovery-card::after {
+  content: '';
+
+  position: absolute;
+
+  width: 120px;
+  height: 120px;
+
+  left: -60px;
+  bottom: -75px;
+
+  border-radius: 50%;
+
+  background:
+    rgba(255, 255, 255, 0.07);
+
+  z-index: -1;
+}
+
+
+/* LABEL KECIL */
+
+.home-discovery .discovery-eyebrow {
+  width: fit-content;
+
+  margin:
+    0
+    0
+    10px;
+
+  padding:
+    5px
+    9px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.18);
+
+  border-radius: 999px;
+
+  background:
+    rgba(255, 255, 255, 0.1);
+
+  color:
+    rgba(255, 255, 255, 0.9);
+
+  font-size: 9px;
+  line-height: 1;
+
+  font-weight: 750;
+
+  letter-spacing: 0.11em;
+
+  text-transform: uppercase;
+
+  backdrop-filter:
+    blur(8px);
+
+  -webkit-backdrop-filter:
+    blur(8px);
+}
+
+
+/* JUDUL */
+
+.home-discovery .discovery-title {
+  max-width: 330px;
+
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size:
+    clamp(
+      22px,
+      6vw,
+      28px
+    );
+
+  line-height: 1.12;
+
+  font-weight: 800;
+
+  letter-spacing:
+    -0.035em;
+
+  text-wrap: balance;
+}
+
+
+/* DESKRIPSI */
+
+.home-discovery .discovery-text {
+  max-width: 310px;
+
+  margin:
+    9px
+    0
+    0;
+
+  color:
+    rgba(255, 255, 255, 0.76);
+
+  font-size: 12.5px;
+  line-height: 1.55;
+
+  font-weight: 400;
+}
+
+
+/* ACTION AREA */
+
+.home-discovery .discovery-actions {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top: 17px;
+}
+
+
+/* RESET TOMBOL KHUSUS HERO */
+
+.home-discovery
+.discovery-actions
+.btn-primary,
+
+.home-discovery
+.discovery-actions
+.btn-secondary {
+  width: auto;
+
+  min-height: 39px;
+
+  margin: 0;
+
+  padding:
+    0
+    13px;
+
+  border-radius: 11px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  font-size: 11.5px;
+
+  font-weight: 700;
+
+  white-space: nowrap;
+
+  box-shadow: none;
+
+  transition:
+    transform 0.14s ease,
+    background 0.18s ease,
+    opacity 0.18s ease;
+}
+
+
+/* JELAJAHI UMKM */
+
+.home-discovery
+.discovery-actions
+.btn-primary {
+  border:
+    1px solid
+    #ffffff;
+
+  background:
+    #ffffff;
+
+  color:
+    #0f747e;
+}
+
+
+/* MULAI JUAL */
+
+.home-discovery
+.discovery-actions
+.btn-secondary {
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.22);
+
+  background:
+    rgba(255, 255, 255, 0.1);
+
+  color:
+    #ffffff;
+
+  backdrop-filter:
+    blur(8px);
+
+  -webkit-backdrop-filter:
+    blur(8px);
+}
+
+
+/* ICON */
+
+.home-discovery
+.discovery-actions
+i {
+  font-size: 16px;
+}
+
+
+/* PRESS FEEDBACK */
+
+.home-discovery
+.discovery-actions
+button:active {
+  transform:
+    scale(0.97);
+}
+
+
+/* DESKTOP */
+
+@media (hover: hover) {
+
+  .home-discovery
+  .discovery-actions
+  .btn-primary:hover {
+    transform:
+      translateY(-1px);
+
+    opacity: 0.94;
+  }
+
+
+  .home-discovery
+  .discovery-actions
+  .btn-secondary:hover {
+    background:
+      rgba(255, 255, 255, 0.16);
+  }
+
+}
+
+
+/* HP KECIL */
+
+@media (max-width: 360px) {
+
+  .home-discovery {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+
+  .home-discovery .discovery-card {
+    padding:
+      18px
+      15px
+      16px;
+
+    border-radius: 19px;
+  }
+
+
+  .home-discovery .discovery-actions {
+    gap: 7px;
+  }
+
+
+  .home-discovery
+  .discovery-actions
+  .btn-primary,
+
+  .home-discovery
+  .discovery-actions
+  .btn-secondary {
+    min-height: 38px;
+
+    padding:
+      0
+      10px;
+
+    font-size: 10.5px;
+  }
+
+}
