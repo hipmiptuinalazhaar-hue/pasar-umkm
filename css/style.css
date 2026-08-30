@@ -5808,3 +5808,100 @@ a:focus-visible {
   }
 
 }
+
+/* =========================================================
+   FEED POLISH - CATEGORY & STOCK CHIP
+   ========================================================= */
+
+.ig-product-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  margin-bottom: 7px;
+}
+
+
+/* KATEGORI */
+
+.ig-product-category {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 24px;
+
+  padding:
+    0
+    9px;
+
+  border-radius: 999px;
+
+  background:
+    rgba(20, 152, 170, 0.08);
+
+  color:
+    var(
+      --primary,
+      #1498aa
+    );
+
+  font-size: 9.5px;
+  line-height: 1;
+
+  font-weight: 750;
+
+  letter-spacing: 0.065em;
+
+  text-transform: uppercase;
+
+  white-space: nowrap;
+}
+
+
+/* STOK */
+
+.ig-product-stock {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 24px;
+
+  padding:
+    0
+    8px;
+
+  border-radius: 999px;
+
+  background:
+    rgba(0, 0, 0, 0.035);
+
+  color:
+    rgba(15, 23, 26, 0.54);
+
+  font-size: 10px;
+  line-height: 1;
+
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+
+/* MOBILE KECIL */
+
+@media (max-width: 360px) {
+
+  .ig-product-category,
+  .ig-product-stock {
+    min-height: 22px;
+
+    padding:
+      0
+      7px;
+
+    font-size: 9px;
+  }
+
+}
