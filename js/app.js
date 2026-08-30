@@ -1604,6 +1604,10 @@ function runAction(action, element) {
       openPostMenu(postId);
       break;
 
+   case 'product-detail':
+        openProductDetail(productId);
+        break;
+
     case 'add-cart':
       addToCart(productId);
       break;
@@ -4384,6 +4388,7 @@ function createAccountTabContent(tab) {
                         : ''
                     }
                   "
+                  data-action="product-detail"
                   data-product-id="${escapeHTML(
                     product.id || ''
                   )}"
@@ -4558,6 +4563,113 @@ function switchAccountTab(
     content.innerHTML =
       createAccountTabContent(tab);
   }
+}
+
+/* =========================================================
+   PRODUCT DETAIL
+   ========================================================= */
+
+function openProductDetail(productId) {
+  const product =
+    STATE.accountProducts.find(
+      item =>
+        String(item.id) ===
+        String(productId)
+    );
+
+  if (!product) {
+    showToast(
+      'Produk tidak ditemukan.'
+    );
+
+    return;
+  }
+
+  const image =
+    product.image_url ||
+    product.thumbnail_url ||
+    ASSETS.logo;
+
+  openBottomSheet(
+    `
+      <div class="auth-shell">
+
+        <div class="product-image-preview">
+          <img
+            src="${escapeHTML(image)}"
+            alt="${escapeHTML(
+              product.name ||
+              'Produk UMKM'
+            )}"
+          >
+        </div>
+
+
+        ${
+          product.category_name
+            ? `
+                <div class="product-badge">
+                  ${escapeHTML(
+                    product.category_name
+                  )}
+                </div>
+              `
+            : ''
+        }
+
+
+        <h2
+          id="sheetTitle"
+          class="auth-title"
+        >
+          ${escapeHTML(
+            product.name ||
+            'Produk UMKM'
+          )}
+        </h2>
+
+
+        <div class="product-price">
+          ${formatRupiah(
+            product.price
+          )}
+        </div>
+
+
+        <div class="product-meta">
+          Stok:
+          ${escapeHTML(
+            String(
+              product.stock ?? 0
+            )
+          )}
+
+          ${
+            product.unit
+              ? escapeHTML(
+                  product.unit
+                )
+              : ''
+          }
+        </div>
+
+
+        ${
+          product.description
+            ? `
+                <p class="auth-subtitle">
+                  ${escapeHTML(
+                    product.description
+                  )}
+                </p>
+              `
+            : ''
+        }
+
+      </div>
+    `,
+    'product-detail'
+  );
 }
 
 
