@@ -8842,3 +8842,403 @@ h2 {
   }
 
 }
+
+/* =========================================================
+   PASAR UMKM - PREMIUM ACCOUNT PROFILE HEADER
+   SAFE VISUAL POLISH ONLY
+   ========================================================= */
+
+
+/* PROFILE HEADER */
+
+.social-account-page
+.social-account-header {
+  padding:
+    18px
+    16px
+    16px;
+
+  background:
+    #ffffff;
+
+  border-bottom:
+    1px solid
+    rgba(15, 25, 30, 0.05);
+}
+
+
+/* =========================================================
+   AVATAR + STATS
+   ========================================================= */
+
+.social-account-main {
+  display: grid;
+
+  grid-template-columns:
+    auto
+    minmax(0, 1fr);
+
+  align-items: center;
+
+  gap: 22px;
+}
+
+
+/* AVATAR WRAPPER */
+
+.social-account-avatar-wrap {
+  position: relative;
+
+  width: 82px;
+  height: 82px;
+}
+
+
+/* AVATAR */
+
+.social-account-avatar {
+  width: 82px;
+  height: 82px;
+
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      145deg,
+      #eef8f4,
+      #f8fbfa
+    );
+
+  border:
+    3px solid
+    #ffffff;
+
+  box-shadow:
+    0 0 0 1px
+    rgba(18, 96, 63, 0.10),
+    0 7px 20px
+    rgba(15, 30, 22, 0.08);
+}
+
+
+.social-account-avatar img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+
+.social-account-avatar > i {
+  color:
+    var(
+      --forest-700,
+      #12603f
+    );
+
+  font-size: 34px;
+}
+
+
+/* EDIT AVATAR + */
+
+.social-account-avatar-add {
+  right: -1px;
+  bottom: 2px;
+
+  width: 27px;
+  height: 27px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    var(
+      --forest-700,
+      #12603f
+    );
+
+  color: #ffffff;
+
+  border:
+    3px solid
+    #ffffff;
+
+  box-shadow:
+    0 4px 10px
+    rgba(18, 96, 63, 0.18);
+}
+
+
+.social-account-avatar-add i {
+  font-size: 13px;
+}
+
+
+/* =========================================================
+   STATS
+   ========================================================= */
+
+.social-account-stats {
+  min-width: 0;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 8px;
+}
+
+
+.social-account-stat {
+  min-width: 0;
+
+  text-align: center;
+}
+
+
+.social-account-stat strong {
+  display: block;
+
+  color:
+    #151c18;
+
+  font-size: 16px;
+
+  line-height: 1.1;
+
+  font-weight: 800;
+
+  letter-spacing:
+    -0.025em;
+}
+
+
+.social-account-stat span {
+  display: block;
+
+  margin-top: 5px;
+
+  color:
+    rgba(21, 28, 24, 0.52);
+
+  font-size: 9.5px;
+
+  line-height: 1.25;
+
+  font-weight: 550;
+}
+
+
+/* =========================================================
+   BIO
+   ========================================================= */
+
+.social-account-bio {
+  margin-top: 16px;
+}
+
+
+.social-account-name {
+  margin: 0;
+
+  color:
+    #151c18;
+
+  font-size: 16px;
+
+  line-height: 1.25;
+
+  font-weight: 800;
+
+  letter-spacing:
+    -0.025em;
+}
+
+
+.social-account-role {
+  margin-top: 4px;
+
+  color:
+    rgba(21, 28, 24, 0.48);
+
+  font-size: 10px;
+
+  font-weight: 600;
+}
+
+
+.social-account-description {
+  margin:
+    9px
+    0
+    0;
+
+  color:
+    #3f4943;
+
+  font-size: 11.5px;
+
+  line-height: 1.55;
+}
+
+
+.social-account-link {
+  margin-top: 8px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 6px;
+
+  color:
+    var(
+      --forest-700,
+      #12603f
+    );
+
+  font-size: 10px;
+
+  font-weight: 650;
+}
+
+
+.social-account-link i {
+  font-size: 14px;
+}
+
+
+/* =========================================================
+   PROFILE ACTIONS
+   ========================================================= */
+
+.social-account-actions {
+  margin-top: 15px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 9px;
+}
+
+
+.social-account-action {
+  min-width: 0;
+  min-height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  padding:
+    0
+    12px;
+
+  border:
+    1px solid
+    rgba(15, 25, 30, 0.075);
+
+  border-radius: 12px;
+
+  background:
+    #f6f8f7;
+
+  color:
+    #26302a;
+
+  font-size: 10.5px;
+
+  font-weight: 700;
+
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.13s ease;
+}
+
+
+.social-account-action i {
+  font-size: 16px;
+}
+
+
+.social-account-action:active {
+  transform:
+    scale(0.98);
+
+  background:
+    rgba(18, 96, 63, 0.06);
+
+  border-color:
+    rgba(18, 96, 63, 0.13);
+}
+
+
+/* DESKTOP HOVER */
+
+@media (hover: hover) {
+
+  .social-account-action:hover {
+    background:
+      rgba(18, 96, 63, 0.05);
+
+    border-color:
+      rgba(18, 96, 63, 0.13);
+
+    color:
+      var(
+        --forest-800,
+        #0d4b32
+      );
+  }
+
+}
+
+
+/* MOBILE KECIL */
+
+@media (max-width: 360px) {
+
+  .social-account-page
+  .social-account-header {
+    padding-left: 13px;
+    padding-right: 13px;
+  }
+
+
+  .social-account-main {
+    gap: 15px;
+  }
+
+
+  .social-account-avatar-wrap,
+  .social-account-avatar {
+    width: 72px;
+    height: 72px;
+  }
+
+
+  .social-account-stat strong {
+    font-size: 15px;
+  }
+
+
+  .social-account-stat span {
+    font-size: 8.5px;
+  }
+
+}
