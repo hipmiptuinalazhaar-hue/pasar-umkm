@@ -5009,6 +5009,46 @@ function openProductCreateForm() {
           id="productCreateForm"
           class="auth-form"
         >
+        <div class="auth-field">
+
+  <label
+    class="auth-label"
+    for="productCreateImage"
+  >
+    Foto Produk
+  </label>
+
+  <label
+    for="productCreateImage"
+    class="product-image-picker"
+  >
+
+    <div
+      class="product-image-preview"
+      id="productImagePreview"
+    >
+      <i class="ph ph-camera-plus"></i>
+
+      <span>
+        Pilih Foto Produk
+      </span>
+    </div>
+
+  </label>
+
+  <input
+    id="productCreateImage"
+    name="image"
+    type="file"
+    accept="image/jpeg,image/png,image/webp"
+    hidden
+  >
+
+  <small class="product-image-help">
+    JPG, PNG, atau WEBP. Maksimal 5 MB.
+  </small>
+
+</div>
 
           <div class="auth-field">
 
