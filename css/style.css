@@ -5405,3 +5405,61 @@ a:focus-visible {
   }
 
 }
+
+/* =========================================================
+   FEED POLISH - LIKE & CAPTION SPACING
+   ========================================================= */
+
+.post-stats {
+  margin: 0;
+
+  padding:
+    2px
+    15px
+    0;
+
+  font-size: 12.5px;
+  line-height: 1.4;
+
+  font-weight: 650;
+
+  color: #161a1c;
+}
+
+
+.ig-product-description {
+  margin:
+    7px
+    0
+    0;
+
+  padding: 0;
+
+  font-size: 13px;
+  line-height: 1.48;
+
+  font-weight: 400;
+
+  color:
+    rgba(20, 25, 28, 0.68);
+}
+
+
+.view-comments {
+  margin:
+    5px
+    15px
+    10px;
+
+  padding: 0;
+
+  border: 0;
+  background: transparent;
+
+  font-size: 12px;
+
+  color:
+    rgba(20, 25, 28, 0.48);
+
+  text-align: left;
+}
