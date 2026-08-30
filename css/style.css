@@ -9242,3 +9242,484 @@ h2 {
   }
 
 }
+
+/* =========================================================
+   PASAR UMKM
+   PREMIUM PROFILE HIGHLIGHTS + CONTENT TABS
+   SAFE VISUAL POLISH ONLY
+   ========================================================= */
+
+
+/* =========================================================
+   PROFILE HIGHLIGHTS
+   Produk / Pesanan / Favorit / Bantuan
+   ========================================================= */
+
+.social-account-highlights {
+  width: 100%;
+
+  padding:
+    15px
+    14px
+    17px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 9px;
+
+  background:
+    #ffffff;
+
+  border-bottom:
+    1px solid
+    rgba(15, 25, 30, 0.05);
+}
+
+
+/* ITEM */
+
+.social-account-highlight {
+  width: 100%;
+
+  min-width: 0;
+
+  padding:
+    11px
+    5px
+    10px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 7px;
+
+  border:
+    1px solid
+    rgba(15, 25, 30, 0.055);
+
+  border-radius: 15px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff 0%,
+      #f8faf9 100%
+    );
+
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+
+/* ICON OUTER */
+
+.social-account-highlight-ring {
+  width: 52px;
+  height: 52px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 50%;
+
+  padding: 3px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(18, 96, 63, 0.16),
+      rgba(20, 152, 170, 0.08)
+    );
+}
+
+
+/* ICON INNER */
+
+.social-account-highlight-inner {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    #ffffff;
+
+  box-shadow:
+    inset 0 0 0 1px
+    rgba(18, 96, 63, 0.06);
+}
+
+
+.social-account-highlight-inner i {
+  color:
+    var(
+      --forest-700,
+      #12603f
+    );
+
+  font-size: 20px;
+}
+
+
+/* LABEL */
+
+.social-account-highlight-label {
+  display: block;
+
+  max-width: 100%;
+
+  overflow: hidden;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+
+  color:
+    #3e4842;
+
+  font-size: 9.5px;
+
+  line-height: 1.2;
+
+  font-weight: 700;
+
+  letter-spacing:
+    -0.01em;
+}
+
+
+/* DESKTOP HOVER */
+
+@media (hover: hover) {
+
+  .social-account-highlight:hover {
+    background:
+      #f7faf8;
+
+    border-color:
+      rgba(18, 96, 63, 0.12);
+
+    box-shadow:
+      0 5px 16px
+      rgba(15, 30, 22, 0.045);
+  }
+
+}
+
+
+/* TAP */
+
+.social-account-highlight:active {
+  background:
+    rgba(18, 96, 63, 0.055);
+
+  border-color:
+    rgba(18, 96, 63, 0.13);
+}
+
+
+/* =========================================================
+   PROFILE CONTENT TABS
+   Postingan / Video / Produk / Disimpan
+   ========================================================= */
+
+.social-account-tabs {
+  width: 100%;
+
+  min-height: 53px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  align-items: stretch;
+
+  padding:
+    0
+    8px;
+
+  background:
+    #ffffff;
+
+  border-bottom:
+    1px solid
+    rgba(15, 25, 30, 0.055);
+}
+
+
+/* TAB BUTTON */
+
+.social-account-tab {
+  width: 100%;
+
+  min-width: 0;
+
+  min-height: 52px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-bottom:
+    2px solid
+    transparent;
+
+  color:
+    rgba(23, 31, 27, 0.40);
+
+  background:
+    transparent;
+
+  transition:
+    color 0.16s ease,
+    background 0.16s ease,
+    border-color 0.16s ease;
+}
+
+
+.social-account-tab i {
+  font-size: 20px;
+}
+
+
+/* ACTIVE */
+
+.social-account-tab.active {
+  color:
+    var(
+      --forest-800,
+      #0d4b32
+    );
+
+  border-bottom-color:
+    var(
+      --forest-700,
+      #12603f
+    );
+
+  background:
+    linear-gradient(
+      180deg,
+      transparent,
+      rgba(18, 96, 63, 0.025)
+    );
+}
+
+
+/* HOVER */
+
+@media (hover: hover) {
+
+  .social-account-tab:hover {
+    color:
+      var(
+        --forest-700,
+        #12603f
+      );
+
+    background:
+      rgba(18, 96, 63, 0.025);
+  }
+
+}
+
+
+/* =========================================================
+   TAB CONTENT AREA
+   ========================================================= */
+
+#socialAccountContent {
+  width: 100%;
+
+  min-height: 210px;
+
+  padding-bottom:
+    20px;
+
+  background:
+    #ffffff;
+}
+
+
+/* =========================================================
+   PREMIUM EMPTY STATE
+   Postingan / Video / Saved kosong
+   ========================================================= */
+
+.social-account-empty {
+  width:
+    calc(100% - 28px);
+
+  max-width: 390px;
+
+  margin:
+    22px
+    auto
+    0;
+
+  padding:
+    34px
+    20px;
+
+  text-align: center;
+
+  border:
+    1px solid
+    rgba(15, 25, 30, 0.055);
+
+  border-radius: 20px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff,
+      #fafcfb
+    );
+
+  box-shadow:
+    0 5px 22px
+    rgba(15, 25, 30, 0.025);
+}
+
+
+/* EMPTY ICON */
+
+.social-account-empty-icon {
+  width: 58px;
+  height: 58px;
+
+  margin:
+    0
+    auto
+    15px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 18px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(18, 96, 63, 0.09),
+      rgba(20, 152, 170, 0.055)
+    );
+
+  color:
+    var(
+      --forest-700,
+      #12603f
+    );
+}
+
+
+.social-account-empty-icon i {
+  font-size: 26px;
+}
+
+
+/* TITLE */
+
+.social-account-empty strong {
+  display: block;
+
+  color:
+    #18201c;
+
+  font-size: 14px;
+
+  line-height: 1.3;
+
+  font-weight: 800;
+
+  letter-spacing:
+    -0.025em;
+}
+
+
+/* DESCRIPTION */
+
+.social-account-empty p {
+  max-width: 280px;
+
+  margin:
+    7px
+    auto
+    0;
+
+  color:
+    rgba(24, 32, 28, 0.50);
+
+  font-size: 10.5px;
+
+  line-height: 1.55;
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 360px) {
+
+  .social-account-highlights {
+    padding-left: 10px;
+    padding-right: 10px;
+
+    gap: 6px;
+  }
+
+
+  .social-account-highlight {
+    padding-left: 3px;
+    padding-right: 3px;
+  }
+
+
+  .social-account-highlight-ring {
+    width: 47px;
+    height: 47px;
+  }
+
+
+  .social-account-highlight-inner i {
+    font-size: 18px;
+  }
+
+
+  .social-account-highlight-label {
+    font-size: 8.5px;
+  }
+
+
+  .social-account-tabs {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+}
