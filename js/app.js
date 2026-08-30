@@ -1921,6 +1921,10 @@ function runAction(action, element) {
         );
         break;
 
+      case 'seller-profile-back':
+        navigate('home');
+        break;
+
     case 'login':
       openLogin();
       break;
