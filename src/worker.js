@@ -1893,6 +1893,291 @@ if (
     );
   }
 }
+
+    // ========================================
+// PRODUCTS - SOFT DELETE
+// DELETE /api/products/:id
+// ========================================
+
+if (
+  url.pathname.startsWith(
+    "/api/products/"
+  ) &&
+  url.pathname !==
+    "/api/products/me" &&
+  request.method === "DELETE"
+) {
+  try {
+    const productId =
+      url.pathname
+        .slice(
+          "/api/products/".length
+        )
+        .trim();
+
+
+    const uuidPattern =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+
+    if (
+      !uuidPattern.test(productId)
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "ID produk tidak valid."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const sessionToken =
+      getCookie(
+        request,
+        "__Host-pasar_umkm_session"
+      );
+
+
+    if (!sessionToken) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Silakan masuk terlebih dahulu."
+        },
+        {
+          status: 401,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const sql =
+      neon(env.DATABASE_URL);
+
+
+    const sessions =
+      await sql`
+        SELECT
+          u.id,
+          u.role
+
+        FROM
+          sessions s
+
+        JOIN
+          users u
+          ON u.id = s.user_id
+
+        WHERE
+          s.token_hash =
+            encode(
+              digest(
+                ${sessionToken},
+                'sha256'
+              ),
+              'hex'
+            )
+
+          AND
+          s.expires_at > NOW()
+
+          AND
+          u.is_active = TRUE
+
+        LIMIT 1
+      `;
+
+
+    if (
+      sessions.length === 0
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Session tidak valid atau sudah berakhir."
+        },
+        {
+          status: 401,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const currentUser =
+      sessions[0];
+
+
+    if (
+      currentUser.role !== "seller" &&
+      currentUser.role !== "admin"
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Akun tidak memiliki izin menghapus produk."
+        },
+        {
+          status: 403,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const stores =
+      await sql`
+        SELECT
+          id
+
+        FROM
+          stores
+
+        WHERE
+          owner_id =
+            ${currentUser.id}
+
+        LIMIT 1
+      `;
+
+
+    if (
+      stores.length === 0
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "UMKM belum ditemukan."
+        },
+        {
+          status: 403,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const store =
+      stores[0];
+
+
+    const products =
+      await sql`
+        UPDATE
+          products
+
+        SET
+          is_active = FALSE,
+          updated_at = NOW()
+
+        WHERE
+          id =
+            ${productId}
+
+          AND
+          store_id =
+            ${store.id}
+
+          AND
+          is_active = TRUE
+
+        RETURNING
+          id,
+          name,
+          is_active,
+          updated_at
+      `;
+
+
+    if (
+      products.length === 0
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Produk tidak ditemukan atau sudah dinonaktifkan."
+        },
+        {
+          status: 404,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    return Response.json(
+      {
+        ok: true,
+
+        message:
+          "Produk berhasil dihapus.",
+
+        product:
+          products[0]
+      },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+
+
+  } catch (error) {
+    console.error(
+      "Products DELETE error:",
+      error
+    );
+
+
+    return Response.json(
+      {
+        ok: false,
+        error:
+          "Gagal menghapus produk."
+      },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+  }
+}
     
     // ========================================
     // STORES - CREATE
