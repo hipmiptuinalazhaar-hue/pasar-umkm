@@ -15414,3 +15414,181 @@ i {
   }
 
 }
+
+/* =========================================================
+   PASAR UMKM - FEED INTRO
+   Editorial transition from discovery to social feed
+   ========================================================= */
+
+.market-feed-head {
+  position: relative;
+
+  margin:
+    2px
+    16px
+    14px;
+
+  padding:
+    18px
+    0
+    13px;
+
+  display: flex;
+
+  align-items:
+    flex-end;
+
+  justify-content:
+    space-between;
+
+  gap: 20px;
+
+  border-bottom:
+    1px solid
+    rgba(22, 61, 45, 0.10);
+}
+
+
+/* COPY */
+
+.market-feed-head-copy {
+  min-width: 0;
+
+  flex: 1;
+}
+
+
+.market-feed-eyebrow {
+  display: block;
+
+  margin-bottom:
+    6px;
+
+  color:
+    #b18a37;
+
+  font-size:
+    8px;
+
+  line-height: 1;
+
+  font-weight: 800;
+
+  letter-spacing:
+    0.14em;
+}
+
+
+.market-feed-title {
+  margin: 0;
+
+  color:
+    #17231d;
+
+  font-size:
+    20px;
+
+  line-height: 1.15;
+
+  font-weight: 800;
+
+  letter-spacing:
+    -0.035em;
+}
+
+
+.market-feed-description {
+  max-width:
+    300px;
+
+  margin:
+    5px
+    0
+    0;
+
+  color:
+    #7b857e;
+
+  font-size:
+    10px;
+
+  line-height: 1.45;
+
+  font-weight: 500;
+}
+
+
+/* SMALL EDITORIAL MARK */
+
+.market-feed-mark {
+  width: 34px;
+  height: 34px;
+
+  flex:
+    0 0
+    34px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+}
+
+
+.market-feed-mark span {
+  position: relative;
+
+  width: 25px;
+  height: 1px;
+
+  display: block;
+
+  background:
+    #d7aa4a;
+}
+
+
+.market-feed-mark span::after {
+  content: "";
+
+  position: absolute;
+
+  top: -3px;
+  right: 0;
+
+  width: 7px;
+  height: 7px;
+
+  border-radius:
+    50%;
+
+  background:
+    #176b4a;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 380px) {
+
+  .market-feed-head {
+    margin-left:
+      14px;
+
+    margin-right:
+      14px;
+  }
+
+
+  .market-feed-title {
+    font-size:
+      18px;
+  }
+
+
+  .market-feed-description {
+    max-width:
+      245px;
+  }
+
+}
