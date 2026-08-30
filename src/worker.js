@@ -2836,6 +2836,43 @@ if (
   }
 }
     // ========================================
+// CLOUDINARY CONFIG CHECK
+// TEMPORARY DEBUG
+// ========================================
+
+if (
+  url.pathname ===
+    "/api/debug/cloudinary" &&
+  request.method === "GET"
+) {
+  return Response.json(
+    {
+      ok: true,
+
+      cloud_name:
+        Boolean(
+          env.CLOUDINARY_CLOUD_NAME
+        ),
+
+      api_key:
+        Boolean(
+          env.CLOUDINARY_API_KEY
+        ),
+
+      api_secret:
+        Boolean(
+          env.CLOUDINARY_API_SECRET
+        )
+    },
+    {
+      headers: {
+        "Cache-Control":
+          "no-store"
+      }
+    }
+  );
+}
+    // ========================================
     // API 404
     // ========================================
 
