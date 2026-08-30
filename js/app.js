@@ -1082,19 +1082,78 @@ function renderFeed(
     return;
   }
 
+
   if (!posts.length) {
     DOM.feed.innerHTML =
-      createEmptyFeedTemplate(category);
+      createEmptyFeedTemplate(
+        category
+      );
 
     return;
   }
 
-  DOM.feed.innerHTML =
-    posts
-      .map(createPostTemplate)
-      .join('');
-}
 
+  const eyebrow =
+    category
+      ? 'KATEGORI'
+      : 'PASAR HARI INI';
+
+
+  const title =
+    category
+      ? category.name
+      : 'Terbaru dari UMKM';
+
+
+  const description =
+    category
+      ? `Pilihan produk ${category.name} dari UMKM lokal.`
+      : 'Produk dan cerita terbaru dari pelaku usaha lokal.';
+
+
+  DOM.feed.innerHTML = `
+    <header class="market-feed-head">
+
+      <div class="market-feed-head-copy">
+
+        <span class="market-feed-eyebrow">
+          ${escapeHTML(
+            eyebrow
+          )}
+        </span>
+
+        <h2 class="market-feed-title">
+          ${escapeHTML(
+            title
+          )}
+        </h2>
+
+        <p class="market-feed-description">
+          ${escapeHTML(
+            description
+          )}
+        </p>
+
+      </div>
+
+
+      <div
+        class="market-feed-mark"
+        aria-hidden="true"
+      >
+        <span></span>
+      </div>
+
+    </header>
+
+
+    ${posts
+      .map(
+        createPostTemplate
+      )
+      .join('')}
+  `;
+}
 
 /* =========================================================
    18. EMPTY FEED
