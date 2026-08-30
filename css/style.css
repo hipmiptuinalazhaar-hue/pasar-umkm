@@ -15121,3 +15121,296 @@ i {
   }
 
 }
+
+/* =========================================================
+   PASAR UMKM - CLEAN EDITORIAL CATEGORIES
+   ========================================================= */
+
+/* SECTION HEADER */
+
+.home-discovery
+.home-section-head {
+  margin:
+    4px
+    16px
+    12px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+}
+
+
+.home-discovery
+.home-section-head h2 {
+  margin: 0;
+
+  color: #17231d;
+
+  font-size: 18px;
+
+  line-height: 1.2;
+
+  font-weight: 800;
+
+  letter-spacing: -0.03em;
+}
+
+
+.home-discovery
+.section-link {
+  margin: 0;
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #176b4a;
+
+  font: inherit;
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   CATEGORY GRID
+   ========================================================= */
+
+.home-discovery
+.quick-categories {
+  margin:
+    0
+    12px
+    22px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 8px;
+}
+
+
+/* =========================================================
+   CATEGORY ITEM
+   Hilangkan kartu putih besar
+   ========================================================= */
+
+.home-discovery
+.quick-category {
+  min-width: 0;
+
+  margin: 0;
+
+  padding:
+    7px
+    2px
+    6px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: flex-start;
+
+  gap: 7px;
+
+  border: 0 !important;
+
+  border-radius: 0 !important;
+
+  background:
+    transparent !important;
+
+  box-shadow:
+    none !important;
+
+  color:
+    #17231d;
+
+  font: inherit;
+
+  cursor: pointer;
+
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+
+/* Matikan dekorasi lama bila ada */
+
+.home-discovery
+.quick-category::before,
+
+.home-discovery
+.quick-category::after {
+  content: none !important;
+
+  display: none !important;
+}
+
+
+/* =========================================================
+   ICON TILE
+   ========================================================= */
+
+.home-discovery
+.quick-category-icon {
+  width: 48px !important;
+  height: 48px !important;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border:
+    1px solid
+    rgba(22, 61, 45, 0.08) !important;
+
+  border-radius:
+    14px !important;
+
+  background:
+    #f5f1e8 !important;
+
+  color:
+    #176b4a !important;
+
+  box-shadow:
+    none !important;
+
+  transition:
+    transform 150ms ease,
+    background 150ms ease,
+    border-color 150ms ease;
+}
+
+
+/* Paksa semua kategori satu bahasa warna */
+
+.home-discovery
+.quick-category:nth-child(n)
+.quick-category-icon {
+  background:
+    #f5f1e8 !important;
+
+  color:
+    #176b4a !important;
+}
+
+
+.home-discovery
+.quick-category-icon i {
+  font-size:
+    21px !important;
+
+  line-height: 1;
+}
+
+
+/* =========================================================
+   LABEL
+   ========================================================= */
+
+.home-discovery
+.quick-category-label {
+  max-width: 100%;
+
+  overflow: hidden;
+
+  color:
+    #2b382f !important;
+
+  font-size:
+    10px !important;
+
+  line-height: 1.25;
+
+  font-weight:
+    650 !important;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   INTERACTION
+   ========================================================= */
+
+.home-discovery
+.quick-category:active
+.quick-category-icon {
+  transform:
+    scale(0.94);
+
+  background:
+    #eee8dc !important;
+}
+
+
+@media (hover: hover) {
+
+  .home-discovery
+  .quick-category:hover
+  .quick-category-icon {
+    transform:
+      translateY(-2px);
+
+    border-color:
+      rgba(23, 107, 74, 0.18) !important;
+
+    background:
+      #f1ece1 !important;
+  }
+
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 380px) {
+
+  .home-discovery
+  .quick-categories {
+    gap: 5px;
+  }
+
+
+  .home-discovery
+  .quick-category-icon {
+    width: 44px !important;
+    height: 44px !important;
+
+    border-radius:
+      13px !important;
+  }
+
+
+  .home-discovery
+  .quick-category-icon i {
+    font-size:
+      19px !important;
+  }
+
+
+  .home-discovery
+  .quick-category-label {
+    font-size:
+      9px !important;
+  }
+
+}
