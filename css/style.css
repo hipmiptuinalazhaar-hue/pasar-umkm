@@ -7460,3 +7460,106 @@ button:active {
 .bottom-sheet {
   z-index: 500 !important;
 }
+
+/* =========================================================
+   FIX FINAL - DESKTOP APP SHELL
+   ========================================================= */
+
+@media (min-width: 768px) {
+
+  /* Seluruh aplikasi memakai satu lebar */
+  .app {
+    width: 100%;
+    max-width: 560px !important;
+
+    margin-left: auto;
+    margin-right: auto;
+
+    min-height: 100vh;
+
+    background: #ffffff;
+
+    box-shadow:
+      0 0 0 1px
+      rgba(15, 25, 30, 0.04);
+  }
+
+
+  /* HEADER sejajar dengan aplikasi */
+  .app-header {
+    position: fixed !important;
+
+    top: 0 !important;
+    left: 50% !important;
+
+    width: 100% !important;
+    max-width: 560px !important;
+
+    transform:
+      translateX(-50%) !important;
+
+    border-radius: 0 !important;
+  }
+
+
+  /* CONTENT sejajar */
+  .app-main {
+    width: 100%;
+    max-width: 560px;
+
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+
+  /* NAVBAR sejajar dan TIDAK mengambang */
+  .app-navigation {
+    position: fixed !important;
+
+    left: 50% !important;
+    bottom: 0 !important;
+
+    width: 100% !important;
+    max-width: 560px !important;
+
+    transform:
+      translateX(-50%) !important;
+
+    border-radius: 0 !important;
+
+    border-left: 0 !important;
+    border-right: 0 !important;
+    border-bottom: 0 !important;
+
+    box-shadow:
+      0 -5px 20px
+      rgba(15, 25, 30, 0.055);
+
+    z-index: 100 !important;
+  }
+
+
+  /* JUAL jangan terlalu terbang */
+  .nav-item-create {
+    transform:
+      translateY(-6px) !important;
+  }
+
+
+  .nav-item-create:active {
+    transform:
+      translateY(-6px)
+      scale(0.94) !important;
+  }
+
+
+  /* Feed mengikuti shell */
+  #feed {
+    width: 100% !important;
+    max-width: 560px !important;
+
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+}
