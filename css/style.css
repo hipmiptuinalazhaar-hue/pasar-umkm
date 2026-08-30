@@ -16091,3 +16091,243 @@ i {
   }
 
 }
+
+/* =========================================================
+   PASAR UMKM - PREMIUM PRODUCT CTA
+   Feed only
+   ========================================================= */
+
+
+/* AREA TOMBOL */
+
+.feed > .post-card
+.ig-product-buttons {
+  width: auto;
+
+  margin:
+    12px
+    14px
+    14px;
+
+  padding-top:
+    12px;
+
+  display: grid;
+
+  grid-template-columns:
+    44px
+    minmax(0, 1fr);
+
+  gap: 9px;
+
+  border-top:
+    1px solid
+    rgba(22, 61, 45, 0.08);
+}
+
+
+/* =========================================================
+   KERANJANG
+   Secondary action, cukup icon
+   ========================================================= */
+
+.feed > .post-card
+.ig-cart-button {
+  width: 44px;
+  height: 44px;
+
+  min-width: 44px;
+  min-height: 44px;
+
+  padding: 0;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border:
+    1px solid
+    rgba(23, 107, 74, 0.16) !important;
+
+  border-radius:
+    12px;
+
+  background:
+    #f6f3eb !important;
+
+  color:
+    #176b4a !important;
+
+  font: inherit;
+
+  box-shadow:
+    none !important;
+
+  cursor: pointer;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  transition:
+    transform 120ms ease,
+    background 120ms ease,
+    border-color 120ms ease;
+}
+
+
+/* Sembunyikan teks Keranjang.
+   Icon sudah cukup jelas dan layout jadi lebih premium. */
+
+.feed > .post-card
+.ig-cart-button span {
+  display: none;
+}
+
+
+.feed > .post-card
+.ig-cart-button i {
+  margin: 0;
+
+  font-size:
+    19px;
+}
+
+
+/* =========================================================
+   BELI SEKARANG
+   Main commerce CTA
+   ========================================================= */
+
+.feed > .post-card
+.ig-buy-button {
+  min-width: 0;
+  min-height: 44px;
+
+  padding:
+    0
+    16px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  border:
+    1px solid
+    #163d2d !important;
+
+  border-radius:
+    12px;
+
+  background:
+    #163d2d !important;
+
+  color:
+    #fffdf8 !important;
+
+  font: inherit;
+
+  font-size:
+    11px;
+
+  line-height: 1;
+
+  font-weight:
+    780;
+
+  letter-spacing:
+    -0.01em;
+
+  box-shadow:
+    none !important;
+
+  cursor: pointer;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  transition:
+    transform 120ms ease,
+    background 120ms ease;
+}
+
+
+.feed > .post-card
+.ig-buy-button i {
+  font-size:
+    16px;
+}
+
+
+/* =========================================================
+   INTERACTION
+   ========================================================= */
+
+.feed > .post-card
+.ig-cart-button:active,
+
+.feed > .post-card
+.ig-buy-button:active {
+  transform:
+    scale(0.97);
+}
+
+
+@media (hover: hover) {
+
+  .feed > .post-card
+  .ig-cart-button:hover {
+    background:
+      #eee9de !important;
+
+    border-color:
+      rgba(23, 107, 74, 0.28) !important;
+  }
+
+
+  .feed > .post-card
+  .ig-buy-button:hover {
+    background:
+      #0f3224 !important;
+  }
+
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 350px) {
+
+  .feed > .post-card
+  .ig-product-buttons {
+    grid-template-columns:
+      42px
+      minmax(0, 1fr);
+  }
+
+
+  .feed > .post-card
+  .ig-cart-button {
+    width: 42px;
+    height: 42px;
+
+    min-width: 42px;
+    min-height: 42px;
+  }
+
+
+  .feed > .post-card
+  .ig-buy-button {
+    min-height:
+      42px;
+
+    font-size:
+      10.5px;
+  }
+
+}
