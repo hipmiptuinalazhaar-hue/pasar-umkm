@@ -5678,8 +5678,16 @@ if (buttonText) {
 
 
     if (submitButton) {
-      submitButton.disabled = false;
-    }
+  submitButton.disabled = false;
+
+  const buttonText =
+    submitButton.querySelector(
+      'span'
+    );
+
+  if (buttonText) {
+    buttonText.textContent =
+      'Tambahkan Produk';
   }
 }
 
