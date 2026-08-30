@@ -5300,7 +5300,80 @@ function bindProductCreateEvents() {
     handleProductCreateSubmit
   );
 }
+   const imageInput =
+  form.querySelector(
+    '#productCreateImage'
+  );
 
+imageInput?.addEventListener(
+  'change',
+  event => {
+
+    const file =
+      event.target.files?.[0];
+
+    const preview =
+      form.querySelector(
+        '#productImagePreview'
+      );
+
+    if (
+      !file ||
+      !preview
+    ) {
+      return;
+    }
+
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/webp'
+    ];
+
+    if (
+      !allowedTypes.includes(
+        file.type
+      )
+    ) {
+      showToast(
+        'Foto harus JPG, PNG, atau WEBP.'
+      );
+
+      event.target.value = '';
+
+      return;
+    }
+
+    if (
+      file.size >
+      5 * 1024 * 1024
+    ) {
+      showToast(
+        'Ukuran foto maksimal 5 MB.'
+      );
+
+      event.target.value = '';
+
+      return;
+    }
+
+    const reader =
+      new FileReader();
+
+    reader.onload = () => {
+      preview.innerHTML = `
+        <img
+          src="${reader.result}"
+          alt="Preview foto produk"
+        >
+      `;
+    };
+
+    reader.readAsDataURL(
+      file
+    );
+  }
+);
 
 /* =========================================================
    PRODUCT CREATE SUBMIT
