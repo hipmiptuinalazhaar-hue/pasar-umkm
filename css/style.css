@@ -7759,3 +7759,49 @@ button:active {
   }
 
 }
+
+/* =========================================================
+   FIX FINAL - MOBILE LAYER ORDER
+   ========================================================= */
+
+@media (max-width: 767px) {
+
+  /* Header tetap di atas halaman,
+     tetapi di bawah menu/modal */
+  .app-header {
+    z-index: 200 !important;
+  }
+
+
+  /* Side menu harus menutupi header */
+  .side-menu-overlay {
+    z-index: 300 !important;
+  }
+
+
+  /* Search full screen harus menutupi header */
+  .search-overlay {
+    z-index: 400 !important;
+  }
+
+
+  /* Overlay modal */
+  .sheet-overlay {
+    z-index: 490 !important;
+  }
+
+
+  /* Bottom sheet: keranjang, jual,
+     titik tiga, dll */
+  .bottom-sheet {
+    z-index: 500 !important;
+  }
+
+
+  /* Navbar bawah tetap paling belakang */
+  .app-navigation {
+    z-index: 100 !important;
+  }
+
+}
+
