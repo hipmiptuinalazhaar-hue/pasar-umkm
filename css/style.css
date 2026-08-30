@@ -5116,3 +5116,109 @@ a:focus-visible {
   background:
     rgba(0, 0, 0, 0.05);
 }
+
+/* =========================================================
+   FEED POLISH - PRODUCT TEXT
+   ========================================================= */
+
+.ig-product-info {
+  padding:
+    6px
+    15px
+    15px;
+}
+
+
+/* KATEGORI + STOK */
+
+.ig-product-meta {
+  margin-bottom: 6px;
+}
+
+.ig-product-category {
+  font-size: 10px;
+  font-weight: 700;
+
+  letter-spacing: 0.08em;
+
+  color:
+    var(
+      --primary,
+      #1498aa
+    );
+
+  opacity: 0.85;
+}
+
+.ig-product-stock {
+  font-size: 10.5px;
+
+  color:
+    rgba(0, 0, 0, 0.48);
+}
+
+
+/* NAMA PRODUK */
+
+.ig-product-name {
+  margin: 0;
+
+  font-size: 15px;
+  line-height: 1.35;
+
+  font-weight: 700;
+
+  letter-spacing: -0.015em;
+
+  color: #151515;
+}
+
+
+/* HARGA */
+
+.ig-product-price {
+  margin-top: 3px;
+
+  font-size: 20px;
+  line-height: 1.25;
+
+  font-weight: 800;
+
+  letter-spacing: -0.025em;
+
+  color:
+    var(
+      --primary,
+      #1498aa
+    );
+}
+
+
+/* CAPTION / DESKRIPSI */
+
+.ig-product-description {
+  margin:
+    7px
+    0
+    0;
+
+  font-size: 12.5px;
+  line-height: 1.5;
+
+  color:
+    rgba(0, 0, 0, 0.68);
+
+  display: -webkit-box;
+
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+
+  overflow: hidden;
+}
+
+
+/* JARAK TOMBOL */
+
+.ig-product-buttons {
+  margin-top: 12px;
+}
