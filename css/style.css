@@ -5338,3 +5338,70 @@ a:focus-visible {
   }
 
 }
+
+/* =========================================================
+   FEED POLISH - SMART PRODUCT IMAGE
+   ========================================================= */
+
+.ig-product-media {
+  width: 100%;
+
+  /* Matikan rasio kotak lama */
+  aspect-ratio: auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      180deg,
+      #f8f9fa 0%,
+      #f3f4f5 100%
+    );
+}
+
+
+/* FOTO ASLI TIDAK DIPOTONG */
+
+.ig-product-media img {
+  width: 100%;
+  height: auto;
+
+  max-height: 540px;
+
+  display: block;
+
+  object-fit: contain;
+  object-position: center;
+
+  margin: 0 auto;
+}
+
+
+/* FOTO YANG SANGAT TINGGI */
+
+@media (max-width: 599px) {
+
+  .ig-product-media img {
+    max-height: 520px;
+  }
+
+}
+
+
+/* LAYAR BESAR */
+
+@media (min-width: 600px) {
+
+  .ig-product-media {
+    background: #f6f7f8;
+  }
+
+  .ig-product-media img {
+    max-height: 620px;
+  }
+
+}
