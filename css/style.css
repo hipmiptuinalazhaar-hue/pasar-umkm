@@ -12481,3 +12481,1085 @@ i {
   }
 
 }
+
+/* =========================================================
+   PASAR UMKM
+   STORE DIRECTORY + STORE DETAIL
+   UI/UX MAX PRO
+   ========================================================= */
+
+
+/* =========================================================
+   1. STORE DIRECTORY
+   ========================================================= */
+
+#bottomSheet
+.store-directory-list {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 10px;
+
+  margin-top: 14px;
+}
+
+
+/* STORE CARD */
+
+#bottomSheet
+.store-directory-card {
+  width: 100%;
+
+  margin: 0;
+  padding: 13px;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  display: grid;
+
+  grid-template-columns:
+    58px
+    minmax(0, 1fr);
+
+  gap: 12px;
+
+  align-items: center;
+
+  text-align: left;
+
+  border:
+    1px solid
+    rgba(16, 37, 27, 0.07);
+
+  border-radius: 17px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff 0%,
+      #fbfcfb 100%
+    );
+
+  color: inherit;
+
+  font: inherit;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 4px 16px
+    rgba(12, 32, 22, 0.035);
+
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+
+@media (hover: hover) {
+
+  #bottomSheet
+  .store-directory-card:hover {
+    transform:
+      translateY(-2px);
+
+    border-color:
+      rgba(18, 96, 63, 0.13);
+
+    background:
+      #ffffff;
+
+    box-shadow:
+      0 10px 28px
+      rgba(11, 42, 27, 0.075);
+  }
+
+}
+
+
+#bottomSheet
+.store-directory-card:active {
+  transform:
+    scale(0.985);
+}
+
+
+/* =========================================================
+   2. DIRECTORY LOGO
+   ========================================================= */
+
+#bottomSheet
+.store-directory-logo {
+  width: 58px;
+  height: 58px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    rgba(18, 96, 63, 0.08);
+
+  border-radius: 16px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #f2f8f5 0%,
+      #edf4f0 100%
+    );
+
+  color:
+    var(
+      --forest-700,
+      #12603f
+    );
+
+  box-shadow:
+    inset 0 0 0 1px
+    rgba(255, 255, 255, 0.65);
+}
+
+
+#bottomSheet
+.store-directory-logo img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+  object-position: center;
+}
+
+
+#bottomSheet
+.store-directory-logo > i {
+  font-size: 24px;
+}
+
+
+/* =========================================================
+   3. DIRECTORY INFO
+   ========================================================= */
+
+#bottomSheet
+.store-directory-info {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: stretch;
+}
+
+
+#bottomSheet
+.store-directory-name {
+  min-width: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 5px;
+
+  color: #17201b;
+
+  font-size: 13px;
+
+  line-height: 1.3;
+
+  font-weight: 800;
+
+  letter-spacing:
+    -0.018em;
+}
+
+
+#bottomSheet
+.store-directory-name > span {
+  min-width: 0;
+
+  overflow: hidden;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+}
+
+
+#bottomSheet
+.store-directory-name
+.ph-seal-check {
+  flex: 0 0 auto;
+
+  color:
+    #167b53;
+
+  font-size: 15px;
+}
+
+
+/* CATEGORY */
+
+#bottomSheet
+.store-directory-category {
+  width: fit-content;
+
+  margin-top: 4px;
+
+  padding:
+    3px
+    7px;
+
+  border-radius: 999px;
+
+  background:
+    rgba(18, 96, 63, 0.065);
+
+  color:
+    rgba(13, 75, 50, 0.82);
+
+  font-size: 8px;
+
+  line-height: 1.25;
+
+  font-weight: 750;
+}
+
+
+/* LOCATION */
+
+#bottomSheet
+.store-directory-location {
+  min-width: 0;
+
+  margin-top: 6px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 4px;
+
+  color:
+    rgba(23, 32, 27, 0.47);
+
+  font-size: 9px;
+
+  line-height: 1.35;
+
+  font-weight: 500;
+}
+
+
+#bottomSheet
+.store-directory-location i {
+  flex: 0 0 auto;
+
+  color:
+    rgba(18, 96, 63, 0.62);
+
+  font-size: 11px;
+}
+
+
+#bottomSheet
+.store-directory-location span {
+  min-width: 0;
+
+  overflow: hidden;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   4. DIRECTORY FOOTER
+   ========================================================= */
+
+#bottomSheet
+.store-directory-bottom {
+  width: 100%;
+
+  margin-top: 9px;
+
+  padding-top: 8px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 8px;
+
+  border-top:
+    1px solid
+    rgba(17, 34, 25, 0.055);
+
+  color:
+    rgba(23, 32, 27, 0.52);
+
+  font-size: 8.5px;
+
+  line-height: 1.2;
+
+  font-weight: 650;
+}
+
+
+#bottomSheet
+.store-directory-open {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 4px;
+
+  color:
+    var(
+      --forest-700,
+      #12603f
+    );
+
+  font-weight: 800;
+}
+
+
+#bottomSheet
+.store-directory-open i {
+  font-size: 10px;
+
+  transition:
+    transform 160ms ease;
+}
+
+
+@media (hover: hover) {
+
+  #bottomSheet
+  .store-directory-card:hover
+  .store-directory-open i {
+    transform:
+      translateX(2px);
+  }
+
+}
+
+
+/* =========================================================
+   5. STORE DETAIL ROOT
+   ========================================================= */
+
+#bottomSheet
+.store-detail-shell {
+  width: 100%;
+
+  padding-bottom: 4px;
+
+  overflow: hidden;
+
+  border-radius: 20px 20px 0 0;
+}
+
+
+/* =========================================================
+   6. STORE COVER
+   ========================================================= */
+
+#bottomSheet
+.store-detail-cover {
+  position: relative;
+
+  width: 100%;
+
+  height: 132px;
+
+  overflow: hidden;
+
+  border-radius: 18px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #eaf4ef 0%,
+      #dcece4 50%,
+      #edf6f1 100%
+    );
+
+  isolation: isolate;
+}
+
+
+#bottomSheet
+.store-detail-cover::after {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  z-index: 2;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      180deg,
+      transparent 35%,
+      rgba(6, 25, 15, 0.15)
+    );
+}
+
+
+#bottomSheet
+.store-detail-cover img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+  object-position: center;
+}
+
+
+#bottomSheet
+.store-detail-cover-placeholder {
+  position: absolute;
+
+  inset: 0;
+
+  background:
+    radial-gradient(
+      circle at 18% 20%,
+      rgba(255, 255, 255, 0.75),
+      transparent 26%
+    ),
+    radial-gradient(
+      circle at 80% 85%,
+      rgba(18, 96, 63, 0.12),
+      transparent 28%
+    ),
+    linear-gradient(
+      135deg,
+      #edf7f2 0%,
+      #dcece4 54%,
+      #eff7f3 100%
+    );
+}
+
+
+/* DECORATIVE LIGHT */
+
+#bottomSheet
+.store-detail-cover-placeholder::before {
+  content: "";
+
+  position: absolute;
+
+  width: 120px;
+  height: 120px;
+
+  top: -45px;
+  right: -28px;
+
+  border-radius: 999px;
+
+  border:
+    24px solid
+    rgba(255, 255, 255, 0.24);
+}
+
+
+/* =========================================================
+   7. PROFILE AREA
+   ========================================================= */
+
+#bottomSheet
+.store-detail-profile {
+  position: relative;
+
+  z-index: 5;
+
+  margin-top: -30px;
+
+  padding:
+    0
+    10px;
+
+  display: grid;
+
+  grid-template-columns:
+    76px
+    minmax(0, 1fr);
+
+  gap: 12px;
+
+  align-items: end;
+}
+
+
+/* LOGO */
+
+#bottomSheet
+.store-detail-logo {
+  width: 76px;
+  height: 76px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+
+  border:
+    4px solid
+    #ffffff;
+
+  border-radius: 22px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #edf7f2,
+      #e4f0ea
+    );
+
+  color:
+    var(
+      --forest-700,
+      #12603f
+    );
+
+  box-shadow:
+    0 8px 24px
+    rgba(15, 42, 28, 0.13);
+}
+
+
+#bottomSheet
+.store-detail-logo img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+  object-position: center;
+}
+
+
+#bottomSheet
+.store-detail-logo > i {
+  font-size: 30px;
+}
+
+
+/* HEADING */
+
+#bottomSheet
+.store-detail-heading {
+  min-width: 0;
+
+  padding-bottom: 4px;
+}
+
+
+#bottomSheet
+.store-detail-name {
+  min-width: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  color:
+    #142019;
+
+  font-size: 18px;
+
+  line-height: 1.25;
+
+  font-weight: 900;
+
+  letter-spacing:
+    -0.035em;
+}
+
+
+#bottomSheet
+.store-detail-name
+.ph-seal-check {
+  flex: 0 0 auto;
+
+  color:
+    #168458;
+
+  font-size: 18px;
+}
+
+
+#bottomSheet
+.store-detail-category {
+  width: fit-content;
+
+  margin-top: 5px;
+
+  padding:
+    4px
+    8px;
+
+  border-radius: 999px;
+
+  background:
+    rgba(18, 96, 63, 0.07);
+
+  color:
+    #12603f;
+
+  font-size: 8.5px;
+
+  line-height: 1.2;
+
+  font-weight: 750;
+}
+
+
+/* =========================================================
+   8. STORE STATS
+   ========================================================= */
+
+#bottomSheet
+.store-detail-stats {
+  width: calc(100% - 20px);
+
+  margin:
+    17px
+    10px
+    0;
+
+  padding:
+    12px
+    4px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  border:
+    1px solid
+    rgba(17, 37, 27, 0.065);
+
+  border-radius: 15px;
+
+  background:
+    #ffffff;
+
+  box-shadow:
+    0 4px 15px
+    rgba(15, 37, 25, 0.03);
+}
+
+
+#bottomSheet
+.store-detail-stats > div {
+  position: relative;
+
+  min-width: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 2px;
+}
+
+
+#bottomSheet
+.store-detail-stats
+> div + div::before {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  top: 5px;
+  bottom: 5px;
+
+  width: 1px;
+
+  background:
+    rgba(16, 35, 25, 0.07);
+}
+
+
+#bottomSheet
+.store-detail-stats strong {
+  color:
+    var(
+      --forest-800,
+      #0d4b32
+    );
+
+  font-size: 14px;
+
+  line-height: 1.2;
+
+  font-weight: 900;
+
+  letter-spacing:
+    -0.025em;
+}
+
+
+#bottomSheet
+.store-detail-stats span {
+  margin-top: 2px;
+
+  color:
+    rgba(23, 32, 27, 0.46);
+
+  font-size: 8px;
+
+  line-height: 1.3;
+
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   9. DESCRIPTION
+   ========================================================= */
+
+#bottomSheet
+.store-detail-description {
+  margin:
+    16px
+    10px
+    0;
+
+  color:
+    rgba(21, 31, 25, 0.66);
+
+  font-size: 10.5px;
+
+  line-height: 1.65;
+
+  font-weight: 450;
+}
+
+
+/* =========================================================
+   10. STORE LOCATION
+   ========================================================= */
+
+#bottomSheet
+.store-detail-location {
+  margin:
+    14px
+    10px
+    0;
+
+  padding:
+    11px
+    12px;
+
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 9px;
+
+  border:
+    1px solid
+    rgba(18, 96, 63, 0.07);
+
+  border-radius: 13px;
+
+  background:
+    rgba(18, 96, 63, 0.035);
+
+  color:
+    rgba(22, 32, 26, 0.63);
+
+  font-size: 9.5px;
+
+  line-height: 1.5;
+
+  font-weight: 500;
+}
+
+
+#bottomSheet
+.store-detail-location i {
+  flex: 0 0 auto;
+
+  margin-top: 1px;
+
+  color:
+    #12603f;
+
+  font-size: 14px;
+}
+
+
+/* =========================================================
+   11. BACK BUTTON
+   ========================================================= */
+
+#bottomSheet
+.store-detail-shell
+> .menu-sheet-btn {
+  width:
+    calc(100% - 20px);
+
+  min-height: 43px;
+
+  margin:
+    14px
+    10px
+    0 !important;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  border:
+    1px solid
+    rgba(16, 35, 25, 0.07);
+
+  border-radius: 13px;
+
+  background:
+    #f6f8f7;
+
+  color:
+    rgba(20, 30, 24, 0.72);
+
+  font-size: 10px;
+
+  font-weight: 750;
+
+  transition:
+    transform 150ms ease,
+    background 150ms ease;
+}
+
+
+#bottomSheet
+.store-detail-shell
+> .menu-sheet-btn:active {
+  transform:
+    scale(0.985);
+
+  background:
+    #f0f3f1;
+}
+
+
+/* =========================================================
+   12. TITLE JELAJAHI UMKM
+   ========================================================= */
+
+#bottomSheet
+.sheet-content:has(
+  .store-directory-list
+)
+> #sheetTitle {
+  margin-bottom: 3px;
+
+  color: #152019;
+
+  font-size: 19px;
+
+  line-height: 1.25;
+
+  font-weight: 900;
+
+  letter-spacing:
+    -0.035em;
+}
+
+
+#bottomSheet
+.sheet-content:has(
+  .store-directory-list
+)
+> #sheetTitle::after {
+  content:
+    "Temukan usaha lokal dan produk dari pelaku UMKM.";
+
+  max-width: 300px;
+
+  margin-top: 5px;
+
+  display: block;
+
+  color:
+    rgba(23, 32, 27, 0.48);
+
+  font-size: 9px;
+
+  line-height: 1.5;
+
+  font-weight: 450;
+
+  letter-spacing: 0;
+}
+
+
+/* =========================================================
+   13. DESKTOP
+   ========================================================= */
+
+@media (min-width: 768px) {
+
+  #bottomSheet
+  .store-directory-card {
+    padding: 14px;
+
+    grid-template-columns:
+      62px
+      minmax(0, 1fr);
+
+    gap: 14px;
+  }
+
+
+  #bottomSheet
+  .store-directory-logo {
+    width: 62px;
+    height: 62px;
+  }
+
+
+  #bottomSheet
+  .store-directory-name {
+    font-size: 13.5px;
+  }
+
+
+  #bottomSheet
+  .store-detail-cover {
+    height: 150px;
+  }
+
+
+  #bottomSheet
+  .store-detail-profile {
+    margin-top: -34px;
+
+    grid-template-columns:
+      84px
+      minmax(0, 1fr);
+  }
+
+
+  #bottomSheet
+  .store-detail-logo {
+    width: 84px;
+    height: 84px;
+
+    border-radius: 24px;
+  }
+
+
+  #bottomSheet
+  .store-detail-name {
+    font-size: 20px;
+  }
+
+}
+
+
+/* =========================================================
+   14. SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 360px) {
+
+  #bottomSheet
+  .store-directory-card {
+    grid-template-columns:
+      52px
+      minmax(0, 1fr);
+
+    gap: 10px;
+
+    padding: 11px;
+  }
+
+
+  #bottomSheet
+  .store-directory-logo {
+    width: 52px;
+    height: 52px;
+
+    border-radius: 14px;
+  }
+
+
+  #bottomSheet
+  .store-directory-name {
+    font-size: 12px;
+  }
+
+
+  #bottomSheet
+  .store-detail-cover {
+    height: 116px;
+  }
+
+
+  #bottomSheet
+  .store-detail-profile {
+    margin-top: -27px;
+
+    grid-template-columns:
+      68px
+      minmax(0, 1fr);
+
+    gap: 10px;
+  }
+
+
+  #bottomSheet
+  .store-detail-logo {
+    width: 68px;
+    height: 68px;
+
+    border-radius: 20px;
+  }
+
+
+  #bottomSheet
+  .store-detail-name {
+    font-size: 16px;
+  }
+
+}
