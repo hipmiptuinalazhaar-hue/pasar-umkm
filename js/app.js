@@ -7820,7 +7820,10 @@ function setBadge(element, count) {
    55. BOTTOM SHEET
    ========================================================= */
 
-function openBottomSheet(html, type = 'generic') {
+function openBottomSheet(
+  html,
+  type = 'generic'
+) {
   if (
     !DOM.bottomSheet ||
     !DOM.sheetOverlay ||
@@ -7829,18 +7832,42 @@ function openBottomSheet(html, type = 'generic') {
     return;
   }
 
-  DOM.sheetContent.innerHTML = html;
+  /*
+   * Kalau bottom sheet sudah terbuka,
+   * jangan lock scroll untuk kedua kalinya.
+   */
+  const alreadyOpen =
+    DOM.bottomSheet.hidden === false &&
+    STATE.activeSheet !== null;
 
-  DOM.sheetOverlay.hidden = false;
-  DOM.bottomSheet.hidden = false;
+  DOM.sheetContent.innerHTML =
+    html;
 
-  STATE.activeSheet = type;
+  DOM.sheetOverlay.hidden =
+    false;
 
-  lockBodyScroll();
+  DOM.bottomSheet.hidden =
+    false;
+
+  STATE.activeSheet =
+    type;
+
+  /*
+   * Lock body hanya saat pertama kali
+   * bottom sheet dibuka.
+   */
+  if (!alreadyOpen) {
+    lockBodyScroll();
+  }
 
   requestAnimationFrame(() => {
-    DOM.sheetOverlay.classList.add('show');
-    DOM.bottomSheet.classList.add('show');
+    DOM.sheetOverlay.classList.add(
+      'show'
+    );
+
+    DOM.bottomSheet.classList.add(
+      'show'
+    );
   });
 }
 
@@ -7853,17 +7880,27 @@ function closeBottomSheet() {
     return;
   }
 
-  DOM.sheetOverlay.classList.remove('show');
-  DOM.bottomSheet.classList.remove('show');
+  DOM.sheetOverlay.classList.remove(
+    'show'
+  );
 
-  STATE.activeSheet = null;
+  DOM.bottomSheet.classList.remove(
+    'show'
+  );
+
+  STATE.activeSheet =
+    null;
 
   window.setTimeout(() => {
-    DOM.sheetOverlay.hidden = true;
-    DOM.bottomSheet.hidden = true;
+    DOM.sheetOverlay.hidden =
+      true;
+
+    DOM.bottomSheet.hidden =
+      true;
 
     if (DOM.sheetContent) {
-      DOM.sheetContent.innerHTML = '';
+      DOM.sheetContent.innerHTML =
+        '';
     }
   }, 290);
 
