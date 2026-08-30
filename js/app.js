@@ -1607,6 +1607,10 @@ function runAction(action, element) {
    case 'product-detail':
         openProductDetail(productId);
         break;
+   
+   case 'product-edit':
+        openProductEditForm(productId);
+        break;
 
     case 'add-cart':
       addToCart(productId);
@@ -4666,12 +4670,181 @@ function openProductDetail(productId) {
             : ''
         }
 
+        <button
+  type="button"
+  class="btn-primary"
+  data-action="product-edit"
+  data-product-id="${escapeHTML(
+    product.id || ''
+  )}"
+>
+  <i class="ph ph-pencil-simple"></i>
+  <span>Edit Produk</span>
+</button>
+
       </div>
     `,
     'product-detail'
   );
 }
 
+/* =========================================================
+   PRODUCT EDIT FORM
+   ========================================================= */
+
+function openProductEditForm(productId) {
+  const product =
+    STATE.accountProducts.find(
+      item =>
+        String(item.id) ===
+        String(productId)
+    );
+
+  if (!product) {
+    showToast(
+      'Produk tidak ditemukan.'
+    );
+
+    return;
+  }
+
+  const categoryOptions =
+    CATEGORIES
+      .map(category => {
+        const selected =
+          String(category.id) ===
+          String(product.category_id)
+            ? 'selected'
+            : '';
+
+        return `
+          <option
+            value="${escapeHTML(category.id)}"
+            ${selected}
+          >
+            ${escapeHTML(category.name)}
+          </option>
+        `;
+      })
+      .join('');
+
+  openBottomSheet(
+    `
+      <div class="auth-shell">
+
+        <h2
+          id="sheetTitle"
+          class="auth-title"
+        >
+          Edit Produk
+        </h2>
+
+
+        <div class="auth-field">
+          <label class="auth-label">
+            Nama Produk
+          </label>
+
+          <input
+            class="auth-input"
+            type="text"
+            value="${escapeHTML(
+              product.name || ''
+            )}"
+          >
+        </div>
+
+
+        <div class="auth-field">
+          <label class="auth-label">
+            Kategori
+          </label>
+
+          <select class="auth-input">
+            <option value="">
+              Pilih kategori
+            </option>
+
+            ${categoryOptions}
+          </select>
+        </div>
+
+
+        <div class="auth-field">
+          <label class="auth-label">
+            Harga
+          </label>
+
+          <input
+            class="auth-input"
+            type="number"
+            min="0"
+            value="${escapeHTML(
+              String(product.price ?? 0)
+            )}"
+          >
+        </div>
+
+
+        <div class="auth-field">
+          <label class="auth-label">
+            Stok
+          </label>
+
+          <input
+            class="auth-input"
+            type="number"
+            min="0"
+            value="${escapeHTML(
+              String(product.stock ?? 0)
+            )}"
+          >
+        </div>
+
+
+        <div class="auth-field">
+          <label class="auth-label">
+            Satuan
+          </label>
+
+          <input
+            class="auth-input"
+            type="text"
+            value="${escapeHTML(
+              product.unit || ''
+            )}"
+          >
+        </div>
+
+
+        <div class="auth-field">
+          <label class="auth-label">
+            Deskripsi
+          </label>
+
+          <textarea
+            class="auth-input"
+            rows="4"
+          >${escapeHTML(
+            product.description || ''
+          )}</textarea>
+        </div>
+
+
+        <button
+          type="button"
+          class="btn-primary"
+          disabled
+        >
+          <i class="ph ph-floppy-disk"></i>
+          <span>Simpan Perubahan</span>
+        </button>
+
+      </div>
+    `,
+    'product-edit'
+  );
+}
 
 /* =========================================================
    ACCOUNT MENU
