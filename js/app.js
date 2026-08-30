@@ -5586,7 +5586,8 @@ if (buttonText) {
   buttonText.textContent =
     'Menyimpan produk...';
 }
-
+       
+}
 
     /*
      * Setelah upload selesai,
@@ -5690,6 +5691,10 @@ if (buttonText) {
       'Tambahkan Produk';
   }
 }
+
+}
+}
+
 
 /* =========================================================
    STORE REGISTRATION FORM
