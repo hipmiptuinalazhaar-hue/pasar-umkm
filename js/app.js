@@ -1618,6 +1618,19 @@ function runAction(action, element) {
           element
         );
         break;
+   
+     case 'product-delete-confirm':
+        openProductDeleteConfirm(
+          productId
+           );
+        break;
+
+      case 'product-delete':
+        handleProductDelete(
+          productId,
+          element
+           );
+        break;
 
     case 'add-cart':
       addToCart(productId);
@@ -4689,6 +4702,18 @@ function openProductDetail(productId) {
   <span>Edit Produk</span>
 </button>
 
+<button
+  type="button"
+  class="menu-sheet-btn"
+  data-action="product-delete-confirm"
+  data-product-id="${escapeHTML(
+    product.id || ''
+  )}"
+>
+  <i class="ph ph-trash"></i>
+  <span>Hapus Produk</span>
+</button>
+
       </div>
     `,
     'product-detail'
@@ -5100,6 +5125,84 @@ async function handleProductEditSave(
         oldLabel;
     }
   }
+}
+
+function openProductDeleteConfirm(
+  productId
+) {
+  const product =
+    STATE.accountProducts.find(
+      item =>
+        String(item.id) ===
+        String(productId)
+    );
+
+
+  if (!product) {
+    showToast(
+      'Produk tidak ditemukan.'
+    );
+
+    return;
+  }
+
+
+  openBottomSheet(
+    `
+      <div class="auth-shell">
+
+        <div
+          class="auth-title"
+          id="sheetTitle"
+        >
+          Hapus Produk?
+        </div>
+
+
+        <p class="auth-subtitle">
+          Produk
+          <strong>
+            ${escapeHTML(
+              product.name ||
+              'Produk UMKM'
+            )}
+          </strong>
+          akan dinonaktifkan dari Pasar UMKM.
+        </p>
+
+
+        <p class="auth-subtitle">
+          Produk tidak akan langsung dihapus
+          permanen dari database.
+        </p>
+
+
+        <button
+          type="button"
+          class="btn-primary"
+          data-action="product-delete"
+          data-product-id="${escapeHTML(
+            product.id || ''
+          )}"
+        >
+          <i class="ph ph-trash"></i>
+          <span>Ya, Hapus Produk</span>
+        </button>
+
+
+        <button
+          type="button"
+          class="menu-sheet-btn"
+          data-action="close-sheet"
+        >
+          <i class="ph ph-x"></i>
+          <span>Batal</span>
+        </button>
+
+      </div>
+    `,
+    'product-delete-confirm'
+  );
 }
 
 /* =========================================================
