@@ -2746,29 +2746,37 @@ if (
 
 
     if (
-      !cloudinaryResponse.ok ||
-      !cloudinaryData.secure_url
-    ) {
-      console.error(
-        "Cloudinary upload error:",
-        cloudinaryData
-      );
+  !cloudinaryResponse.ok ||
+  !cloudinaryData.secure_url
+) {
+  console.error(
+    "Cloudinary upload error:",
+    cloudinaryData
+  );
 
-      return Response.json(
-        {
-          ok: false,
-          error:
-            "Foto gagal diunggah."
-        },
-        {
-          status: 502,
-          headers: {
-            "Cache-Control":
-              "no-store"
-          }
-        }
-      );
+  return Response.json(
+    {
+      ok: false,
+
+      error:
+        "Foto gagal diunggah.",
+
+      cloudinary_status:
+        cloudinaryResponse.status,
+
+      cloudinary_error:
+        cloudinaryData?.error?.message ||
+        "Cloudinary tidak memberikan detail error."
+    },
+    {
+      status: 502,
+      headers: {
+        "Cache-Control":
+          "no-store"
+      }
     }
+  );
+}
 
 
     // =====================================
