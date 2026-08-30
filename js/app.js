@@ -4832,13 +4832,16 @@ function openProductEditForm(productId) {
 
 
         <button
-          type="button"
-          class="btn-primary"
-          disabled
-        >
-          <i class="ph ph-floppy-disk"></i>
-          <span>Simpan Perubahan</span>
-        </button>
+  type="button"
+  class="btn-primary"
+  data-action="product-edit-save"
+  data-product-id="${escapeHTML(
+    product.id || ''
+  )}"
+>
+  <i class="ph ph-floppy-disk"></i>
+  <span>Simpan Perubahan</span>
+</button>
 
       </div>
     `,
