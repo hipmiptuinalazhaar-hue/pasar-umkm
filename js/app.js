@@ -1612,6 +1612,13 @@ function runAction(action, element) {
         openProductEditForm(productId);
         break;
 
+   case 'product-edit-save':
+        handleProductEditSave(
+         productId,
+          element
+        );
+        break;
+
     case 'add-cart':
       addToCart(productId);
       break;
@@ -4847,6 +4854,252 @@ function openProductEditForm(productId) {
     `,
     'product-edit'
   );
+}
+
+async function handleProductEditSave(
+  productId,
+  element
+) {
+  const shell =
+    element.closest(
+      '.auth-shell'
+    );
+
+
+  if (!shell) {
+    showToast(
+      'Form edit produk tidak ditemukan.'
+    );
+
+    return;
+  }
+
+
+  const fields =
+    shell.querySelectorAll(
+      '.auth-input'
+    );
+
+
+  if (fields.length < 6) {
+    showToast(
+      'Form edit produk belum lengkap.'
+    );
+
+    return;
+  }
+
+
+  const [
+    nameInput,
+    categoryInput,
+    priceInput,
+    stockInput,
+    unitInput,
+    descriptionInput
+  ] = fields;
+
+
+  const name =
+    String(
+      nameInput.value || ''
+    ).trim();
+
+
+  const categoryId =
+    String(
+      categoryInput.value || ''
+    ).trim();
+
+
+  const price =
+    Number(
+      priceInput.value
+    );
+
+
+  const stock =
+    Number(
+      stockInput.value
+    );
+
+
+  const unit =
+    String(
+      unitInput.value || ''
+    ).trim();
+
+
+  const description =
+    String(
+      descriptionInput.value || ''
+    ).trim();
+
+
+  // =====================================
+  // VALIDATION
+  // =====================================
+
+  if (name.length < 2) {
+    showToast(
+      'Nama produk minimal 2 karakter.'
+    );
+
+    nameInput.focus();
+
+    return;
+  }
+
+
+  if (
+    !Number.isFinite(price) ||
+    price < 0
+  ) {
+    showToast(
+      'Harga produk tidak valid.'
+    );
+
+    priceInput.focus();
+
+    return;
+  }
+
+
+  if (
+    !Number.isInteger(stock) ||
+    stock < 0
+  ) {
+    showToast(
+      'Stok produk tidak valid.'
+    );
+
+    stockInput.focus();
+
+    return;
+  }
+
+
+  const label =
+    element.querySelector(
+      'span'
+    );
+
+
+  const oldLabel =
+    label?.textContent ||
+    'Simpan Perubahan';
+
+
+  element.disabled = true;
+
+
+  if (label) {
+    label.textContent =
+      'Menyimpan...';
+  }
+
+
+  try {
+    const response =
+      await fetch(
+        `/api/products/${encodeURIComponent(
+          productId
+        )}`,
+        {
+          method: 'PATCH',
+
+          credentials:
+            'include',
+
+          headers: {
+            'Content-Type':
+              'application/json',
+
+            Accept:
+              'application/json'
+          },
+
+          body:
+            JSON.stringify({
+              name,
+
+              category_id:
+                categoryId || null,
+
+              price,
+              stock,
+              unit,
+              description
+            })
+        }
+      );
+
+
+    const data =
+      await response
+        .json()
+        .catch(() => ({}));
+
+
+    if (
+      !response.ok ||
+      data.ok !== true
+    ) {
+      throw new Error(
+        data.error ||
+        'Produk gagal diperbarui.'
+      );
+    }
+
+
+    showToast(
+      'Produk berhasil diperbarui.'
+    );
+
+
+    /*
+     * Muat ulang profil supaya
+     * data terbaru diambil dari Neon.
+     */
+    await openAccount();
+
+
+    const productsTab =
+      document.querySelector(
+        '.social-account-tab[data-tab="products"]'
+      );
+
+
+    if (productsTab) {
+      switchAccountTab(
+        'products',
+        productsTab
+      );
+    }
+
+
+  } catch (error) {
+    console.error(
+      '[Pasar UMKM] Product update error:',
+      error
+    );
+
+
+    showToast(
+      error.message ||
+      'Produk gagal diperbarui.'
+    );
+
+
+  } finally {
+    element.disabled = false;
+
+
+    if (label) {
+      label.textContent =
+        oldLabel;
+    }
+  }
 }
 
 /* =========================================================
