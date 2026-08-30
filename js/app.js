@@ -612,15 +612,94 @@ async function loadStores() {
     DATA.stores =
       data.stores
         .map(store => ({
+
           id:
             String(
               store.id || ''
             ),
 
+          categoryId:
+            String(
+              store.category_id || ''
+            ),
+
+          category:
+            String(
+              store.category_name || ''
+            ),
+
           name:
             String(
               store.name || ''
-            )
+            ),
+
+          slug:
+            String(
+              store.slug || ''
+            ),
+
+          description:
+            String(
+              store.description || ''
+            ),
+
+          logo:
+            String(
+              store.logo_url || ''
+            ),
+
+          cover:
+            String(
+              store.cover_url || ''
+            ),
+
+          phone:
+            String(
+              store.phone || ''
+            ),
+
+          whatsapp:
+            String(
+              store.whatsapp || ''
+            ),
+
+          address:
+            String(
+              store.address || ''
+            ),
+
+          district:
+            String(
+              store.district || ''
+            ),
+
+          city:
+            String(
+              store.city || ''
+            ),
+
+          province:
+            String(
+              store.province || ''
+            ),
+
+          verificationStatus:
+            String(
+              store.verification_status ||
+              'pending'
+            ),
+
+          verifiedAt:
+            store.verified_at || null,
+
+          productCount:
+            Number(
+              store.product_count || 0
+            ),
+
+          createdAt:
+            store.created_at || null
+
         }))
         .filter(store => {
           return (
