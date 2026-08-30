@@ -5417,6 +5417,10 @@ async function handleProductCreateSubmit(
     new FormData(form);
 
 
+  const imageFile =
+    formData.get('image');
+
+
   const payload = {
     name:
       String(
@@ -5450,7 +5454,9 @@ async function handleProductCreateSubmit(
         formData.get(
           'description'
         ) || ''
-      ).trim()
+      ).trim(),
+
+    thumbnail_url: null
   };
 
 
@@ -5505,6 +5511,68 @@ async function handleProductCreateSubmit(
 
 
   try {
+
+    /*
+     * Upload foto ke Cloudinary
+     * jika pengguna memilih foto.
+     */
+    if (
+      imageFile instanceof File &&
+      imageFile.size > 0
+    ) {
+
+      const uploadFormData =
+        new FormData();
+
+
+      uploadFormData.append(
+        'file',
+        imageFile
+      );
+
+
+      const uploadResponse =
+        await fetch(
+          '/api/uploads/product-image',
+          {
+            method: 'POST',
+
+            credentials:
+              'include',
+
+            body:
+              uploadFormData
+          }
+        );
+
+
+      const uploadData =
+        await uploadResponse
+          .json()
+          .catch(() => ({}));
+
+
+      if (
+        !uploadResponse.ok ||
+        uploadData.ok !== true ||
+        !uploadData.image?.url
+      ) {
+        throw new Error(
+          uploadData.error ||
+          'Foto produk gagal diunggah.'
+        );
+      }
+
+
+      payload.thumbnail_url =
+        uploadData.image.url;
+    }
+
+
+    /*
+     * Setelah upload selesai,
+     * baru buat produk.
+     */
     const response =
       await fetch(
         '/api/products',
@@ -5574,6 +5642,7 @@ async function handleProductCreateSubmit(
 
 
   } catch (error) {
+
     console.error(
       '[Pasar UMKM] Product create error:',
       error
