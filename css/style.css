@@ -5585,3 +5585,137 @@ a:focus-visible {
 
   outline-offset: 2px;
 }
+
+/* =========================================================
+   PREMIUM APP LOADING
+   ========================================================= */
+
+#appLoading {
+  position: fixed;
+  inset: 0;
+
+  z-index: 9998;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background:
+    rgba(255, 255, 255, 0.88);
+
+  backdrop-filter:
+    blur(10px);
+
+  -webkit-backdrop-filter:
+    blur(10px);
+}
+
+
+/* WAJIB SUPAYA hidden TETAP BEKERJA */
+
+#appLoading[hidden] {
+  display: none !important;
+}
+
+
+/* CINCIN LOADING */
+
+#appLoading::before {
+  content: '';
+
+  width: 38px;
+  height: 38px;
+
+  border-radius: 50%;
+
+  border:
+    3px solid
+    rgba(20, 152, 170, 0.15);
+
+  border-top-color:
+    var(
+      --primary,
+      #1498aa
+    );
+
+  animation:
+    premium-loader-spin
+    0.72s
+    linear
+    infinite;
+}
+
+
+/* CAHAYA HALUS */
+
+#appLoading::after {
+  content: '';
+
+  position: absolute;
+
+  width: 90px;
+  height: 90px;
+
+  border-radius: 50%;
+
+  background:
+    rgba(20, 152, 170, 0.07);
+
+  filter: blur(18px);
+
+  z-index: -1;
+
+  animation:
+    premium-loader-pulse
+    1.5s
+    ease-in-out
+    infinite;
+}
+
+
+@keyframes premium-loader-spin {
+
+  to {
+    transform:
+      rotate(360deg);
+  }
+
+}
+
+
+@keyframes premium-loader-pulse {
+
+  0%,
+  100% {
+    opacity: 0.35;
+
+    transform:
+      scale(0.85);
+  }
+
+  50% {
+    opacity: 0.8;
+
+    transform:
+      scale(1.15);
+  }
+
+}
+
+
+/* AKSESIBILITAS */
+
+@media (
+  prefers-reduced-motion:
+  reduce
+) {
+
+  #appLoading::before,
+  #appLoading::after {
+    animation-duration:
+      2s;
+  }
+
+}
