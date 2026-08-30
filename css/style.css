@@ -7393,3 +7393,49 @@ button:active {
   }
 
 }
+
+/* =========================================================
+   FIX - SINGLE APP LOADER
+   ========================================================= */
+
+/* Matikan spinner tambahan yang sebelumnya kita buat */
+#appLoading::before,
+#appLoading::after {
+  content: none !important;
+  display: none !important;
+}
+
+
+/* Gunakan spinner asli dari HTML */
+#appLoading .loading-spinner {
+  width: 40px;
+  height: 40px;
+
+  border-radius: 50%;
+
+  border:
+    3px solid
+    rgba(20, 152, 170, 0.14);
+
+  border-top-color:
+    var(
+      --primary,
+      #1498aa
+    );
+
+  animation:
+    app-single-spinner
+    0.7s
+    linear
+    infinite;
+}
+
+
+@keyframes app-single-spinner {
+
+  to {
+    transform:
+      rotate(360deg);
+  }
+
+}
