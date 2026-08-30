@@ -14525,3 +14525,13 @@ i {
   }
 
 }
+
+/* =========================================================
+   CLEAN PROFILE TAB INDICATOR
+   Hapus garis dasar, pertahankan indikator aktif
+   ========================================================= */
+
+.social-account-tabs {
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
