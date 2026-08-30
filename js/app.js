@@ -1242,12 +1242,6 @@ function createPostTemplate(post) {
       }
 
 
-      <div class="post-time">
-        ${formatRelativeTime(
-          post.createdAt
-        )}
-      </div>
-
     </article>
   `;
 }
