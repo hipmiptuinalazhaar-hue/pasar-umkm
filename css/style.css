@@ -13563,3 +13563,529 @@ i {
   }
 
 }
+
+/* =========================================================
+   PASAR UMKM
+   STORE PRODUCT CATALOG
+   UI/UX MAX PRO
+   ========================================================= */
+
+
+/* SECTION */
+
+#bottomSheet
+.store-catalog-section {
+  width: calc(100% - 20px);
+
+  margin:
+    20px
+    10px
+    0;
+
+  padding-top: 18px;
+
+  border-top:
+    1px solid
+    rgba(18, 40, 28, 0.07);
+}
+
+
+/* HEADER */
+
+#bottomSheet
+.store-catalog-heading {
+  width: 100%;
+
+  margin-bottom: 12px;
+
+  display: flex;
+
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 12px;
+}
+
+
+#bottomSheet
+.store-catalog-heading > div {
+  min-width: 0;
+}
+
+
+#bottomSheet
+.store-catalog-eyebrow {
+  display: block;
+
+  margin-bottom: 3px;
+
+  color:
+    rgba(18, 96, 63, 0.72);
+
+  font-size: 7.5px;
+
+  line-height: 1.2;
+
+  font-weight: 850;
+
+  letter-spacing: 0.09em;
+}
+
+
+#bottomSheet
+.store-catalog-heading h3 {
+  margin: 0;
+
+  color: #17201b;
+
+  font-size: 16px;
+
+  line-height: 1.25;
+
+  font-weight: 900;
+
+  letter-spacing:
+    -0.035em;
+}
+
+
+#bottomSheet
+.store-catalog-count {
+  flex: 0 0 auto;
+
+  padding:
+    5px
+    8px;
+
+  border:
+    1px solid
+    rgba(18, 96, 63, 0.08);
+
+  border-radius: 999px;
+
+  background:
+    rgba(18, 96, 63, 0.045);
+
+  color:
+    rgba(13, 75, 50, 0.7);
+
+  font-size: 8px;
+
+  line-height: 1;
+
+  font-weight: 750;
+}
+
+
+/* =========================================================
+   PRODUCT GRID
+   ========================================================= */
+
+#bottomSheet
+.store-catalog-grid {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 10px;
+}
+
+
+/* =========================================================
+   PRODUCT CARD
+   ========================================================= */
+
+#bottomSheet
+.store-catalog-card {
+  min-width: 0;
+
+  margin: 0;
+  padding: 0;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: stretch;
+
+  text-align: left;
+
+  border:
+    1px solid
+    rgba(17, 36, 26, 0.07);
+
+  border-radius: 15px;
+
+  background: #ffffff;
+
+  color: inherit;
+
+  font: inherit;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 4px 16px
+    rgba(14, 33, 23, 0.035);
+
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+
+
+@media (hover: hover) {
+
+  #bottomSheet
+  .store-catalog-card:hover {
+    transform:
+      translateY(-2px);
+
+    border-color:
+      rgba(18, 96, 63, 0.12);
+
+    box-shadow:
+      0 10px 25px
+      rgba(14, 43, 27, 0.075);
+  }
+
+}
+
+
+#bottomSheet
+.store-catalog-card:active {
+  transform:
+    scale(0.985);
+}
+
+
+/* =========================================================
+   PRODUCT IMAGE
+   ========================================================= */
+
+#bottomSheet
+.store-catalog-media {
+  position: relative;
+
+  width: 100%;
+
+  aspect-ratio: 1 / 1;
+
+  overflow: hidden;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  background:
+    linear-gradient(
+      145deg,
+      #f7f9f8,
+      #f2f5f3
+    );
+}
+
+
+#bottomSheet
+.store-catalog-media img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: contain;
+  object-position: center;
+
+  transition:
+    transform 220ms ease;
+}
+
+
+@media (hover: hover) {
+
+  #bottomSheet
+  .store-catalog-card:hover
+  .store-catalog-media img {
+    transform:
+      scale(1.025);
+  }
+
+}
+
+
+/* =========================================================
+   PRODUCT BODY
+   ========================================================= */
+
+#bottomSheet
+.store-catalog-body {
+  min-width: 0;
+
+  flex: 1;
+
+  padding:
+    10px
+    10px
+    11px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: stretch;
+}
+
+
+/* CATEGORY */
+
+#bottomSheet
+.store-catalog-category {
+  width: fit-content;
+
+  max-width: 100%;
+
+  margin-bottom: 6px;
+
+  padding:
+    3px
+    6px;
+
+  overflow: hidden;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+
+  border-radius: 999px;
+
+  background:
+    rgba(18, 96, 63, 0.055);
+
+  color:
+    rgba(13, 75, 50, 0.76);
+
+  font-size: 7px;
+
+  line-height: 1.2;
+
+  font-weight: 750;
+}
+
+
+/* NAME */
+
+#bottomSheet
+.store-catalog-name {
+  min-height: 30px;
+
+  margin: 0;
+
+  color: #18211c;
+
+  font-size: 10.5px;
+
+  line-height: 1.4;
+
+  font-weight: 750;
+
+  letter-spacing:
+    -0.012em;
+
+  display: -webkit-box;
+
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+
+  overflow: hidden;
+}
+
+
+/* PRICE */
+
+#bottomSheet
+.store-catalog-price {
+  margin-top: 7px;
+
+  color:
+    var(
+      --forest-800,
+      #0d4b32
+    );
+
+  font-size: 12.5px;
+
+  line-height: 1.25;
+
+  font-weight: 900;
+
+  letter-spacing:
+    -0.025em;
+}
+
+
+/* STOCK */
+
+#bottomSheet
+.store-catalog-stock {
+  margin-top: 7px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 4px;
+
+  color:
+    rgba(22, 31, 26, 0.45);
+
+  font-size: 7.5px;
+
+  line-height: 1.3;
+
+  font-weight: 600;
+}
+
+
+#bottomSheet
+.store-catalog-stock i {
+  flex: 0 0 auto;
+
+  color:
+    rgba(18, 96, 63, 0.62);
+
+  font-size: 10px;
+}
+
+
+/* =========================================================
+   EMPTY CATALOG
+   ========================================================= */
+
+#bottomSheet
+.store-catalog-empty {
+  width: calc(100% - 20px);
+
+  margin:
+    20px
+    10px
+    0;
+
+  padding:
+    28px
+    18px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  border:
+    1px dashed
+    rgba(18, 96, 63, 0.12);
+
+  border-radius: 16px;
+
+  background:
+    rgba(18, 96, 63, 0.025);
+}
+
+
+#bottomSheet
+.store-catalog-empty > i {
+  width: 45px;
+  height: 45px;
+
+  margin-bottom: 11px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 14px;
+
+  background:
+    rgba(18, 96, 63, 0.07);
+
+  color:
+    #12603f;
+
+  font-size: 20px;
+}
+
+
+#bottomSheet
+.store-catalog-empty strong {
+  color: #17201b;
+
+  font-size: 11px;
+
+  font-weight: 800;
+}
+
+
+#bottomSheet
+.store-catalog-empty p {
+  max-width: 220px;
+
+  margin:
+    5px
+    0
+    0;
+
+  color:
+    rgba(22, 31, 26, 0.46);
+
+  font-size: 8.5px;
+
+  line-height: 1.55;
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 360px) {
+
+  #bottomSheet
+  .store-catalog-grid {
+    gap: 8px;
+  }
+
+
+  #bottomSheet
+  .store-catalog-body {
+    padding:
+      9px
+      8px
+      10px;
+  }
+
+
+  #bottomSheet
+  .store-catalog-name {
+    font-size: 9.5px;
+  }
+
+
+  #bottomSheet
+  .store-catalog-price {
+    font-size: 11.5px;
+  }
+
+}
