@@ -548,6 +548,143 @@ export default {
     }
 
 // ========================================
+// PRODUCTS - PUBLIC LIST
+// GET /api/products
+// ========================================
+
+if (
+  url.pathname ===
+    "/api/products" &&
+  request.method === "GET"
+) {
+  try {
+    const sql =
+      neon(env.DATABASE_URL);
+
+
+    const products =
+      await sql`
+        SELECT
+          p.id,
+          p.store_id,
+          p.category_id,
+
+          c.name
+            AS category_name,
+
+          s.name
+            AS store_name,
+
+          p.name,
+          p.slug,
+          p.description,
+
+          p.price,
+          p.stock,
+          p.unit,
+
+          COALESCE(
+            NULLIF(
+              p.thumbnail_url,
+              ''
+            ),
+
+            (
+              SELECT
+                pi.image_url
+
+              FROM
+                product_images pi
+
+              WHERE
+                pi.product_id =
+                  p.id
+
+              ORDER BY
+                pi.sort_order ASC,
+                pi.created_at ASC
+
+              LIMIT 1
+            )
+          )
+            AS image_url,
+
+          p.is_featured,
+          p.created_at
+
+        FROM
+          products p
+
+        JOIN
+          stores s
+          ON s.id =
+            p.store_id
+
+        LEFT JOIN
+          categories c
+          ON c.id =
+            p.category_id
+
+        WHERE
+          p.is_active = TRUE
+
+          AND
+          s.is_active = TRUE
+
+        ORDER BY
+          p.created_at DESC
+
+        LIMIT 100
+      `;
+
+
+    return Response.json(
+      {
+        ok: true,
+
+        count:
+          products.length,
+
+        products
+      },
+      {
+        status: 200,
+
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+
+
+  } catch (error) {
+    console.error(
+      "Products public GET error:",
+      error
+    );
+
+
+    return Response.json(
+      {
+        ok: false,
+
+        error:
+          "Gagal memuat produk."
+      },
+      {
+        status: 500,
+
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+  }
+}
+    
+// ========================================
 // PRODUCTS - CURRENT SELLER
 // GET /api/products/me
 // ========================================
