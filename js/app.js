@@ -1876,6 +1876,12 @@ function runAction(action, element) {
     case 'checkout':
       checkout();
       break;
+        
+     case 'store-detail':
+        openStoreDetail(
+       element.dataset.storeId
+        );
+        break;
 
     case 'login':
       openLogin();
@@ -7007,6 +7013,7 @@ function openStores() {
   const stores =
     getStores();
 
+
   if (!stores.length) {
     openBottomSheet(
       `
@@ -7026,7 +7033,8 @@ function openStores() {
           </strong>
 
           <p class="empty-state-text">
-            UMKM yang telah terdaftar akan tampil di sini.
+            UMKM yang telah terdaftar
+            akan tampil di sini.
           </p>
 
         </section>
@@ -7037,17 +7045,141 @@ function openStores() {
     return;
   }
 
-  const html =
-    stores.map(store => `
-      <button
-        type="button"
-        class="menu-sheet-btn"
-      >
-        <i class="ph ph-storefront"></i>
 
-        ${escapeHTML(store.name)}
-      </button>
-    `).join('');
+  const html =
+    stores
+      .map(store => {
+
+        const location =
+          [
+            store.district,
+            store.city
+          ]
+            .filter(Boolean)
+            .join(', ') ||
+          'Lubuklinggau';
+
+
+        const isVerified =
+          store.verificationStatus ===
+          'verified';
+
+
+        return `
+          <button
+            type="button"
+            class="store-directory-card"
+            data-action="store-detail"
+            data-store-id="${escapeHTML(
+              store.id
+            )}"
+          >
+
+            <div class="store-directory-logo">
+
+              ${
+                store.logo
+                  ? `
+                      <img
+                        src="${escapeHTML(
+                          store.logo
+                        )}"
+                        alt="${escapeHTML(
+                          store.name
+                        )}"
+                      >
+                    `
+                  : `
+                      <i
+                        class="ph ph-storefront"
+                        aria-hidden="true"
+                      ></i>
+                    `
+              }
+
+            </div>
+
+
+            <div class="store-directory-info">
+
+              <div class="store-directory-name">
+
+                <span>
+                  ${escapeHTML(
+                    store.name
+                  )}
+                </span>
+
+                ${
+                  isVerified
+                    ? `
+                        <i
+                          class="ph-fill ph-seal-check"
+                          aria-label="UMKM terverifikasi"
+                        ></i>
+                      `
+                    : ''
+                }
+
+              </div>
+
+
+              ${
+                store.category
+                  ? `
+                      <div class="store-directory-category">
+                        ${escapeHTML(
+                          store.category
+                        )}
+                      </div>
+                    `
+                  : ''
+              }
+
+
+              <div class="store-directory-location">
+
+                <i
+                  class="ph ph-map-pin"
+                  aria-hidden="true"
+                ></i>
+
+                <span>
+                  ${escapeHTML(
+                    location
+                  )}
+                </span>
+
+              </div>
+
+
+              <div class="store-directory-bottom">
+
+                <span>
+                  ${Number(
+                    store.productCount || 0
+                  )}
+                  Produk
+                </span>
+
+                <span class="store-directory-open">
+                  Lihat Toko
+
+                  <i
+                    class="ph ph-arrow-right"
+                    aria-hidden="true"
+                  ></i>
+                </span>
+
+              </div>
+
+            </div>
+
+          </button>
+        `;
+      })
+      .join('');
+
 
   openBottomSheet(
     `
@@ -7055,13 +7187,228 @@ function openStores() {
         Jelajahi UMKM
       </h2>
 
-      ${html}
+      <div class="store-directory-list">
+        ${html}
+      </div>
     `,
     'stores'
   );
 }
 
+function openStoreDetail(
+  storeId
+) {
+  const store =
+    getStores().find(
+      item =>
+        String(item.id) ===
+        String(storeId)
+    );
 
+
+  if (!store) {
+    showToast(
+      'UMKM tidak ditemukan.'
+    );
+
+    return;
+  }
+
+
+  const location =
+    [
+      store.address,
+      store.district,
+      store.city,
+      store.province
+    ]
+      .filter(Boolean)
+      .join(', ') ||
+    'Lubuklinggau';
+
+
+  const isVerified =
+    store.verificationStatus ===
+    'verified';
+
+
+  openBottomSheet(
+    `
+      <div class="store-detail-shell">
+
+
+        <div class="store-detail-cover">
+
+          ${
+            store.cover
+              ? `
+                  <img
+                    src="${escapeHTML(
+                      store.cover
+                    )}"
+                    alt=""
+                  >
+                `
+              : `
+                  <div class="store-detail-cover-placeholder">
+                  </div>
+                `
+          }
+
+        </div>
+
+
+        <div class="store-detail-profile">
+
+
+          <div class="store-detail-logo">
+
+            ${
+              store.logo
+                ? `
+                    <img
+                      src="${escapeHTML(
+                        store.logo
+                      )}"
+                      alt="${escapeHTML(
+                        store.name
+                      )}"
+                    >
+                  `
+                : `
+                    <i
+                      class="ph ph-storefront"
+                      aria-hidden="true"
+                    ></i>
+                  `
+            }
+
+          </div>
+
+
+          <div class="store-detail-heading">
+
+            <div
+              id="sheetTitle"
+              class="store-detail-name"
+            >
+
+              ${escapeHTML(
+                store.name
+              )}
+
+              ${
+                isVerified
+                  ? `
+                      <i
+                        class="ph-fill ph-seal-check"
+                        aria-label="UMKM terverifikasi"
+                      ></i>
+                    `
+                  : ''
+              }
+
+            </div>
+
+
+            ${
+              store.category
+                ? `
+                    <div class="store-detail-category">
+                      ${escapeHTML(
+                        store.category
+                      )}
+                    </div>
+                  `
+                : ''
+            }
+
+          </div>
+
+        </div>
+
+
+        <div class="store-detail-stats">
+
+          <div>
+            <strong>
+              ${Number(
+                store.productCount || 0
+              )}
+            </strong>
+
+            <span>
+              Produk
+            </span>
+          </div>
+
+
+          <div>
+            <strong>
+              ${
+                isVerified
+                  ? 'Ya'
+                  : 'Belum'
+              }
+            </strong>
+
+            <span>
+              Terverifikasi
+            </span>
+          </div>
+
+        </div>
+
+
+        ${
+          store.description
+            ? `
+                <p class="store-detail-description">
+                  ${escapeHTML(
+                    store.description
+                  )}
+                </p>
+              `
+            : ''
+        }
+
+
+        <div class="store-detail-location">
+
+          <i
+            class="ph ph-map-pin"
+            aria-hidden="true"
+          ></i>
+
+          <span>
+            ${escapeHTML(
+              location
+            )}
+          </span>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="menu-sheet-btn"
+          data-action="close-sheet"
+        >
+
+          <i
+            class="ph ph-arrow-left"
+            aria-hidden="true"
+          ></i>
+
+          Kembali
+
+        </button>
+
+      </div>
+    `,
+    'store-detail'
+  );
+}
 /* =========================================================
    45. ORDERS
    ========================================================= */
