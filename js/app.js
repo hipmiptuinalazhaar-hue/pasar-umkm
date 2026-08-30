@@ -275,7 +275,108 @@ async function loadInitialData() {
    */
   await loadStores();
 
+/*
+ * 4. Ambil produk publik dari Neon.
+ */
+const productsResponse =
+  await fetch(
+    '/api/products',
+    {
+      method: 'GET',
 
+      credentials:
+        'include',
+
+      headers: {
+        Accept:
+          'application/json'
+      },
+
+      cache:
+        'no-store'
+    }
+  );
+
+
+if (productsResponse.ok) {
+  const productsData =
+    await productsResponse.json();
+
+
+  if (
+    productsData.ok === true &&
+    Array.isArray(
+      productsData.products
+    )
+  ) {
+    DATA.posts =
+      productsData.products.map(
+        product => ({
+          id:
+            `product-${product.id}`,
+
+          store: {
+            id:
+              product.store_id,
+
+            name:
+              product.store_name ||
+              'UMKM Lokal',
+
+            avatar:
+              ASSETS.logo,
+
+            location:
+              CONFIG.CITY,
+
+            verified:
+              false
+          },
+
+          caption:
+            product.description ||
+            '',
+
+          createdAt:
+            product.created_at,
+
+          product: {
+            id:
+              product.id,
+
+            name:
+              product.name,
+
+            image:
+              product.image_url ||
+              ASSETS.logo,
+
+            category:
+              product.category_name ||
+              '',
+
+            categoryId:
+              product.category_id ||
+              '',
+
+            price:
+              Number(
+                product.price || 0
+              ),
+
+            stock:
+              Number(
+                product.stock || 0
+              ),
+
+            unit:
+              product.unit || ''
+          }
+        })
+      );
+  }
+}
+   
   /*
    * Data marketplace lainnya seperti
    * posts, messages, notifications,
