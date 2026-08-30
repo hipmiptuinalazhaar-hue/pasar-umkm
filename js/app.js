@@ -7336,6 +7336,178 @@ function openStoreDetail(
     'verified';
 
 
+  /*
+   * Ambil semua produk publik
+   * milik toko ini dari DATA.posts.
+   */
+  const storeProducts =
+    DATA.posts
+      .filter(post => {
+        return (
+          String(
+            post.store?.id
+          ) ===
+            String(store.id) &&
+          post.product?.id
+        );
+      })
+      .map(post =>
+        post.product
+      );
+
+
+  const productHTML =
+    storeProducts.length
+      ? `
+          <section class="store-catalog-section">
+
+            <div class="store-catalog-heading">
+
+              <div>
+                <span class="store-catalog-eyebrow">
+                  KATALOG TOKO
+                </span>
+
+                <h3>
+                  Produk
+                </h3>
+              </div>
+
+              <span class="store-catalog-count">
+                ${storeProducts.length}
+                produk
+              </span>
+
+            </div>
+
+
+            <div class="store-catalog-grid">
+
+              ${storeProducts
+                .map(product => {
+
+                  const image =
+                    product.image ||
+                    product.image_url ||
+                    product.thumbnail_url ||
+                    ASSETS.logo;
+
+
+                  return `
+                    <button
+                      type="button"
+                      class="store-catalog-card"
+                      data-action="product-detail"
+                      data-product-id="${escapeHTML(
+                        product.id || ''
+                      )}"
+                    >
+
+                      <div class="store-catalog-media">
+
+                        <img
+                          src="${escapeHTML(
+                            image
+                          )}"
+                          alt="${escapeHTML(
+                            product.name ||
+                            'Produk UMKM'
+                          )}"
+                          loading="lazy"
+                          decoding="async"
+                        >
+
+                      </div>
+
+
+                      <div class="store-catalog-body">
+
+                        ${
+                          product.category
+                            ? `
+                                <span class="store-catalog-category">
+                                  ${escapeHTML(
+                                    product.category
+                                  )}
+                                </span>
+                              `
+                            : ''
+                        }
+
+
+                        <strong class="store-catalog-name">
+                          ${escapeHTML(
+                            product.name ||
+                            'Produk UMKM'
+                          )}
+                        </strong>
+
+
+                        <div class="store-catalog-price">
+                          ${formatRupiah(
+                            product.price
+                          )}
+                        </div>
+
+
+                        <div class="store-catalog-stock">
+
+                          <i
+                            class="ph ph-package"
+                            aria-hidden="true"
+                          ></i>
+
+                          <span>
+                            Stok
+                            ${escapeHTML(
+                              String(
+                                product.stock ?? 0
+                              )
+                            )}
+
+                            ${
+                              product.unit
+                                ? escapeHTML(
+                                    product.unit
+                                  )
+                                : ''
+                            }
+                          </span>
+
+                        </div>
+
+                      </div>
+
+                    </button>
+                  `;
+                })
+                .join('')}
+
+            </div>
+
+          </section>
+        `
+      : `
+          <section class="store-catalog-empty">
+
+            <i
+              class="ph ph-shopping-bag"
+              aria-hidden="true"
+            ></i>
+
+            <strong>
+              Belum ada produk
+            </strong>
+
+            <p>
+              Produk dari UMKM ini
+              akan tampil di sini.
+            </p>
+
+          </section>
+        `;
+
+
   openBottomSheet(
     `
       <div class="store-detail-shell">
@@ -7435,6 +7607,7 @@ function openStoreDetail(
         <div class="store-detail-stats">
 
           <div>
+
             <strong>
               ${Number(
                 store.productCount || 0
@@ -7444,10 +7617,12 @@ function openStoreDetail(
             <span>
               Produk
             </span>
+
           </div>
 
 
           <div>
+
             <strong>
               ${
                 isVerified
@@ -7459,6 +7634,7 @@ function openStoreDetail(
             <span>
               Terverifikasi
             </span>
+
           </div>
 
         </div>
@@ -7493,6 +7669,9 @@ function openStoreDetail(
         </div>
 
 
+        ${productHTML}
+
+
         <button
           type="button"
           class="menu-sheet-btn"
@@ -7508,11 +7687,13 @@ function openStoreDetail(
 
         </button>
 
+
       </div>
     `,
     'store-detail'
   );
 }
+
 /* =========================================================
    45. ORDERS
    ========================================================= */
