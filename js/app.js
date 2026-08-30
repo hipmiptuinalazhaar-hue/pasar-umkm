@@ -1469,129 +1469,44 @@ function createLikeCount(post) {
 function createProductTemplate(product) {
   return `
     <section
-      class="product-card"
-      data-product-id="${escapeHTML(product.id)}"
+      class="feed-product"
+      data-product-id="${escapeHTML(
+        product.id || ''
+      )}"
     >
 
-      <img
-        src="${escapeHTML(product.image || ASSETS.logo)}"
-        alt="${escapeHTML(product.name || 'Produk UMKM')}"
-        class="product-img"
-        loading="lazy"
-        decoding="async"
+      <div
+        class="post-media square"
+        data-action="product-detail"
+        data-product-id="${escapeHTML(
+          product.id || ''
+        )}"
+        role="button"
+        tabindex="0"
+        aria-label="Lihat ${escapeHTML(
+          product.name ||
+          'Produk UMKM'
+        )}"
       >
 
-
-      <div class="product-info">
-
-        ${
-          product.category
-            ? `
-              <div class="product-badge">
-                ${escapeHTML(product.category)}
-              </div>
-            `
-            : ''
-        }
-
-        <div class="product-name">
-          ${escapeHTML(product.name || 'Produk UMKM')}
-        </div>
-
-
-        ${
-          product.rating || product.sold
-            ? `
-              <div class="product-meta">
-
-                ${
-                  product.rating
-                    ? `
-                      <span class="stars">
-                        ★ ${escapeHTML(product.rating)}
-                      </span>
-                    `
-                    : ''
-                }
-
-                ${
-                  product.rating && product.sold
-                    ? '<span>·</span>'
-                    : ''
-                }
-
-                ${
-                  product.sold
-                    ? `
-                      <span>
-                        ${formatCompactNumber(product.sold)}
-                        terjual
-                      </span>
-                    `
-                    : ''
-                }
-
-              </div>
-            `
-            : ''
-        }
-
-
-        <div class="product-price">
-
-          ${formatRupiah(product.price)}
-
-          ${
-            product.originalPrice
-              ? `
-                <span class="original">
-                  ${formatRupiah(product.originalPrice)}
-                </span>
-              `
-              : ''
-          }
-
-        </div>
-
-      </div>
-
-
-      <div class="product-actions">
-
-        <button
-          type="button"
-          class="btn-icon"
-          data-action="add-cart"
-          data-product-id="${escapeHTML(product.id)}"
-          aria-label="Tambah ke keranjang"
+        <img
+          src="${escapeHTML(
+            product.image ||
+            ASSETS.logo
+          )}"
+          alt="${escapeHTML(
+            product.name ||
+            'Produk UMKM'
+          )}"
+          loading="lazy"
+          decoding="async"
         >
-          <i
-            class="ph ph-shopping-cart-simple"
-            aria-hidden="true"
-          ></i>
-        </button>
-
-
-        <button
-          type="button"
-          class="btn-icon"
-          data-action="buy-now"
-          data-product-id="${escapeHTML(product.id)}"
-          aria-label="Beli sekarang"
-        >
-          <i
-            class="ph ph-arrow-right"
-            aria-hidden="true"
-          ></i>
-        </button>
 
       </div>
 
     </section>
   `;
 }
-
-
 /* =========================================================
    25. GLOBAL EVENTS
    ========================================================= */
