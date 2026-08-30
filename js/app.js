@@ -4815,14 +4815,36 @@ function switchAccountTab(
 /* =========================================================
    PRODUCT DETAIL
    ========================================================= */
+function openProductDetail(
+  productId
+) {
+  const ownedProduct =
+    Array.isArray(
+      STATE.accountProducts
+    )
+      ? STATE.accountProducts.find(
+          item =>
+            String(item.id) ===
+            String(productId)
+        )
+      : null;
 
-function openProductDetail(productId) {
-  const product =
-    STATE.accountProducts.find(
-      item =>
-        String(item.id) ===
+
+  const publicPost =
+    DATA.posts.find(
+      post =>
+        String(
+          post.product?.id
+        ) ===
         String(productId)
     );
+
+
+  const product =
+    ownedProduct ||
+    publicPost?.product ||
+    null;
+
 
   if (!product) {
     showToast(
@@ -4832,32 +4854,56 @@ function openProductDetail(productId) {
     return;
   }
 
+
+  const isOwner =
+    Boolean(ownedProduct);
+
+
   const image =
     product.image_url ||
     product.thumbnail_url ||
+    product.image ||
     ASSETS.logo;
+
+
+  const category =
+    product.category_name ||
+    product.category ||
+    '';
+
+
+  const stock =
+    Number(
+      product.stock ?? 0
+    );
+
 
   openBottomSheet(
     `
       <div class="auth-shell">
 
+
         <div class="product-image-preview">
+
           <img
-            src="${escapeHTML(image)}"
+            src="${escapeHTML(
+              image
+            )}"
             alt="${escapeHTML(
               product.name ||
               'Produk UMKM'
             )}"
           >
+
         </div>
 
 
         ${
-          product.category_name
+          category
             ? `
                 <div class="product-badge">
                   ${escapeHTML(
-                    product.category_name
+                    category
                   )}
                 </div>
               `
@@ -4884,11 +4930,10 @@ function openProductDetail(productId) {
 
 
         <div class="product-meta">
+
           Stok:
           ${escapeHTML(
-            String(
-              product.stock ?? 0
-            )
+            String(stock)
           )}
 
           ${
@@ -4898,6 +4943,7 @@ function openProductDetail(productId) {
                 )
               : ''
           }
+
         </div>
 
 
@@ -4913,29 +4959,87 @@ function openProductDetail(productId) {
             : ''
         }
 
-        <button
-  type="button"
-  class="btn-primary"
-  data-action="product-edit"
-  data-product-id="${escapeHTML(
-    product.id || ''
-  )}"
->
-  <i class="ph ph-pencil-simple"></i>
-  <span>Edit Produk</span>
-</button>
 
-<button
-  type="button"
-  class="menu-sheet-btn"
-  data-action="product-delete-confirm"
-  data-product-id="${escapeHTML(
-    product.id || ''
-  )}"
->
-  <i class="ph ph-trash"></i>
-  <span>Hapus Produk</span>
-</button>
+        ${
+          isOwner
+            ? `
+                <button
+                  type="button"
+                  class="btn-primary"
+                  data-action="product-edit"
+                  data-product-id="${escapeHTML(
+                    product.id || ''
+                  )}"
+                >
+                  <i
+                    class="ph ph-pencil-simple"
+                  ></i>
+
+                  <span>
+                    Edit Produk
+                  </span>
+                </button>
+
+
+                <button
+                  type="button"
+                  class="menu-sheet-btn"
+                  data-action="product-delete-confirm"
+                  data-product-id="${escapeHTML(
+                    product.id || ''
+                  )}"
+                >
+                  <i
+                    class="ph ph-trash"
+                  ></i>
+
+                  <span>
+                    Hapus Produk
+                  </span>
+                </button>
+              `
+            : `
+                <div class="ig-product-buttons">
+
+                  <button
+                    type="button"
+                    class="ig-cart-button"
+                    data-action="add-cart"
+                    data-product-id="${escapeHTML(
+                      product.id || ''
+                    )}"
+                  >
+                    <i
+                      class="ph ph-shopping-cart-simple"
+                    ></i>
+
+                    <span>
+                      Keranjang
+                    </span>
+                  </button>
+
+
+                  <button
+                    type="button"
+                    class="ig-buy-button"
+                    data-action="buy-now"
+                    data-product-id="${escapeHTML(
+                      product.id || ''
+                    )}"
+                  >
+                    <i
+                      class="ph ph-shopping-bag"
+                    ></i>
+
+                    <span>
+                      Beli Sekarang
+                    </span>
+                  </button>
+
+                </div>
+              `
+        }
+
 
       </div>
     `,
