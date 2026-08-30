@@ -8106,3 +8106,353 @@ input::placeholder {
 
 }
 
+/* =========================================================
+   PASAR UMKM - PREMIUM SIDE MENU
+   SAFE POLISH
+   Tidak mengubah layer / position / transform
+   ========================================================= */
+
+
+/* PANEL */
+
+.side-menu-panel {
+  background:
+    #ffffff;
+
+  color:
+    #17201c;
+}
+
+
+/* =========================================================
+   HEADER MENU
+   ========================================================= */
+
+.side-menu-head {
+  min-height: 62px;
+
+  padding-bottom:
+    8px;
+
+  border-bottom:
+    1px solid
+    rgba(15, 25, 30, 0.055);
+}
+
+
+/* LOGO */
+
+.side-menu-logo {
+  width: 132px;
+
+  max-height: 48px;
+
+  object-fit: contain;
+
+  object-position:
+    left center;
+}
+
+
+/* CLOSE BUTTON */
+
+.side-menu-close {
+  width: 38px;
+  height: 38px;
+
+  flex: 0 0 38px;
+
+  border-radius: 12px;
+
+  background:
+    #f4f7f5;
+
+  color:
+    #27302b;
+
+  transition:
+    background 0.16s ease,
+    transform 0.14s ease;
+}
+
+
+.side-menu-close i {
+  font-size: 20px;
+}
+
+
+.side-menu-close:active {
+  transform:
+    scale(0.92);
+
+  background:
+    rgba(18, 96, 63, 0.08);
+}
+
+
+/* =========================================================
+   ACCOUNT CARD
+   ========================================================= */
+
+.side-account {
+  margin-top: 13px;
+
+  padding:
+    13px;
+
+  border:
+    1px solid
+    rgba(18, 96, 63, 0.08);
+
+  border-radius: 16px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #f8fbf9,
+      #f3f8f5
+    );
+}
+
+
+/* AVATAR */
+
+.side-account-avatar {
+  width: 42px;
+  height: 42px;
+
+  flex: 0 0 42px;
+
+  background:
+    rgba(18, 96, 63, 0.09);
+
+  color:
+    var(
+      --forest-700,
+      #12603f
+    );
+
+  box-shadow:
+    inset 0 0 0 1px
+    rgba(18, 96, 63, 0.05);
+}
+
+
+.side-account-avatar i {
+  font-size: 20px;
+}
+
+
+/* USER NAME */
+
+.side-account-user-name {
+  font-size: 12px;
+
+  font-weight: 800;
+
+  letter-spacing:
+    -0.015em;
+
+  color:
+    #18211c;
+}
+
+
+/* ROLE */
+
+.side-account-user-role {
+  margin-top: 3px;
+
+  font-size: 9.5px;
+
+  color:
+    rgba(24, 33, 28, 0.52);
+}
+
+
+/* =========================================================
+   MENU CONTENT
+   ========================================================= */
+
+.side-menu-content {
+  margin-top: 14px;
+
+  gap: 4px;
+}
+
+
+/* BUTTON */
+
+.side-menu-content
+.menu-sheet-btn {
+  min-height: 46px;
+
+  padding:
+    0
+    12px;
+
+  gap: 11px;
+
+  border-radius: 12px;
+
+  color:
+    #48514c;
+
+  font-size: 10.5px;
+
+  font-weight: 650;
+
+  transition:
+    background 0.16s ease,
+    color 0.16s ease,
+    transform 0.14s ease;
+}
+
+
+/* ICON */
+
+.side-menu-content
+.menu-sheet-btn i {
+  width: 22px;
+
+  flex: 0 0 22px;
+
+  font-size: 19px;
+
+  color:
+    #69716c;
+
+  transition:
+    color 0.16s ease;
+}
+
+
+/* PRESS */
+
+.side-menu-content
+.menu-sheet-btn:active {
+  transform:
+    scale(0.985);
+
+  background:
+    rgba(18, 96, 63, 0.07);
+
+  color:
+    var(
+      --forest-800,
+      #0d4b32
+    );
+}
+
+
+.side-menu-content
+.menu-sheet-btn:active i {
+  color:
+    var(
+      --forest-700,
+      #12603f
+    );
+}
+
+
+/* DESKTOP HOVER */
+
+@media (hover: hover) {
+
+  .side-menu-content
+  .menu-sheet-btn:hover {
+    background:
+      rgba(18, 96, 63, 0.055);
+
+    color:
+      var(
+        --forest-800,
+        #0d4b32
+      );
+  }
+
+
+  .side-menu-content
+  .menu-sheet-btn:hover i {
+    color:
+      var(
+        --forest-700,
+        #12603f
+      );
+  }
+
+
+  .side-menu-close:hover {
+    background:
+      rgba(18, 96, 63, 0.07);
+  }
+
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.side-menu-footer {
+  margin-top: 17px;
+
+  padding-top: 15px;
+
+  border-top:
+    1px solid
+    rgba(15, 25, 30, 0.055);
+}
+
+
+.side-menu-footer-brand {
+  color:
+    var(
+      --forest-800,
+      #0d4b32
+    );
+
+  font-size: 10.5px;
+
+  font-weight: 800;
+
+  letter-spacing:
+    0.055em;
+}
+
+
+.side-menu-footer-label {
+  margin-top: 4px;
+
+  color:
+    rgba(24, 33, 28, 0.42);
+
+  font-size: 8.5px;
+
+  line-height: 1.5;
+}
+
+
+.side-menu-footer-name {
+  margin-top: 2px;
+
+  color:
+    #4d5751;
+
+  font-size: 9.5px;
+
+  line-height: 1.45;
+
+  font-weight: 700;
+}
+
+
+.side-menu-footer-copyright {
+  margin-top: 10px;
+
+  color:
+    rgba(24, 33, 28, 0.38);
+
+  font-size: 8.5px;
+}
+
