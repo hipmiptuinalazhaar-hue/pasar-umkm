@@ -15592,3 +15592,227 @@ i {
   }
 
 }
+
+/* =========================================================
+   PASAR UMKM - PREMIUM HOME FEED CARD
+   Tahap 1: shell + post header
+   Hanya postingan langsung di Beranda
+   ========================================================= */
+
+
+/* CARD SHELL */
+
+.feed > .post-card {
+  position: relative;
+
+  margin:
+    0
+    12px
+    16px;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    rgba(22, 61, 45, 0.075) !important;
+
+  border-top:
+    1px solid
+    rgba(22, 61, 45, 0.075) !important;
+
+  border-bottom:
+    1px solid
+    rgba(22, 61, 45, 0.075) !important;
+
+  border-radius:
+    18px;
+
+  background:
+    #fffdfa;
+
+  box-shadow:
+    0 5px 20px
+    rgba(22, 61, 45, 0.045);
+}
+
+
+/* Hindari jarak aneh setelah heading feed */
+
+.market-feed-head
++ .post-card {
+  margin-top: 0;
+}
+
+
+/* =========================================================
+   POST HEADER
+   ========================================================= */
+
+.feed > .post-card
+.post-header {
+  min-height: 62px;
+
+  padding:
+    12px
+    14px
+    11px;
+
+  gap: 10px;
+
+  background:
+    #fffdfa;
+}
+
+
+/* PROFILE LINK */
+
+.feed > .post-card
+.post-profile-link {
+  min-width: 0;
+}
+
+
+/* AVATAR */
+
+.feed > .post-card
+.post-avatar {
+  width:
+    40px;
+
+  height:
+    40px;
+
+  flex:
+    0 0
+    40px;
+
+  border:
+    1px solid
+    rgba(22, 61, 45, 0.08);
+
+  background:
+    #f5f1e8;
+
+  box-shadow:
+    none;
+}
+
+
+/* SELLER NAME */
+
+.feed > .post-card
+.post-author {
+  color:
+    #17231d;
+
+  font-size:
+    11.5px;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    -0.015em;
+}
+
+
+/* LOCATION + TIME */
+
+.feed > .post-card
+.post-context {
+  margin-top:
+    3px;
+
+  color:
+    #89918c;
+
+  font-size:
+    8.5px;
+
+  font-weight:
+    500;
+}
+
+
+/* VERIFIED */
+
+.feed > .post-card
+.verified-badge {
+  color:
+    #176b4a;
+
+  font-size:
+    13px;
+}
+
+
+/* MENU */
+
+.feed > .post-card
+.post-menu {
+  width:
+    34px;
+
+  height:
+    34px;
+
+  flex:
+    0 0
+    34px;
+
+  border: 0;
+
+  background:
+    transparent;
+
+  color:
+    #657069;
+}
+
+
+.feed > .post-card
+.post-menu i {
+  font-size:
+    19px;
+}
+
+
+/* DESKTOP HOVER */
+
+@media (hover: hover) {
+
+  .feed > .post-card
+  .post-menu:hover {
+    background:
+      #f4f1ea;
+  }
+
+}
+
+
+/* MOBILE */
+
+@media (max-width: 380px) {
+
+  .feed > .post-card {
+    margin-left:
+      10px;
+
+    margin-right:
+      10px;
+
+    border-radius:
+      17px;
+  }
+
+
+  .feed > .post-card
+  .post-header {
+    padding-left:
+      12px;
+
+    padding-right:
+      12px;
+  }
+
+}
