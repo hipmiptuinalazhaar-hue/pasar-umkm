@@ -15816,3 +15816,278 @@ i {
   }
 
 }
+
+/* =========================================================
+   PASAR UMKM - PREMIUM FEED MEDIA + SOCIAL ACTIONS
+   Tahap 2
+   ========================================================= */
+
+
+/* =========================================================
+   MEDIA
+   Berlaku untuk posting biasa & posting produk
+   ========================================================= */
+
+.feed > .post-card
+.post-media,
+
+.feed > .post-card
+.ig-product-media {
+  position: relative;
+
+  width: 100%;
+
+  overflow: hidden;
+
+  background:
+    #f1f0eb;
+
+  border: 0 !important;
+
+  border-radius: 0 !important;
+
+  box-shadow: none !important;
+}
+
+
+/* POST PRODUK = SQUARE
+   Lebih cocok untuk marketplace */
+
+.feed > .post-card
+.ig-product-media {
+  aspect-ratio: 1 / 1;
+}
+
+
+/* IMAGE */
+
+.feed > .post-card
+.post-media img,
+
+.feed > .post-card
+.post-media video,
+
+.feed > .post-card
+.ig-product-media img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+
+  border-radius: 0 !important;
+
+  transform: none !important;
+}
+
+
+/* Hindari efek zoom murahan */
+
+@media (hover: hover) {
+
+  .feed > .post-card
+  .post-media img,
+
+  .feed > .post-card
+  .ig-product-media img {
+    transition:
+      opacity
+      160ms
+      ease;
+  }
+
+
+  .feed > .post-card
+  .post-media:hover img,
+
+  .feed > .post-card
+  .ig-product-media:hover img {
+    opacity: 0.97;
+  }
+
+}
+
+
+/* =========================================================
+   SOCIAL ACTION BAR
+   ========================================================= */
+
+.feed > .post-card
+.post-actions {
+  min-height: 49px;
+
+  padding:
+    5px
+    10px
+    1px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  background:
+    #fffdfa;
+
+  border: 0 !important;
+}
+
+
+/* LEFT GROUP */
+
+.feed > .post-card
+.actions-left {
+  display: flex;
+
+  align-items: center;
+
+  gap: 1px;
+}
+
+
+/* =========================================================
+   ACTION BUTTON
+   ========================================================= */
+
+.feed > .post-card
+.action-btn {
+  width: 39px;
+  height: 39px;
+
+  padding: 0;
+
+  display: grid;
+
+  place-items: center;
+
+  border: 0 !important;
+
+  border-radius: 10px;
+
+  background:
+    transparent;
+
+  color:
+    #26332b;
+
+  box-shadow:
+    none !important;
+
+  cursor: pointer;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  transition:
+    transform 120ms ease,
+    background 120ms ease,
+    color 120ms ease;
+}
+
+
+/* ICON */
+
+.feed > .post-card
+.action-btn i {
+  font-size:
+    22px;
+
+  line-height: 1;
+}
+
+
+/* LIKE ACTIVE */
+
+.feed > .post-card
+.action-btn.liked {
+  color:
+    #d84f49;
+}
+
+
+/* SAVE ACTIVE */
+
+.feed > .post-card
+.action-btn.saved {
+  color:
+    #176b4a;
+}
+
+
+/* TAP */
+
+.feed > .post-card
+.action-btn:active {
+  transform:
+    scale(0.89);
+}
+
+
+/* DESKTOP HOVER */
+
+@media (hover: hover) {
+
+  .feed > .post-card
+  .action-btn:hover {
+    background:
+      #f4f1ea;
+  }
+
+}
+
+
+/* =========================================================
+   LIKE COUNT
+   ========================================================= */
+
+.feed > .post-card
+.post-stats {
+  padding:
+    2px
+    14px
+    0;
+
+  color:
+    #17231d;
+
+  font-size:
+    10px;
+
+  line-height: 1.35;
+
+  font-weight:
+    800;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 380px) {
+
+  .feed > .post-card
+  .post-actions {
+    padding-left:
+      8px;
+
+    padding-right:
+      8px;
+  }
+
+
+  .feed > .post-card
+  .action-btn {
+    width: 38px;
+    height: 38px;
+  }
+
+
+  .feed > .post-card
+  .action-btn i {
+    font-size:
+      21px;
+  }
+
+}
