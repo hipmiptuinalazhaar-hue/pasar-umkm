@@ -4915,3 +4915,64 @@ a:focus-visible {
   }
 
 }
+
+/* =========================================================
+   FEED POLISH - ACTION BAR & POST SPACING
+   ========================================================= */
+
+.post-card {
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.post-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 10px 14px 5px;
+}
+
+.actions-left {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+}
+
+.action-btn {
+  width: 28px;
+  height: 28px;
+
+  padding: 0;
+  border: 0;
+  background: transparent;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 25px;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+.action-btn i {
+  font-size: 25px;
+}
+
+.action-btn:active {
+  transform: scale(0.9);
+}
+
+.action-btn.liked {
+  color: #e53935;
+}
+
+.post-time {
+  padding: 0 16px 14px;
+
+  font-size: 11px;
+  opacity: 0.5;
+}
