@@ -5576,7 +5576,16 @@ async function handleProductCreateSubmit(
 
       payload.thumbnail_url =
         uploadData.image.url;
-    }
+    const buttonText =
+  submitButton
+    ?.querySelector(
+      'span'
+    );
+
+if (buttonText) {
+  buttonText.textContent =
+    'Menyimpan produk...';
+}
 
 
     /*
