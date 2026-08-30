@@ -14599,3 +14599,75 @@ i {
   background:
     #12603f;
 }
+
+/* =========================================================
+   OWN ACCOUNT TAB - SINGLE INDICATOR
+   ========================================================= */
+
+.social-account-page:not(.public-seller-profile)
+.social-account-tabs {
+  border: 0 !important;
+  border-bottom: 0 !important;
+
+  box-shadow: none !important;
+
+  background-image: none !important;
+}
+
+
+/* Matikan semua indikator lama */
+
+.social-account-page:not(.public-seller-profile)
+.social-account-tabs::before,
+
+.social-account-page:not(.public-seller-profile)
+.social-account-tabs::after,
+
+.social-account-page:not(.public-seller-profile)
+.social-account-tab::before,
+
+.social-account-page:not(.public-seller-profile)
+.social-account-tab::after {
+  content: none !important;
+  display: none !important;
+}
+
+
+/* Bersihkan tombol */
+
+.social-account-page:not(.public-seller-profile)
+.social-account-tab {
+  position: relative;
+
+  border: 0 !important;
+  border-bottom: 0 !important;
+
+  box-shadow: none !important;
+
+  background-image: none !important;
+}
+
+
+/* SATU indikator aktif */
+
+.social-account-page:not(.public-seller-profile)
+.social-account-tab.active::after {
+  content: "" !important;
+
+  display: block !important;
+
+  position: absolute;
+
+  left: 50%;
+  bottom: 0;
+
+  width: 44px;
+  height: 2px;
+
+  transform:
+    translateX(-50%);
+
+  border-radius: 999px;
+
+  background: #12603f;
+}
