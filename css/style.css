@@ -14527,11 +14527,75 @@ i {
 }
 
 /* =========================================================
-   CLEAN PROFILE TAB INDICATOR
-   Hapus garis dasar, pertahankan indikator aktif
+   PUBLIC SELLER TAB - SINGLE INDICATOR
    ========================================================= */
 
+.public-seller-profile
 .social-account-tabs {
-  border-bottom: none !important;
+  border: 0 !important;
+  border-bottom: 0 !important;
+
   box-shadow: none !important;
+
+  background-image: none !important;
+}
+
+
+/* Matikan SEMUA indikator bawaan */
+
+.public-seller-profile
+.social-account-tabs::before,
+
+.public-seller-profile
+.social-account-tabs::after,
+
+.public-seller-profile
+.social-account-tab::before,
+
+.public-seller-profile
+.social-account-tab::after {
+  content: none !important;
+  display: none !important;
+}
+
+
+/* Bersihkan tombol tab */
+
+.public-seller-profile
+.social-account-tab {
+  position: relative;
+
+  border: 0 !important;
+  border-bottom: 0 !important;
+
+  box-shadow: none !important;
+
+  background-image: none !important;
+}
+
+
+/* Buat SATU indikator aktif baru */
+
+.public-seller-profile
+.social-account-tab.active::after {
+  content: "" !important;
+
+  display: block !important;
+
+  position: absolute;
+
+  left: 50%;
+  bottom: 0;
+
+  width: 44px;
+  height: 2px;
+
+  transform:
+    translateX(-50%);
+
+  border-radius:
+    999px;
+
+  background:
+    #12603f;
 }
