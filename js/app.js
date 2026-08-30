@@ -1465,7 +1465,6 @@ function createLikeCount(post) {
 /* =========================================================
    24. PRODUCT CARD
    ========================================================= */
-
 function createProductTemplate(product) {
   return `
     <section
@@ -1504,9 +1503,87 @@ function createProductTemplate(product) {
 
       </div>
 
+
+      <div class="product-info feed-product-info">
+
+        ${
+          product.category
+            ? `
+                <div class="product-badge">
+                  ${escapeHTML(
+                    product.category
+                  )}
+                </div>
+              `
+            : ''
+        }
+
+
+        <div
+          class="product-name"
+          data-action="product-detail"
+          data-product-id="${escapeHTML(
+            product.id || ''
+          )}"
+        >
+          ${escapeHTML(
+            product.name ||
+            'Produk UMKM'
+          )}
+        </div>
+
+
+        <div class="product-price">
+          ${formatRupiah(
+            product.price
+          )}
+        </div>
+
+
+        <div class="product-actions feed-product-actions">
+
+          <button
+            type="button"
+            class="btn-icon"
+            data-action="add-cart"
+            data-product-id="${escapeHTML(
+              product.id || ''
+            )}"
+            aria-label="Masukkan ke keranjang"
+          >
+            <i
+              class="ph ph-shopping-cart-simple"
+              aria-hidden="true"
+            ></i>
+          </button>
+
+
+          <button
+            type="button"
+            class="btn-primary"
+            data-action="buy-now"
+            data-product-id="${escapeHTML(
+              product.id || ''
+            )}"
+          >
+            <i
+              class="ph ph-shopping-bag"
+              aria-hidden="true"
+            ></i>
+
+            <span>
+              Beli Sekarang
+            </span>
+          </button>
+
+        </div>
+
+      </div>
+
     </section>
   `;
 }
+
 /* =========================================================
    25. GLOBAL EVENTS
    ========================================================= */
