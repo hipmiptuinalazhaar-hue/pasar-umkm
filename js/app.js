@@ -1925,6 +1925,14 @@ function runAction(action, element) {
         navigate('home');
         break;
 
+      case 'seller-public-tab':
+        switchPublicSellerTab(
+       element.dataset.storeId,
+       element.dataset.tab,
+       element
+        );
+        break;
+
     case 'login':
       openLogin();
       break;
@@ -8401,6 +8409,256 @@ function openSellerProfile(
     top: 0,
     behavior: 'auto'
   });
+}
+
+function switchPublicSellerTab(
+  storeId,
+  tab,
+  button
+) {
+  const store =
+    getStores().find(
+      item =>
+        String(item.id) ===
+        String(storeId)
+    );
+
+
+  if (!store) {
+    showToast(
+      'Profil UMKM tidak ditemukan.'
+    );
+
+    return;
+  }
+
+
+  const page =
+    document.querySelector(
+      '.public-seller-profile'
+    );
+
+
+  if (!page) {
+    return;
+  }
+
+
+  page
+    .querySelectorAll(
+      '.social-account-tab'
+    )
+    .forEach(item => {
+      item.classList.toggle(
+        'active',
+        item === button
+      );
+    });
+
+
+  const content =
+    page.querySelector(
+      '#publicSellerContent'
+    );
+
+
+  if (!content) {
+    return;
+  }
+
+
+  const sellerPosts =
+    DATA.posts.filter(
+      post =>
+        String(
+          post.store?.id
+        ) ===
+        String(store.id)
+    );
+
+
+  if (tab === 'posts') {
+
+    if (!sellerPosts.length) {
+      content.innerHTML = `
+        <section class="social-account-empty">
+
+          <div class="social-account-empty-icon">
+            <i class="ph ph-squares-four"></i>
+          </div>
+
+          <strong>
+            Belum ada postingan
+          </strong>
+
+          <p>
+            Postingan dari UMKM ini
+            akan tampil di sini.
+          </p>
+
+        </section>
+      `;
+
+      return;
+    }
+
+
+    content.innerHTML = `
+      <div class="public-seller-post-list">
+
+        ${sellerPosts
+          .map(post =>
+            createPostTemplate(post)
+          )
+          .join('')}
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  const sellerProducts =
+    sellerPosts
+      .filter(
+        post =>
+          post.product?.id
+      )
+      .map(
+        post =>
+          post.product
+      );
+
+
+  if (!sellerProducts.length) {
+    content.innerHTML = `
+      <section class="social-account-empty">
+
+        <div class="social-account-empty-icon">
+          <i class="ph ph-shopping-bag"></i>
+        </div>
+
+        <strong>
+          Belum ada produk
+        </strong>
+
+        <p>
+          Produk dari UMKM ini
+          akan tampil di sini.
+        </p>
+
+      </section>
+    `;
+
+    return;
+  }
+
+
+  content.innerHTML = `
+    <div class="social-account-product-grid">
+
+      ${sellerProducts
+        .map(product => {
+
+          const image =
+            product.image ||
+            product.image_url ||
+            product.thumbnail_url ||
+            ASSETS.logo;
+
+
+          return `
+            <article
+              class="social-product-card"
+              data-action="product-detail"
+              data-product-id="${escapeHTML(
+                product.id || ''
+              )}"
+            >
+
+              <div class="social-product-media">
+
+                <img
+                  src="${escapeHTML(
+                    image
+                  )}"
+                  alt="${escapeHTML(
+                    product.name ||
+                    'Produk UMKM'
+                  )}"
+                  loading="lazy"
+                  decoding="async"
+                >
+
+              </div>
+
+
+              <div class="social-product-body">
+
+                ${
+                  product.category
+                    ? `
+                        <span class="social-product-category">
+                          ${escapeHTML(
+                            product.category
+                          )}
+                        </span>
+                      `
+                    : ''
+                }
+
+
+                <strong class="social-product-name">
+                  ${escapeHTML(
+                    product.name ||
+                    'Produk UMKM'
+                  )}
+                </strong>
+
+
+                <div class="social-product-price">
+                  ${formatRupiah(
+                    product.price
+                  )}
+                </div>
+
+
+                <div class="social-product-stock">
+
+                  <i
+                    class="ph ph-package"
+                    aria-hidden="true"
+                  ></i>
+
+                  <span>
+                    Stok
+                    ${escapeHTML(
+                      String(
+                        product.stock ?? 0
+                      )
+                    )}
+
+                    ${
+                      product.unit
+                        ? escapeHTML(
+                            product.unit
+                          )
+                        : ''
+                    }
+                  </span>
+
+                </div>
+
+              </div>
+
+            </article>
+          `;
+        })
+        .join('')}
+
+    </div>
+  `;
 }
 
 /* =========================================================
