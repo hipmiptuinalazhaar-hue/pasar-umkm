@@ -1081,29 +1081,27 @@ function createEmptyFeedTemplate(category = null) {
 /* =========================================================
    19. POST TEMPLATE
    ========================================================= */
-
 function createPostTemplate(post) {
   const postId =
-    String(
-      post.id || ''
-    );
-
+    String(post.id || '');
 
   const liked =
-    STATE.likedPosts.has(
-      postId
-    );
-
+    STATE.likedPosts.has(postId);
 
   const saved =
-    STATE.savedPosts.has(
-      postId
-    );
+    STATE.savedPosts.has(postId);
+
+  const isProductPost =
+    Boolean(post.product);
 
 
   return `
     <article
-      class="post-card"
+      class="post-card ${
+        isProductPost
+          ? 'is-product-post'
+          : ''
+      }"
       id="post-${escapeHTML(postId)}"
       data-post-id="${escapeHTML(postId)}"
     >
@@ -1112,18 +1110,26 @@ function createPostTemplate(post) {
 
 
       ${
-        post.media
-          ? createPostMedia(post)
-          : ''
-      }
+        isProductPost
+          ? `
+              <div class="ig-product-media">
 
+                <img
+                  src="${escapeHTML(
+                    post.product.image ||
+                    ASSETS.logo
+                  )}"
+                  alt="${escapeHTML(
+                    post.product.name ||
+                    'Produk UMKM'
+                  )}"
+                  loading="lazy"
+                  decoding="async"
+                >
 
-      ${
-        post.product
-          ? createProductTemplate(
-              post.product
-            )
-          : ''
+              </div>
+            `
+          : createPostMedia(post)
       }
 
 
@@ -1149,7 +1155,6 @@ function createPostTemplate(post) {
                   ? 'ph-fill'
                   : 'ph'
               } ph-heart"
-              aria-hidden="true"
             ></i>
           </button>
 
@@ -1161,10 +1166,7 @@ function createPostTemplate(post) {
             data-post-id="${escapeHTML(postId)}"
             aria-label="Komentar"
           >
-            <i
-              class="ph ph-chat-circle"
-              aria-hidden="true"
-            ></i>
+            <i class="ph ph-chat-circle"></i>
           </button>
 
 
@@ -1175,10 +1177,7 @@ function createPostTemplate(post) {
             data-post-id="${escapeHTML(postId)}"
             aria-label="Bagikan"
           >
-            <i
-              class="ph ph-paper-plane-tilt"
-              aria-hidden="true"
-            ></i>
+            <i class="ph ph-paper-plane-tilt"></i>
           </button>
 
         </div>
@@ -1193,7 +1192,7 @@ function createPostTemplate(post) {
           }"
           data-action="save"
           data-post-id="${escapeHTML(postId)}"
-          aria-label="Simpan postingan"
+          aria-label="Simpan"
           aria-pressed="${saved}"
         >
           <i
@@ -1202,7 +1201,6 @@ function createPostTemplate(post) {
                 ? 'ph-fill'
                 : 'ph'
             } ph-bookmark-simple"
-            aria-hidden="true"
           ></i>
         </button>
 
@@ -1212,7 +1210,14 @@ function createPostTemplate(post) {
       ${createLikeCount(post)}
 
 
-      ${createCaption(post)}
+      ${
+        isProductPost
+          ? createProductTemplate(
+              post.product,
+              post.caption
+            )
+          : createCaption(post)
+      }
 
 
       ${
@@ -1465,118 +1470,120 @@ function createLikeCount(post) {
 /* =========================================================
    24. PRODUCT CARD
    ========================================================= */
-function createProductTemplate(product) {
+function createProductTemplate(
+  product,
+  caption = ''
+) {
   return `
     <section
-      class="feed-product"
+      class="ig-product-info"
       data-product-id="${escapeHTML(
         product.id || ''
       )}"
     >
 
-      <div
-        class="post-media square"
-        data-action="product-detail"
-        data-product-id="${escapeHTML(
-          product.id || ''
-        )}"
-        role="button"
-        tabindex="0"
-        aria-label="Lihat ${escapeHTML(
-          product.name ||
-          'Produk UMKM'
-        )}"
-      >
-
-        <img
-          src="${escapeHTML(
-            product.image ||
-            ASSETS.logo
-          )}"
-          alt="${escapeHTML(
-            product.name ||
-            'Produk UMKM'
-          )}"
-          loading="lazy"
-          decoding="async"
-        >
-
-      </div>
-
-
-      <div class="product-info feed-product-info">
+      <div class="ig-product-meta">
 
         ${
           product.category
             ? `
-                <div class="product-badge">
+                <span class="ig-product-category">
                   ${escapeHTML(
                     product.category
                   )}
-                </div>
+                </span>
               `
-            : ''
+            : '<span></span>'
         }
 
 
-        <div
-          class="product-name"
-          data-action="product-detail"
+        <span class="ig-product-stock">
+          Stok ${escapeHTML(
+            String(
+              product.stock ?? 0
+            )
+          )}
+
+          ${
+            product.unit
+              ? ` ${escapeHTML(
+                  product.unit
+                )}`
+              : ''
+          }
+        </span>
+
+      </div>
+
+
+      <h3 class="ig-product-name">
+        ${escapeHTML(
+          product.name ||
+          'Produk UMKM'
+        )}
+      </h3>
+
+
+      <div class="ig-product-price">
+        ${formatRupiah(
+          product.price
+        )}
+      </div>
+
+
+      ${
+        caption
+          ? `
+              <p class="ig-product-description">
+                ${escapeHTML(caption)}
+              </p>
+            `
+          : ''
+      }
+
+
+      <div class="ig-product-buttons">
+
+        <button
+          type="button"
+          class="ig-cart-button"
+          data-action="add-cart"
           data-product-id="${escapeHTML(
             product.id || ''
           )}"
         >
-          ${escapeHTML(
-            product.name ||
-            'Produk UMKM'
-          )}
-        </div>
+
+          <i
+            class="ph ph-shopping-cart-simple"
+            aria-hidden="true"
+          ></i>
+
+          <span>
+            Keranjang
+          </span>
+
+        </button>
 
 
-        <div class="product-price">
-          ${formatRupiah(
-            product.price
-          )}
-        </div>
+        <button
+          type="button"
+          class="ig-buy-button"
+          data-action="buy-now"
+          data-product-id="${escapeHTML(
+            product.id || ''
+          )}"
+        >
 
+          <i
+            class="ph ph-shopping-bag"
+            aria-hidden="true"
+          ></i>
 
-        <div class="product-actions feed-product-actions">
+          <span>
+            Beli Sekarang
+          </span>
 
-          <button
-            type="button"
-            class="btn-icon"
-            data-action="add-cart"
-            data-product-id="${escapeHTML(
-              product.id || ''
-            )}"
-            aria-label="Masukkan ke keranjang"
-          >
-            <i
-              class="ph ph-shopping-cart-simple"
-              aria-hidden="true"
-            ></i>
-          </button>
-
-
-          <button
-            type="button"
-            class="btn-primary"
-            data-action="buy-now"
-            data-product-id="${escapeHTML(
-              product.id || ''
-            )}"
-          >
-            <i
-              class="ph ph-shopping-bag"
-              aria-hidden="true"
-            ></i>
-
-            <span>
-              Beli Sekarang
-            </span>
-          </button>
-
-        </div>
+        </button>
 
       </div>
 
