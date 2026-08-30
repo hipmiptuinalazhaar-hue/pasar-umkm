@@ -782,12 +782,14 @@ if (
             p.category_id
 
         WHERE
-          p.store_id =
-            ${store.id}
+  p.store_id =
+    ${store.id}
 
-        ORDER BY
-          p.created_at DESC
-      `;
+  AND
+  p.is_active = TRUE
+
+ORDER BY
+  p.created_at DESC
 
 
     // =====================================
