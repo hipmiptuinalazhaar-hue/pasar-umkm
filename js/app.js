@@ -5205,6 +5205,122 @@ function openProductDeleteConfirm(
   );
 }
 
+async function handleProductDelete(
+  productId,
+  element
+) {
+  if (!productId) {
+    showToast(
+      'Produk tidak ditemukan.'
+    );
+
+    return;
+  }
+
+
+  const label =
+    element.querySelector(
+      'span'
+    );
+
+
+  const oldLabel =
+    label?.textContent ||
+    'Ya, Hapus Produk';
+
+
+  element.disabled = true;
+
+
+  if (label) {
+    label.textContent =
+      'Menghapus...';
+  }
+
+
+  try {
+    const response =
+      await fetch(
+        `/api/products/${encodeURIComponent(
+          productId
+        )}`,
+        {
+          method: 'DELETE',
+
+          credentials:
+            'include',
+
+          headers: {
+            Accept:
+              'application/json'
+          }
+        }
+      );
+
+
+    const data =
+      await response
+        .json()
+        .catch(() => ({}));
+
+
+    if (
+      !response.ok ||
+      data.ok !== true
+    ) {
+      throw new Error(
+        data.error ||
+        'Produk gagal dihapus.'
+      );
+    }
+
+
+    showToast(
+      'Produk berhasil dihapus.'
+    );
+
+
+    await openAccount();
+
+
+    const productsTab =
+      document.querySelector(
+        '.social-account-tab[data-tab="products"]'
+      );
+
+
+    if (productsTab) {
+      switchAccountTab(
+        'products',
+        productsTab
+      );
+    }
+
+
+  } catch (error) {
+    console.error(
+      '[Pasar UMKM] Product delete error:',
+      error
+    );
+
+
+    showToast(
+      error.message ||
+      'Produk gagal dihapus.'
+    );
+
+
+  } finally {
+    element.disabled = false;
+
+
+    if (label) {
+      label.textContent =
+        oldLabel;
+    }
+  }
+}
+
 /* =========================================================
    ACCOUNT MENU
    ========================================================= */
