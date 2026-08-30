@@ -5222,3 +5222,119 @@ a:focus-visible {
 .ig-product-buttons {
   margin-top: 12px;
 }
+
+/* =========================================================
+   FEED POLISH - CARD & SPACING
+   ========================================================= */
+
+/* AREA FEED */
+
+#feed {
+  display: flex;
+  flex-direction: column;
+
+  gap: 10px;
+
+  padding-bottom: 90px;
+}
+
+
+/* POST */
+
+.post-card {
+  width: 100%;
+
+  margin: 0;
+
+  background: #ffffff;
+
+  border: 0;
+
+  border-radius: 0;
+
+  box-shadow: none;
+
+  overflow: hidden;
+
+  position: relative;
+}
+
+
+/* GARIS PEMISAH TIPIS */
+
+.post-card::after {
+  content: '';
+
+  display: block;
+
+  width: calc(100% - 28px);
+  height: 1px;
+
+  margin: 5px auto 0;
+
+  background:
+    rgba(0, 0, 0, 0.055);
+}
+
+
+/* POST TERAKHIR */
+
+.post-card:last-child::after {
+  display: none;
+}
+
+
+/* FOTO PRODUK */
+
+.ig-product-media {
+  margin: 0;
+
+  border-radius: 0;
+}
+
+
+/* AREA INFO */
+
+.ig-product-info {
+  background: #ffffff;
+}
+
+
+/* DESKTOP / TABLET */
+
+@media (min-width: 600px) {
+
+  #feed {
+    width: 100%;
+    max-width: 560px;
+
+    margin-left: auto;
+    margin-right: auto;
+
+    gap: 14px;
+  }
+
+
+  .post-card {
+    border-radius: 18px;
+
+    border:
+      1px solid
+      rgba(0, 0, 0, 0.06);
+
+    box-shadow:
+      0 3px 18px
+      rgba(0, 0, 0, 0.035);
+  }
+
+
+  .post-card::after {
+    display: none;
+  }
+
+
+  .ig-product-media {
+    border-radius: 0;
+  }
+
+}
