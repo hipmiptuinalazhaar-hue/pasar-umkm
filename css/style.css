@@ -12214,3 +12214,270 @@ i {
   }
 
 }
+
+/* =========================================================
+   PASAR UMKM
+   PREMIUM CHECKOUT PREVIEW
+   SAFE VISUAL POLISH
+   ========================================================= */
+
+
+/* TITLE CHECKOUT / RECEIPT STATE */
+
+#bottomSheet
+.sheet-content
+> #sheetTitle
++ .empty-state:has(
+  > .ph-receipt
+) {
+  margin-top: 4px;
+
+  padding:
+    32px
+    22px
+    26px;
+
+  border:
+    1px solid
+    rgba(18, 96, 63, 0.09);
+
+  border-radius: 21px;
+
+  background:
+    linear-gradient(
+      155deg,
+      #ffffff 0%,
+      #f7fbf9 55%,
+      #f1f8f4 100%
+    );
+
+  box-shadow:
+    0 8px 28px
+    rgba(15, 30, 22, 0.055);
+
+  text-align: center;
+}
+
+
+/* =========================================================
+   RECEIPT ICON
+   ========================================================= */
+
+#bottomSheet
+.sheet-content
+> #sheetTitle
++ .empty-state:has(
+  > .ph-receipt
+)
+> .ph-receipt {
+  width: 64px;
+  height: 64px;
+
+  margin:
+    0
+    auto
+    18px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 19px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(18, 96, 63, 0.11),
+      rgba(20, 152, 170, 0.065)
+    );
+
+  color:
+    var(
+      --forest-700,
+      #12603f
+    );
+
+  font-size: 29px;
+
+  box-shadow:
+    inset 0 0 0 1px
+    rgba(18, 96, 63, 0.055);
+}
+
+
+/* =========================================================
+   TOTAL PRICE
+   ========================================================= */
+
+#bottomSheet
+.sheet-content
+> #sheetTitle
++ .empty-state:has(
+  > .ph-receipt
+)
+> .empty-state-title {
+  display: block;
+
+  margin: 0;
+
+  color:
+    var(
+      --forest-800,
+      #0d4b32
+    );
+
+  font-size: 25px;
+
+  line-height: 1.15;
+
+  font-weight: 900;
+
+  letter-spacing:
+    -0.045em;
+}
+
+
+/* =========================================================
+   SUPPORT TEXT
+   ========================================================= */
+
+#bottomSheet
+.sheet-content
+> #sheetTitle
++ .empty-state:has(
+  > .ph-receipt
+)
+> .empty-state-text {
+  max-width: 315px;
+
+  margin:
+    12px
+    auto
+    0;
+
+  color:
+    rgba(24, 32, 28, 0.54);
+
+  font-size: 10.5px;
+
+  line-height: 1.65;
+
+  font-weight: 450;
+}
+
+
+/* =========================================================
+   STATUS LABEL
+   Dibuat tanpa menambah HTML baru
+   ========================================================= */
+
+#bottomSheet
+.sheet-content
+> #sheetTitle
++ .empty-state:has(
+  > .ph-receipt
+)::after {
+  content:
+    "Sistem checkout sedang dipersiapkan";
+
+  width: fit-content;
+
+  max-width: 100%;
+
+  margin:
+    18px
+    auto
+    0;
+
+  padding:
+    7px
+    10px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border:
+    1px solid
+    rgba(18, 96, 63, 0.09);
+
+  border-radius: 999px;
+
+  background:
+    rgba(18, 96, 63, 0.055);
+
+  color:
+    rgba(13, 75, 50, 0.75);
+
+  font-size: 8.5px;
+
+  line-height: 1.25;
+
+  font-weight: 700;
+
+  letter-spacing:
+    0.015em;
+}
+
+
+/* =========================================================
+   CHECKOUT TITLE
+   ========================================================= */
+
+#bottomSheet
+.sheet-content:has(
+  > #sheetTitle
+  + .empty-state
+  > .ph-receipt
+)
+> #sheetTitle {
+  margin-bottom: 15px;
+
+  color:
+    #151d18;
+
+  font-size: 19px;
+
+  line-height: 1.25;
+
+  font-weight: 850;
+
+  letter-spacing:
+    -0.035em;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 767px) {
+
+  #bottomSheet
+  .sheet-content
+  > #sheetTitle
+  + .empty-state:has(
+    > .ph-receipt
+  ) {
+    padding:
+      28px
+      18px
+      23px;
+
+    border-radius: 19px;
+  }
+
+
+  #bottomSheet
+  .sheet-content
+  > #sheetTitle
+  + .empty-state:has(
+    > .ph-receipt
+  )
+  > .empty-state-title {
+    font-size: 23px;
+  }
+
+}
