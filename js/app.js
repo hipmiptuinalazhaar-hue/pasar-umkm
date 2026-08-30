@@ -5500,8 +5500,18 @@ async function handleProductCreateSubmit(
 
 
   if (submitButton) {
-    submitButton.disabled = true;
+  submitButton.disabled = true;
+
+  const buttonText =
+    submitButton.querySelector(
+      'span'
+    );
+
+  if (buttonText) {
+    buttonText.textContent =
+      'Mengunggah foto...';
   }
+}
 
 
   if (message) {
