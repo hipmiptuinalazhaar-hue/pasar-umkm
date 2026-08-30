@@ -7805,3 +7805,43 @@ button:active {
 
 }
 
+/* =========================================================
+   FIX FINAL - GLOBAL APP LAYER ORDER
+   Header / Search / Menu / Bottom Sheet
+   ========================================================= */
+
+/* Bottom navigation */
+.app-navigation {
+  z-index: 100 !important;
+}
+
+
+/* Header utama */
+.app-header {
+  z-index: 200 !important;
+}
+
+
+/* Menu samping */
+.side-menu-overlay {
+  z-index: 300 !important;
+}
+
+
+/* Search full screen */
+.search-overlay {
+  z-index: 400 !important;
+}
+
+
+/* Background gelap untuk bottom sheet */
+.sheet-overlay {
+  z-index: 490 !important;
+}
+
+
+/* Keranjang / Jual / Titik Tiga / modal lainnya */
+.bottom-sheet {
+  z-index: 500 !important;
+}
+
