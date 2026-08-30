@@ -1083,13 +1083,23 @@ function createEmptyFeedTemplate(category = null) {
    ========================================================= */
 
 function createPostTemplate(post) {
-  const postId = String(post.id || '');
+  const postId =
+    String(
+      post.id || ''
+    );
+
 
   const liked =
-    STATE.likedPosts.has(postId);
+    STATE.likedPosts.has(
+      postId
+    );
+
 
   const saved =
-    STATE.savedPosts.has(postId);
+    STATE.savedPosts.has(
+      postId
+    );
+
 
   return `
     <article
@@ -1100,7 +1110,22 @@ function createPostTemplate(post) {
 
       ${createPostHeader(post)}
 
-      ${createPostMedia(post)}
+
+      ${
+        post.media
+          ? createPostMedia(post)
+          : ''
+      }
+
+
+      ${
+        post.product
+          ? createProductTemplate(
+              post.product
+            )
+          : ''
+      }
+
 
       <div class="post-actions">
 
@@ -1108,14 +1133,22 @@ function createPostTemplate(post) {
 
           <button
             type="button"
-            class="action-btn ${liked ? 'liked' : ''}"
+            class="action-btn ${
+              liked
+                ? 'liked'
+                : ''
+            }"
             data-action="like"
             data-post-id="${escapeHTML(postId)}"
             aria-label="Sukai postingan"
             aria-pressed="${liked}"
           >
             <i
-              class="${liked ? 'ph-fill' : 'ph'} ph-heart"
+              class="${
+                liked
+                  ? 'ph-fill'
+                  : 'ph'
+              } ph-heart"
               aria-hidden="true"
             ></i>
           </button>
@@ -1153,55 +1186,66 @@ function createPostTemplate(post) {
 
         <button
           type="button"
-          class="action-btn ${saved ? 'saved' : ''}"
+          class="action-btn ${
+            saved
+              ? 'saved'
+              : ''
+          }"
           data-action="save"
           data-post-id="${escapeHTML(postId)}"
           aria-label="Simpan postingan"
           aria-pressed="${saved}"
         >
           <i
-            class="${saved ? 'ph-fill' : 'ph'} ph-bookmark-simple"
+            class="${
+              saved
+                ? 'ph-fill'
+                : 'ph'
+            } ph-bookmark-simple"
             aria-hidden="true"
           ></i>
         </button>
 
       </div>
 
+
       ${createLikeCount(post)}
+
 
       ${createCaption(post)}
 
+
       ${
-        Number(post.commentsCount || post.comments) > 0
+        Number(
+          post.commentsCount ||
+          post.comments
+        ) > 0
           ? `
-            <button
-              type="button"
-              class="view-comments"
-              data-action="comments"
-              data-post-id="${escapeHTML(postId)}"
-            >
-              Lihat ${formatCompactNumber(
-                post.commentsCount || post.comments
-              )} komentar
-            </button>
-          `
+              <button
+                type="button"
+                class="view-comments"
+                data-action="comments"
+                data-post-id="${escapeHTML(postId)}"
+              >
+                Lihat ${formatCompactNumber(
+                  post.commentsCount ||
+                  post.comments
+                )} komentar
+              </button>
+            `
           : ''
       }
+
 
       <div class="post-time">
-        ${formatRelativeTime(post.createdAt)}
+        ${formatRelativeTime(
+          post.createdAt
+        )}
       </div>
-
-      ${
-        post.product
-          ? createProductTemplate(post.product)
-          : ''
-      }
 
     </article>
   `;
 }
-
 
 /* =========================================================
    20. POST HEADER
