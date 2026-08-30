@@ -1328,78 +1328,110 @@ function createPostTemplate(post) {
 /* =========================================================
    20. POST HEADER
    ========================================================= */
-
 function createPostHeader(post) {
-  const store = post.store || {};
+  const store =
+    post.store || {};
+
 
   return `
     <header class="post-header">
 
-      <img
-        src="${escapeHTML(store.avatar || ASSETS.logo)}"
-        alt=""
-        class="post-avatar"
-        loading="lazy"
-        decoding="async"
+
+      <button
+        type="button"
+        class="post-profile-link"
+        data-action="seller-profile"
+        data-store-id="${escapeHTML(
+          store.id || ''
+        )}"
+        aria-label="Lihat profil ${escapeHTML(
+          store.name ||
+          'UMKM Lokal'
+        )}"
       >
 
-      <div class="post-meta">
 
-        <div class="post-author">
+        <img
+          src="${escapeHTML(
+            store.avatar ||
+            ASSETS.logo
+          )}"
+          alt=""
+          class="post-avatar"
+          loading="lazy"
+          decoding="async"
+        >
 
-          <span>
-            ${escapeHTML(store.name || 'UMKM Lokal')}
-          </span>
 
-          ${
-            store.verified
-              ? `
-                <i
-                  class="ph-fill ph-seal-check verified-badge"
-                  aria-label="UMKM terverifikasi"
-                ></i>
-              `
-              : ''
-          }
+        <div class="post-meta">
+
+          <div class="post-author">
+
+            <span>
+              ${escapeHTML(
+                store.name ||
+                'UMKM Lokal'
+              )}
+            </span>
+
+
+            ${
+              store.verified
+                ? `
+                    <i
+                      class="ph-fill ph-seal-check verified-badge"
+                      aria-label="UMKM terverifikasi"
+                    ></i>
+                  `
+                : ''
+            }
+
+          </div>
+
+
+          <div class="post-context">
+
+            <span>
+              ${escapeHTML(
+                post.location ||
+                store.location ||
+                CONFIG.CITY
+              )}
+            </span>
+
+
+            ${
+              post.createdAt
+                ? `
+                    <span
+                      class="dot"
+                      aria-hidden="true"
+                    ></span>
+
+                    <span>
+                      ${formatRelativeTime(
+                        post.createdAt
+                      )}
+                    </span>
+                  `
+                : ''
+            }
+
+          </div>
 
         </div>
 
 
-        <div class="post-context">
-
-          <span>
-            ${escapeHTML(
-              post.location ||
-              store.location ||
-              CONFIG.CITY
-            )}
-          </span>
-
-          ${
-            post.createdAt
-              ? `
-                <span
-                  class="dot"
-                  aria-hidden="true"
-                ></span>
-
-                <span>
-                  ${formatRelativeTime(post.createdAt)}
-                </span>
-              `
-              : ''
-          }
-
-        </div>
-
-      </div>
+      </button>
 
 
       <button
         type="button"
         class="post-menu"
         data-action="post-menu"
-        data-post-id="${escapeHTML(post.id)}"
+        data-post-id="${escapeHTML(
+          post.id
+        )}"
         aria-label="Opsi postingan"
       >
         <i
@@ -1408,10 +1440,10 @@ function createPostHeader(post) {
         ></i>
       </button>
 
+
     </header>
   `;
 }
-
 
 /* =========================================================
    21. POST MEDIA
@@ -1879,6 +1911,12 @@ function runAction(action, element) {
         
      case 'store-detail':
         openStoreDetail(
+       element.dataset.storeId
+        );
+        break;
+
+      case 'seller-profile':
+        openSellerProfile(
        element.dataset.storeId
         );
         break;
@@ -7692,6 +7730,673 @@ function openStoreDetail(
     `,
     'store-detail'
   );
+}
+
+/* =========================================================
+   PUBLIC SELLER PROFILE
+   ========================================================= */
+
+function openSellerProfile(
+  storeId
+) {
+  const store =
+    getStores().find(
+      item =>
+        String(item.id) ===
+        String(storeId)
+    );
+
+
+  if (!store) {
+    showToast(
+      'Profil UMKM tidak ditemukan.'
+    );
+
+    return;
+  }
+
+
+  closeBottomSheet();
+  closeSideMenu();
+
+
+  /*
+   * Profil publik bukan halaman akun sendiri.
+   * Jadi bottom nav tidak dibuat aktif sebagai Profil.
+   */
+  STATE.activeNav = 'home';
+
+  updateNavigation();
+
+
+  const app =
+    document.querySelector('.app');
+
+
+  /*
+   * Pakai mode layout profil yang sama
+   * agar header dan bottom navigation tetap stabil.
+   */
+  app?.classList.add(
+    'account-profile-active'
+  );
+
+
+  if (DOM.storiesSection) {
+    DOM.storiesSection.hidden =
+      true;
+  }
+
+
+  if (DOM.homeDiscovery) {
+    DOM.homeDiscovery.hidden =
+      true;
+  }
+
+
+  if (!DOM.feed) {
+    return;
+  }
+
+
+  /*
+   * Semua postingan / produk publik
+   * milik penjual ini.
+   */
+  const sellerPosts =
+    DATA.posts.filter(
+      post =>
+        String(
+          post.store?.id
+        ) ===
+        String(store.id)
+    );
+
+
+  const sellerProducts =
+    sellerPosts
+      .filter(
+        post =>
+          post.product?.id
+      )
+      .map(
+        post =>
+          post.product
+      );
+
+
+  const avatar =
+    store.logo ||
+    sellerPosts[0]?.store?.avatar ||
+    ASSETS.logo;
+
+
+  const location =
+    [
+      store.district,
+      store.city
+    ]
+      .filter(Boolean)
+      .join(', ') ||
+    store.province ||
+    CONFIG.CITY;
+
+
+  const isVerified =
+    store.verificationStatus ===
+    'verified';
+
+
+  /*
+   * Grid produk awal.
+   * Nanti tab Postingan / Produk kita hidupkan terpisah.
+   */
+  const productGrid =
+    sellerProducts.length
+      ? `
+          <div class="social-account-product-grid">
+
+            ${sellerProducts
+              .map(product => {
+
+                const image =
+                  product.image ||
+                  product.image_url ||
+                  product.thumbnail_url ||
+                  ASSETS.logo;
+
+
+                return `
+                  <article
+                    class="social-product-card"
+                    data-action="product-detail"
+                    data-product-id="${escapeHTML(
+                      product.id || ''
+                    )}"
+                  >
+
+                    <div class="social-product-media">
+
+                      <img
+                        src="${escapeHTML(
+                          image
+                        )}"
+                        alt="${escapeHTML(
+                          product.name ||
+                          'Produk UMKM'
+                        )}"
+                        loading="lazy"
+                        decoding="async"
+                      >
+
+                    </div>
+
+
+                    <div class="social-product-body">
+
+                      ${
+                        product.category
+                          ? `
+                              <span class="social-product-category">
+                                ${escapeHTML(
+                                  product.category
+                                )}
+                              </span>
+                            `
+                          : ''
+                      }
+
+
+                      <strong class="social-product-name">
+                        ${escapeHTML(
+                          product.name ||
+                          'Produk UMKM'
+                        )}
+                      </strong>
+
+
+                      <div class="social-product-price">
+                        ${formatRupiah(
+                          product.price
+                        )}
+                      </div>
+
+
+                      <div class="social-product-stock">
+
+                        <i
+                          class="ph ph-package"
+                          aria-hidden="true"
+                        ></i>
+
+                        <span>
+                          Stok
+                          ${escapeHTML(
+                            String(
+                              product.stock ?? 0
+                            )
+                          )}
+
+                          ${
+                            product.unit
+                              ? escapeHTML(
+                                  product.unit
+                                )
+                              : ''
+                          }
+                        </span>
+
+                      </div>
+
+                    </div>
+
+                  </article>
+                `;
+              })
+              .join('')}
+
+          </div>
+        `
+      : `
+          <section class="social-account-empty">
+
+            <div class="social-account-empty-icon">
+              <i class="ph ph-shopping-bag"></i>
+            </div>
+
+            <strong>
+              Belum ada produk
+            </strong>
+
+            <p>
+              Produk dari UMKM ini
+              akan tampil di sini.
+            </p>
+
+          </section>
+        `;
+
+
+  DOM.feed.innerHTML = `
+    <section
+      class="
+        social-account-page
+        public-seller-profile
+      "
+      data-store-id="${escapeHTML(
+        store.id
+      )}"
+    >
+
+
+      <!-- =====================================
+           TOP BAR
+           ===================================== -->
+
+      <header class="social-account-topbar">
+
+        <button
+          type="button"
+          class="social-account-top-button"
+          data-action="seller-profile-back"
+          aria-label="Kembali"
+        >
+          <i
+            class="ph ph-arrow-left"
+            aria-hidden="true"
+          ></i>
+        </button>
+
+
+        <div class="social-account-username">
+
+          <strong>
+            ${escapeHTML(
+              store.name
+            )}
+          </strong>
+
+          ${
+            isVerified
+              ? `
+                  <i
+                    class="ph-fill ph-seal-check verified-badge"
+                    aria-label="UMKM terverifikasi"
+                  ></i>
+                `
+              : ''
+          }
+
+        </div>
+
+
+        <button
+          type="button"
+          class="social-account-top-button"
+          data-action="seller-share"
+          data-store-id="${escapeHTML(
+            store.id
+          )}"
+          aria-label="Bagikan profil"
+        >
+          <i
+            class="ph ph-share-network"
+            aria-hidden="true"
+          ></i>
+        </button>
+
+      </header>
+
+
+      <!-- =====================================
+           PROFILE
+           ===================================== -->
+
+      <section class="social-account-header">
+
+
+        <div class="social-account-main">
+
+
+          <div class="social-account-avatar-wrap">
+
+            <div class="social-account-avatar">
+
+              <img
+                src="${escapeHTML(
+                  avatar
+                )}"
+                alt="${escapeHTML(
+                  store.name
+                )}"
+                loading="lazy"
+                decoding="async"
+              >
+
+            </div>
+
+          </div>
+
+
+          <div class="social-account-stats">
+
+
+            <div class="social-account-stat">
+
+              <strong>
+                ${sellerPosts.length}
+              </strong>
+
+              <span>
+                Postingan
+              </span>
+
+            </div>
+
+
+            <div class="social-account-stat">
+
+              <strong>
+                0
+              </strong>
+
+              <span>
+                Pengikut
+              </span>
+
+            </div>
+
+
+            <div class="social-account-stat">
+
+              <strong>
+                0
+              </strong>
+
+              <span>
+                Mengikuti
+              </span>
+
+            </div>
+
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================
+             BIO
+             ================================= -->
+
+        <div class="social-account-bio">
+
+
+          <div class="social-account-name-row">
+
+            <h1 class="social-account-name">
+              ${escapeHTML(
+                store.name
+              )}
+            </h1>
+
+
+            ${
+              isVerified
+                ? `
+                    <i
+                      class="ph-fill ph-seal-check verified-badge"
+                      aria-label="UMKM terverifikasi"
+                    ></i>
+                  `
+                : ''
+            }
+
+          </div>
+
+
+          <div class="social-account-role">
+
+            ${
+              store.category
+                ? escapeHTML(
+                    store.category
+                  )
+                : 'UMKM Lokal'
+            }
+
+          </div>
+
+
+          ${
+            store.description
+              ? `
+                  <p class="social-account-description">
+                    ${escapeHTML(
+                      store.description
+                    )}
+                  </p>
+                `
+              : ''
+          }
+
+
+          <div class="social-account-link">
+
+            <i
+              class="ph ph-map-pin"
+              aria-hidden="true"
+            ></i>
+
+            <span>
+              ${escapeHTML(
+                location
+              )}
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================
+             PUBLIC ACTIONS
+             ================================= -->
+
+        <div class="public-seller-actions">
+
+
+          <button
+            type="button"
+            class="
+              public-seller-action
+              public-seller-follow
+            "
+            data-action="seller-follow"
+            data-store-id="${escapeHTML(
+              store.id
+            )}"
+          >
+
+            <span>
+              Ikuti
+            </span>
+
+            <i
+              class="ph ph-caret-down"
+              aria-hidden="true"
+            ></i>
+
+          </button>
+
+
+          <button
+            type="button"
+            class="public-seller-action"
+            data-action="seller-message"
+            data-store-id="${escapeHTML(
+              store.id
+            )}"
+          >
+
+            <i
+              class="ph ph-chat-circle"
+              aria-hidden="true"
+            ></i>
+
+            <span>
+              Kirim Pesan
+            </span>
+
+          </button>
+
+
+          <button
+            type="button"
+            class="public-seller-action"
+            data-action="seller-contact"
+            data-store-id="${escapeHTML(
+              store.id
+            )}"
+          >
+
+            <span>
+              Kontak
+            </span>
+
+          </button>
+
+
+          <button
+            type="button"
+            class="
+              public-seller-action
+              public-seller-icon-action
+            "
+            data-action="seller-suggest"
+            data-store-id="${escapeHTML(
+              store.id
+            )}"
+            aria-label="Temukan akun serupa"
+          >
+
+            <i
+              class="ph ph-user-plus"
+              aria-hidden="true"
+            ></i>
+
+          </button>
+
+
+        </div>
+
+      </section>
+
+
+      <!-- =====================================
+           STORE SHORTCUT
+           ===================================== -->
+
+      <button
+        type="button"
+        class="public-seller-store-link"
+        data-action="store-detail"
+        data-store-id="${escapeHTML(
+          store.id
+        )}"
+      >
+
+        <div class="public-seller-store-icon">
+
+          <i
+            class="ph ph-storefront"
+            aria-hidden="true"
+          ></i>
+
+        </div>
+
+
+        <div>
+
+          <strong>
+            Lihat Toko
+          </strong>
+
+          <span>
+            ${sellerProducts.length}
+            produk tersedia
+          </span>
+
+        </div>
+
+
+        <i
+          class="ph ph-caret-right"
+          aria-hidden="true"
+        ></i>
+
+      </button>
+
+
+      <!-- =====================================
+           PUBLIC TABS
+           ===================================== -->
+
+      <nav
+        class="social-account-tabs"
+        aria-label="Konten penjual"
+      >
+
+        <button
+          type="button"
+          class="social-account-tab"
+          data-action="seller-public-tab"
+          data-tab="posts"
+          data-store-id="${escapeHTML(
+            store.id
+          )}"
+          aria-label="Postingan"
+        >
+          <i
+            class="ph ph-squares-four"
+          ></i>
+        </button>
+
+
+        <button
+          type="button"
+          class="
+            social-account-tab
+            active
+          "
+          data-action="seller-public-tab"
+          data-tab="products"
+          data-store-id="${escapeHTML(
+            store.id
+          )}"
+          aria-label="Produk"
+        >
+          <i
+            class="ph ph-shopping-bag"
+          ></i>
+        </button>
+
+      </nav>
+
+
+      <div id="publicSellerContent">
+        ${productGrid}
+      </div>
+
+
+    </section>
+  `;
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: 'auto'
+  });
 }
 
 /* =========================================================
