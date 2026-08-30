@@ -1332,6 +1332,568 @@ if (
     );
   }
 }
+
+    // ========================================
+// PRODUCTS - UPDATE
+// PATCH /api/products/:id
+// ========================================
+
+if (
+  url.pathname.startsWith(
+    "/api/products/"
+  ) &&
+  url.pathname !==
+    "/api/products/me" &&
+  request.method === "PATCH"
+) {
+  try {
+
+    // =====================================
+    // PRODUCT ID
+    // =====================================
+
+    const productId =
+      url.pathname
+        .slice(
+          "/api/products/".length
+        )
+        .trim();
+
+
+    const uuidPattern =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+
+    if (
+      !uuidPattern.test(productId)
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "ID produk tidak valid."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    // =====================================
+    // AUTH
+    // =====================================
+
+    const sessionToken =
+      getCookie(
+        request,
+        "__Host-pasar_umkm_session"
+      );
+
+
+    if (!sessionToken) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Silakan masuk terlebih dahulu."
+        },
+        {
+          status: 401,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const sql =
+      neon(env.DATABASE_URL);
+
+
+    const sessions =
+      await sql`
+        SELECT
+          u.id,
+          u.role
+
+        FROM
+          sessions s
+
+        JOIN
+          users u
+          ON u.id = s.user_id
+
+        WHERE
+          s.token_hash =
+            encode(
+              digest(
+                ${sessionToken},
+                'sha256'
+              ),
+              'hex'
+            )
+
+          AND
+          s.expires_at > NOW()
+
+          AND
+          u.is_active = TRUE
+
+        LIMIT 1
+      `;
+
+
+    if (
+      sessions.length === 0
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Session tidak valid atau sudah berakhir."
+        },
+        {
+          status: 401,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const currentUser =
+      sessions[0];
+
+
+    if (
+      currentUser.role !== "seller" &&
+      currentUser.role !== "admin"
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Akun tidak memiliki izin mengubah produk."
+        },
+        {
+          status: 403,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    // =====================================
+    // CURRENT STORE
+    // =====================================
+
+    const stores =
+      await sql`
+        SELECT
+          id
+
+        FROM
+          stores
+
+        WHERE
+          owner_id =
+            ${currentUser.id}
+
+        LIMIT 1
+      `;
+
+
+    if (
+      stores.length === 0
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "UMKM belum ditemukan."
+        },
+        {
+          status: 403,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const store =
+      stores[0];
+
+
+    // =====================================
+    // PRODUCT OWNERSHIP
+    // =====================================
+
+    const existingProducts =
+      await sql`
+        SELECT
+          id
+
+        FROM
+          products
+
+        WHERE
+          id =
+            ${productId}
+
+          AND
+          store_id =
+            ${store.id}
+
+        LIMIT 1
+      `;
+
+
+    if (
+      existingProducts.length === 0
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Produk tidak ditemukan."
+        },
+        {
+          status: 404,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    // =====================================
+    // BODY
+    // =====================================
+
+    let body;
+
+    try {
+      body =
+        await request.json();
+    } catch {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Data produk tidak valid."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const name =
+      String(
+        body.name || ""
+      )
+        .trim()
+        .replace(/\s+/g, " ");
+
+
+    const description =
+      String(
+        body.description || ""
+      ).trim();
+
+
+    const unit =
+      String(
+        body.unit || ""
+      )
+        .trim()
+        .slice(0, 50);
+
+
+    const categoryId =
+      body.category_id
+        ? String(
+            body.category_id
+          ).trim()
+        : null;
+
+
+    const price =
+      Number(
+        body.price
+      );
+
+
+    const stock =
+      Number(
+        body.stock ?? 0
+      );
+
+
+    // =====================================
+    // VALIDATION
+    // =====================================
+
+    if (
+      name.length < 2
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Nama produk minimal 2 karakter."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    if (
+      name.length > 150
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Nama produk terlalu panjang."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    if (
+      !Number.isFinite(price) ||
+      price < 0
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Harga produk tidak valid."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    if (
+      !Number.isInteger(stock) ||
+      stock < 0
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Stok produk tidak valid."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    // =====================================
+    // CATEGORY VALIDATION
+    // =====================================
+
+    if (categoryId) {
+      const categories =
+        await sql`
+          SELECT
+            id
+
+          FROM
+            categories
+
+          WHERE
+            id =
+              ${categoryId}
+
+            AND
+            is_active = TRUE
+
+          LIMIT 1
+        `;
+
+
+      if (
+        categories.length === 0
+      ) {
+        return Response.json(
+          {
+            ok: false,
+            error:
+              "Kategori produk tidak valid."
+          },
+          {
+            status: 400,
+            headers: {
+              "Cache-Control":
+                "no-store"
+            }
+          }
+        );
+      }
+    }
+
+
+    // =====================================
+    // UPDATE PRODUCT
+    // =====================================
+
+    const products =
+      await sql`
+        UPDATE
+          products
+
+        SET
+          category_id =
+            ${categoryId},
+
+          name =
+            ${name},
+
+          description =
+            ${
+              description ||
+              null
+            },
+
+          price =
+            ${price},
+
+          stock =
+            ${stock},
+
+          unit =
+            ${
+              unit ||
+              null
+            },
+
+          updated_at =
+            NOW()
+
+        WHERE
+          id =
+            ${productId}
+
+          AND
+          store_id =
+            ${store.id}
+
+        RETURNING
+          id,
+          store_id,
+          category_id,
+          name,
+          slug,
+          description,
+          price,
+          stock,
+          unit,
+          thumbnail_url,
+          is_active,
+          is_featured,
+          created_at,
+          updated_at
+      `;
+
+
+    // =====================================
+    // RESPONSE
+    // =====================================
+
+    return Response.json(
+      {
+        ok: true,
+
+        message:
+          "Produk berhasil diperbarui.",
+
+        product:
+          products[0]
+      },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+
+
+  } catch (error) {
+    console.error(
+      "Products PATCH error:",
+      error
+    );
+
+
+    return Response.json(
+      {
+        ok: false,
+        error:
+          "Gagal memperbarui produk."
+      },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+  }
+}
+    
     // ========================================
     // STORES - CREATE
     // ========================================
