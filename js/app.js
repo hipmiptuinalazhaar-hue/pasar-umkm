@@ -7836,22 +7836,6 @@ function openStoreDetail(
 ${productHTML}
 
 
-        <button
-          type="button"
-          class="menu-sheet-btn"
-          data-action="close-sheet"
-        >
-
-          <i
-            class="ph ph-arrow-left"
-            aria-hidden="true"
-          ></i>
-
-          Kembali
-
-        </button>
-
-
       </div>
     `,
     'store-detail'
