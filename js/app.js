@@ -6125,18 +6125,15 @@ function formatRole(role) {
    ========================================================= */
 function openPostCreateInfo() {
 
-  if (!STATE.user) {
-    openLogin();
-    return;
-  }
-
-
   if (
-    STATE.user.role !== 'seller' &&
-    STATE.user.role !== 'admin'
+    !STATE.user ||
+    (
+      STATE.user.role !== 'seller' &&
+      STATE.user.role !== 'admin'
+    )
   ) {
     showToast(
-      'Hanya UMKM yang dapat membuat postingan.'
+      'Hanya pemilik UMKM yang dapat membuat postingan.'
     );
 
     return;
@@ -6145,135 +6142,287 @@ function openPostCreateInfo() {
 
   openBottomSheet(
     `
-      <h2 id="sheetTitle">
-        Buat Postingan
-      </h2>
+      <div
+        class="auth-shell"
+        id="postCreateShell"
+      >
 
-      <section class="empty-state">
+        <section class="auth-brand">
 
-        <i
-          class="ph ph-camera"
-          aria-hidden="true"
-        ></i>
-
-        <strong class="empty-state-title">
-          Fitur postingan sedang disiapkan
-        </strong>
-
-        <p class="empty-state-text">
-          Nantinya UMKM dapat membagikan
-          foto, cerita, dan promosi produk
-          langsung ke beranda Pasar UMKM.
-        </p>
-
-      </section>
-    `,
-    'post-create'
-  );
-}
-
-function openSell() {
-  if (!STATE.user) {
-    showToast(
-      'Masuk untuk mulai menjual.'
-    );
-
-    openLogin();
-
-    return;
-  }
-
-
-  /*
-   * Belum menjadi seller?
-   * Tampilkan formulir pendaftaran UMKM.
-   */
-  if (
-    STATE.user.role !== 'seller' &&
-    STATE.user.role !== 'admin'
-  ) {
-    renderStoreRegistrationForm();
-
-    return;
-  }
-
-
-  /*
-   * Seller / Admin:
-   * tampilkan pusat penjual.
-   */
-  openBottomSheet(
-    `
-      <h2 id="sheetTitle">
-        Pusat Penjual
-      </h2>
-
-
-      <section class="side-account">
-
-        <div class="side-account-user-main">
-
-          <div class="side-account-avatar">
+          <div class="auth-brand-mark">
             <i
-              class="ph ph-storefront"
+              class="ph ph-camera"
               aria-hidden="true"
+              style="font-size:32px;"
             ></i>
           </div>
 
 
-          <div class="side-account-user-info">
+          <div
+            id="sheetTitle"
+            class="auth-title"
+            role="heading"
+            aria-level="2"
+          >
+            Buat Postingan
+          </div>
 
-            <strong class="side-account-user-name">
-              Pusat Penjual
-            </strong>
 
-            <span class="side-account-user-role">
-              Kelola UMKM dan produk Anda
-            </span>
+          <p class="auth-subtitle">
+            Bagikan cerita, promosi,
+            atau aktivitas UMKM Anda.
+          </p>
+
+        </section>
+
+
+        <form
+          id="postCreateForm"
+          class="auth-form"
+        >
+
+          <div class="auth-field">
+
+            <label
+              class="auth-label"
+              for="postCreateImage"
+            >
+              Foto
+            </label>
+
+
+            <label
+              for="postCreateImage"
+              class="product-image-picker"
+            >
+
+              <div
+                class="product-image-preview"
+                id="postImagePreview"
+              >
+
+                <i
+                  class="ph ph-camera-plus"
+                  aria-hidden="true"
+                ></i>
+
+                <span>
+                  Pilih Foto Postingan
+                </span>
+
+              </div>
+
+            </label>
+
+
+            <input
+              id="postCreateImage"
+              name="image"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              hidden
+            >
+
+
+            <small class="product-image-help">
+              JPG, PNG, atau WEBP.
+              Maksimal 5 MB.
+            </small>
 
           </div>
 
+
+          <div class="auth-field">
+
+            <label
+              class="auth-label"
+              for="postCreateCaption"
+            >
+              Caption
+            </label>
+
+
+            <textarea
+              id="postCreateCaption"
+              class="auth-input"
+              name="caption"
+              rows="5"
+              maxlength="1000"
+              placeholder="Ceritakan sesuatu tentang UMKM Anda..."
+              required
+              style="
+                min-height:130px;
+                resize:vertical;
+                padding-top:14px;
+              "
+            ></textarea>
+
+          </div>
+
+
+          <button
+            type="submit"
+            class="btn-primary auth-submit"
+          >
+
+            <i
+              class="ph ph-paper-plane-tilt"
+              aria-hidden="true"
+            ></i>
+
+            <span>
+              Bagikan Postingan
+            </span>
+
+          </button>
+
+        </form>
+
+
+        <div class="auth-security">
+
+          <i
+            class="ph ph-storefront"
+            aria-hidden="true"
+          ></i>
+
+          <span>
+            Postingan akan tampil sebagai
+            konten dari UMKM Anda.
+          </span>
+
         </div>
 
-      </section>
-
-
-     <button
-  type="button"
-  class="menu-sheet-btn"
-  data-action="product-create"
->
-  <i class="ph ph-plus-circle"></i>
-
-  Tambah Produk
-</button>
-
-
-      <button
-  type="button"
-  class="menu-sheet-btn"
-  data-action="post-create"
->
-  <i class="ph ph-camera"></i>
-
-  Buat Postingan
-</button>
-
-
-      <button
-        type="button"
-        class="menu-sheet-btn"
-        data-menu-action="store"
-      >
-        <i class="ph ph-storefront"></i>
-
-        Kelola Toko
-      </button>
+      </div>
     `,
-    'sell'
+    'post-create'
+  );
+
+
+  const form =
+    DOM.sheetContent
+      ?.querySelector(
+        '#postCreateForm'
+      );
+
+
+  const imageInput =
+    DOM.sheetContent
+      ?.querySelector(
+        '#postCreateImage'
+      );
+
+
+  const imagePreview =
+    DOM.sheetContent
+      ?.querySelector(
+        '#postImagePreview'
+      );
+
+
+  if (
+    imageInput &&
+    imagePreview
+  ) {
+
+    imageInput.addEventListener(
+      'change',
+      () => {
+
+        const file =
+          imageInput.files?.[0];
+
+
+        if (!file) {
+          return;
+        }
+
+
+        if (
+          file.size >
+          5 * 1024 * 1024
+        ) {
+          showToast(
+            'Ukuran foto maksimal 5 MB.'
+          );
+
+          imageInput.value = '';
+
+          return;
+        }
+
+
+        const imageURL =
+          URL.createObjectURL(
+            file
+          );
+
+
+        imagePreview.innerHTML = `
+          <img
+            src="${imageURL}"
+            alt="Preview postingan"
+            style="
+              width:100%;
+              height:100%;
+              object-fit:cover;
+              display:block;
+            "
+          >
+        `;
+      }
+    );
+
+  }
+
+
+  if (form) {
+
+    form.addEventListener(
+      'submit',
+      event => {
+
+        event.preventDefault();
+
+
+        const caption =
+          String(
+            form.caption?.value ||
+            ''
+          ).trim();
+
+
+        if (!caption) {
+          showToast(
+            'Caption postingan belum diisi.'
+          );
+
+          return;
+        }
+
+
+        showToast(
+          'Form postingan siap.'
+        );
+
+      }
+    );
+
+  }
+
+
+  requestAnimationFrame(
+    () => {
+
+      DOM.sheetContent
+        ?.querySelector(
+          '#postCreateCaption'
+        )
+        ?.focus();
+
+    }
   );
 }
-
 /* =========================================================
    PRODUCT CREATE FORM
    ========================================================= */
