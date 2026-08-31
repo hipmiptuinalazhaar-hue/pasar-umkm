@@ -1996,6 +1996,12 @@ function runAction(action, element) {
         navigate('home');
         break;
 
+        case 'seller-suggest':
+        openSimilarStores(
+       element.dataset.storeId
+           );
+        break;
+
       case 'seller-public-tab':
         switchPublicSellerTab(
        element.dataset.storeId,
