@@ -9199,24 +9199,78 @@ function renderSearchResults(query) {
 
 
   const postHTML =
-    matchedPosts
-      .map(post => `
+  matchedPosts
+    .map(post => {
+
+      const product =
+        post.product || {};
+
+      const store =
+        post.store || {};
+
+      const image =
+        product.image ||
+        ASSETS.logo;
+
+      return `
         <button
           type="button"
-          class="menu-sheet-btn"
+          class="search-product-result"
           data-action="search-post"
           data-post-id="${escapeHTML(post.id)}"
         >
-          <i class="ph ph-package"></i>
 
-          ${escapeHTML(
-            post.product?.name ||
-            post.store?.name ||
-            'Postingan UMKM'
-          )}
+          <div class="search-product-thumb">
+
+            <img
+              src="${escapeHTML(image)}"
+              alt="${escapeHTML(
+                product.name ||
+                'Produk UMKM'
+              )}"
+              loading="lazy"
+              decoding="async"
+            >
+
+          </div>
+
+
+          <div class="search-product-copy">
+
+            <strong class="search-product-name">
+              ${escapeHTML(
+                product.name ||
+                'Produk UMKM'
+              )}
+            </strong>
+
+
+            <span class="search-product-store">
+              ${escapeHTML(
+                store.name ||
+                'UMKM Lokal'
+              )}
+            </span>
+
+
+            <span class="search-product-price">
+              ${formatRupiah(
+                product.price || 0
+              )}
+            </span>
+
+          </div>
+
+
+          <i
+            class="ph ph-caret-right search-product-arrow"
+            aria-hidden="true"
+          ></i>
+
         </button>
-      `)
-      .join('');
+      `;
+    })
+    .join('');
 
 
   DOM.searchResults.innerHTML =
