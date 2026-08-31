@@ -10224,29 +10224,85 @@ const sellerPosts =
 
   if (tab === 'posts') {
 
-    if (!sellerPosts.length) {
-      content.innerHTML = `
-        <section class="social-account-empty">
+  if (!sellerPosts.length) {
+    content.innerHTML = `
+      <section class="social-account-empty">
 
-          <div class="social-account-empty-icon">
-            <i class="ph ph-squares-four"></i>
-          </div>
+        <div class="social-account-empty-icon">
+          <i class="ph ph-squares-four"></i>
+        </div>
 
-          <strong>
-            Belum ada postingan
-          </strong>
+        <strong>
+          Belum ada postingan
+        </strong>
 
-          <p>
-            Postingan dari UMKM ini
-            akan tampil di sini.
-          </p>
+        <p>
+          Postingan dari UMKM ini
+          akan tampil di sini.
+        </p>
 
-        </section>
-      `;
+      </section>
+    `;
 
-      return;
-    }
+    return;
+  }
 
+
+  content.innerHTML = `
+    <div
+      class="
+        social-account-grid
+        social-account-post-grid
+        public-seller-post-grid
+      "
+    >
+
+      ${sellerPosts
+        .map(post => `
+          <button
+            type="button"
+            class="
+              social-account-grid-item
+              social-account-post-item
+              public-seller-post-item
+            "
+            data-action="seller-post-open"
+            data-store-id="${escapeHTML(
+              store.id || ''
+            )}"
+            data-post-id="${escapeHTML(
+              post.id || ''
+            )}"
+            aria-label="Buka postingan ${escapeHTML(
+              post.caption ||
+              store.name ||
+              'UMKM'
+            )}"
+          >
+
+            <img
+              src="${escapeHTML(
+                post.media?.src ||
+                ASSETS.logo
+              )}"
+              alt="${escapeHTML(
+                post.media?.alt ||
+                post.caption ||
+                'Postingan UMKM'
+              )}"
+              loading="lazy"
+              decoding="async"
+            >
+
+          </button>
+        `)
+        .join('')}
+
+    </div>
+  `;
+
+  return;
+}
 
     content.innerHTML = `
       <div class="public-seller-post-list">
