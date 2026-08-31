@@ -17487,3 +17487,65 @@ img {
   }
 
 }
+/* =========================================================
+   FINAL FIX - POST IMAGE FULL DISPLAY
+   ========================================================= */
+
+/* card posting */
+#feed.feed > .post-card {
+  overflow: hidden !important;
+}
+
+
+/* wadah gambar posting */
+#feed.feed > .post-card .post-media,
+#feed.feed > .post-card .post-media.square,
+#feed.feed > .post-card .post-image,
+#feed.feed > .post-card .post-thumbnail {
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  aspect-ratio: auto !important;
+  overflow: hidden !important;
+  background: #f4f2ec !important;
+  display: block !important;
+  position: relative !important;
+}
+
+
+/* gambar posting */
+#feed.feed > .post-card .post-media img,
+#feed.feed > .post-card .post-media.square img,
+#feed.feed > .post-card .post-image img,
+#feed.feed > .post-card .post-thumbnail img {
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  display: block !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  aspect-ratio: auto !important;
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+}
+
+
+/* kalau sebelumnya ada media style model cover */
+.post-media img {
+  object-fit: contain !important;
+}
+
+
+/* optional: biar gambar tetap manis di desktop */
+@media (min-width: 768px) {
+  #feed.feed > .post-card .post-media img,
+  #feed.feed > .post-card .post-media.square img,
+  #feed.feed > .post-card .post-image img,
+  #feed.feed > .post-card .post-thumbnail img {
+    max-height: 720px !important;
+    margin: 0 auto !important;
+  }
+}
