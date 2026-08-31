@@ -7621,9 +7621,24 @@ function openStoreDetail(
     `
       <div class="store-detail-shell">
 
+  <button
+    type="button"
+    class="store-detail-back"
+    data-menu-action="stores"
+    aria-label="Kembali ke daftar UMKM"
+  >
+    <i
+      class="ph ph-arrow-left"
+      aria-hidden="true"
+    ></i>
 
-        <div class="store-detail-cover">
+    <span>
+      Jelajahi UMKM
+    </span>
+  </button>
 
+
+  <div class="store-detail-cover">
           ${
             store.cover
               ? `
