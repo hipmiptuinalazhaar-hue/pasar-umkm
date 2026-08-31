@@ -7938,6 +7938,41 @@ ${productHTML}
 /* =========================================================
    PUBLIC SELLER PROFILE
    ========================================================= */
+function handleSellerFollow(
+  storeId
+) {
+  const store =
+    getStores().find(
+      item =>
+        String(item.id) ===
+        String(storeId)
+    );
+
+
+  if (!store) {
+    showToast(
+      'UMKM tidak ditemukan.'
+    );
+
+    return;
+  }
+
+
+  if (!STATE.user) {
+    showToast(
+      'Masuk terlebih dahulu untuk mengikuti UMKM.'
+    );
+
+    openLogin();
+
+    return;
+  }
+
+
+  showToast(
+    'Fitur mengikuti UMKM segera tersedia.'
+  );
+}
 
 function openSellerProfile(
   storeId
