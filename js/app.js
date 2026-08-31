@@ -1980,6 +1980,12 @@ function runAction(action, element) {
         );
         break;
 
+      case 'seller-contact':
+        openSellerContact(
+       element.dataset.storeId
+           );
+        break;
+
       case 'seller-profile-back':
         navigate('home');
         break;
