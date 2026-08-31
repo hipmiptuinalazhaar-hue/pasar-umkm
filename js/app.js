@@ -2037,6 +2037,10 @@ case 'seller-share':
         case 'product-create':
   openProductCreateForm();
   break;
+
+case 'post-create':
+  openPostCreateInfo();
+  break;
         
     case 'open-story':
       openStory(
