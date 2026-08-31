@@ -9735,6 +9735,15 @@ function openSellerMessage(
 }
 
 function openMessages() {
+   if (!STATE.user) {
+  showToast(
+    'Masuk terlebih dahulu untuk melihat pesan.'
+  );
+
+  openLogin();
+
+  return;
+}
   if (!DATA.messages.length) {
     openBottomSheet(
       `
