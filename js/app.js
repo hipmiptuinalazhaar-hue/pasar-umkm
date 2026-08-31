@@ -6663,15 +6663,84 @@ console.log(
 );
 
 
-showToast(
-  'Foto dan caption siap dipublikasikan.'
+// ==========================================
+// SIMPAN POSTINGAN KE BACKEND
+// ==========================================
+
+const postResponse =
+  await fetch(
+    '/api/posts',
+    {
+      method: 'POST',
+
+      credentials:
+        'include',
+
+      headers: {
+        'Content-Type':
+          'application/json',
+
+        Accept:
+          'application/json'
+      },
+
+      body:
+        JSON.stringify(
+          postPayload
+        )
+    }
+  );
+
+
+const postData =
+  await postResponse
+    .json()
+    .catch(() => ({}));
+
+
+if (
+  !postResponse.ok ||
+  postData.ok !== true
+) {
+  throw new Error(
+    postData.error ||
+    'Postingan gagal dipublikasikan.'
+  );
+}
+
+
+console.log(
+  '[Pasar UMKM] Post published:',
+  postData
 );
 
 
-        if (buttonText) {
-          buttonText.textContent =
-            'Foto Siap Diposting';
-        }
+showToast(
+  'Postingan berhasil dipublikasikan.'
+);
+
+
+// ==========================================
+// REFRESH DATA BERANDA
+// ==========================================
+
+await loadInitialData();
+
+renderApplication();
+
+closeBottomSheet();
+
+
+if (submitButton) {
+  submitButton.disabled =
+    false;
+}
+
+
+if (buttonText) {
+  buttonText.textContent =
+    'Bagikan Postingan';
+}
 
 
       } catch (error) {
