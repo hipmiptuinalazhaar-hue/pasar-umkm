@@ -2745,10 +2745,134 @@ function openPostDeleteConfirm(
     showToast(
       'Postingan tidak ditemukan.'
     );
-
     return;
   }
 
+
+  const isOwnPost =
+    STATE.currentStore?.id &&
+    String(post.store?.id || '') ===
+      String(STATE.currentStore.id);
+
+
+  if (!isOwnPost) {
+    showToast(
+      'Kamu tidak memiliki izin menghapus postingan ini.'
+    );
+    return;
+  }
+
+
+  const image =
+    post.media?.src ||
+    ASSETS.logo;
+
+
+  const caption =
+    post.caption ||
+    'Postingan UMKM';
+
+
+  openBottomSheet(
+    `
+      <section class="post-delete-sheet">
+
+        <div class="post-delete-icon">
+          <i class="ph ph-trash"></i>
+        </div>
+
+
+        <div class="post-delete-heading">
+
+          <span class="post-delete-eyebrow">
+            HAPUS POSTINGAN
+          </span>
+
+          <h2 id="sheetTitle">
+            Hapus postingan ini?
+          </h2>
+
+          <p>
+            Postingan akan dihapus dari profil
+            dan tidak lagi muncul di feed Pasar UMKM.
+          </p>
+
+        </div>
+
+
+        <div class="post-delete-preview">
+
+          <div class="post-delete-preview-image">
+            <img
+              src="${escapeHTML(image)}"
+              alt=""
+            >
+          </div>
+
+
+          <div class="post-delete-preview-copy">
+
+            <strong>
+              ${escapeHTML(
+                post.store?.name ||
+                'UMKM'
+              )}
+            </strong>
+
+            <p>
+              ${escapeHTML(caption)}
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="post-delete-note">
+
+          <i class="ph ph-info"></i>
+
+          <span>
+            Data dinonaktifkan dari sistem dan
+            tidak langsung dihapus permanen.
+          </span>
+
+        </div>
+
+
+        <div class="post-delete-actions">
+
+          <button
+            type="button"
+            class="post-delete-cancel"
+            data-action="close-sheet"
+          >
+            Batal
+          </button>
+
+
+          <button
+            type="button"
+            class="post-delete-confirm"
+            data-action="delete-post-confirm"
+            data-post-id="${escapeHTML(
+              post.id || ''
+            )}"
+          >
+            <i class="ph ph-trash"></i>
+
+            <span>
+              Hapus
+            </span>
+          </button>
+
+        </div>
+
+      </section>
+    `,
+    'post-delete-confirm'
+  );
+}
 
   const isOwnPost =
     STATE.currentStore?.id &&
