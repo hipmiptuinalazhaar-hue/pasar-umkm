@@ -17352,3 +17352,138 @@ img {
   font-weight:
     500;
 }
+
+/* =========================================================
+   PASAR UMKM - FINAL FEED MEDIA + SPACING FIX
+   Full image, no crop, tighter post rhythm
+   ========================================================= */
+
+
+/* =========================================================
+   FEED SPACING
+   Satu sumber jarak saja
+   ========================================================= */
+
+#feed.feed {
+  gap:
+    8px !important;
+}
+
+
+#feed.feed > .post-card {
+  width:
+    auto !important;
+
+  margin-left:
+    12px !important;
+
+  margin-right:
+    12px !important;
+
+  margin-bottom:
+    0 !important;
+
+  box-sizing:
+    border-box !important;
+}
+
+
+/* =========================================================
+   IMAGE CONTAINER
+   Hapus seluruh forced aspect ratio lama
+   ========================================================= */
+
+#feed.feed > .post-card
+.post-media:not(.video),
+
+#feed.feed > .post-card
+.post-media.square {
+  position:
+    relative;
+
+  width:
+    100% !important;
+
+  height:
+    auto !important;
+
+  min-height:
+    0 !important;
+
+  max-height:
+    none !important;
+
+  aspect-ratio:
+    unset !important;
+
+  overflow:
+    hidden;
+
+  background:
+    #f4f2ec;
+}
+
+
+/* =========================================================
+   IMAGE
+   Rasio asli gambar, tidak dipotong
+   ========================================================= */
+
+#feed.feed > .post-card
+.post-media:not(.video) > img,
+
+#feed.feed > .post-card
+.post-media.square > img {
+  position:
+    static !important;
+
+  width:
+    100% !important;
+
+  height:
+    auto !important;
+
+  min-height:
+    0 !important;
+
+  max-height:
+    none !important;
+
+  display:
+    block !important;
+
+  object-fit:
+    contain !important;
+
+  object-position:
+    center center !important;
+
+  aspect-ratio:
+    auto !important;
+
+  transform:
+    none !important;
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 380px) {
+
+  #feed.feed {
+    gap:
+      7px !important;
+  }
+
+
+  #feed.feed > .post-card {
+    margin-left:
+      10px !important;
+
+    margin-right:
+      10px !important;
+  }
+
+}
