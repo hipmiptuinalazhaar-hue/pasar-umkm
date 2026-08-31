@@ -18530,3 +18530,448 @@ img {
   display: block;
   margin: 0 auto;
 }
+
+/* =========================================================
+   POST DELETE CONFIRMATION
+   Premium destructive-action sheet
+   ========================================================= */
+
+#bottomSheet:has(.post-delete-sheet) {
+  border-radius:
+    28px
+    28px
+    0
+    0;
+
+  background:
+    #ffffff;
+
+  box-shadow:
+    0 -24px 70px
+    rgba(17, 22, 18, 0.18);
+}
+
+
+#bottomSheet:has(.post-delete-sheet)
+.sheet-content {
+  padding:
+    8px
+    20px
+    calc(
+      24px +
+      env(safe-area-inset-bottom)
+    );
+}
+
+
+/* ROOT */
+
+.post-delete-sheet {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  padding:
+    8px
+    0
+    0;
+}
+
+
+/* ICON */
+
+.post-delete-icon {
+  width: 58px;
+  height: 58px;
+
+  display: grid;
+  place-items: center;
+
+  margin-bottom: 16px;
+
+  border-radius: 20px;
+
+  background:
+    var(
+      --danger-100,
+      #fde9e6
+    );
+
+  color:
+    var(
+      --danger-700,
+      #b43c30
+    );
+
+  box-shadow:
+    inset 0 0 0 1px
+    rgba(180, 60, 48, 0.06);
+}
+
+
+.post-delete-icon i {
+  font-size: 27px;
+}
+
+
+/* HEADING */
+
+.post-delete-heading {
+  width: 100%;
+
+  text-align: center;
+}
+
+
+.post-delete-eyebrow {
+  display: block;
+
+  margin-bottom: 6px;
+
+  color:
+    var(
+      --danger-700,
+      #b43c30
+    );
+
+  font-size: 9px;
+  font-weight: 800;
+
+  letter-spacing: 0.13em;
+}
+
+
+.post-delete-heading h2 {
+  margin: 0;
+
+  color:
+    var(
+      --text-primary,
+      #111612
+    );
+
+  font-size: 20px;
+  line-height: 1.25;
+  font-weight: 800;
+
+  letter-spacing:
+    -0.025em;
+}
+
+
+.post-delete-heading p {
+  max-width: 310px;
+
+  margin:
+    9px
+    auto
+    0;
+
+  color:
+    var(
+      --text-tertiary,
+      #737b74
+    );
+
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+
+/* POST PREVIEW */
+
+.post-delete-preview {
+  width: 100%;
+
+  margin-top: 20px;
+
+  padding: 10px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  border:
+    1px solid
+    var(
+      --border-subtle,
+      rgba(24, 29, 25, 0.07)
+    );
+
+  border-radius: 16px;
+
+  background:
+    var(
+      --surface-secondary,
+      #fafbfa
+    );
+}
+
+
+.post-delete-preview-image {
+  flex:
+    0
+    0
+    58px;
+
+  width: 58px;
+  height: 58px;
+
+  overflow: hidden;
+
+  border-radius: 12px;
+
+  background:
+    var(
+      --neutral-100,
+      #e9ebe9
+    );
+}
+
+
+.post-delete-preview-image img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+}
+
+
+.post-delete-preview-copy {
+  min-width: 0;
+  flex: 1;
+
+  text-align: left;
+}
+
+
+.post-delete-preview-copy strong {
+  display: block;
+
+  overflow: hidden;
+
+  color:
+    var(
+      --text-primary,
+      #111612
+    );
+
+  font-size: 11px;
+  font-weight: 750;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+
+.post-delete-preview-copy p {
+  display:
+    -webkit-box;
+
+  margin:
+    4px
+    0
+    0;
+
+  overflow: hidden;
+
+  color:
+    var(
+      --text-tertiary,
+      #737b74
+    );
+
+  font-size: 10px;
+  line-height: 1.45;
+
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+
+/* INFO */
+
+.post-delete-note {
+  width: 100%;
+
+  margin-top: 12px;
+
+  padding:
+    10px
+    12px;
+
+  display: flex;
+  align-items: flex-start;
+
+  gap: 9px;
+
+  border-radius: 12px;
+
+  background:
+    #faf8f4;
+
+  color:
+    #737069;
+}
+
+
+.post-delete-note i {
+  flex: 0 0 auto;
+
+  margin-top: 1px;
+
+  font-size: 15px;
+}
+
+
+.post-delete-note span {
+  font-size: 9.5px;
+  line-height: 1.55;
+}
+
+
+/* ACTIONS */
+
+.post-delete-actions {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    1fr
+    1fr;
+
+  gap: 10px;
+
+  margin-top: 20px;
+}
+
+
+.post-delete-cancel,
+.post-delete-confirm {
+  min-height: 48px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  border-radius: 14px;
+
+  font-size: 11px;
+  font-weight: 750;
+
+  transition:
+    transform 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+
+/* CANCEL */
+
+.post-delete-cancel {
+  border:
+    1px solid
+    var(
+      --border-soft,
+      rgba(24, 29, 25, 0.11)
+    );
+
+  background:
+    #ffffff;
+
+  color:
+    var(
+      --text-secondary,
+      #414942
+    );
+}
+
+
+.post-delete-cancel:hover {
+  background:
+    var(
+      --surface-soft,
+      #f5f6f5
+    );
+}
+
+
+/* DELETE */
+
+.post-delete-confirm {
+  border: 0;
+
+  background:
+    var(
+      --danger-700,
+      #b43c30
+    );
+
+  color: #ffffff;
+
+  box-shadow:
+    0 10px 24px
+    rgba(180, 60, 48, 0.20);
+}
+
+
+.post-delete-confirm:hover {
+  background:
+    #9f332a;
+
+  box-shadow:
+    0 12px 28px
+    rgba(180, 60, 48, 0.25);
+}
+
+
+.post-delete-confirm i {
+  font-size: 16px;
+}
+
+
+.post-delete-cancel:active,
+.post-delete-confirm:active {
+  transform:
+    scale(0.975);
+}
+
+
+/* LOADING */
+
+.post-delete-confirm:disabled {
+  cursor: wait;
+
+  opacity: 0.72;
+
+  transform: none;
+
+  box-shadow: none;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 380px) {
+
+  .post-delete-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .post-delete-cancel {
+    order: 2;
+  }
+
+  .post-delete-confirm {
+    order: 1;
+  }
+
+}
