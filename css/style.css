@@ -17058,3 +17058,135 @@ img {
   }
 
 }
+
+/* =========================================================
+   PASAR UMKM - STOCK META FIX
+   Hilangkan floating stock badge
+   ========================================================= */
+
+.feed > .post-card
+.ig-product-stock,
+
+.feed > .post-card
+.product-stock,
+
+.feed > .post-card
+.stock-badge {
+
+  position:
+    static !important;
+
+  top:
+    auto !important;
+
+  right:
+    auto !important;
+
+  bottom:
+    auto !important;
+
+  left:
+    auto !important;
+
+  float:
+    none !important;
+
+  width:
+    fit-content !important;
+
+  max-width:
+    100%;
+
+  margin:
+    8px 0 0 !important;
+
+  padding:
+    0 !important;
+
+  display:
+    flex !important;
+
+  align-items:
+    center;
+
+  gap:
+    5px;
+
+  border:
+    0 !important;
+
+  border-radius:
+    0 !important;
+
+  background:
+    transparent !important;
+
+  color:
+    #7f8982 !important;
+
+  font-size:
+    9px !important;
+
+  line-height:
+    1.35;
+
+  font-weight:
+    550 !important;
+
+  box-shadow:
+    none !important;
+
+  transform:
+    none !important;
+}
+
+
+/* Titik kecil sebagai penanda stok */
+
+.feed > .post-card
+.ig-product-stock::before,
+
+.feed > .post-card
+.product-stock::before,
+
+.feed > .post-card
+.stock-badge::before {
+
+  content:
+    "";
+
+  width:
+    5px;
+
+  height:
+    5px;
+
+  flex:
+    0 0
+    5px;
+
+  border-radius:
+    50%;
+
+  background:
+    #176b4a;
+}
+
+
+/* Hapus dekorasi lama */
+
+.feed > .post-card
+.ig-product-stock::after,
+
+.feed > .post-card
+.product-stock::after,
+
+.feed > .post-card
+.stock-badge::after {
+
+  content:
+    none !important;
+
+  display:
+    none !important;
+}
