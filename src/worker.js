@@ -3958,6 +3958,300 @@ export default {
 
       }
     }
+
+    // ========================================
+// POSTS - SOFT DELETE
+// DELETE /api/posts/:id
+// ========================================
+
+if (
+  url.pathname.startsWith(
+    "/api/posts/"
+  ) &&
+  request.method === "DELETE"
+) {
+  try {
+
+    const postId =
+      url.pathname
+        .slice(
+          "/api/posts/".length
+        )
+        .trim();
+
+
+    const uuidPattern =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+
+    if (
+      !uuidPattern.test(postId)
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "ID postingan tidak valid."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    // =====================================
+    // AUTH
+    // =====================================
+
+    const sessionToken =
+      getCookie(
+        request,
+        "__Host-pasar_umkm_session"
+      );
+
+
+    if (!sessionToken) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Silakan masuk terlebih dahulu."
+        },
+        {
+          status: 401,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const sql =
+      neon(env.DATABASE_URL);
+
+
+    const sessions =
+      await sql`
+        SELECT
+          u.id,
+          u.role
+
+        FROM
+          sessions s
+
+        JOIN
+          users u
+          ON u.id = s.user_id
+
+        WHERE
+          s.token_hash =
+            encode(
+              digest(
+                ${sessionToken},
+                'sha256'
+              ),
+              'hex'
+            )
+
+          AND
+          s.expires_at > NOW()
+
+          AND
+          u.is_active = TRUE
+
+        LIMIT 1
+      `;
+
+
+    if (
+      sessions.length === 0
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Session tidak valid atau sudah berakhir."
+        },
+        {
+          status: 401,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const currentUser =
+      sessions[0];
+
+
+    if (
+      currentUser.role !== "seller" &&
+      currentUser.role !== "admin"
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Akun tidak memiliki izin menghapus postingan."
+        },
+        {
+          status: 403,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    // =====================================
+    // CURRENT STORE
+    // =====================================
+
+    const stores =
+      await sql`
+        SELECT
+          id
+
+        FROM
+          stores
+
+        WHERE
+          owner_id =
+            ${currentUser.id}
+
+        LIMIT 1
+      `;
+
+
+    if (
+      stores.length === 0
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "UMKM belum ditemukan."
+        },
+        {
+          status: 403,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const store =
+      stores[0];
+
+
+    // =====================================
+    // SOFT DELETE POST
+    // =====================================
+
+    const posts =
+      await sql`
+        UPDATE
+          posts
+
+        SET
+          is_active = FALSE,
+          updated_at = NOW()
+
+        WHERE
+          id = ${postId}
+
+          AND
+          store_id = ${store.id}
+
+          AND
+          is_active = TRUE
+
+        RETURNING
+          id,
+          caption,
+          is_active,
+          updated_at
+      `;
+
+
+    if (
+      posts.length === 0
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Postingan tidak ditemukan atau sudah dihapus."
+        },
+        {
+          status: 404,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    return Response.json(
+      {
+        ok: true,
+        message:
+          "Postingan berhasil dihapus.",
+        post:
+          posts[0]
+      },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Posts DELETE error:",
+      error
+    );
+
+
+    return Response.json(
+      {
+        ok: false,
+        error:
+          "Gagal menghapus postingan."
+      },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+
+  }
+}
         // ========================================
     // IMAGE UPLOAD
     // POST /api/uploads/product-image
