@@ -83,6 +83,7 @@ const DATA = {
 
 const STATE = {
   user: null,
+   currentStore: null,
 
   activeNav: 'home',
   activeCategory: null,
