@@ -3744,10 +3744,17 @@ if (
     );
 
 
-    uploadBody.append(
-      "public_id",
-      `pasar-umkm/products/${store.id}/${crypto.randomUUID()}`
-    );
+    const uploadFolder =
+  url.pathname ===
+    "/api/uploads/post-image"
+    ? "posts"
+    : "products";
+
+
+uploadBody.append(
+  "public_id",
+  `pasar-umkm/${uploadFolder}/${store.id}/${crypto.randomUUID()}`
+);
 
 
     uploadBody.append(
