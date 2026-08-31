@@ -4903,6 +4903,72 @@ function createSocialAccountProfileTemplate(
 function createAccountTabContent(tab) {
   switch (tab) {
 
+            case 'posts': {
+      const storeId =
+        String(
+          STATE.currentStore?.id || ''
+        );
+
+      const posts =
+        DATA.posts.filter(post =>
+          !post.product &&
+          String(
+            post.store?.id || ''
+          ) === storeId
+        );
+
+
+      if (!posts.length) {
+        return `
+          <section class="social-account-empty">
+
+            <div class="social-account-empty-icon">
+              <i class="ph ph-squares-four"></i>
+            </div>
+
+            <strong>
+              Belum ada postingan
+            </strong>
+
+            <p>
+              Postingan pertama akun ini
+              akan tampil di grid profil.
+            </p>
+
+          </section>
+        `;
+      }
+
+
+      return `
+        <div class="social-account-grid">
+
+          ${posts
+            .map(post => `
+              <div
+                class="social-account-grid-item"
+              >
+                <img
+                  src="${escapeHTML(
+                    post.media?.src ||
+                    ASSETS.logo
+                  )}"
+                  alt="${escapeHTML(
+                    post.media?.alt ||
+                    post.caption ||
+                    'Postingan'
+                  )}"
+                  loading="lazy"
+                  decoding="async"
+                >
+              </div>
+            `)
+            .join('')}
+
+        </div>
+      `;
+    }
+
     case 'videos':
       return `
         <section class="social-account-empty">
