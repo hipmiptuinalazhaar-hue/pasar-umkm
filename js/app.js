@@ -5853,6 +5853,75 @@ function openAccountEditInfo() {
 /* =========================================================
    SHARE ACCOUNT
    ========================================================= */
+async function shareSellerProfile(
+  storeId
+) {
+  const store =
+    getStores().find(
+      item =>
+        String(item.id) ===
+        String(storeId)
+    );
+
+
+  if (!store) {
+    showToast(
+      'UMKM tidak ditemukan.'
+    );
+
+    return;
+  }
+
+
+  const url =
+    `${window.location.origin}` +
+    `${window.location.pathname}`;
+
+
+  const text =
+    `Lihat ${store.name || 'UMKM Lokal'} di Pasar UMKM Lubuklinggau.`;
+
+
+  try {
+
+    if (navigator.share) {
+      await navigator.share({
+        title:
+          store.name ||
+          CONFIG.APP_NAME,
+
+        text,
+
+        url
+      });
+
+      return;
+    }
+
+
+    await navigator.clipboard.writeText(
+      `${text} ${url}`
+    );
+
+
+    showToast(
+      'Tautan UMKM berhasil disalin.'
+    );
+
+  } catch (error) {
+
+    if (
+      error.name !==
+      'AbortError'
+    ) {
+      console.error(
+        '[Pasar UMKM] Seller share error:',
+        error
+      );
+    }
+
+  }
+}
 
 async function shareAccountProfile() {
   const url =
