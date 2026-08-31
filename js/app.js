@@ -264,6 +264,29 @@ async function loadInitialData() {
    */
   await restoreAuthSession();
 
+     /*
+   * Ambil toko milik seller yang sedang login.
+   */
+  STATE.currentStore = null;
+
+  if (
+    STATE.user?.role === 'seller' ||
+    STATE.user?.role === 'admin'
+  ) {
+    try {
+      STATE.currentStore =
+        await loadCurrentAccountStore();
+
+    } catch (error) {
+      console.error(
+        '[Pasar UMKM] Current store load error:',
+        error
+      );
+
+      STATE.currentStore = null;
+    }
+  }
+
 
   /*
    * 2. Ambil kategori dari Neon.
