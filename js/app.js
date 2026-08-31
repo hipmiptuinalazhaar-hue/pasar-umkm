@@ -2091,7 +2091,11 @@ function runAction(action, element) {
       break;
 
         case 'delete-post':
-  deletePost(postId);
+  openPostDeleteConfirm(postId);
+  break;
+
+case 'delete-post-confirm':
+  deletePost(postId, element);
   break;
 
         function getCurrentStorePostsOnly() {
