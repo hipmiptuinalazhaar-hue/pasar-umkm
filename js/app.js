@@ -4145,6 +4145,9 @@ async function openAccount() {
     store =
       currentStore;
 
+     STATE.currentStore =
+  currentStore;
+
     STATE.accountProducts =
       currentProducts;
 
@@ -5160,7 +5163,6 @@ function createAccountTabContent(tab) {
       `;
 
 
-    case 'posts':
     default:
       return `
         <section class="social-account-empty">
