@@ -7777,23 +7777,57 @@ function openStoreDetail(
         }
 
 
-        <div class="store-detail-location">
+       <div class="store-detail-location">
 
-          <i
-            class="ph ph-map-pin"
-            aria-hidden="true"
-          ></i>
+  <i
+    class="ph ph-map-pin"
+    aria-hidden="true"
+  ></i>
 
-          <span>
-            ${escapeHTML(
-              location
-            )}
-          </span>
+  <span>
+    ${escapeHTML(
+      location
+    )}
+  </span>
 
-        </div>
+</div>
 
 
-        ${productHTML}
+<button
+  type="button"
+  class="store-detail-profile-button"
+  data-action="seller-profile"
+  data-store-id="${escapeHTML(
+    store.id || ''
+  )}"
+>
+  <span class="store-detail-profile-icon">
+    <i
+      class="ph ph-user-circle"
+      aria-hidden="true"
+    ></i>
+  </span>
+
+  <span class="store-detail-profile-copy">
+
+    <strong>
+      Lihat Profil UMKM
+    </strong>
+
+    <small>
+      Postingan, produk, dan informasi penjual
+    </small>
+
+  </span>
+
+  <i
+    class="ph ph-caret-right store-detail-profile-arrow"
+    aria-hidden="true"
+  ></i>
+</button>
+
+
+${productHTML}
 
 
         <button
