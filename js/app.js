@@ -467,11 +467,14 @@ async function loadInitialData() {
               CONFIG.CITY;
 
 
-            return {
-              id:
-                `post-${post.id}`,
+           return {
+  id:
+    `post-${post.id}`,
 
-              store: {
+  backendId:
+    post.id,
+
+  store: {
                 id:
                   post.store_id,
 
