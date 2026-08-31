@@ -6123,6 +6123,54 @@ function formatRole(role) {
 /* =========================================================
    43. SELL
    ========================================================= */
+function openPostCreateInfo() {
+
+  if (!STATE.user) {
+    openLogin();
+    return;
+  }
+
+
+  if (
+    STATE.user.role !== 'seller' &&
+    STATE.user.role !== 'admin'
+  ) {
+    showToast(
+      'Hanya UMKM yang dapat membuat postingan.'
+    );
+
+    return;
+  }
+
+
+  openBottomSheet(
+    `
+      <h2 id="sheetTitle">
+        Buat Postingan
+      </h2>
+
+      <section class="empty-state">
+
+        <i
+          class="ph ph-camera"
+          aria-hidden="true"
+        ></i>
+
+        <strong class="empty-state-title">
+          Fitur postingan sedang disiapkan
+        </strong>
+
+        <p class="empty-state-text">
+          Nantinya UMKM dapat membagikan
+          foto, cerita, dan promosi produk
+          langsung ke beranda Pasar UMKM.
+        </p>
+
+      </section>
+    `,
+    'post-create'
+  );
+}
 
 function openSell() {
   if (!STATE.user) {
