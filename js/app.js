@@ -1980,6 +1980,12 @@ function runAction(action, element) {
         );
         break;
 
+        case 'seller-follow':
+  handleSellerFollow(
+    element.dataset.storeId
+  );
+  break;
+
 case 'seller-share':
   shareSellerProfile(
     element.dataset.storeId
