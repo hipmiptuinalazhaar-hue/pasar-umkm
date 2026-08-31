@@ -2735,7 +2735,260 @@ function openPostMenu(postId) {
   );
 }
 
+function openPostDeleteConfirm(
+  postId
+) {
+  const post =
+    findPost(postId);
 
+  if (!post || post.product) {
+    showToast(
+      'Postingan tidak ditemukan.'
+    );
+
+    return;
+  }
+
+
+  const isOwnPost =
+    STATE.currentStore?.id &&
+    String(post.store?.id || '') ===
+      String(STATE.currentStore.id);
+
+
+  if (!isOwnPost) {
+    showToast(
+      'Kamu tidak memiliki izin menghapus postingan ini.'
+    );
+
+    return;
+  }
+
+
+  openBottomSheet(
+    `
+      <div class="auth-shell">
+
+        <div
+          class="auth-title"
+          id="sheetTitle"
+        >
+          Hapus Postingan?
+        </div>
+
+
+        <p class="auth-subtitle">
+          Postingan ini akan dihapus dari feed
+          dan profil UMKM.
+        </p>
+
+
+        <p class="auth-subtitle">
+          Data tidak langsung dihapus permanen
+          dari database.
+        </p>
+
+
+        <button
+          type="button"
+          class="btn-primary"
+          data-action="delete-post-confirm"
+          data-post-id="${escapeHTML(
+            post.id || ''
+          )}"
+        >
+          <i class="ph ph-trash"></i>
+          <span>Ya, Hapus Postingan</span>
+        </button>
+
+
+        <button
+          type="button"
+          class="menu-sheet-btn"
+          data-action="close-sheet"
+        >
+          <i class="ph ph-x"></i>
+          <span>Batal</span>
+        </button>
+
+      </div>
+    `,
+    'post-delete-confirm'
+  );
+}
+
+
+async function deletePost(
+  postId,
+  element
+) {
+  const post =
+    findPost(postId);
+
+
+  if (!post || post.product) {
+    showToast(
+      'Postingan tidak ditemukan.'
+    );
+
+    return;
+  }
+
+
+  const isOwnPost =
+    STATE.currentStore?.id &&
+    String(post.store?.id || '') ===
+      String(STATE.currentStore.id);
+
+
+  if (!isOwnPost) {
+    showToast(
+      'Kamu tidak memiliki izin menghapus postingan ini.'
+    );
+
+    return;
+  }
+
+
+  const backendPostId =
+    String(
+      post.backendId ||
+      postId ||
+      ''
+    )
+      .replace(
+        /^post-/,
+        ''
+      )
+      .trim();
+
+
+  if (!backendPostId) {
+    showToast(
+      'ID postingan tidak valid.'
+    );
+
+    return;
+  }
+
+
+  const label =
+    element?.querySelector(
+      'span'
+    );
+
+
+  const oldLabel =
+    label?.textContent ||
+    'Ya, Hapus Postingan';
+
+
+  if (element) {
+    element.disabled = true;
+  }
+
+
+  if (label) {
+    label.textContent =
+      'Menghapus...';
+  }
+
+
+  try {
+    const response =
+      await fetch(
+        `/api/posts/${encodeURIComponent(
+          backendPostId
+        )}`,
+        {
+          method:
+            'DELETE',
+
+          credentials:
+            'include',
+
+          headers: {
+            Accept:
+              'application/json'
+          }
+        }
+      );
+
+
+    const data =
+      await response
+        .json()
+        .catch(() => ({}));
+
+
+    if (
+      !response.ok ||
+      data.ok !== true
+    ) {
+      throw new Error(
+        data.error ||
+        'Postingan gagal dihapus.'
+      );
+    }
+
+
+    STATE.likedPosts.delete(
+      String(postId)
+    );
+
+    STATE.savedPosts.delete(
+      String(postId)
+    );
+
+    saveLocalState();
+
+
+    closeBottomSheet();
+
+
+    await loadInitialData();
+
+
+    if (
+      STATE.activeNav ===
+      'account'
+    ) {
+      await openAccount();
+    } else {
+      renderApplication();
+    }
+
+
+    showToast(
+      'Postingan berhasil dihapus.'
+    );
+
+
+  } catch (error) {
+    console.error(
+      '[Pasar UMKM] Post delete error:',
+      error
+    );
+
+
+    showToast(
+      error.message ||
+      'Postingan gagal dihapus.'
+    );
+
+
+  } finally {
+    if (element) {
+      element.disabled = false;
+    }
+
+
+    if (label) {
+      label.textContent =
+        oldLabel;
+    }
+  }
+}
 /* =========================================================
    36. CART
    ========================================================= */
