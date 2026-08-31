@@ -6378,38 +6378,171 @@ function openPostCreateInfo() {
 
   if (form) {
 
-    form.addEventListener(
-      'submit',
-      event => {
+  form.addEventListener(
+    'submit',
+    async event => {
 
-        event.preventDefault();
-
-
-        const caption =
-          String(
-            form.caption?.value ||
-            ''
-          ).trim();
+      event.preventDefault();
 
 
-        if (!caption) {
-          showToast(
-            'Caption postingan belum diisi.'
+      const caption =
+        String(
+          form.caption?.value ||
+          ''
+        ).trim();
+
+
+      if (!caption) {
+
+        showToast(
+          'Caption postingan belum diisi.'
+        );
+
+        return;
+      }
+
+
+      const imageFile =
+        form.querySelector(
+          '#postCreateImage'
+        )?.files?.[0];
+
+
+      if (!imageFile) {
+
+        showToast(
+          'Pilih foto postingan terlebih dahulu.'
+        );
+
+        return;
+      }
+
+
+      const submitButton =
+        form.querySelector(
+          '[type="submit"]'
+        );
+
+
+      const buttonText =
+        submitButton
+          ?.querySelector(
+            'span'
           );
 
-          return;
+
+      if (submitButton) {
+        submitButton.disabled =
+          true;
+      }
+
+
+      if (buttonText) {
+        buttonText.textContent =
+          'Mengunggah foto...';
+      }
+
+
+      try {
+
+        const uploadData =
+          new FormData();
+
+
+        uploadData.append(
+          'file',
+          imageFile
+        );
+
+
+        const response =
+          await fetch(
+            '/api/uploads/post-image',
+            {
+              method: 'POST',
+
+              credentials:
+                'include',
+
+              body:
+                uploadData
+            }
+          );
+
+
+        const data =
+          await response
+            .json()
+            .catch(
+              () => ({})
+            );
+
+
+        if (
+          !response.ok ||
+          data.ok !== true ||
+          !data.image?.url
+        ) {
+
+          throw new Error(
+            data.error ||
+            'Foto postingan gagal diunggah.'
+          );
+
         }
 
 
+        /*
+         * Simpan sementara URL hasil upload.
+         * Tahap berikutnya URL ini akan
+         * dikirim ke POST /api/posts.
+         */
+        form.dataset.uploadedImageUrl =
+          data.image.url;
+
+
         showToast(
-          'Form postingan siap.'
+          'Foto postingan berhasil diunggah.'
         );
 
+
+        if (buttonText) {
+          buttonText.textContent =
+            'Foto Siap Diposting';
+        }
+
+
+      } catch (error) {
+
+        console.error(
+          '[Pasar UMKM] Post image upload error:',
+          error
+        );
+
+
+        showToast(
+          error.message ||
+          'Foto postingan gagal diunggah.'
+        );
+
+
+        if (submitButton) {
+          submitButton.disabled =
+            false;
+        }
+
+
+        if (buttonText) {
+          buttonText.textContent =
+            'Bagikan Postingan';
+        }
+
       }
-    );
 
-  }
+    }
+  );
 
+}
 
   requestAnimationFrame(
     () => {
