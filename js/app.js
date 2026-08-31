@@ -9672,6 +9672,67 @@ function getNotificationIcon(type) {
 /* =========================================================
    53. MESSAGES
    ========================================================= */
+function openSellerMessage(
+  storeId
+) {
+  const store =
+    getStores().find(
+      item =>
+        String(item.id) ===
+        String(storeId)
+    );
+
+
+  if (!store) {
+    showToast(
+      'UMKM tidak ditemukan.'
+    );
+
+    return;
+  }
+
+
+  if (!STATE.user) {
+    showToast(
+      'Masuk terlebih dahulu untuk mengirim pesan.'
+    );
+
+    openLogin();
+
+    return;
+  }
+
+
+  openBottomSheet(
+    `
+      <h2 id="sheetTitle">
+        Pesan ${escapeHTML(
+          store.name ||
+          'UMKM'
+        )}
+      </h2>
+
+      <section class="empty-state">
+
+        <i
+          class="ph ph-chat-circle"
+          aria-hidden="true"
+        ></i>
+
+        <strong class="empty-state-title">
+          Percakapan segera tersedia
+        </strong>
+
+        <p class="empty-state-text">
+          Fitur chat langsung antara pembeli
+          dan UMKM sedang disiapkan.
+        </p>
+
+      </section>
+    `,
+    'seller-message'
+  );
+}
 
 function openMessages() {
   if (!DATA.messages.length) {
