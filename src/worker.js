@@ -3439,8 +3439,12 @@ if (
 // ========================================
 
 if (
-  url.pathname ===
-    "/api/uploads/product-image" &&
+  (
+    url.pathname ===
+      "/api/uploads/product-image" ||
+    url.pathname ===
+      "/api/uploads/post-image"
+  ) &&
   request.method === "POST"
 ) {
   try {
