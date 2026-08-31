@@ -8525,6 +8525,150 @@ function openSellerProfile(
   });
 }
 
+function openSellerContact(
+  storeId
+) {
+  const store =
+    getStores().find(
+      item =>
+        String(item.id) ===
+        String(storeId)
+    );
+
+
+  if (!store) {
+    showToast(
+      'UMKM tidak ditemukan.'
+    );
+
+    return;
+  }
+
+
+  const rawWhatsapp =
+    String(
+      store.whatsapp ||
+      store.phone ||
+      ''
+    );
+
+
+  let whatsappNumber =
+    rawWhatsapp.replace(
+      /\D/g,
+      ''
+    );
+
+
+  if (
+    whatsappNumber.startsWith('0')
+  ) {
+    whatsappNumber =
+      '62' +
+      whatsappNumber.slice(1);
+  }
+
+
+  const phoneNumber =
+    String(
+      store.phone ||
+      ''
+    )
+      .replace(
+        /[^\d+]/g,
+        ''
+      );
+
+
+  const whatsappHTML =
+    whatsappNumber
+      ? `
+          <a
+            href="https://wa.me/${escapeHTML(
+              whatsappNumber
+            )}"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="menu-sheet-btn"
+          >
+            <i
+              class="ph ph-whatsapp-logo"
+              aria-hidden="true"
+            ></i>
+
+            <span>
+              WhatsApp
+            </span>
+          </a>
+        `
+      : '';
+
+
+  const phoneHTML =
+    phoneNumber
+      ? `
+          <a
+            href="tel:${escapeHTML(
+              phoneNumber
+            )}"
+            class="menu-sheet-btn"
+          >
+            <i
+              class="ph ph-phone"
+              aria-hidden="true"
+            ></i>
+
+            <span>
+              Telepon
+            </span>
+          </a>
+        `
+      : '';
+
+
+  const contactHTML =
+    whatsappHTML ||
+    phoneHTML
+      ? `
+          ${whatsappHTML}
+          ${phoneHTML}
+        `
+      : `
+          <section class="empty-state">
+
+            <i
+              class="ph ph-address-book"
+              aria-hidden="true"
+            ></i>
+
+            <strong class="empty-state-title">
+              Kontak belum tersedia
+            </strong>
+
+            <p class="empty-state-text">
+              UMKM ini belum menambahkan
+              nomor WhatsApp atau telepon.
+            </p>
+
+          </section>
+        `;
+
+
+  openBottomSheet(
+    `
+      <h2 id="sheetTitle">
+        Kontak ${escapeHTML(
+          store.name ||
+          'UMKM'
+        )}
+      </h2>
+
+      ${contactHTML}
+    `,
+    'seller-contact'
+  );
+}
+
 function switchPublicSellerTab(
   storeId,
   tab,
