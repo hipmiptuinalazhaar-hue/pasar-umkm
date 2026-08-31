@@ -3892,7 +3892,358 @@ uploadBody.append(
     );
   }
 }
-    
+
+// ========================================
+// POSTS - CREATE
+// POST /api/posts
+// ========================================
+
+if (
+  url.pathname === "/api/posts" &&
+  request.method === "POST"
+) {
+  try {
+
+    // =====================================
+    // AUTH
+    // =====================================
+
+    const sessionToken =
+      getCookie(
+        request,
+        "__Host-pasar_umkm_session"
+      );
+
+
+    if (!sessionToken) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Silakan masuk terlebih dahulu."
+        },
+        {
+          status: 401,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const sql =
+      neon(env.DATABASE_URL);
+
+
+    const sessions =
+      await sql`
+        SELECT
+          u.id,
+          u.name,
+          u.role
+
+        FROM
+          sessions s
+
+        JOIN
+          users u
+          ON u.id = s.user_id
+
+        WHERE
+          s.token_hash =
+            encode(
+              digest(
+                ${sessionToken},
+                'sha256'
+              ),
+              'hex'
+            )
+
+          AND
+          s.expires_at > NOW()
+
+          AND
+          u.is_active = TRUE
+
+        LIMIT 1
+      `;
+
+
+    if (
+      sessions.length === 0
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Session tidak valid atau sudah berakhir."
+        },
+        {
+          status: 401,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const currentUser =
+      sessions[0];
+
+
+    // =====================================
+    // SELLER ONLY
+    // =====================================
+
+    if (
+      currentUser.role !== "seller" &&
+      currentUser.role !== "admin"
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Hanya pemilik UMKM yang dapat membuat postingan."
+        },
+        {
+          status: 403,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    // =====================================
+    // GET SELLER STORE
+    // =====================================
+
+    const stores =
+      await sql`
+        SELECT
+          id
+
+        FROM
+          stores
+
+        WHERE
+          owner_id =
+            ${currentUser.id}
+
+          AND
+          is_active = TRUE
+
+        LIMIT 1
+      `;
+
+
+    if (
+      stores.length === 0
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "UMKM belum ditemukan."
+        },
+        {
+          status: 403,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const store =
+      stores[0];
+
+
+    // =====================================
+    // BODY
+    // =====================================
+
+    const body =
+      await request.json();
+
+
+    const caption =
+      String(
+        body.caption || ""
+      ).trim();
+
+
+    const imageUrl =
+      String(
+        body.image_url || ""
+      ).trim();
+
+
+    // =====================================
+    // VALIDATION
+    // =====================================
+
+    if (!caption) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Caption postingan wajib diisi."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    if (
+      caption.length > 1000
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Caption maksimal 1000 karakter."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    if (!imageUrl) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Foto postingan wajib tersedia."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    if (
+      !imageUrl.startsWith(
+        "https://"
+      )
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "URL foto postingan tidak valid."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    // =====================================
+    // CREATE POST
+    // =====================================
+
+    const posts =
+      await sql`
+        INSERT INTO posts (
+          store_id,
+          caption,
+          image_url
+        )
+
+        VALUES (
+          ${store.id},
+          ${caption},
+          ${imageUrl}
+        )
+
+        RETURNING *
+      `;
+
+
+    const post =
+      posts[0];
+
+
+    // =====================================
+    // RESPONSE
+    // =====================================
+
+    return Response.json(
+      {
+        ok: true,
+
+        message:
+          "Postingan berhasil dipublikasikan.",
+
+        post
+      },
+      {
+        status: 201,
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Posts POST error:",
+      error
+    );
+
+
+    return Response.json(
+      {
+        ok: false,
+
+        error:
+          "Gagal membuat postingan."
+      },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+
+  }
+}
     // ========================================
     // API 404
     // ========================================
