@@ -10198,14 +10198,21 @@ function switchPublicSellerTab(
   }
 
 
-  const sellerPosts =
-    DATA.posts.filter(
-      post =>
-        String(
-          post.store?.id
-        ) ===
-        String(store.id)
-    );
+  const sellerFeedItems =
+  DATA.posts.filter(
+    post =>
+      String(
+        post.store?.id
+      ) ===
+      String(store.id)
+  );
+
+
+const sellerPosts =
+  sellerFeedItems.filter(
+    post =>
+      !post.product
+  );
 
 
   if (tab === 'posts') {
@@ -10251,16 +10258,15 @@ function switchPublicSellerTab(
 
 
   const sellerProducts =
-    sellerPosts
-      .filter(
-        post =>
-          post.product?.id
-      )
-      .map(
-        post =>
-          post.product
-      );
-
+  sellerFeedItems
+    .filter(
+      post =>
+        post.product?.id
+    )
+    .map(
+      post =>
+        post.product
+    );
 
   if (!sellerProducts.length) {
     content.innerHTML = `
