@@ -10464,21 +10464,6 @@ const sellerPosts =
   return;
 }
 
-    content.innerHTML = `
-      <div class="public-seller-post-list">
-
-        ${sellerPosts
-          .map(post =>
-            createPostTemplate(post)
-          )
-          .join('')}
-
-      </div>
-    `;
-
-    return;
-  }
-
 
   const sellerProducts =
   sellerFeedItems
