@@ -16952,3 +16952,109 @@ img {
   }
 
 }
+
+/* =========================================================
+   PASAR UMKM - FEED WIDTH + NATURAL IMAGE FIX
+   ========================================================= */
+
+
+/* =========================================================
+   1. POST CARD HARUS SIMETRIS KIRI & KANAN
+   ========================================================= */
+
+#feed.feed > .post-card {
+  width:
+    auto !important;
+
+  max-width:
+    none !important;
+
+  margin-left:
+    12px !important;
+
+  margin-right:
+    12px !important;
+
+  margin-bottom:
+    16px !important;
+
+  box-sizing:
+    border-box !important;
+}
+
+
+/* =========================================================
+   2. JANGAN PAKSA FOTO 4:3
+   Tampilkan sesuai rasio asli gambar
+   ========================================================= */
+
+#feed.feed > .post-card
+.post-media:not(.video),
+
+#feed.feed > .post-card
+.post-media.square {
+  width:
+    100% !important;
+
+  height:
+    auto !important;
+
+  max-height:
+    none !important;
+
+  aspect-ratio:
+    auto !important;
+
+  overflow:
+    hidden;
+
+  background:
+    #f3f1eb;
+}
+
+
+/* FOTO UTUH, TIDAK DI-CROP */
+
+#feed.feed > .post-card
+.post-media:not(.video) img,
+
+#feed.feed > .post-card
+.post-media.square img {
+  width:
+    100% !important;
+
+  height:
+    auto !important;
+
+  max-width:
+    100% !important;
+
+  display:
+    block;
+
+  object-fit:
+    contain !important;
+
+  object-position:
+    center !important;
+
+  transform:
+    none !important;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 380px) {
+
+  #feed.feed > .post-card {
+    margin-left:
+      10px !important;
+
+    margin-right:
+      10px !important;
+  }
+
+}
