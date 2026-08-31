@@ -2083,6 +2083,10 @@ function runAction(action, element) {
       openPostMenu(postId);
       break;
 
+        case 'delete-post':
+  deletePost(postId);
+  break;
+
    case 'product-detail':
         openProductDetail(productId);
         break;
