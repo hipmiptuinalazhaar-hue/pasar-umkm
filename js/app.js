@@ -2559,6 +2559,30 @@ function openPostMenu(postId) {
     return;
   }
 
+
+  const isOwnPost =
+    !post.product &&
+    STATE.currentStore?.id &&
+    String(post.store?.id || '') ===
+      String(STATE.currentStore.id);
+
+
+  const deleteButton =
+    isOwnPost
+      ? `
+        <button
+          type="button"
+          class="menu-sheet-btn"
+          data-action="delete-post"
+          data-post-id="${escapeHTML(postId)}"
+        >
+          <i class="ph ph-trash"></i>
+          Hapus postingan
+        </button>
+      `
+      : '';
+
+
   openBottomSheet(
     `
       <h2 id="sheetTitle">
@@ -2584,6 +2608,8 @@ function openPostMenu(postId) {
         <i class="ph ph-share-network"></i>
         Bagikan
       </button>
+
+      ${deleteButton}
     `,
     'post-menu'
   );
