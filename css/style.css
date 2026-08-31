@@ -18975,3 +18975,705 @@ img {
   }
 
 }
+
+/* =========================================================
+   PASAR UMKM
+   PREMIUM SOCIAL POST VIEWER
+   Scoped khusus halaman viewer profil
+   ========================================================= */
+
+
+/* =========================================================
+   01. VIEWER PAGE
+   ========================================================= */
+
+#feed.feed > .post-viewer-page {
+  width: 100%;
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 0;
+
+  background:
+    #f7f8f7;
+}
+
+
+/* hilangkan rhythm bawaan feed hanya saat viewer aktif */
+#feed.feed:has(> .post-viewer-page) {
+  gap: 0;
+
+  padding-bottom:
+    calc(
+      var(--bottom-nav-height, 62px) +
+      18px +
+      env(safe-area-inset-bottom)
+    );
+
+  background:
+    #f7f8f7;
+}
+
+
+/* =========================================================
+   02. STICKY VIEWER HEADER
+   ========================================================= */
+
+.post-viewer-header {
+  position: sticky;
+
+  top: 0;
+
+  z-index: 40;
+
+  width: 100%;
+  min-height: 58px;
+
+  padding:
+    calc(
+      7px +
+      env(safe-area-inset-top)
+    )
+    14px
+    8px;
+
+  display: grid;
+
+  grid-template-columns:
+    42px
+    minmax(0, 1fr)
+    42px;
+
+  align-items: center;
+
+  gap: 8px;
+
+  border-bottom:
+    1px solid
+    rgba(14, 35, 24, 0.07);
+
+  background:
+    rgba(255, 255, 255, 0.94);
+
+  -webkit-backdrop-filter:
+    blur(18px);
+
+  backdrop-filter:
+    blur(18px);
+
+  box-shadow:
+    0 1px 0
+    rgba(255, 255, 255, 0.65);
+}
+
+
+/* =========================================================
+   03. BACK BUTTON
+   ========================================================= */
+
+.post-viewer-back {
+  width: 40px;
+  height: 40px;
+
+  padding: 0;
+
+  display: grid;
+  place-items: center;
+
+  border: 0;
+
+  border-radius: 50%;
+
+  background:
+    transparent;
+
+  color:
+    var(
+      --text-primary,
+      #111612
+    );
+
+  cursor: pointer;
+
+  transition:
+    background 140ms ease,
+    transform 140ms ease;
+}
+
+
+.post-viewer-back i {
+  font-size: 22px;
+}
+
+
+.post-viewer-back:active {
+  transform:
+    scale(0.92);
+
+  background:
+    rgba(8, 55, 37, 0.07);
+}
+
+
+@media (hover: hover) {
+
+  .post-viewer-back:hover {
+    background:
+      rgba(8, 55, 37, 0.055);
+  }
+
+}
+
+
+/* =========================================================
+   04. HEADER TITLE
+   ========================================================= */
+
+.post-viewer-header-copy {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 1px;
+
+  text-align: center;
+}
+
+
+.post-viewer-header-copy strong {
+  color:
+    var(
+      --text-primary,
+      #111612
+    );
+
+  font-size: 14px;
+  line-height: 1.2;
+
+  font-weight: 800;
+
+  letter-spacing:
+    -0.025em;
+}
+
+
+.post-viewer-header-copy span {
+  color:
+    var(
+      --text-tertiary,
+      #747c76
+    );
+
+  font-size: 9px;
+  line-height: 1.2;
+
+  font-weight: 550;
+
+  opacity: 1;
+}
+
+
+/*
+ * Header memakai grid 3 kolom.
+ * Pseudo element menjaga judul tetap benar-benar center.
+ */
+.post-viewer-header::after {
+  content: "";
+
+  width: 42px;
+  height: 1px;
+}
+
+
+/* =========================================================
+   05. POST LIST
+   ========================================================= */
+
+.post-viewer-list {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 10px;
+
+  padding:
+    10px
+    0
+    0;
+
+  background:
+    #f3f5f3;
+}
+
+
+/* =========================================================
+   06. EACH VIEWER POST
+   ========================================================= */
+
+.post-viewer-item {
+  width: 100%;
+
+  background:
+    #ffffff;
+}
+
+
+.post-viewer-item .post-card {
+  width: 100%;
+
+  margin: 0;
+
+  overflow: hidden;
+
+  border: 0;
+
+  border-radius: 0;
+
+  background:
+    #ffffff;
+
+  box-shadow:
+    0 1px 0
+    rgba(15, 28, 20, 0.055);
+}
+
+
+/* =========================================================
+   07. POST HEADER
+   ========================================================= */
+
+.post-viewer-item .post-header {
+  min-height: 58px;
+
+  padding:
+    10px
+    14px;
+
+  background:
+    #ffffff;
+
+  border: 0;
+}
+
+
+.post-viewer-item .post-profile-link {
+  min-width: 0;
+
+  flex: 1;
+}
+
+
+.post-viewer-item .post-avatar {
+  width: 36px;
+  height: 36px;
+
+  flex:
+    0
+    0
+    36px;
+
+  border-radius: 50%;
+
+  object-fit: cover;
+
+  border:
+    1px solid
+    rgba(11, 70, 47, 0.10);
+
+  box-shadow:
+    0 0 0 2px
+    #ffffff,
+    0 0 0 3px
+    rgba(14, 85, 57, 0.08);
+}
+
+
+.post-viewer-item .post-author {
+  color:
+    #162119;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  letter-spacing:
+    -0.012em;
+}
+
+
+.post-viewer-item .post-context {
+  margin-top: 2px;
+
+  color:
+    #818982;
+
+  font-size: 8.5px;
+
+  font-weight: 500;
+}
+
+
+/* menu titik tiga */
+.post-viewer-item .post-menu {
+  width: 38px;
+  height: 38px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+
+  color:
+    #303833;
+
+  transition:
+    background 140ms ease,
+    transform 140ms ease;
+}
+
+
+.post-viewer-item .post-menu i {
+  font-size: 20px;
+}
+
+
+.post-viewer-item .post-menu:active {
+  transform:
+    scale(0.92);
+
+  background:
+    rgba(8, 55, 37, 0.06);
+}
+
+
+/* =========================================================
+   08. FULL PHOTO
+   Tidak crop gambar di viewer.
+   ========================================================= */
+
+.post-viewer-item .post-media,
+.post-viewer-item .post-media.square {
+  width: 100%;
+
+  height: auto !important;
+
+  min-height: 0 !important;
+  max-height: none !important;
+
+  aspect-ratio:
+    auto !important;
+
+  overflow: hidden;
+
+  border-radius:
+    0 !important;
+
+  background:
+    #f1f3f1;
+}
+
+
+.post-viewer-item .post-media img {
+  width: 100%;
+
+  height: auto !important;
+
+  min-height: 0 !important;
+  max-height: none !important;
+
+  display: block;
+
+  object-fit:
+    contain !important;
+
+  object-position:
+    center;
+
+  margin: 0 auto;
+}
+
+
+/* video tetap proporsional */
+.post-viewer-item .post-media.video {
+  position: relative;
+
+  min-height: 320px;
+
+  background:
+    #101311;
+}
+
+
+/* =========================================================
+   09. ACTION BAR
+   ========================================================= */
+
+.post-viewer-item .post-actions {
+  min-height: 50px;
+
+  padding:
+    6px
+    11px
+    1px;
+
+  display: flex;
+  align-items: center;
+
+  justify-content:
+    space-between;
+
+  background:
+    #ffffff;
+}
+
+
+.post-viewer-item .actions-left {
+  display: flex;
+
+  align-items: center;
+
+  gap: 2px;
+}
+
+
+.post-viewer-item .action-btn {
+  width: 40px;
+  height: 40px;
+
+  padding: 0;
+
+  display: grid;
+  place-items: center;
+
+  border: 0;
+
+  border-radius: 50%;
+
+  background:
+    transparent;
+
+  color:
+    #172019;
+
+  transition:
+    transform 130ms ease,
+    background 130ms ease;
+}
+
+
+.post-viewer-item .action-btn i {
+  font-size: 23px;
+}
+
+
+.post-viewer-item .action-btn:active {
+  transform:
+    scale(0.88);
+
+  background:
+    rgba(15, 28, 20, 0.055);
+}
+
+
+/* LIKE */
+.post-viewer-item
+.action-btn.liked {
+  color:
+    #e5484d;
+}
+
+
+/* SAVE */
+.post-viewer-item
+.action-btn.saved {
+  color:
+    var(
+      --forest-800,
+      #0d4b32
+    );
+}
+
+
+/* =========================================================
+   10. LIKE COUNT
+   ========================================================= */
+
+.post-viewer-item .post-stats {
+  padding:
+    2px
+    14px
+    0;
+
+  color:
+    #172019;
+
+  font-size: 10px;
+
+  font-weight: 780;
+}
+
+
+/* =========================================================
+   11. CAPTION
+   ========================================================= */
+
+.post-viewer-item .post-caption {
+  margin: 0;
+
+  padding:
+    7px
+    14px
+    0;
+
+  color:
+    #4c5750;
+
+  font-size: 10.5px;
+
+  line-height: 1.6;
+
+  font-weight: 450;
+
+  overflow-wrap:
+    anywhere;
+}
+
+
+.post-viewer-item
+.post-caption
+.author {
+  margin-right: 4px;
+
+  color:
+    #152019;
+
+  font-weight: 800;
+
+  letter-spacing:
+    -0.01em;
+}
+
+
+/* =========================================================
+   12. COMMENTS
+   ========================================================= */
+
+.post-viewer-item .view-comments {
+  width: 100%;
+
+  padding:
+    7px
+    14px
+    14px;
+
+  color:
+    #818982;
+
+  font-size: 9.5px;
+
+  font-weight: 500;
+
+  text-align: left;
+
+  background:
+    transparent;
+}
+
+
+/* bila tidak ada komentar/caption,
+   beri ruang bawah pada card */
+.post-viewer-item
+.post-actions:last-child {
+  padding-bottom:
+    10px;
+}
+
+
+/* =========================================================
+   13. TRANSITION
+   ========================================================= */
+
+@keyframes postViewerEnter {
+
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0);
+  }
+
+}
+
+
+.post-viewer-page {
+  animation:
+    postViewerEnter
+    180ms
+    ease-out
+    both;
+}
+
+
+/* =========================================================
+   14. SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 380px) {
+
+  .post-viewer-header {
+    padding-left:
+      10px;
+
+    padding-right:
+      10px;
+  }
+
+
+  .post-viewer-item
+  .post-header {
+    padding-left:
+      12px;
+
+    padding-right:
+      12px;
+  }
+
+
+  .post-viewer-item
+  .post-actions {
+    padding-left:
+      8px;
+
+    padding-right:
+      8px;
+  }
+
+
+  .post-viewer-item
+  .post-caption,
+  .post-viewer-item
+  .post-stats,
+  .post-viewer-item
+  .view-comments {
+    padding-left:
+      12px;
+
+    padding-right:
+      12px;
+  }
+
+}
