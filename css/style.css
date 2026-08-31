@@ -18154,3 +18154,65 @@ img {
   margin-bottom:
     0 !important;
 }
+/* =========================================================
+   PASAR UMKM - STORE DETAIL TOP BACK
+   ========================================================= */
+
+#bottomSheet
+.store-detail-back {
+  width: calc(100% - 20px);
+  min-height: 40px;
+
+  margin:
+    10px
+    10px
+    8px;
+
+  padding:
+    0
+    10px;
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 7px;
+
+  border: 0;
+
+  border-radius: 10px;
+
+  background: transparent;
+
+  color: #176b4a;
+
+  font-size: 10px;
+  line-height: 1;
+
+  font-weight: 750;
+
+  text-align: left;
+}
+
+#bottomSheet
+.store-detail-back i {
+  font-size: 17px;
+}
+
+#bottomSheet
+.store-detail-back:active {
+  background:
+    rgba(23, 107, 74, 0.06);
+
+  transform:
+    scale(0.985);
+}
+
+@media (hover: hover) {
+
+  #bottomSheet
+  .store-detail-back:hover {
+    background:
+      rgba(23, 107, 74, 0.05);
+  }
+
+}
