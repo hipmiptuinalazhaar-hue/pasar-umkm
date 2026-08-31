@@ -3447,6 +3447,116 @@ export default {
         );
       }
     }
+
+        // ========================================
+    // POSTS - PUBLIC FEED
+    // GET /api/posts
+    // ========================================
+
+    if (
+      url.pathname ===
+        "/api/posts" &&
+      request.method === "GET"
+    ) {
+      try {
+        const sql =
+          neon(env.DATABASE_URL);
+
+
+        const posts =
+          await sql`
+            SELECT
+              p.id,
+              p.store_id,
+              p.caption,
+              p.image_url,
+              p.created_at,
+              p.updated_at,
+
+              s.name
+                AS store_name,
+
+              s.logo_url
+                AS store_logo_url,
+
+              s.district
+                AS store_district,
+
+              s.city
+                AS store_city,
+
+              s.province
+                AS store_province,
+
+              s.verification_status
+                AS store_verification_status
+
+            FROM
+              posts p
+
+            JOIN
+              stores s
+              ON s.id =
+                p.store_id
+
+            WHERE
+              p.is_active = TRUE
+
+              AND
+              s.is_active = TRUE
+
+            ORDER BY
+              p.created_at DESC
+
+            LIMIT 100
+          `;
+
+
+        return Response.json(
+          {
+            ok: true,
+
+            count:
+              posts.length,
+
+            posts
+          },
+          {
+            status: 200,
+
+            headers: {
+              "Cache-Control":
+                "no-store"
+            }
+          }
+        );
+
+
+      } catch (error) {
+        console.error(
+          "Posts GET error:",
+          error
+        );
+
+
+        return Response.json(
+          {
+            ok: false,
+
+            error:
+              "Gagal memuat postingan."
+          },
+          {
+            status: 500,
+
+            headers: {
+              "Cache-Control":
+                "no-store"
+            }
+          }
+        );
+      }
+    }
         // ========================================
     // POSTS - CREATE
     // POST /api/posts
