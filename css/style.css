@@ -15825,7 +15825,7 @@ i {
 
 /* =========================================================
    MEDIA
-   Berlaku untuk posting biasa & posting produk
+   Natural ratio, full product image
    ========================================================= */
 
 .feed > .post-card
@@ -15837,10 +15837,18 @@ i {
 
   width: 100%;
 
+  height: auto;
+
+  min-height: 0;
+
+  max-height: none;
+
+  aspect-ratio: auto;
+
   overflow: hidden;
 
   background:
-    #f1f0eb;
+    #f4f2ec;
 
   border: 0 !important;
 
@@ -15850,37 +15858,84 @@ i {
 }
 
 
-/* POST PRODUK = SQUARE
-   Lebih cocok untuk marketplace */
+/* FOTO POSTINGAN BIASA */
 
 .feed > .post-card
-.ig-product-media {
-  aspect-ratio: 1 / 1;
-}
-
-
-/* IMAGE */
-
-.feed > .post-card
-.post-media img,
-
-.feed > .post-card
-.post-media video,
-
-.feed > .post-card
-.ig-product-media img {
+.post-media:not(.video) img {
   width: 100%;
-  height: 100%;
+
+  height: auto;
+
+  min-height: 0;
+
+  max-height: none;
 
   display: block;
 
-  object-fit: cover;
+  object-fit: contain;
+
+  object-position: center;
 
   border-radius: 0 !important;
 
   transform: none !important;
 }
 
+
+/* FOTO PRODUK */
+
+.feed > .post-card
+.ig-product-media {
+  display: block;
+
+  aspect-ratio: auto !important;
+}
+
+
+.feed > .post-card
+.ig-product-media img {
+  width: 100%;
+
+  height: auto !important;
+
+  min-height: 0;
+
+  max-height: none !important;
+
+  display: block;
+
+  object-fit: contain !important;
+
+  object-position: center;
+
+  aspect-ratio: auto !important;
+
+  margin: 0 auto;
+
+  border-radius: 0 !important;
+
+  transform: none !important;
+}
+
+
+/* VIDEO TETAP BOLEH COVER */
+
+.feed > .post-card
+.post-media.video {
+  aspect-ratio: 4 / 5;
+}
+
+
+.feed > .post-card
+.post-media.video img,
+
+.feed > .post-card
+.post-media.video video {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
 
 /* Hindari efek zoom murahan */
 
