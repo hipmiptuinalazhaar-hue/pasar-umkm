@@ -6498,12 +6498,27 @@ function openPostCreateInfo() {
          * dikirim ke POST /api/posts.
          */
         form.dataset.uploadedImageUrl =
-          data.image.url;
+  data.image.url;
 
 
-        showToast(
-          'Foto postingan berhasil diunggah.'
-        );
+const postPayload = {
+  caption:
+    caption,
+
+  image_url:
+    data.image.url
+};
+
+
+console.log(
+  '[Pasar UMKM] Post payload ready:',
+  postPayload
+);
+
+
+showToast(
+  'Foto dan caption siap dipublikasikan.'
+);
 
 
         if (buttonText) {
