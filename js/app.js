@@ -2735,11 +2735,8 @@ function openPostMenu(postId) {
   );
 }
 
-function openPostDeleteConfirm(
-  postId
-) {
-  const post =
-    findPost(postId);
+function openPostDeleteConfirm(postId) {
+  const post = findPost(postId);
 
   if (!post || post.product) {
     showToast(
@@ -2748,12 +2745,10 @@ function openPostDeleteConfirm(
     return;
   }
 
-
   const isOwnPost =
     STATE.currentStore?.id &&
     String(post.store?.id || '') ===
       String(STATE.currentStore.id);
-
 
   if (!isOwnPost) {
     showToast(
@@ -2762,16 +2757,13 @@ function openPostDeleteConfirm(
     return;
   }
 
-
   const image =
     post.media?.src ||
     ASSETS.logo;
 
-
   const caption =
     post.caption ||
     'Postingan UMKM';
-
 
   openBottomSheet(
     `
@@ -2780,7 +2772,6 @@ function openPostDeleteConfirm(
         <div class="post-delete-icon">
           <i class="ph ph-trash"></i>
         </div>
-
 
         <div class="post-delete-heading">
 
@@ -2799,7 +2790,6 @@ function openPostDeleteConfirm(
 
         </div>
 
-
         <div class="post-delete-preview">
 
           <div class="post-delete-preview-image">
@@ -2808,7 +2798,6 @@ function openPostDeleteConfirm(
               alt=""
             >
           </div>
-
 
           <div class="post-delete-preview-copy">
 
@@ -2827,7 +2816,6 @@ function openPostDeleteConfirm(
 
         </div>
 
-
         <div class="post-delete-note">
 
           <i class="ph ph-info"></i>
@@ -2839,7 +2827,6 @@ function openPostDeleteConfirm(
 
         </div>
 
-
         <div class="post-delete-actions">
 
           <button
@@ -2850,7 +2837,6 @@ function openPostDeleteConfirm(
             Batal
           </button>
 
-
           <button
             type="button"
             class="post-delete-confirm"
@@ -2860,82 +2846,12 @@ function openPostDeleteConfirm(
             )}"
           >
             <i class="ph ph-trash"></i>
-
-            <span>
-              Hapus
-            </span>
+            <span>Hapus</span>
           </button>
 
         </div>
 
       </section>
-    `,
-    'post-delete-confirm'
-  );
-}
-
-  const isOwnPost =
-    STATE.currentStore?.id &&
-    String(post.store?.id || '') ===
-      String(STATE.currentStore.id);
-
-
-  if (!isOwnPost) {
-    showToast(
-      'Kamu tidak memiliki izin menghapus postingan ini.'
-    );
-
-    return;
-  }
-
-
-  openBottomSheet(
-    `
-      <div class="auth-shell">
-
-        <div
-          class="auth-title"
-          id="sheetTitle"
-        >
-          Hapus Postingan?
-        </div>
-
-
-        <p class="auth-subtitle">
-          Postingan ini akan dihapus dari feed
-          dan profil UMKM.
-        </p>
-
-
-        <p class="auth-subtitle">
-          Data tidak langsung dihapus permanen
-          dari database.
-        </p>
-
-
-        <button
-          type="button"
-          class="btn-primary"
-          data-action="delete-post-confirm"
-          data-post-id="${escapeHTML(
-            post.id || ''
-          )}"
-        >
-          <i class="ph ph-trash"></i>
-          <span>Ya, Hapus Postingan</span>
-        </button>
-
-
-        <button
-          type="button"
-          class="menu-sheet-btn"
-          data-action="close-sheet"
-        >
-          <i class="ph ph-x"></i>
-          <span>Batal</span>
-        </button>
-
-      </div>
     `,
     'post-delete-confirm'
   );
@@ -2949,30 +2865,24 @@ async function deletePost(
   const post =
     findPost(postId);
 
-
   if (!post || post.product) {
     showToast(
       'Postingan tidak ditemukan.'
     );
-
     return;
   }
-
 
   const isOwnPost =
     STATE.currentStore?.id &&
     String(post.store?.id || '') ===
       String(STATE.currentStore.id);
 
-
   if (!isOwnPost) {
     showToast(
       'Kamu tidak memiliki izin menghapus postingan ini.'
     );
-
     return;
   }
-
 
   const backendPostId =
     String(
@@ -2980,43 +2890,31 @@ async function deletePost(
       postId ||
       ''
     )
-      .replace(
-        /^post-/,
-        ''
-      )
+      .replace(/^post-/, '')
       .trim();
-
 
   if (!backendPostId) {
     showToast(
       'ID postingan tidak valid.'
     );
-
     return;
   }
 
-
   const label =
-    element?.querySelector(
-      'span'
-    );
-
+    element?.querySelector('span');
 
   const oldLabel =
     label?.textContent ||
-    'Ya, Hapus Postingan';
-
+    'Hapus';
 
   if (element) {
     element.disabled = true;
   }
 
-
   if (label) {
     label.textContent =
       'Menghapus...';
   }
-
 
   try {
     const response =
@@ -3025,8 +2923,7 @@ async function deletePost(
           backendPostId
         )}`,
         {
-          method:
-            'DELETE',
+          method: 'DELETE',
 
           credentials:
             'include',
@@ -3038,12 +2935,10 @@ async function deletePost(
         }
       );
 
-
     const data =
       await response
         .json()
         .catch(() => ({}));
-
 
     if (
       !response.ok ||
@@ -3055,7 +2950,6 @@ async function deletePost(
       );
     }
 
-
     STATE.likedPosts.delete(
       String(postId)
     );
@@ -3066,27 +2960,21 @@ async function deletePost(
 
     saveLocalState();
 
-
     closeBottomSheet();
-
 
     await loadInitialData();
 
-
     if (
-      STATE.activeNav ===
-      'account'
+      STATE.activeNav === 'account'
     ) {
       await openAccount();
     } else {
       renderApplication();
     }
 
-
     showToast(
       'Postingan berhasil dihapus.'
     );
-
 
   } catch (error) {
     console.error(
@@ -3094,18 +2982,15 @@ async function deletePost(
       error
     );
 
-
     showToast(
       error.message ||
       'Postingan gagal dihapus.'
     );
 
-
   } finally {
     if (element) {
       element.disabled = false;
     }
-
 
     if (label) {
       label.textContent =
@@ -3113,6 +2998,7 @@ async function deletePost(
     }
   }
 }
+
 /* =========================================================
    36. CART
    ========================================================= */
