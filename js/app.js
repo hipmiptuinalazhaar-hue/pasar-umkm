@@ -9327,6 +9327,7 @@ function renderSearchResults(query) {
       : ''
   }
 `;
+}
 
 
 function clearSearch() {
