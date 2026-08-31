@@ -8665,6 +8665,143 @@ function openSellerContact(
   );
 }
 
+function openSimilarStores(
+  storeId
+) {
+  const currentStore =
+    getStores().find(
+      item =>
+        String(item.id) ===
+        String(storeId)
+    );
+
+
+  if (!currentStore) {
+    showToast(
+      'UMKM tidak ditemukan.'
+    );
+
+    return;
+  }
+
+
+  const allOtherStores =
+    getStores().filter(
+      store =>
+        String(store.id) !==
+        String(currentStore.id)
+    );
+
+
+  const sameCategory =
+    currentStore.category
+      ? allOtherStores.filter(
+          store =>
+            normalizeText(
+              store.category
+            ) ===
+            normalizeText(
+              currentStore.category
+            )
+        )
+      : [];
+
+
+  const suggestions =
+    (
+      sameCategory.length
+        ? sameCategory
+        : allOtherStores
+    )
+      .slice(0, 5);
+
+
+  if (!suggestions.length) {
+    openBottomSheet(
+      `
+        <h2 id="sheetTitle">
+          UMKM Serupa
+        </h2>
+
+        <section class="empty-state">
+
+          <i
+            class="ph ph-storefront"
+            aria-hidden="true"
+          ></i>
+
+          <strong class="empty-state-title">
+            Belum ada rekomendasi
+          </strong>
+
+          <p class="empty-state-text">
+            UMKM serupa akan tampil
+            setelah lebih banyak usaha bergabung.
+          </p>
+
+        </section>
+      `,
+      'seller-suggest'
+    );
+
+    return;
+  }
+
+
+  const html =
+    suggestions
+      .map(store => `
+        <button
+          type="button"
+          class="menu-sheet-btn"
+          data-action="seller-profile"
+          data-store-id="${escapeHTML(
+            store.id
+          )}"
+        >
+
+          <i
+            class="ph ph-storefront"
+            aria-hidden="true"
+          ></i>
+
+          <span>
+            ${escapeHTML(
+              store.name ||
+              'UMKM Lokal'
+            )}
+
+            ${
+              store.category
+                ? `
+                    <small>
+                      ${escapeHTML(
+                        store.category
+                      )}
+                    </small>
+                  `
+                : ''
+            }
+
+          </span>
+
+        </button>
+      `)
+      .join('');
+
+
+  openBottomSheet(
+    `
+      <h2 id="sheetTitle">
+        UMKM Serupa
+      </h2>
+
+      ${html}
+    `,
+    'seller-suggest'
+  );
+}
+
 function switchPublicSellerTab(
   storeId,
   tab,
