@@ -6198,13 +6198,14 @@ function openSell() {
 
 
       <button
-        type="button"
-        class="menu-sheet-btn"
-      >
-        <i class="ph ph-camera"></i>
+  type="button"
+  class="menu-sheet-btn"
+  data-action="post-create"
+>
+  <i class="ph ph-camera"></i>
 
-        Buat Postingan
-      </button>
+  Buat Postingan
+</button>
 
 
       <button
