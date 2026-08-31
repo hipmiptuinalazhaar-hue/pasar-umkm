@@ -2029,6 +2029,10 @@ function runAction(action, element) {
       openSideMenu();
       break;
 
+        case 'account-post-open':
+  openAccountPostViewer(postId);
+  break;
+
     case 'close-menu':
       closeSideMenu();
       break;
@@ -2086,6 +2090,111 @@ function runAction(action, element) {
         case 'delete-post':
   deletePost(postId);
   break;
+
+        function getCurrentStorePostsOnly() {
+  const storeId =
+    String(
+      STATE.currentStore?.id || ''
+    );
+
+  if (!storeId) {
+    return [];
+  }
+
+  return DATA.posts.filter(post =>
+    !post.product &&
+    String(
+      post.store?.id || ''
+    ) === storeId
+  );
+}
+
+
+function openAccountPostViewer(
+  selectedPostId
+) {
+  const posts =
+    getCurrentStorePostsOnly();
+
+  if (!posts.length || !DOM.feed) {
+    showToast(
+      'Postingan belum tersedia.'
+    );
+    return;
+  }
+
+  const selectedIndex =
+    posts.findIndex(
+      post =>
+        String(post.id) ===
+        String(selectedPostId)
+    );
+
+  const orderedPosts =
+    selectedIndex >= 0
+      ? [
+          ...posts.slice(selectedIndex),
+          ...posts.slice(0, selectedIndex)
+        ]
+      : posts;
+
+  STATE.activeNav = 'account';
+  updateNavigation();
+
+  const app =
+    document.querySelector('.app');
+
+  app?.classList.add(
+    'account-profile-active'
+  );
+
+  if (DOM.storiesSection) {
+    DOM.storiesSection.hidden = true;
+  }
+
+  if (DOM.homeDiscovery) {
+    DOM.homeDiscovery.hidden = true;
+  }
+
+  DOM.feed.innerHTML = `
+    <section class="post-viewer-page">
+
+      <header class="post-viewer-header">
+
+        <button
+          type="button"
+          class="post-viewer-back"
+          data-nav="account"
+          aria-label="Kembali ke profil"
+        >
+          <i class="ph ph-arrow-left"></i>
+        </button>
+
+        <div class="post-viewer-header-copy">
+          <strong>Postingan</strong>
+          <span>${orderedPosts.length} postingan</span>
+        </div>
+
+      </header>
+
+      <div class="post-viewer-list">
+        ${orderedPosts
+          .map(post => `
+            <div class="post-viewer-item">
+              ${createPostTemplate(post)}
+            </div>
+          `)
+          .join('')}
+      </div>
+
+    </section>
+  `;
+
+  window.scrollTo({
+    top: 0,
+    behavior: 'auto'
+  });
+}
 
    case 'product-detail':
         openProductDetail(productId);
