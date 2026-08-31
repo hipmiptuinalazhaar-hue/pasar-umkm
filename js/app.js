@@ -9259,32 +9259,38 @@ function openSellerProfile(
    * Semua postingan / produk publik
    * milik penjual ini.
    */
-  const sellerPosts =
-    DATA.posts.filter(
+  const sellerFeedItems =
+  DATA.posts.filter(
+    post =>
+      String(
+        post.store?.id
+      ) ===
+      String(store.id)
+  );
+
+
+const sellerPosts =
+  sellerFeedItems.filter(
+    post =>
+      !post.product
+  );
+
+
+const sellerProducts =
+  sellerFeedItems
+    .filter(
       post =>
-        String(
-          post.store?.id
-        ) ===
-        String(store.id)
+        post.product?.id
+    )
+    .map(
+      post =>
+        post.product
     );
 
-
-  const sellerProducts =
-    sellerPosts
-      .filter(
-        post =>
-          post.product?.id
-      )
-      .map(
-        post =>
-          post.product
-      );
-
-
   const avatar =
-    store.logo ||
-    sellerPosts[0]?.store?.avatar ||
-    ASSETS.logo;
+  store.logo ||
+  sellerFeedItems[0]?.store?.avatar ||
+  ASSETS.logo;
 
 
   const location =
