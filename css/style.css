@@ -18391,3 +18391,142 @@ img {
   background:
     #f5f2e9;
 }
+
+/* =========================================
+   GRID POSTINGAN PROFIL
+   ========================================= */
+
+.social-account-post-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.social-account-post-item {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #f3f4f6;
+  cursor: pointer;
+}
+
+.social-account-post-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.25s ease;
+}
+
+.social-account-post-item:hover img {
+  transform: scale(1.03);
+}
+
+.social-account-grid-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 10px;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.18),
+    rgba(0, 0, 0, 0)
+  );
+  color: #ffffff;
+  font-size: 18px;
+  pointer-events: none;
+}
+
+
+/* =========================================
+   HALAMAN VIEWER POSTINGAN
+   ========================================= */
+
+.post-viewer-page {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.post-viewer-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0 14px;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.post-viewer-back {
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 999px;
+  background: #f1f5f9;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.post-viewer-back i {
+  font-size: 20px;
+}
+
+.post-viewer-header-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.post-viewer-header-copy strong {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.post-viewer-header-copy span {
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.post-viewer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.post-viewer-item .post-card {
+  margin: 0;
+}
+
+
+/* =========================================
+   MEDIA POSTINGAN BIKIN LEBIH MODERN
+   ========================================= */
+
+.post-media {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #f8fafc;
+}
+
+.post-media img {
+  width: 100%;
+  height: auto;
+  max-height: 78vh;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
