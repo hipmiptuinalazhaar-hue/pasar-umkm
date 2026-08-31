@@ -4244,6 +4244,372 @@ if (
 
   }
 }
+
+    // ========================================
+// POSTS - CREATE
+// POST /api/posts
+// ========================================
+
+if (
+  url.pathname ===
+    "/api/posts" &&
+  request.method === "POST"
+) {
+  try {
+
+    // =====================================
+    // SESSION
+    // =====================================
+
+    const sessionToken =
+      getCookie(
+        request,
+        "__Host-pasar_umkm_session"
+      );
+
+
+    if (!sessionToken) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Silakan masuk terlebih dahulu."
+        },
+        {
+          status: 401,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const sql =
+      neon(env.DATABASE_URL);
+
+
+    // =====================================
+    // CURRENT USER
+    // =====================================
+
+    const sessions =
+      await sql`
+        SELECT
+          u.id,
+          u.role
+
+        FROM
+          sessions s
+
+        JOIN
+          users u
+          ON u.id =
+            s.user_id
+
+        WHERE
+          s.token_hash =
+            encode(
+              digest(
+                ${sessionToken},
+                'sha256'
+              ),
+              'hex'
+            )
+
+          AND
+          s.expires_at > NOW()
+
+          AND
+          u.is_active = TRUE
+
+        LIMIT 1
+      `;
+
+
+    if (
+      sessions.length === 0
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Session tidak valid atau sudah berakhir."
+        },
+        {
+          status: 401,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const currentUser =
+      sessions[0];
+
+
+    // =====================================
+    // SELLER ONLY
+    // =====================================
+
+    if (
+      currentUser.role !== "seller" &&
+      currentUser.role !== "admin"
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Hanya pemilik UMKM yang dapat membuat postingan."
+        },
+        {
+          status: 403,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    // =====================================
+    // STORE
+    // =====================================
+
+    const stores =
+      await sql`
+        SELECT
+          id
+
+        FROM
+          stores
+
+        WHERE
+          owner_id =
+            ${currentUser.id}
+
+          AND
+          is_active = TRUE
+
+        LIMIT 1
+      `;
+
+
+    if (
+      stores.length === 0
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "UMKM belum ditemukan."
+        },
+        {
+          status: 403,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const store =
+      stores[0];
+
+
+    // =====================================
+    // BODY
+    // =====================================
+
+    const body =
+      await request
+        .json()
+        .catch(
+          () => null
+        );
+
+
+    if (!body) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Data postingan tidak valid."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const caption =
+      String(
+        body.caption ||
+        ""
+      ).trim();
+
+
+    const imageUrl =
+      String(
+        body.image_url ||
+        ""
+      ).trim();
+
+
+    // =====================================
+    // VALIDATION
+    // =====================================
+
+    if (
+      caption.length < 1
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Caption postingan wajib diisi."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    if (
+      caption.length > 1000
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Caption maksimal 1000 karakter."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    if (
+      !imageUrl.startsWith(
+        "https://res.cloudinary.com/"
+      )
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "URL foto postingan tidak valid."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    // =====================================
+    // CREATE POST
+    // =====================================
+
+    const posts =
+      await sql`
+        INSERT INTO posts (
+          store_id,
+          caption,
+          image_url,
+          is_active
+        )
+
+        VALUES (
+          ${store.id},
+          ${caption},
+          ${imageUrl},
+          TRUE
+        )
+
+        RETURNING
+          id,
+          store_id,
+          caption,
+          image_url,
+          is_active,
+          created_at,
+          updated_at
+      `;
+
+
+    return Response.json(
+      {
+        ok: true,
+
+        message:
+          "Postingan berhasil diterbitkan.",
+
+        post:
+          posts[0]
+      },
+      {
+        status: 201,
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Posts POST error:",
+      error
+    );
+
+
+    return Response.json(
+      {
+        ok: false,
+        error:
+          "Gagal membuat postingan."
+      },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+
+  }
+}
     // ========================================
     // API 404
     // ========================================
