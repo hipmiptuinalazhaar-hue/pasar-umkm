@@ -2434,6 +2434,166 @@ function openAccountPostViewer(
   });
 }
 
+function openSellerPostViewer(
+  storeId,
+  selectedPostId
+) {
+  storeId =
+    String(storeId || '');
+
+  selectedPostId =
+    String(selectedPostId || '');
+
+
+  if (!storeId || !DOM.feed) {
+    showToast(
+      'Postingan tidak tersedia.'
+    );
+    return;
+  }
+
+
+  const store =
+    getStores().find(
+      item =>
+        String(item.id) ===
+        storeId
+    );
+
+
+  const posts =
+    DATA.posts.filter(post =>
+      !post.product &&
+      String(
+        post.store?.id || ''
+      ) === storeId
+    );
+
+
+  if (!posts.length) {
+    showToast(
+      'UMKM ini belum memiliki postingan.'
+    );
+    return;
+  }
+
+
+  const selectedIndex =
+    posts.findIndex(
+      post =>
+        String(post.id) ===
+        selectedPostId
+    );
+
+
+  /*
+   * Mulai dari postingan yang diklik,
+   * lalu hanya lanjut ke postingan
+   * yang lebih lama.
+   */
+  const orderedPosts =
+    selectedIndex >= 0
+      ? posts.slice(selectedIndex)
+      : posts;
+
+
+  STATE.activeNav =
+    'home';
+
+  updateNavigation();
+
+
+  const app =
+    document.querySelector('.app');
+
+  app?.classList.add(
+    'account-profile-active'
+  );
+
+
+  if (DOM.storiesSection) {
+    DOM.storiesSection.hidden =
+      true;
+  }
+
+
+  if (DOM.homeDiscovery) {
+    DOM.homeDiscovery.hidden =
+      true;
+  }
+
+
+  DOM.feed.innerHTML = `
+    <section
+      class="
+        post-viewer-page
+        public-seller-post-viewer
+      "
+      data-store-id="${escapeHTML(
+        storeId
+      )}"
+    >
+
+      <header class="post-viewer-header">
+
+        <button
+          type="button"
+          class="post-viewer-back"
+          data-action="seller-profile"
+          data-store-id="${escapeHTML(
+            storeId
+          )}"
+          aria-label="Kembali ke profil UMKM"
+        >
+          <i class="ph ph-arrow-left"></i>
+        </button>
+
+
+        <div class="post-viewer-header-copy">
+
+          <strong>
+            Postingan
+          </strong>
+
+          <span>
+            ${escapeHTML(
+              store?.name ||
+              'UMKM Lokal'
+            )}
+          </span>
+
+        </div>
+
+      </header>
+
+
+      <div class="post-viewer-list">
+
+        ${orderedPosts
+          .map(post => `
+            <div
+              class="post-viewer-item"
+              data-viewer-post-id="${escapeHTML(
+                post.id || ''
+              )}"
+            >
+              ${createPostTemplate(post)}
+            </div>
+          `)
+          .join('')}
+
+      </div>
+
+    </section>
+  `;
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: 'auto'
+  });
+}
+
 /* =========================================================
    28. MENU ROUTER
    ========================================================= */
