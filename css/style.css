@@ -16840,3 +16840,40 @@ i {
   }
 
 }
+/* =========================================================
+   PASAR UMKM - HOME VERTICAL RHYTHM FIX
+   Category -> Feed
+   ========================================================= */
+
+#homeDiscovery {
+  min-height: 0 !important;
+
+  margin-bottom:
+    0 !important;
+
+  padding-bottom:
+    0 !important;
+}
+
+
+#homeDiscovery
+.quick-categories {
+  margin-bottom:
+    18px !important;
+}
+
+
+#feed.feed {
+  margin-top:
+    0 !important;
+
+  padding-top:
+    0 !important;
+}
+
+
+#feed
+.market-feed-head {
+  margin-top:
+    0 !important;
+}
