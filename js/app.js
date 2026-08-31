@@ -9273,10 +9273,60 @@ function renderSearchResults(query) {
     .join('');
 
 
-  DOM.searchResults.innerHTML =
-    categoryHTML +
-    postHTML;
-}
+  DOM.searchResults.innerHTML = `
+  ${
+    categoryHTML
+      ? `
+          <section class="search-result-group">
+
+            <div class="search-result-group-head">
+
+              <span>
+                Kategori
+              </span>
+
+              <small>
+                ${matchedCategories.length}
+              </small>
+
+            </div>
+
+            <div class="search-result-group-list">
+              ${categoryHTML}
+            </div>
+
+          </section>
+        `
+      : ''
+  }
+
+
+  ${
+    postHTML
+      ? `
+          <section class="search-result-group">
+
+            <div class="search-result-group-head">
+
+              <span>
+                Produk
+              </span>
+
+              <small>
+                ${matchedPosts.length}
+              </small>
+
+            </div>
+
+            <div class="search-result-group-list">
+              ${postHTML}
+            </div>
+
+          </section>
+        `
+      : ''
+  }
+`;
 
 
 function clearSearch() {
