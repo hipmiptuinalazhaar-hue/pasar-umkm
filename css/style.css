@@ -17604,3 +17604,174 @@ img {
     margin: 0 auto !important;
   }
 }
+
+/* =========================================================
+   PASAR UMKM - PREMIUM SEARCH RESULTS
+   Search only
+   ========================================================= */
+
+
+/* RESULT ITEM */
+
+#searchOverlay
+.search-results
+> .menu-sheet-btn {
+  min-height:
+    56px;
+
+  margin:
+    0
+    0
+    8px;
+
+  padding:
+    8px
+    12px;
+
+  display: flex;
+
+  align-items:
+    center;
+
+  gap:
+    11px;
+
+  border:
+    1px solid
+    rgba(22, 61, 45, 0.07);
+
+  border-radius:
+    14px;
+
+  background:
+    #fffdfa;
+
+  color:
+    #253229;
+
+  font-size:
+    11px;
+
+  line-height:
+    1.35;
+
+  font-weight:
+    700;
+
+  box-shadow:
+    none;
+
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    transform 120ms ease;
+}
+
+
+/* ICON TILE */
+
+#searchOverlay
+.search-results
+> .menu-sheet-btn
+> i {
+  width:
+    36px;
+
+  height:
+    36px;
+
+  flex:
+    0 0
+    36px;
+
+  display:
+    grid;
+
+  place-items:
+    center;
+
+  border-radius:
+    11px;
+
+  background:
+    rgba(23, 107, 74, 0.07);
+
+  color:
+    #176b4a;
+
+  font-size:
+    17px;
+
+  text-align:
+    center;
+}
+
+
+/* =========================================================
+   CATEGORY RESULT
+   ========================================================= */
+
+#searchOverlay
+.search-results
+> .menu-sheet-btn[data-action="category"]
+> i {
+  background:
+    #f5f0e5;
+
+  color:
+    #a37e31;
+}
+
+
+/* =========================================================
+   PRODUCT / POST RESULT
+   ========================================================= */
+
+#searchOverlay
+.search-results
+> .menu-sheet-btn[data-action="search-post"]
+> i {
+  background:
+    rgba(23, 107, 74, 0.075);
+
+  color:
+    #176b4a;
+}
+
+
+/* INTERACTION */
+
+#searchOverlay
+.search-results
+> .menu-sheet-btn:active {
+  transform:
+    scale(0.985);
+}
+
+
+@media (hover: hover) {
+
+  #searchOverlay
+  .search-results
+  > .menu-sheet-btn:hover {
+    background:
+      #f8f6f0;
+
+    border-color:
+      rgba(23, 107, 74, 0.14);
+
+    color:
+      #17231d;
+  }
+
+}
+
+
+/* ITEM TERAKHIR */
+
+#searchOverlay
+.search-results
+> .menu-sheet-btn:last-child {
+  margin-bottom:
+    0;
+}
