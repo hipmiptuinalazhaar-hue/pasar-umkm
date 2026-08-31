@@ -275,108 +275,255 @@ async function loadInitialData() {
    */
   await loadStores();
 
-/*
- * 4. Ambil produk publik dari Neon.
- */
-const productsResponse =
-  await fetch(
-    '/api/products',
-    {
-      method: 'GET',
+  /*
+   * 4. Ambil produk dan postingan publik dari Neon.
+   */
+  const [
+    productsResponse,
+    postsResponse
+  ] = await Promise.all([
+    fetch(
+      '/api/products',
+      {
+        method: 'GET',
 
-      credentials:
-        'include',
+        credentials:
+          'include',
 
-      headers: {
-        Accept:
-          'application/json'
-      },
+        headers: {
+          Accept:
+            'application/json'
+        },
 
-      cache:
-        'no-store'
+        cache:
+          'no-store'
+      }
+    ),
+
+    fetch(
+      '/api/posts',
+      {
+        method: 'GET',
+
+        credentials:
+          'include',
+
+        headers: {
+          Accept:
+            'application/json'
+        },
+
+        cache:
+          'no-store'
+      }
+    )
+  ]);
+
+
+  const feedItems = [];
+
+
+  // ==========================================
+  // PRODUCTS
+  // ==========================================
+
+  if (productsResponse.ok) {
+    const productsData =
+      await productsResponse.json();
+
+
+    if (
+      productsData.ok === true &&
+      Array.isArray(
+        productsData.products
+      )
+    ) {
+      const productPosts =
+        productsData.products.map(
+          product => ({
+            id:
+              `product-${product.id}`,
+
+            store: {
+              id:
+                product.store_id,
+
+              name:
+                product.store_name ||
+                'UMKM Lokal',
+
+              avatar:
+                product.store_logo_url ||
+                ASSETS.logo,
+
+              location:
+                CONFIG.CITY,
+
+              verified:
+                product.store_verification_status ===
+                'verified'
+            },
+
+            caption:
+              product.description ||
+              '',
+
+            createdAt:
+              product.created_at,
+
+            product: {
+              id:
+                product.id,
+
+              name:
+                product.name,
+
+              image:
+                product.image_url ||
+                ASSETS.logo,
+
+              category:
+                product.category_name ||
+                '',
+
+              categoryId:
+                product.category_id ||
+                '',
+
+              price:
+                Number(
+                  product.price || 0
+                ),
+
+              stock:
+                Number(
+                  product.stock || 0
+                ),
+
+              unit:
+                product.unit ||
+                ''
+            }
+          })
+        );
+
+
+      feedItems.push(
+        ...productPosts
+      );
+    }
+  }
+
+
+  // ==========================================
+  // POSTS
+  // ==========================================
+
+  if (postsResponse.ok) {
+    const postsData =
+      await postsResponse.json();
+
+
+    if (
+      postsData.ok === true &&
+      Array.isArray(
+        postsData.posts
+      )
+    ) {
+      const publicPosts =
+        postsData.posts.map(
+          post => {
+            const location =
+              [
+                post.store_district,
+                post.store_city
+              ]
+                .filter(Boolean)
+                .join(', ') ||
+              CONFIG.CITY;
+
+
+            return {
+              id:
+                `post-${post.id}`,
+
+              store: {
+                id:
+                  post.store_id,
+
+                name:
+                  post.store_name ||
+                  'UMKM Lokal',
+
+                avatar:
+                  post.store_logo_url ||
+                  ASSETS.logo,
+
+                location,
+
+                verified:
+                  post.store_verification_status ===
+                  'verified'
+              },
+
+              location,
+
+              caption:
+                post.caption ||
+                '',
+
+              createdAt:
+                post.created_at,
+
+              media: {
+                type:
+                  'image',
+
+                src:
+                  post.image_url,
+
+                alt:
+                  post.caption ||
+                  `Postingan ${post.store_name || 'UMKM'}`
+              },
+
+              likesCount: 0,
+              commentsCount: 0
+            };
+          }
+        );
+
+
+      feedItems.push(
+        ...publicPosts
+      );
+    }
+  }
+
+
+  // ==========================================
+  // SORT FEED TERBARU
+  // ==========================================
+
+  feedItems.sort(
+    (a, b) => {
+      const dateA =
+        new Date(
+          a.createdAt || 0
+        ).getTime();
+
+      const dateB =
+        new Date(
+          b.createdAt || 0
+        ).getTime();
+
+      return dateB - dateA;
     }
   );
 
 
-if (productsResponse.ok) {
-  const productsData =
-    await productsResponse.json();
-
-
-  if (
-    productsData.ok === true &&
-    Array.isArray(
-      productsData.products
-    )
-  ) {
-    DATA.posts =
-      productsData.products.map(
-        product => ({
-          id:
-            `product-${product.id}`,
-
-          store: {
-            id:
-              product.store_id,
-
-            name:
-              product.store_name ||
-              'UMKM Lokal',
-
-            avatar:
-              ASSETS.logo,
-
-            location:
-              CONFIG.CITY,
-
-            verified:
-              false
-          },
-
-          caption:
-            product.description ||
-            '',
-
-          createdAt:
-            product.created_at,
-
-          product: {
-            id:
-              product.id,
-
-            name:
-              product.name,
-
-            image:
-              product.image_url ||
-              ASSETS.logo,
-
-            category:
-              product.category_name ||
-              '',
-
-            categoryId:
-              product.category_id ||
-              '',
-
-            price:
-              Number(
-                product.price || 0
-              ),
-
-            stock:
-              Number(
-                product.stock || 0
-              ),
-
-            unit:
-              product.unit || ''
-          }
-        })
-      );
-  }
-}
-   
+  DATA.posts =
+    feedItems;
   /*
    * Data marketplace lainnya seperti
    * posts, messages, notifications,
