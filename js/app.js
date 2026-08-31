@@ -2208,6 +2208,13 @@ case 'seller-share':
         );
         break;
 
+        case 'seller-post-open':
+  openSellerPostViewer(
+    element.dataset.storeId,
+    postId
+  );
+  break;
+
     case 'login':
       openLogin();
       break;
