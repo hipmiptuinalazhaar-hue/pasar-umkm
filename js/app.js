@@ -9540,6 +9540,15 @@ function clearSearch() {
    ========================================================= */
 
 function openNotifications() {
+   if (!STATE.user) {
+  showToast(
+    'Masuk terlebih dahulu untuk melihat notifikasi.'
+  );
+
+  openLogin();
+
+  return;
+}
   if (!DATA.notifications.length) {
     openBottomSheet(
       `
