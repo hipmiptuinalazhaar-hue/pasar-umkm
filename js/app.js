@@ -6426,6 +6426,115 @@ function openPostCreateInfo() {
 /* =========================================================
    PRODUCT CREATE FORM
    ========================================================= */
+/* =========================================================
+   43. SELL
+   ========================================================= */
+
+function openSell() {
+
+  if (!STATE.user) {
+
+    showToast(
+      'Masuk untuk mulai menjual.'
+    );
+
+    openLogin();
+
+    return;
+  }
+
+
+  if (
+    STATE.user.role !== 'seller' &&
+    STATE.user.role !== 'admin'
+  ) {
+
+    renderStoreRegistrationForm();
+
+    return;
+  }
+
+
+  openBottomSheet(
+    `
+      <h2 id="sheetTitle">
+        Pusat Penjual
+      </h2>
+
+
+      <section class="side-account">
+
+        <div class="side-account-user-main">
+
+          <div class="side-account-avatar">
+
+            <i
+              class="ph ph-storefront"
+              aria-hidden="true"
+            ></i>
+
+          </div>
+
+
+          <div class="side-account-user-info">
+
+            <strong class="side-account-user-name">
+              Pusat Penjual
+            </strong>
+
+            <span class="side-account-user-role">
+              Kelola UMKM dan produk Anda
+            </span>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <button
+        type="button"
+        class="menu-sheet-btn"
+        data-action="product-create"
+      >
+
+        <i class="ph ph-plus-circle"></i>
+
+        Tambah Produk
+
+      </button>
+
+
+      <button
+        type="button"
+        class="menu-sheet-btn"
+        data-action="post-create"
+      >
+
+        <i class="ph ph-camera"></i>
+
+        Buat Postingan
+
+      </button>
+
+
+      <button
+        type="button"
+        class="menu-sheet-btn"
+        data-menu-action="store"
+      >
+
+        <i class="ph ph-storefront"></i>
+
+        Kelola Toko
+
+      </button>
+    `,
+    'sell'
+  );
+}
+
 
 function openProductCreateForm() {
   if (
