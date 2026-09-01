@@ -7,18 +7,22 @@ import { handleNotificationApi } from "./notification-api.js";
 import { handleEngagementApi } from "./engagement-api.js";
 import { handleFunctionalityApi } from "./functionality-api.js";
 import { ensureNotificationInfrastructure } from "./notification-store.js";
+import { ensureFullFunctionalityInfrastructure } from "./functionality-bootstrap.js";
 
 export default {
   async fetch(request, env, ctx) {
     /*
-     * Trigger notifikasi disiapkan sebelum API lain menulis aktivitas.
-     * Kegagalan bootstrap notifikasi tidak boleh menjatuhkan marketplace.
+     * Bootstrap berurutan. Notifikasi menyiapkan kolom dasar,
+     * lalu functionality memperkaya trigger reply, message,
+     * saved, stories, dan commerce. Gagal bootstrap tidak boleh
+     * menjatuhkan route marketplace lama.
      */
     try {
       await ensureNotificationInfrastructure(env);
+      await ensureFullFunctionalityInfrastructure(env);
     } catch (error) {
       console.error(
-        "Notification infrastructure bootstrap error:",
+        "Application infrastructure bootstrap error:",
         error
       );
     }
