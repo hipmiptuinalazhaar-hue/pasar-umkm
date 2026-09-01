@@ -637,7 +637,23 @@ export default {
                 AS image_url,
 
               p.is_featured,
-              p.created_at
+
+(
+  SELECT
+    COUNT(*)::int
+
+  FROM
+    product_comments pc
+
+  WHERE
+    pc.product_id = p.id
+
+    AND
+    pc.is_active = TRUE
+)
+  AS comments_count,
+
+p.created_at
 
             FROM
               products p
