@@ -1,0 +1,204 @@
+/* =========================================================
+   PASAR UMKM - PREMIUM PROFILE SYSTEM
+   Unified profile shell for buyer, seller, and public seller.
+   ========================================================= */
+
+.social-account-page {
+  background: #ffffff;
+}
+
+.social-account-page .social-account-topbar {
+  position: relative;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 14px;
+  border-bottom: 1px solid rgba(15, 25, 30, 0.055);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Username akun sendiri benar-benar di tengah. */
+.social-account-page:not(.public-seller-profile)
+.social-account-username {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(55vw, 260px);
+  text-align: center;
+  pointer-events: none;
+}
+
+.social-account-page:not(.public-seller-profile)
+.social-account-username strong {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #17201b;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.social-account-page .social-account-top-actions {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.social-account-page .social-account-header {
+  padding-top: 20px;
+  padding-bottom: 18px;
+  border-bottom: 0;
+  background:
+    radial-gradient(
+      circle at 15% 0%,
+      rgba(18, 96, 63, 0.055),
+      transparent 34%
+    ),
+    #ffffff;
+}
+
+.social-account-page .social-account-avatar {
+  border: 3px solid #ffffff;
+  box-shadow:
+    0 0 0 1px rgba(18, 96, 63, 0.12),
+    0 10px 24px rgba(15, 30, 22, 0.10);
+}
+
+.social-account-page .social-account-avatar img {
+  object-fit: cover;
+}
+
+.social-account-page .social-account-stats {
+  align-self: stretch;
+  align-items: center;
+}
+
+.social-account-page .social-account-stat strong {
+  font-size: 17px;
+  font-weight: 850;
+  color: #17201b;
+}
+
+.social-account-page .social-account-stat span {
+  margin-top: 4px;
+  color: rgba(23, 32, 27, 0.50);
+}
+
+.social-account-page .social-account-bio {
+  margin-top: 18px;
+}
+
+.social-account-page .social-account-name {
+  font-size: 17px;
+  line-height: 1.2;
+}
+
+.social-account-page .social-account-role {
+  margin-top: 5px;
+  font-size: 10px;
+  color: rgba(23, 32, 27, 0.50);
+}
+
+.social-account-page .social-account-description {
+  margin-top: 11px;
+  max-width: 620px;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: #465149;
+}
+
+.social-account-page .social-account-seller-badge,
+.social-account-page .social-account-status {
+  width: fit-content;
+  max-width: 100%;
+  border-radius: 999px;
+}
+
+.social-account-page .social-account-actions {
+  margin-top: 17px;
+}
+
+.social-account-page .social-account-action {
+  min-height: 42px;
+  border-radius: 13px;
+  background: #f7f9f8;
+  border-color: rgba(15, 25, 30, 0.07);
+}
+
+.social-account-page .social-account-commerce {
+  margin: 0 14px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(18, 96, 63, 0.08);
+  box-shadow: 0 7px 22px rgba(15, 30, 22, 0.04);
+}
+
+.social-account-page .social-account-highlights {
+  border-top: 1px solid rgba(15, 25, 30, 0.04);
+}
+
+.social-account-page .social-account-highlight {
+  box-shadow: 0 4px 14px rgba(15, 30, 22, 0.025);
+}
+
+.social-account-page .social-account-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Public seller uses the same visual grammar as own account. */
+.public-seller-profile .social-account-topbar {
+  justify-content: space-between;
+}
+
+.public-seller-profile .social-account-topbar > strong,
+.public-seller-profile .social-account-topbar .social-account-username {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(54vw, 260px);
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.public-seller-profile .social-account-header {
+  padding-top: 22px;
+}
+
+.public-seller-profile .social-account-avatar {
+  width: 84px;
+  height: 84px;
+}
+
+@media (max-width: 430px) {
+  .social-account-page .social-account-topbar {
+    min-height: 54px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .social-account-page .social-account-header {
+    padding-top: 17px;
+  }
+
+  .social-account-page .social-account-name {
+    font-size: 16px;
+  }
+
+  .social-account-page .social-account-stat strong {
+    font-size: 16px;
+  }
+}
