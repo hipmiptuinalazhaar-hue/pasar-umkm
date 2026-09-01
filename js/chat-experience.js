@@ -7,6 +7,7 @@
     activeConversationId: '',
     metaLoading: false,
     metaTimer: null,
+    listTimer: null,
     longPressTimer: null,
     pressStartX: 0,
     pressStartY: 0,
@@ -55,10 +56,28 @@
     return data;
   }
 
+  function syncViewport() {
+    const viewport = window.visualViewport;
+    const height = Math.max(
+      320,
+      Math.round(viewport?.height || window.innerHeight || 720)
+    );
+
+    document.documentElement.style.setProperty(
+      '--chat-visual-height',
+      `${height}px`
+    );
+  }
+
   function setChatShellState() {
     const app = document.querySelector('.app');
     const thread = document.querySelector('.social-conversation-page');
-    app?.classList.toggle('chat-thread-active', Boolean(thread));
+    const active = Boolean(thread);
+
+    app?.classList.toggle('chat-thread-active', active);
+    document.body.classList.toggle('chat-thread-body', active);
+
+    if (active) syncViewport();
   }
 
   async function resolveActiveConversationId() {
@@ -87,63 +106,6 @@
     }
   }
 
-  function removeStateDecorations(row) {
-    row.classList.remove('is-pinned', 'is-archived');
-    row.querySelector('.chat-message-state')?.remove();
-  }
-
-  function decorateMessageRow(row, meta) {
-    if (!row || !meta) return;
-
-    row.dataset.messageId = String(meta.id || '');
-    row.dataset.messagePinned = meta.viewer_pinned ? 'true' : 'false';
-    row.dataset.messageArchived = meta.viewer_archived ? 'true' : 'false';
-
-    removeStateDecorations(row);
-
-    if (meta.viewer_pinned) row.classList.add('is-pinned');
-    if (meta.viewer_archived) row.classList.add('is-archived');
-
-    if (meta.viewer_pinned || meta.viewer_archived) {
-      const state = document.createElement('span');
-      state.className = 'chat-message-state';
-      state.innerHTML = [
-        meta.viewer_pinned ? '<i class="ph-fill ph-push-pin"></i> Disematkan' : '',
-        meta.viewer_archived ? '<i class="ph ph-archive"></i> Diarsipkan' : ''
-      ].filter(Boolean).join(' · ');
-      row.querySelector('.social-message-bubble')?.appendChild(state);
-    }
-  }
-
-  function updatePinnedBanner(messages) {
-    const page = document.querySelector('.social-conversation-page');
-    if (!page) return;
-
-    page.querySelector('.chat-pinned-banner')?.remove();
-
-    const pinned = (messages || []).filter(item => item.viewer_pinned);
-    if (!pinned.length) return;
-
-    const banner = document.createElement('button');
-    banner.type = 'button';
-    banner.className = 'chat-pinned-banner';
-    banner.innerHTML = `
-      <i class="ph-fill ph-push-pin"></i>
-      <span>${pinned.length} pesan disematkan</span>
-      <i class="ph ph-caret-down"></i>
-    `;
-
-    const topbar = page.querySelector('.social-page-topbar');
-    topbar?.insertAdjacentElement('afterend', banner);
-
-    banner.addEventListener('click', () => {
-      const targetId = String(pinned[pinned.length - 1]?.id || '');
-      page
-        .querySelector(`.social-message-row[data-message-id="${CSS.escape(targetId)}"]`)
-        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-  }
-
   async function syncThreadMeta() {
     if (CHAT.metaLoading) return;
     const page = document.querySelector('.social-conversation-page');
@@ -164,16 +126,18 @@
 
       const rows = [...page.querySelectorAll('.social-message-row')];
       const messages = Array.isArray(data.messages) ? data.messages : [];
+      const currentUserId = String(data.current_user_id || STATE.user?.id || '');
       const count = Math.min(rows.length, messages.length);
 
       for (let offset = 1; offset <= count; offset += 1) {
-        decorateMessageRow(
-          rows[rows.length - offset],
-          messages[messages.length - offset]
-        );
+        const row = rows[rows.length - offset];
+        const meta = messages[messages.length - offset];
+        row.dataset.messageId = String(meta.id || '');
+        row.dataset.messageMine =
+          String(meta.sender_id || '') === currentUserId
+            ? 'true'
+            : 'false';
       }
-
-      updatePinnedBanner(messages);
     } catch (error) {
       console.error('[Pasar UMKM] Sync message meta error:', error);
     } finally {
@@ -183,7 +147,75 @@
 
   function scheduleThreadMeta() {
     clearTimeout(CHAT.metaTimer);
-    CHAT.metaTimer = setTimeout(syncThreadMeta, 120);
+    CHAT.metaTimer = setTimeout(syncThreadMeta, 100);
+  }
+
+  async function syncConversationListState() {
+    const page = document.querySelector('.social-messages-page');
+    const list = page?.querySelector('.social-messages-list');
+    if (!list) return;
+
+    try {
+      const data = await api('/api/social/conversations');
+      const conversations = Array.isArray(data.conversations)
+        ? data.conversations
+        : [];
+
+      const rowMap = new Map(
+        [...list.querySelectorAll('.social-conversation-row')]
+          .map(row => [String(row.dataset.conversationId || ''), row])
+      );
+
+      const activeRows = [];
+      const archivedRows = [];
+
+      for (const conversation of conversations) {
+        const id = String(conversation.id || '');
+        const row = rowMap.get(id);
+        if (!row) continue;
+
+        row.dataset.conversationPinned = conversation.viewer_pinned ? 'true' : 'false';
+        row.dataset.conversationArchived = conversation.viewer_archived ? 'true' : 'false';
+        row.classList.toggle('is-pinned', Boolean(conversation.viewer_pinned));
+        row.classList.toggle('is-archived', Boolean(conversation.viewer_archived));
+
+        if (conversation.viewer_archived) {
+          archivedRows.push(row);
+        } else {
+          activeRows.push(row);
+        }
+      }
+
+      list.innerHTML = '';
+
+      const activeWrap = document.createElement('div');
+      activeWrap.className = 'chat-active-conversations';
+      activeRows.forEach(row => activeWrap.appendChild(row));
+      list.appendChild(activeWrap);
+
+      if (archivedRows.length) {
+        const archive = document.createElement('details');
+        archive.className = 'chat-archived-section';
+        archive.innerHTML = `
+          <summary>
+            <span><i class="ph ph-archive"></i> Diarsipkan</span>
+            <strong>${archivedRows.length}</strong>
+          </summary>
+          <div class="chat-archived-list"></div>
+        `;
+
+        const archiveList = archive.querySelector('.chat-archived-list');
+        archivedRows.forEach(row => archiveList.appendChild(row));
+        list.appendChild(archive);
+      }
+    } catch (error) {
+      console.error('[Pasar UMKM] Sync conversation state error:', error);
+    }
+  }
+
+  function scheduleConversationState() {
+    clearTimeout(CHAT.listTimer);
+    CHAT.listTimer = setTimeout(syncConversationListState, 120);
   }
 
   function openSheet(html, key) {
@@ -200,32 +232,45 @@
     const conversationId = String(row?.dataset?.conversationId || '').trim();
     if (!conversationId) return;
 
-    const name = row.querySelector('.social-conversation-copy strong')?.textContent?.trim() || 'percakapan';
+    const name = row.querySelector('.social-conversation-copy strong')
+      ?.textContent?.trim() || 'percakapan';
+    const pinned = row.dataset.conversationPinned === 'true';
+    const archived = row.dataset.conversationArchived === 'true';
 
     openSheet(
       `
         <section class="chat-action-sheet">
           <h2 id="sheetTitle">${esc(name)}</h2>
-          <p class="chat-action-hint">Pilih tindakan untuk percakapan ini.</p>
+          <p class="chat-action-hint">Kelola percakapan ini.</p>
 
           <button
             type="button"
             class="menu-sheet-btn"
-            data-chat-action="conversation-delete-me"
+            data-chat-action="conversation-${pinned ? 'unpin' : 'pin'}"
             data-conversation-id="${esc(conversationId)}"
           >
-            <i class="ph ph-trash"></i>
-            Hapus untuk saya
+            <i class="ph ph-push-pin"></i>
+            ${pinned ? 'Lepas sematan' : 'Sematkan'}
+          </button>
+
+          <button
+            type="button"
+            class="menu-sheet-btn"
+            data-chat-action="conversation-${archived ? 'unarchive' : 'archive'}"
+            data-conversation-id="${esc(conversationId)}"
+          >
+            <i class="ph ph-archive"></i>
+            ${archived ? 'Keluarkan dari arsip' : 'Arsipkan'}
           </button>
 
           <button
             type="button"
             class="menu-sheet-btn chat-danger-action"
-            data-chat-action="conversation-delete-everyone"
+            data-chat-action="conversation-delete-me"
             data-conversation-id="${esc(conversationId)}"
           >
-            <i class="ph ph-trash-simple"></i>
-            Hapus untuk semua
+            <i class="ph ph-trash"></i>
+            Hapus pesan
           </button>
         </section>
       `,
@@ -237,47 +282,38 @@
     const messageId = String(row?.dataset?.messageId || '').trim();
     if (!messageId) {
       scheduleThreadMeta();
-      toast('Tahan pesan sekali lagi setelah data chat dimuat.');
+      toast('Tahan pesan sekali lagi setelah data pesan dimuat.');
       return;
     }
 
-    const pinned = row.dataset.messagePinned === 'true';
-    const archived = row.dataset.messageArchived === 'true';
+    const mine = row.dataset.messageMine === 'true';
 
     openSheet(
       `
         <section class="chat-action-sheet">
-          <h2 id="sheetTitle">Tindakan Pesan</h2>
+          <h2 id="sheetTitle">Hapus Pesan</h2>
 
           <button
             type="button"
             class="menu-sheet-btn"
-            data-chat-action="message-${pinned ? 'unpin' : 'pin'}"
-            data-message-id="${esc(messageId)}"
-          >
-            <i class="ph ph-push-pin"></i>
-            ${pinned ? 'Lepas sematan' : 'Sematkan'}
-          </button>
-
-          <button
-            type="button"
-            class="menu-sheet-btn"
-            data-chat-action="message-${archived ? 'unarchive' : 'archive'}"
-            data-message-id="${esc(messageId)}"
-          >
-            <i class="ph ph-archive"></i>
-            ${archived ? 'Keluarkan dari arsip' : 'Arsipkan'}
-          </button>
-
-          <button
-            type="button"
-            class="menu-sheet-btn chat-danger-action"
             data-chat-action="message-delete-me"
             data-message-id="${esc(messageId)}"
           >
             <i class="ph ph-trash"></i>
-            Hapus pesan
+            Hapus untuk saya
           </button>
+
+          ${mine ? `
+            <button
+              type="button"
+              class="menu-sheet-btn chat-danger-action"
+              data-chat-action="message-delete-everyone"
+              data-message-id="${esc(messageId)}"
+            >
+              <i class="ph ph-trash-simple"></i>
+              Hapus untuk semua
+            </button>
+          ` : ''}
         </section>
       `,
       'chat-message-actions'
@@ -309,14 +345,14 @@
       CHAT.longPressTimer = null;
       CHAT.suppressClickUntil = Date.now() + 900;
 
-      if (navigator.vibrate) navigator.vibrate(35);
+      if (navigator.vibrate) navigator.vibrate(30);
 
       if (target.classList.contains('social-conversation-row')) {
         conversationMenu(target);
       } else {
         messageMenu(target);
       }
-    }, 560);
+    }, 520);
   }
 
   function moveLongPress(event) {
@@ -328,13 +364,6 @@
   }
 
   async function conversationAction(conversationId, action) {
-    if (action === 'delete_everyone') {
-      const confirmed = window.confirm(
-        'Hapus seluruh percakapan untuk kedua akun? Tindakan ini tidak dapat dibatalkan.'
-      );
-      if (!confirmed) return;
-    }
-
     try {
       await api(
         `/api/chat/conversations/${encodeURIComponent(conversationId)}/action`,
@@ -342,23 +371,36 @@
       );
 
       closeSheet();
-      document
-        .querySelector(`.social-conversation-row[data-conversation-id="${CSS.escape(conversationId)}"]`)
-        ?.remove();
 
       toast(
-        action === 'delete_everyone'
-          ? 'Percakapan dihapus untuk semua.'
-          : 'Percakapan dihapus dari akun Anda.'
+        action === 'pin'
+          ? 'Percakapan disematkan.'
+          : action === 'unpin'
+            ? 'Sematan percakapan dilepas.'
+            : action === 'archive'
+              ? 'Percakapan diarsipkan.'
+              : action === 'unarchive'
+                ? 'Percakapan dikembalikan dari arsip.'
+                : 'Percakapan dihapus dari akun Anda.'
       );
 
+      if (typeof window.openSocialMessages === 'function') {
+        await window.openSocialMessages();
+      }
       window.refreshSocialUnreadBadge?.();
     } catch (error) {
-      toast(error.message || 'Percakapan belum dapat dihapus.');
+      toast(error.message || 'Percakapan belum dapat diperbarui.');
     }
   }
 
   async function messageAction(messageId, action) {
+    if (action === 'delete_everyone') {
+      const confirmed = window.confirm(
+        'Hapus pesan ini untuk semua?'
+      );
+      if (!confirmed) return;
+    }
+
     try {
       await api(
         `/api/chat/messages/${encodeURIComponent(messageId)}/action`,
@@ -366,27 +408,19 @@
       );
 
       closeSheet();
+      document
+        .querySelector(`.social-message-row[data-message-id="${CSS.escape(messageId)}"]`)
+        ?.remove();
 
-      if (action === 'delete_me') {
-        document
-          .querySelector(`.social-message-row[data-message-id="${CSS.escape(messageId)}"]`)
-          ?.remove();
-        toast('Pesan dihapus dari akun Anda.');
-      } else {
-        toast(
-          action === 'pin'
-            ? 'Pesan disematkan.'
-            : action === 'unpin'
-              ? 'Sematan dilepas.'
-              : action === 'archive'
-                ? 'Pesan diarsipkan.'
-                : 'Pesan dikeluarkan dari arsip.'
-        );
-      }
+      toast(
+        action === 'delete_everyone'
+          ? 'Pesan dihapus untuk semua.'
+          : 'Pesan dihapus untuk Anda.'
+      );
 
-      await syncThreadMeta();
+      window.refreshSocialUnreadBadge?.();
     } catch (error) {
-      toast(error.message || 'Pesan belum dapat diperbarui.');
+      toast(error.message || 'Pesan belum dapat dihapus.');
     }
   }
 
@@ -416,25 +450,43 @@
       event.stopImmediatePropagation();
 
       const name = String(action.dataset.chatAction || '');
+      const conversationId = action.dataset.conversationId;
+      const messageId = action.dataset.messageId;
 
-      if (name === 'conversation-delete-me') {
-        conversationAction(action.dataset.conversationId, 'delete_me');
-      } else if (name === 'conversation-delete-everyone') {
-        conversationAction(action.dataset.conversationId, 'delete_everyone');
-      } else if (name === 'message-pin') {
-        messageAction(action.dataset.messageId, 'pin');
-      } else if (name === 'message-unpin') {
-        messageAction(action.dataset.messageId, 'unpin');
-      } else if (name === 'message-archive') {
-        messageAction(action.dataset.messageId, 'archive');
-      } else if (name === 'message-unarchive') {
-        messageAction(action.dataset.messageId, 'unarchive');
+      if (name === 'conversation-pin') {
+        conversationAction(conversationId, 'pin');
+      } else if (name === 'conversation-unpin') {
+        conversationAction(conversationId, 'unpin');
+      } else if (name === 'conversation-archive') {
+        conversationAction(conversationId, 'archive');
+      } else if (name === 'conversation-unarchive') {
+        conversationAction(conversationId, 'unarchive');
+      } else if (name === 'conversation-delete-me') {
+        conversationAction(conversationId, 'delete_me');
       } else if (name === 'message-delete-me') {
-        messageAction(action.dataset.messageId, 'delete_me');
+        messageAction(messageId, 'delete_me');
+      } else if (name === 'message-delete-everyone') {
+        messageAction(messageId, 'delete_everyone');
       }
     },
     true
   );
+
+  document.addEventListener(
+    'focusin',
+    event => {
+      if (event.target?.id === 'socialThreadInput') {
+        requestAnimationFrame(syncViewport);
+        setTimeout(syncViewport, 80);
+        setTimeout(syncViewport, 280);
+      }
+    },
+    true
+  );
+
+  window.addEventListener('resize', syncViewport, { passive: true });
+  window.visualViewport?.addEventListener('resize', syncViewport, { passive: true });
+  window.visualViewport?.addEventListener('scroll', syncViewport, { passive: true });
 
   const observer = new MutationObserver(() => {
     setChatShellState();
@@ -444,9 +496,14 @@
     } else {
       CHAT.activeConversationId = '';
     }
+
+    if (document.querySelector('.social-messages-page .social-messages-list')) {
+      scheduleConversationState();
+    }
   });
 
   observer.observe(document.body, { childList: true, subtree: true });
 
+  syncViewport();
   setChatShellState();
 })();
