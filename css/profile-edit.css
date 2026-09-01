@@ -171,6 +171,13 @@
   text-transform: uppercase;
 }
 
+.profile-edit-section-note {
+  margin: -4px 0 12px;
+  color: rgba(23, 32, 27, 0.48);
+  font-size: 9.5px;
+  line-height: 1.5;
+}
+
 .profile-edit-field + .profile-edit-field {
   margin-top: 12px;
 }
@@ -207,6 +214,25 @@
   resize: vertical;
   padding: 11px 12px;
   line-height: 1.5;
+}
+
+.profile-edit-input-shell {
+  position: relative;
+}
+
+.profile-edit-input-shell > i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  color: #12603f;
+  font-size: 17px;
+  pointer-events: none;
+}
+
+.profile-edit-input-with-icon {
+  padding-left: 39px;
 }
 
 .profile-edit-input:focus,
