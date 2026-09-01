@@ -3345,12 +3345,12 @@ async function submitComment(
     findPost(postId);
 
 
-  if (!post || post.product) {
-    showToast(
-      'Postingan tidak ditemukan.'
-    );
-    return;
-  }
+  if (!post) {
+  showToast(
+    'Postingan tidak ditemukan.'
+  );
+  return;
+}
 
 
   if (!STATE.user) {
@@ -3395,22 +3395,44 @@ async function submitComment(
   }
 
 
-  const backendPostId =
-    String(
-      post.backendId ||
-      post.id ||
-      ''
-    )
-      .replace(/^post-/, '')
-      .trim();
+ const isProductComment =
+  Boolean(
+    post.product
+  );
+
+const backendCommentId =
+  String(
+    isProductComment
+      ? post.product?.id
+      : (
+          post.backendId ||
+          post.id ||
+          ''
+        )
+  )
+    .replace(/^post-/, '')
+    .replace(/^product-/, '')
+    .trim();
 
 
-  if (!backendPostId) {
-    showToast(
-      'ID postingan tidak valid.'
-    );
-    return;
-  }
+if (!backendCommentId) {
+  showToast(
+    isProductComment
+      ? 'ID produk tidak valid.'
+      : 'ID postingan tidak valid.'
+  );
+  return;
+}
+
+
+const commentsEndpoint =
+  isProductComment
+    ? `/api/products/${encodeURIComponent(
+        backendCommentId
+      )}/comments`
+    : `/api/posts/${encodeURIComponent(
+        backendCommentId
+      )}/comments`;
 
 
   const oldText =
@@ -3432,10 +3454,8 @@ async function submitComment(
 
   try {
     const response =
-      await fetch(
-        `/api/posts/${encodeURIComponent(
-          backendPostId
-        )}/comments`,
+     await fetch(
+  commentsEndpoint,
         {
           method: 'POST',
 
