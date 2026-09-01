@@ -22159,3 +22159,128 @@ line-height:
   font-size: 10px !important;
   font-weight: 700 !important;
 }
+
+
+/* =========================================================
+   COMMENT ALIGNMENT FINAL OVERRIDE
+   Username + jam di atas
+   Isi komentar tepat di bawah username
+   ========================================================= */
+
+#bottomSheet .post-comments-sheet .post-comment-body {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 0 !important;
+
+  width: 100% !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+
+/* USERNAME + JAM */
+
+#bottomSheet .post-comments-sheet .post-comment-headline {
+  display: flex !important;
+  align-items: baseline !important;
+  justify-content: flex-start !important;
+
+  gap: 6px !important;
+
+  min-height: 0 !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  line-height: 14px !important;
+}
+
+
+#bottomSheet .post-comments-sheet .post-comment-name {
+  display: inline-block !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  font-size: 12.5px !important;
+  font-weight: 800 !important;
+
+  line-height: 14px !important;
+}
+
+
+#bottomSheet .post-comments-sheet .post-comment-time {
+  display: inline-block !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  color: #929994 !important;
+
+  font-size: 9.5px !important;
+  font-weight: 500 !important;
+
+  line-height: 14px !important;
+}
+
+
+/* ISI KOMENTAR */
+
+#bottomSheet .post-comments-sheet .post-comment-text {
+  display: block !important;
+
+  width: 100% !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  color: #252c28 !important;
+
+  font-size: 12.5px !important;
+  font-weight: 450 !important;
+
+  line-height: 15px !important;
+
+  text-align: left !important;
+  text-indent: 0 !important;
+
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere !important;
+}
+
+
+/* TOMBOL BALAS */
+
+#bottomSheet .post-comments-sheet .post-comment-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+
+  min-height: 0 !important;
+
+  margin: 2px 0 0 !important;
+  padding: 0 !important;
+}
+
+
+#bottomSheet .post-comments-sheet .post-comment-reply-button {
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  border: 0 !important;
+
+  background: transparent !important;
+
+  color: #747c76 !important;
+
+  font-size: 10px !important;
+  font-weight: 700 !important;
+
+  line-height: 12px !important;
+}
