@@ -21758,18 +21758,18 @@ strong {
 }
 
 
-/* USER + TIME */
-
-.post-comments-sheet .post-comment-headline {
+   
+  .post-comments-sheet .post-comment-headline {
   display: flex;
   align-items: baseline;
 
   gap: 5px;
 
-  margin: 0;
-  padding: 0;
-}
+  margin: 0 !important;
+  padding: 0 !important;
 
+  line-height: 1.1 !important;
+}
 
 .post-comments-sheet .post-comment-name {
   max-width: 72%;
@@ -21779,8 +21779,8 @@ strong {
   color: #171c19;
 
   font-size: 12px;
-  font-weight: 800;
-  line-height: 1.25;
+font-weight: 800;
+line-height: 1.15 !important;
 
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -21806,12 +21806,16 @@ strong {
   width: 100% !important;
 
   margin:
-    1px
-    0
-    0 !important;
+  0
+  0
+  0 !important;
 
-  padding: 0 !important;
+padding:
+  0 !important;
 
+line-height:
+  1.28 !important;
+   
   color: #252c28 !important;
 
   font-family:
@@ -21839,7 +21843,7 @@ strong {
   display: flex;
   align-items: center;
 
-  margin-top: 3px;
+  margin-top: 2px;
 }
 
 
