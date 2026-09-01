@@ -515,7 +515,10 @@ async function loadInitialData() {
               },
 
               likesCount: 0,
-              commentsCount: 0
+commentsCount:
+  Number(
+    post.comments_count || 0
+  )
             };
           }
         );
