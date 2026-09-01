@@ -3798,10 +3798,38 @@ ${
             </button>
           </div>
 
+          <div
+  class="post-comment-reply-bar"
+  hidden
+>
+  <div class="post-comment-reply-info">
+
+    <span>
+      Membalas
+    </span>
+
+    <strong
+      class="post-comment-reply-name"
+    ></strong>
+
+  </div>
+
+  <button
+    type="button"
+    class="post-comment-reply-cancel"
+    data-action="comment-reply-cancel"
+    aria-label="Batal membalas"
+  >
+    <i
+      class="ph ph-x"
+      aria-hidden="true"
+    ></i>
+  </button>
+</div>
+
 
           <div class="post-comment-compose">
-
-            <img
+          <img
               class="post-comment-own-avatar"
               src="${escapeHTML(
                 STATE.user.avatar_url ||
