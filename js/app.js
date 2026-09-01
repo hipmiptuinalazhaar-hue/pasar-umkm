@@ -6958,7 +6958,7 @@ function createSocialAccountProfileTemplate(
             <div class="social-account-stat">
 
               <strong>
-                0
+              ${getCurrentStorePostsOnly().length}
               </strong>
 
               <span>
