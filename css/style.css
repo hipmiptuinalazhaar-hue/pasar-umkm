@@ -21832,3 +21832,236 @@ strong {
   white-space: pre-wrap !important;
   overflow-wrap: anywhere !important;
 }
+
+/* BALAS */
+
+.post-comment-actions {
+  display: flex;
+  align-items: center;
+
+  margin-top: 3px;
+}
+
+
+.post-comment-reply-button {
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #778079;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+
+.post-comment-reply-button:active {
+  opacity: 0.55;
+}
+
+
+/* DELETE */
+
+.post-comments-sheet .post-comment-delete {
+  grid-column: 3;
+
+  position: static !important;
+
+  width: 26px !important;
+  height: 26px !important;
+
+  display: grid !important;
+  place-items: center !important;
+
+  margin:
+    -4px
+    0
+    0 !important;
+
+  padding: 0 !important;
+
+  color: #a0a7a2;
+
+  background: transparent !important;
+}
+
+
+.post-comments-sheet .post-comment-delete i {
+  font-size: 13px !important;
+}
+
+
+/* LIHAT BALASAN */
+
+.post-comment-replies-toggle {
+  margin:
+    2px
+    0
+    4px
+    43px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  color: #7c847e;
+
+  font-size: 10px;
+  font-weight: 650;
+
+  background: transparent;
+}
+
+
+.post-comment-replies-line {
+  width: 22px;
+  height: 1px;
+
+  background: #d9ddda;
+}
+
+
+/* CONTAINER BALASAN */
+
+.post-comment-replies {
+  margin-left: 42px;
+}
+
+
+.post-comment-replies[hidden] {
+  display: none !important;
+}
+
+
+/* BALASAN */
+
+.post-comments-sheet
+.post-comment-item.is-reply {
+  grid-template-columns:
+    28px
+    minmax(0, 1fr)
+    24px !important;
+
+  column-gap: 8px !important;
+
+  padding:
+    5px
+    0 !important;
+}
+
+
+.post-comments-sheet
+.post-comment-item.is-reply
+.post-comment-avatar {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+
+/* BAR MEMBALAS */
+
+.post-comment-reply-bar {
+  min-height: 36px;
+
+  padding:
+    7px
+    14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  border-bottom:
+    1px solid
+    rgba(15, 22, 18, 0.06);
+
+  background: #f8faf8;
+}
+
+
+.post-comment-reply-bar[hidden] {
+  display: none !important;
+}
+
+
+.post-comment-reply-info {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 4px;
+
+  color: #818982;
+
+  font-size: 10px;
+}
+
+
+.post-comment-reply-name {
+  max-width: 190px;
+
+  overflow: hidden;
+
+  color: #12603f;
+
+  font-size: 10px;
+  font-weight: 750;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+.post-comment-reply-cancel {
+  width: 26px;
+  height: 26px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+
+  color: #727a74;
+
+  background: transparent;
+}
+
+
+.post-comment-reply-cancel i {
+  font-size: 15px;
+}
+
+
+/* EMOJI DI KOMENTAR */
+
+.comment-inline-emoji {
+  display: inline-block;
+
+  width: 1.15em;
+  height: 1.15em;
+
+  margin:
+    0
+    0.04em;
+
+  vertical-align: -0.18em;
+
+  object-fit: contain;
+}
+
+
+/* JARAK THREAD */
+
+.post-comment-thread
++
+.post-comment-thread {
+  margin-top: 2px;
+}
