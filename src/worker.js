@@ -3489,7 +3489,22 @@ export default {
                 AS store_province,
 
               s.verification_status
-                AS store_verification_status
+  AS store_verification_status,
+
+(
+  SELECT
+    COUNT(*)::int
+
+  FROM
+    post_comments pc
+
+  WHERE
+    pc.post_id = p.id
+
+    AND
+    pc.is_active = TRUE
+)
+  AS comments_count
 
             FROM
               posts p
