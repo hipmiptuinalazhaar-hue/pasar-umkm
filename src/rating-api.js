@@ -123,6 +123,51 @@ async function orderRatingState(sql, orderId, userId) {
   };
 }
 
+async function notifySellerAboutRating(sql, order, user) {
+  try {
+    const sellers = await sql`
+      SELECT owner_id
+      FROM stores
+      WHERE id = ${order.store_id}
+      LIMIT 1
+    `;
+
+    if (!sellers[0]?.owner_id) {
+      return;
+    }
+
+    /*
+     * notification_type di schema hanya menerima:
+     * system, order, product, message, store.
+     * Rating toko masuk kategori store, bukan enum baru "rating".
+     */
+    await sql`
+      INSERT INTO notifications (
+        user_id, type, title, message,
+        target_type, target_id,
+        actor_user_id, entity_type, entity_id,
+        is_read, created_at
+      )
+      VALUES (
+        ${sellers[0].owner_id},
+        'store',
+        'Rating baru',
+        ${`${user.name || "Pembeli"} memberikan rating untuk pesanan ${order.order_number}.`},
+        'profile',
+        ${user.id},
+        ${user.id},
+        'profile',
+        ${user.id},
+        FALSE,
+        NOW()
+      )
+    `;
+  } catch (notificationError) {
+    /* Rating utama tetap sukses walau notifikasi tambahan gagal. */
+    console.error("Rating notification error:", notificationError);
+  }
+}
+
 async function handleOrderRating(sql, request, url) {
   const match = url.pathname.match(/^\/api\/ratings\/order\/([0-9a-f-]{36})$/i);
   if (!match) return null;
@@ -217,36 +262,7 @@ async function handleOrderRating(sql, request, url) {
     `;
   }
 
-  const sellers = await sql`
-    SELECT owner_id
-    FROM stores
-    WHERE id = ${order.store_id}
-    LIMIT 1
-  `;
-
-  if (sellers[0]?.owner_id) {
-    await sql`
-      INSERT INTO notifications (
-        user_id, type, title, message,
-        target_type, target_id,
-        actor_user_id, entity_type, entity_id,
-        is_read, created_at
-      )
-      VALUES (
-        ${sellers[0].owner_id},
-        'rating',
-        'Rating baru',
-        ${`${user.name || "Pembeli"} memberikan rating untuk pesanan ${order.order_number}.`},
-        'profile',
-        ${user.id},
-        ${user.id},
-        'profile',
-        ${user.id},
-        FALSE,
-        NOW()
-      )
-    `;
-  }
+  await notifySellerAboutRating(sql, order, user);
 
   return json({
     ok: true,
