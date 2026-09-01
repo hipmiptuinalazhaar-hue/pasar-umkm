@@ -48,9 +48,21 @@ async function ensureChatSchema(sql) {
           REFERENCES users(id)
           ON DELETE CASCADE,
         hidden_before TIMESTAMPTZ,
+        is_pinned BOOLEAN NOT NULL DEFAULT FALSE,
+        is_archived BOOLEAN NOT NULL DEFAULT FALSE,
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         PRIMARY KEY (conversation_id, user_id)
       )
+    `;
+
+    await sql`
+      ALTER TABLE direct_conversation_user_state
+      ADD COLUMN IF NOT EXISTS is_pinned BOOLEAN NOT NULL DEFAULT FALSE
+    `;
+
+    await sql`
+      ALTER TABLE direct_conversation_user_state
+      ADD COLUMN IF NOT EXISTS is_archived BOOLEAN NOT NULL DEFAULT FALSE
     `;
 
     await sql`
@@ -127,7 +139,9 @@ async function conversationMeta(sql, conversationId, userId) {
       s.id AS other_store_id,
       s.name AS other_store_name,
       s.verification_status AS other_store_verification_status,
-      cs.hidden_before
+      cs.hidden_before,
+      COALESCE(cs.is_pinned, FALSE) AS viewer_pinned,
+      COALESCE(cs.is_archived, FALSE) AS viewer_archived
     FROM direct_conversations c
     JOIN users u
       ON u.id = CASE WHEN c.user_a_id = ${userId} THEN c.user_b_id ELSE c.user_a_id END
@@ -171,6 +185,8 @@ async function listConversations(sql, request) {
       last_message.message AS last_message,
       last_message.sender_id AS last_message_sender_id,
       last_message.created_at AS last_message_at,
+      COALESCE(cs.is_pinned, FALSE) AS viewer_pinned,
+      COALESCE(cs.is_archived, FALSE) AS viewer_archived,
       (
         SELECT COUNT(*)::int
         FROM direct_messages unread
@@ -214,11 +230,18 @@ async function listConversations(sql, request) {
         cs.hidden_before IS NULL
         OR last_message.created_at > cs.hidden_before
       )
-    ORDER BY COALESCE(last_message.created_at, c.updated_at) DESC
-    LIMIT 50
+    ORDER BY
+      COALESCE(cs.is_pinned, FALSE) DESC,
+      COALESCE(last_message.created_at, c.updated_at) DESC
+    LIMIT 80
   `;
 
-  return json({ ok: true, count: conversations.length, conversations });
+  return json({
+    ok: true,
+    count: conversations.length,
+    archived_count: conversations.filter(item => item.viewer_archived).length,
+    conversations
+  });
 }
 
 async function unreadCount(sql, request) {
@@ -252,26 +275,14 @@ async function getMessages(sql, request, conversationId) {
   if (!conversation) return error("Percakapan tidak ditemukan.", 404);
 
   await sql`
-    UPDATE direct_messages dm
-    SET is_read = TRUE, read_at = COALESCE(dm.read_at, NOW())
-    FROM direct_conversation_user_state cs
+    UPDATE direct_messages
+    SET is_read = TRUE, read_at = COALESCE(read_at, NOW())
     WHERE
-      dm.conversation_id = ${conversationId}::uuid
-      AND dm.sender_id <> ${auth.user.id}
-      AND dm.is_read = FALSE
-      AND cs.conversation_id = ${conversationId}::uuid
-      AND cs.user_id = ${auth.user.id}
-      AND (cs.hidden_before IS NULL OR dm.created_at > cs.hidden_before)
-  `.catch(async () => {
-    await sql`
-      UPDATE direct_messages
-      SET is_read = TRUE, read_at = COALESCE(read_at, NOW())
-      WHERE
-        conversation_id = ${conversationId}::uuid
-        AND sender_id <> ${auth.user.id}
-        AND is_read = FALSE
-    `;
-  });
+      conversation_id = ${conversationId}::uuid
+      AND sender_id <> ${auth.user.id}
+      AND is_read = FALSE
+      AND (${conversation.hidden_before}::timestamptz IS NULL OR created_at > ${conversation.hidden_before}::timestamptz)
+  `;
 
   const messages = await sql`
     SELECT * FROM (
@@ -284,9 +295,7 @@ async function getMessages(sql, request, conversationId) {
         dm.created_at,
         dm.read_at,
         u.name AS sender_name,
-        u.avatar_url AS sender_avatar_url,
-        COALESCE(mus.is_pinned, FALSE) AS viewer_pinned,
-        COALESCE(mus.is_archived, FALSE) AS viewer_archived
+        u.avatar_url AS sender_avatar_url
       FROM direct_messages dm
       JOIN users u ON u.id = dm.sender_id
       LEFT JOIN direct_message_user_state mus
@@ -308,7 +317,9 @@ async function conversationByUser(sql, request, otherUserId) {
   const auth = await requireUser(sql, request);
   if (auth.response) return auth.response;
 
-  const pair = [String(auth.user.id), String(otherUserId)].sort((a, b) => a.localeCompare(b));
+  const pair = [String(auth.user.id), String(otherUserId)]
+    .sort((a, b) => a.localeCompare(b));
+
   const rows = await sql`
     SELECT id
     FROM direct_conversations
@@ -330,10 +341,7 @@ async function messageMeta(sql, request, conversationId) {
     SELECT
       dm.id,
       dm.sender_id,
-      dm.created_at,
-      COALESCE(mus.is_pinned, FALSE) AS viewer_pinned,
-      COALESCE(mus.is_archived, FALSE) AS viewer_archived,
-      COALESCE(mus.is_hidden, FALSE) AS viewer_hidden
+      dm.created_at
     FROM direct_messages dm
     LEFT JOIN direct_message_user_state mus
       ON mus.message_id = dm.id AND mus.user_id = ${auth.user.id}
@@ -345,7 +353,12 @@ async function messageMeta(sql, request, conversationId) {
     LIMIT 200
   `;
 
-  return json({ ok: true, conversation_id: conversationId, messages });
+  return json({
+    ok: true,
+    conversation_id: conversationId,
+    current_user_id: auth.user.id,
+    messages
+  });
 }
 
 async function conversationAction(sql, request, conversationId) {
@@ -357,35 +370,91 @@ async function conversationAction(sql, request, conversationId) {
 
   const body = await request.json().catch(() => null);
   const action = String(body?.action || "").trim().toLowerCase();
+  const valid = new Set([
+    "pin",
+    "unpin",
+    "archive",
+    "unarchive",
+    "delete_me"
+  ]);
+
+  if (!valid.has(action)) {
+    return error("Aksi percakapan tidak valid.", 400);
+  }
 
   if (action === "delete_me") {
     await sql`
       INSERT INTO direct_conversation_user_state (
-        conversation_id, user_id, hidden_before, updated_at
+        conversation_id,
+        user_id,
+        hidden_before,
+        is_pinned,
+        is_archived,
+        updated_at
       )
-      VALUES (${conversationId}::uuid, ${auth.user.id}, NOW(), NOW())
+      VALUES (
+        ${conversationId}::uuid,
+        ${auth.user.id},
+        NOW(),
+        FALSE,
+        FALSE,
+        NOW()
+      )
       ON CONFLICT (conversation_id, user_id)
-      DO UPDATE SET hidden_before = NOW(), updated_at = NOW()
+      DO UPDATE SET
+        hidden_before = NOW(),
+        is_pinned = FALSE,
+        is_archived = FALSE,
+        updated_at = NOW()
     `;
 
     return json({ ok: true, action, conversation_id: conversationId });
   }
 
-  if (action === "delete_everyone") {
-    await sql`
-      DELETE FROM notifications
-      WHERE entity_type = 'message' AND entity_id = ${conversationId}::uuid
-    `.catch(() => null);
+  const pinValue =
+    action === "pin" ? true :
+    action === "unpin" ? false : null;
+  const archiveValue =
+    action === "archive" ? true :
+    action === "unarchive" ? false : null;
 
-    await sql`
-      DELETE FROM direct_conversations
-      WHERE id = ${conversationId}::uuid
-    `;
+  await sql`
+    INSERT INTO direct_conversation_user_state (
+      conversation_id,
+      user_id,
+      is_pinned,
+      is_archived,
+      updated_at
+    )
+    VALUES (
+      ${conversationId}::uuid,
+      ${auth.user.id},
+      ${pinValue === true},
+      ${archiveValue === true},
+      NOW()
+    )
+    ON CONFLICT (conversation_id, user_id)
+    DO UPDATE SET
+      is_pinned = CASE
+        WHEN ${pinValue}::boolean IS NULL
+          THEN direct_conversation_user_state.is_pinned
+        ELSE ${pinValue}::boolean
+      END,
+      is_archived = CASE
+        WHEN ${archiveValue}::boolean IS NULL
+          THEN direct_conversation_user_state.is_archived
+        ELSE ${archiveValue}::boolean
+      END,
+      updated_at = NOW()
+  `;
 
-    return json({ ok: true, action, conversation_id: conversationId });
-  }
-
-  return error("Aksi percakapan tidak valid.", 400);
+  return json({
+    ok: true,
+    action,
+    conversation_id: conversationId,
+    is_pinned: action === "pin" ? true : action === "unpin" ? false : conversation.viewer_pinned,
+    is_archived: action === "archive" ? true : action === "unarchive" ? false : conversation.viewer_archived
+  });
 }
 
 async function messageAction(sql, request, messageId) {
@@ -402,56 +471,60 @@ async function messageAction(sql, request, messageId) {
     LIMIT 1
   `;
 
-  if (!rows[0]) return error("Pesan tidak ditemukan.", 404);
+  const message = rows[0];
+  if (!message) return error("Pesan tidak ditemukan.", 404);
 
   const body = await request.json().catch(() => null);
   const action = String(body?.action || "").trim().toLowerCase();
 
-  const valid = new Set([
-    "pin", "unpin", "archive", "unarchive", "delete_me"
-  ]);
+  if (action === "delete_me") {
+    await sql`
+      INSERT INTO direct_message_user_state (
+        message_id,
+        user_id,
+        is_hidden,
+        updated_at
+      )
+      VALUES (
+        ${messageId}::uuid,
+        ${auth.user.id},
+        TRUE,
+        NOW()
+      )
+      ON CONFLICT (message_id, user_id)
+      DO UPDATE SET is_hidden = TRUE, updated_at = NOW()
+    `;
 
-  if (!valid.has(action)) return error("Aksi pesan tidak valid.", 400);
+    return json({
+      ok: true,
+      action,
+      message_id: messageId,
+      conversation_id: message.conversation_id
+    });
+  }
 
-  const pinned = action === "pin" ? true : action === "unpin" ? false : null;
-  const archived = action === "archive" ? true : action === "unarchive" ? false : null;
-  const hidden = action === "delete_me" ? true : null;
+  if (action === "delete_everyone") {
+    if (String(message.sender_id) !== String(auth.user.id)) {
+      return error(
+        "Hanya pengirim yang dapat menghapus pesan untuk semua.",
+        403
+      );
+    }
 
-  await sql`
-    INSERT INTO direct_message_user_state (
-      message_id, user_id, is_pinned, is_archived, is_hidden, updated_at
-    )
-    VALUES (
-      ${messageId}::uuid,
-      ${auth.user.id},
-      ${pinned === true},
-      ${archived === true},
-      ${hidden === true},
-      NOW()
-    )
-    ON CONFLICT (message_id, user_id)
-    DO UPDATE SET
-      is_pinned = CASE
-        WHEN ${pinned}::boolean IS NULL THEN direct_message_user_state.is_pinned
-        ELSE ${pinned}::boolean
-      END,
-      is_archived = CASE
-        WHEN ${archived}::boolean IS NULL THEN direct_message_user_state.is_archived
-        ELSE ${archived}::boolean
-      END,
-      is_hidden = CASE
-        WHEN ${hidden}::boolean IS NULL THEN direct_message_user_state.is_hidden
-        ELSE ${hidden}::boolean
-      END,
-      updated_at = NOW()
-  `;
+    await sql`
+      DELETE FROM direct_messages
+      WHERE id = ${messageId}::uuid
+    `;
 
-  return json({
-    ok: true,
-    action,
-    message_id: messageId,
-    conversation_id: rows[0].conversation_id
-  });
+    return json({
+      ok: true,
+      action,
+      message_id: messageId,
+      conversation_id: message.conversation_id
+    });
+  }
+
+  return error("Aksi pesan tidak valid.", 400);
 }
 
 export async function handleChatManagementApi(request, env) {
