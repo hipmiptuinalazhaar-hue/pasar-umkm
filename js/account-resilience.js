@@ -58,7 +58,7 @@
 
   loadStylesheet(
     'link[data-profile-premium-style="true"]',
-    'css/profile-premium.css?v=1.0',
+    'css/profile-premium.css?v=1.1',
     'profilePremiumStyle'
   );
 
