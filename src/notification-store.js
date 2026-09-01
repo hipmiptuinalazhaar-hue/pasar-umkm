@@ -41,6 +41,65 @@ async function ensureNotificationColumns(sql) {
   `;
 }
 
+async function ensureWelcomeNotificationTrigger(sql) {
+  await sql`
+    CREATE OR REPLACE FUNCTION notify_new_user_welcome_event()
+    RETURNS TRIGGER AS $$
+    BEGIN
+      INSERT INTO notifications (
+        user_id,
+        type,
+        title,
+        message,
+        target_type,
+        target_id,
+        actor_user_id,
+        entity_type,
+        entity_id,
+        is_read,
+        created_at
+      )
+      VALUES (
+        NEW.id,
+        'system',
+        'Selamat datang, ' || COALESCE(NULLIF(trim(NEW.name), ''), 'Pengguna') || '!',
+        'Selamat datang ' || COALESCE(NULLIF(trim(NEW.name), ''), 'Pengguna') || ', mulai buat toko sendiri yuk.',
+        'sell',
+        NEW.id,
+        NULL,
+        'start_selling',
+        NEW.id,
+        FALSE,
+        NOW()
+      );
+
+      RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql
+  `;
+
+  await sql`
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1
+        FROM pg_trigger
+        WHERE
+          tgname = 'trg_notify_new_user_welcome'
+          AND tgrelid = 'users'::regclass
+          AND NOT tgisinternal
+      ) THEN
+        CREATE TRIGGER trg_notify_new_user_welcome
+        AFTER INSERT ON users
+        FOR EACH ROW
+        EXECUTE FUNCTION notify_new_user_welcome_event();
+      END IF;
+    EXCEPTION
+      WHEN duplicate_object THEN NULL;
+    END $$
+  `;
+}
+
 async function ensureFollowNotificationTrigger(sql) {
   await sql`
     CREATE OR REPLACE FUNCTION notify_user_follow_event()
@@ -380,6 +439,7 @@ export async function ensureNotificationInfrastructure(env) {
 
     await ensureSocialSchema(sql);
     await ensureNotificationColumns(sql);
+    await ensureWelcomeNotificationTrigger(sql);
     await ensureFollowNotificationTrigger(sql);
     await ensurePostLikeNotificationTrigger(sql);
     await ensurePostCommentNotificationTrigger(sql);
