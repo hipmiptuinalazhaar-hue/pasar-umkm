@@ -100,7 +100,7 @@
 
   loadScript(
     'script[data-social-shell-module="true"]',
-    'js/social-shell.js?v=1.0',
+    'js/social-shell.js?v=1.1',
     'socialShellModule'
   );
 
