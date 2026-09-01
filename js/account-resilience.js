@@ -58,7 +58,7 @@
 
   /* Media v2 harus terakhir agar menggantikan story/sell/video placeholder lama. */
   loadScript('script[data-media-experience-module="true"]', 'js/media-experience.js?v=1.0', 'mediaExperienceModule');
-  loadScript('script[data-reel-profile-separation="true"]', 'js/reel-profile-separation.js?v=1.0', 'reelProfileSeparation');
+  loadScript('script[data-reel-profile-separation="true"]', 'js/reel-profile-separation.js?v=1.1', 'reelProfileSeparation');
   loadScript('script[data-mention-autocomplete-module="true"]', 'js/mention-autocomplete.js?v=1.0', 'mentionAutocompleteModule');
 
   openAccount = async function resilientOpenAccount() {
