@@ -1968,7 +1968,10 @@ function createProductTemplate(
 
 function bindEvents() {
   document.addEventListener('click', handleDocumentClick);
-
+  document.addEventListener(
+    'click',
+    handleMediaDoubleTap
+  );
   document.addEventListener(
     'keydown',
     handleKeyboard
@@ -2810,6 +2813,145 @@ function toggleLike(postId) {
   refreshPostInteractionUI(postId);
 }
 
+let lastMediaTapPostId = '';
+let lastMediaTapTime = 0;
+
+
+function handleMediaDoubleTap(event) {
+  const media =
+    event.target.closest(
+      '.post-card .ig-product-media, ' +
+      '.post-card .post-media:not(.video)'
+    );
+
+  if (!media) {
+    return;
+  }
+
+
+  const card =
+    media.closest(
+      '.post-card[data-post-id]'
+    );
+
+  if (!card) {
+    return;
+  }
+
+
+  const postId =
+    String(
+      card.dataset.postId || ''
+    );
+
+  if (!postId) {
+    return;
+  }
+
+
+  const now =
+    Date.now();
+
+
+  const isDoubleTap =
+    lastMediaTapPostId === postId &&
+    (
+      now -
+      lastMediaTapTime
+    ) <= 320;
+
+
+  lastMediaTapPostId =
+    postId;
+
+  lastMediaTapTime =
+    now;
+
+
+  if (!isDoubleTap) {
+    return;
+  }
+
+
+  lastMediaTapPostId = '';
+  lastMediaTapTime = 0;
+
+
+  /*
+   * Double tap hanya LIKE.
+   * Kalau sudah liked, tidak di-unlike.
+   */
+  if (
+    !STATE.likedPosts.has(
+      postId
+    )
+  ) {
+    STATE.likedPosts.add(
+      postId
+    );
+
+    saveLocalState();
+
+    refreshPostInteractionUI(
+      postId
+    );
+  }
+
+
+  showMediaLikeBurst(
+    media
+  );
+}
+
+
+function showMediaLikeBurst(media) {
+  const oldBurst =
+    media.querySelector(
+      '.media-like-burst'
+    );
+
+  oldBurst?.remove();
+
+
+  const burst =
+    document.createElement(
+      'span'
+    );
+
+
+  burst.className =
+    'media-like-burst';
+
+
+  burst.innerHTML = `
+    <i
+      class="ph-fill ph-heart"
+      aria-hidden="true"
+    ></i>
+  `;
+
+
+  media.appendChild(
+    burst
+  );
+
+
+  requestAnimationFrame(
+    () => {
+      burst.classList.add(
+        'show'
+      );
+    }
+  );
+
+
+  window.setTimeout(
+    () => {
+      burst.remove();
+    },
+    650
+  );
+}
 /* =========================================================
    32. SAVE
    ========================================================= */
@@ -2904,7 +3046,7 @@ function refreshPostInteractionUI(
           '[data-action="like"]'
         );
 
-      if (likeButton) {
+            if (likeButton) {
         likeButton.classList.toggle(
           'liked',
           liked
@@ -2914,7 +3056,6 @@ function refreshPostInteractionUI(
           'aria-pressed',
           String(liked)
         );
-
 
         const icon =
           likeButton.querySelector('i');
@@ -2929,6 +3070,18 @@ function refreshPostInteractionUI(
             'ph',
             !liked
           );
+        }
+
+        const countElement =
+          likeButton.querySelector(
+            '.action-count'
+          );
+
+        if (countElement) {
+          countElement.textContent =
+            formatCompactNumber(
+              likeCount
+            );
         }
       }
 
@@ -3153,7 +3306,31 @@ const commentsEndpoint =
      */
     post.commentsCount =
       comments.length;
+    document
+      .querySelectorAll(
+        '.post-card[data-post-id]'
+      )
+      .forEach(card => {
+        if (
+          String(
+            card.dataset.postId || ''
+          ) !== String(postId)
+        ) {
+          return;
+        }
 
+        const count =
+          card.querySelector(
+            '[data-action="comments"] .action-count'
+          );
+
+        if (count) {
+          count.textContent =
+            formatCompactNumber(
+              comments.length
+            );
+        }
+      });
 
     const commentsHTML =
       comments.length
