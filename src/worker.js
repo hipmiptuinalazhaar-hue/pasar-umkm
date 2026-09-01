@@ -2423,6 +2423,7 @@ if (
           c.id,
           c.product_id,
           c.user_id,
+          c.parent_comment_id,
           c.content,
           c.created_at,
           c.updated_at,
@@ -2764,6 +2765,90 @@ if (
     }
 
 
+        // =====================================
+    // REPLY / PARENT CHECK
+    // =====================================
+
+    const requestedParentCommentId =
+      String(
+        body.parent_comment_id ||
+        ""
+      ).trim();
+
+    let parentCommentId =
+      null;
+
+    if (requestedParentCommentId) {
+      if (
+        !uuidPattern.test(
+          requestedParentCommentId
+        )
+      ) {
+        return Response.json(
+          {
+            ok: false,
+            error:
+              "ID komentar induk tidak valid."
+          },
+          {
+            status: 400,
+            headers: {
+              "Cache-Control":
+                "no-store"
+            }
+          }
+        );
+      }
+
+      const parentComments =
+        await sql`
+          SELECT
+            id,
+            parent_comment_id
+
+          FROM
+            product_comments
+
+          WHERE
+            id =
+              ${requestedParentCommentId}
+
+            AND
+            product_id =
+              ${productId}
+
+            AND
+            is_active = TRUE
+
+          LIMIT 1
+        `;
+
+      if (
+        parentComments.length === 0
+      ) {
+        return Response.json(
+          {
+            ok: false,
+            error:
+              "Komentar yang ingin dibalas tidak ditemukan."
+          },
+          {
+            status: 404,
+            headers: {
+              "Cache-Control":
+                "no-store"
+            }
+          }
+        );
+      }
+
+      parentCommentId =
+        parentComments[0]
+          .parent_comment_id ||
+        parentComments[0].id;
+    }
+
+
     // =====================================
     // CREATE COMMENT
     // =====================================
@@ -2774,6 +2859,7 @@ if (
           product_comments (
             product_id,
             user_id,
+            parent_comment_id,
             content,
             is_active
           )
@@ -2781,6 +2867,7 @@ if (
         VALUES (
           ${productId},
           ${currentUser.id},
+          ${parentCommentId},
           ${content},
           TRUE
         )
@@ -2789,11 +2876,11 @@ if (
           id,
           product_id,
           user_id,
+          parent_comment_id,
           content,
           created_at,
           updated_at
       `;
-
 
     const comment = {
       ...comments[0],
@@ -4808,6 +4895,7 @@ if (
           c.id,
           c.post_id,
           c.user_id,
+          c.parent_comment_id,
           c.content,
           c.created_at,
           c.updated_at,
@@ -5126,6 +5214,90 @@ if (
     }
 
 
+        // =====================================
+    // REPLY / PARENT CHECK
+    // =====================================
+
+    const requestedParentCommentId =
+      String(
+        body.parent_comment_id ||
+        ""
+      ).trim();
+
+    let parentCommentId =
+      null;
+
+    if (requestedParentCommentId) {
+      if (
+        !uuidPattern.test(
+          requestedParentCommentId
+        )
+      ) {
+        return Response.json(
+          {
+            ok: false,
+            error:
+              "ID komentar induk tidak valid."
+          },
+          {
+            status: 400,
+            headers: {
+              "Cache-Control":
+                "no-store"
+            }
+          }
+        );
+      }
+
+      const parentComments =
+        await sql`
+          SELECT
+            id,
+            parent_comment_id
+
+          FROM
+            post_comments
+
+          WHERE
+            id =
+              ${requestedParentCommentId}
+
+            AND
+            post_id =
+              ${postId}
+
+            AND
+            is_active = TRUE
+
+          LIMIT 1
+        `;
+
+      if (
+        parentComments.length === 0
+      ) {
+        return Response.json(
+          {
+            ok: false,
+            error:
+              "Komentar yang ingin dibalas tidak ditemukan."
+          },
+          {
+            status: 404,
+            headers: {
+              "Cache-Control":
+                "no-store"
+            }
+          }
+        );
+      }
+
+      parentCommentId =
+        parentComments[0]
+          .parent_comment_id ||
+        parentComments[0].id;
+    }
+
+
     // =====================================
     // CREATE COMMENT
     // =====================================
@@ -5136,6 +5308,7 @@ if (
           post_comments (
             post_id,
             user_id,
+            parent_comment_id,
             content,
             is_active
           )
@@ -5143,6 +5316,7 @@ if (
         VALUES (
           ${postId},
           ${currentUser.id},
+          ${parentCommentId},
           ${content},
           TRUE
         )
@@ -5151,11 +5325,11 @@ if (
           id,
           post_id,
           user_id,
+          parent_comment_id,
           content,
           created_at,
           updated_at
       `;
-
 
     const comment = {
       ...comments[0],
