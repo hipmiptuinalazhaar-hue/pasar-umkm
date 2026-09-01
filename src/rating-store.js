@@ -6,44 +6,26 @@ export async function ensureRatingInfrastructure(sql) {
   if (ratingPromise) return ratingPromise;
 
   ratingPromise = (async () => {
-    await sql`
-      CREATE TABLE IF NOT EXISTS store_ratings (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
-        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
-        rating SMALLINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
-        review TEXT,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        UNIQUE (order_id, user_id)
-      )
+    const rows = await sql`
+      SELECT
+        to_regclass('public.store_ratings') IS NOT NULL AS store_ratings,
+        to_regclass('public.product_ratings') IS NOT NULL AS product_ratings
     `;
 
-    await sql`
-      CREATE TABLE IF NOT EXISTS product_ratings (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
-        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
-        product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-        rating SMALLINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
-        review TEXT,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        UNIQUE (order_id, product_id, user_id)
-      )
-    `;
+    const state = rows[0] || {};
+    const missing = [];
 
-    await sql`
-      CREATE INDEX IF NOT EXISTS idx_store_ratings_store
-      ON store_ratings(store_id, created_at DESC)
-    `;
+    if (!state.store_ratings) missing.push("store_ratings");
+    if (!state.product_ratings) missing.push("product_ratings");
 
-    await sql`
-      CREATE INDEX IF NOT EXISTS idx_product_ratings_product
-      ON product_ratings(product_id, created_at DESC)
-    `;
+    if (missing.length) {
+      const error = new Error(
+        `[schema:not-ready] Rating schema belum siap: ${missing.join(", ")}. ` +
+        "Jalankan migration database sebelum deploy Worker."
+      );
+      error.code = "SCHEMA_NOT_READY";
+      throw error;
+    }
 
     ratingReady = true;
   })();
