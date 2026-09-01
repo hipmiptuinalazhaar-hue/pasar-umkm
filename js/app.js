@@ -3302,13 +3302,19 @@ ${
             aria-label="Emoji cepat"
           >
 
-            <button
+                       <button
               type="button"
               class="comment-emoji-btn"
               data-action="comment-emoji"
               data-emoji="❤️"
+              aria-label="Hati"
             >
-              ❤️
+              <img
+                class="comment-emoji-image"
+                src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/2764.svg"
+                alt=""
+                aria-hidden="true"
+              >
             </button>
 
             <button
@@ -3316,8 +3322,14 @@ ${
               class="comment-emoji-btn"
               data-action="comment-emoji"
               data-emoji="🙌"
+              aria-label="Angkat tangan"
             >
-              🙌
+              <img
+                class="comment-emoji-image"
+                src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f64c.svg"
+                alt=""
+                aria-hidden="true"
+              >
             </button>
 
             <button
@@ -3325,8 +3337,14 @@ ${
               class="comment-emoji-btn"
               data-action="comment-emoji"
               data-emoji="🔥"
+              aria-label="Api"
             >
-              🔥
+              <img
+                class="comment-emoji-image"
+                src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f525.svg"
+                alt=""
+                aria-hidden="true"
+              >
             </button>
 
             <button
@@ -3334,8 +3352,14 @@ ${
               class="comment-emoji-btn"
               data-action="comment-emoji"
               data-emoji="👏"
+              aria-label="Tepuk tangan"
             >
-              👏
+              <img
+                class="comment-emoji-image"
+                src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f44f.svg"
+                alt=""
+                aria-hidden="true"
+              >
             </button>
 
             <button
@@ -3343,8 +3367,14 @@ ${
               class="comment-emoji-btn"
               data-action="comment-emoji"
               data-emoji="🥹"
+              aria-label="Terharu"
             >
-              🥹
+              <img
+                class="comment-emoji-image"
+                src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f979.svg"
+                alt=""
+                aria-hidden="true"
+              >
             </button>
 
             <button
@@ -3352,8 +3382,14 @@ ${
               class="comment-emoji-btn"
               data-action="comment-emoji"
               data-emoji="😍"
+              aria-label="Mata hati"
             >
-              😍
+              <img
+                class="comment-emoji-image"
+                src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f60d.svg"
+                alt=""
+                aria-hidden="true"
+              >
             </button>
 
             <button
@@ -3361,10 +3397,15 @@ ${
               class="comment-emoji-btn"
               data-action="comment-emoji"
               data-emoji="😂"
+              aria-label="Tertawa"
             >
-              😂
+              <img
+                class="comment-emoji-image"
+                src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/1f602.svg"
+                alt=""
+                aria-hidden="true"
+              >
             </button>
-
           </div>
 
 
