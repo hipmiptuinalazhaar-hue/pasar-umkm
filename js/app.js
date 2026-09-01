@@ -3559,6 +3559,30 @@ async function deleteComment(
     return;
   }
 
+   const post =
+  findPost(postId);
+
+if (!post) {
+  showToast(
+    'Postingan tidak ditemukan.'
+  );
+  return;
+}
+
+const isProductComment =
+  Boolean(
+    post.product
+  );
+
+const deleteCommentEndpoint =
+  isProductComment
+    ? `/api/product-comments/${encodeURIComponent(
+        commentId
+      )}`
+    : `/api/comments/${encodeURIComponent(
+        commentId
+      )}`;
+
   const confirmed =
     window.confirm(
       'Hapus komentar ini?'
@@ -3583,9 +3607,7 @@ async function deleteComment(
   try {
     const response =
       await fetch(
-        `/api/comments/${encodeURIComponent(
-          commentId
-        )}`,
+  deleteCommentEndpoint,
         {
           method: 'DELETE',
 
