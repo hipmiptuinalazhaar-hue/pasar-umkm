@@ -3959,6 +3959,135 @@ export default {
       }
     }
 
+// ========================================
+// POST COMMENTS - LIST
+// GET /api/posts/:id/comments
+// ========================================
+
+const commentsMatch =
+  url.pathname.match(
+    /^\/api\/posts\/([^/]+)\/comments$/
+  );
+
+if (
+  commentsMatch &&
+  request.method === "GET"
+) {
+  try {
+    const postId =
+      String(
+        commentsMatch[1] || ""
+      ).trim();
+
+    const uuidPattern =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+
+    if (!uuidPattern.test(postId)) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "ID postingan tidak valid."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const sql =
+      neon(env.DATABASE_URL);
+
+
+    const comments =
+      await sql`
+        SELECT
+          c.id,
+          c.post_id,
+          c.user_id,
+          c.content,
+          c.created_at,
+          c.updated_at,
+
+          u.name
+            AS user_name,
+
+          u.avatar_url
+            AS user_avatar
+
+        FROM
+          post_comments c
+
+        JOIN
+          users u
+          ON u.id = c.user_id
+
+        JOIN
+          posts p
+          ON p.id = c.post_id
+
+        WHERE
+          c.post_id = ${postId}
+
+          AND
+          c.is_active = TRUE
+
+          AND
+          u.is_active = TRUE
+
+          AND
+          p.is_active = TRUE
+
+        ORDER BY
+          c.created_at ASC
+      `;
+
+
+    return Response.json(
+      {
+        ok: true,
+        comments
+      },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+
+
+  } catch (error) {
+    console.error(
+      "Post comments GET error:",
+      error
+    );
+
+
+    return Response.json(
+      {
+        ok: false,
+        error:
+          "Gagal memuat komentar."
+      },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+  }
+}
+    
     // ========================================
 // POSTS - SOFT DELETE
 // DELETE /api/posts/:id
