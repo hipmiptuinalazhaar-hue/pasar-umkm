@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { ensureStoreSocialLinksTable } from "./profile-social-store.js";
 
 export async function handlePublicProfileApi(request, env) {
   const url = new URL(request.url);
@@ -12,6 +13,8 @@ export async function handlePublicProfileApi(request, env) {
 
   try {
     const sql = neon(env.DATABASE_URL);
+
+    await ensureStoreSocialLinksTable(sql);
 
     const profiles = await sql`
       SELECT
@@ -28,6 +31,8 @@ export async function handlePublicProfileApi(request, env) {
         s.city,
         s.province,
         s.verification_status,
+        sl.instagram_url,
+        sl.tiktok_url,
         u.id AS user_id,
         u.name AS user_name,
         u.avatar_url AS user_avatar_url,
@@ -35,6 +40,8 @@ export async function handlePublicProfileApi(request, env) {
       FROM stores s
       JOIN users u
         ON u.id = s.owner_id
+      LEFT JOIN store_social_links sl
+        ON sl.store_id = s.id
       WHERE
         s.is_active = TRUE
         AND u.is_active = TRUE
