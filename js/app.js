@@ -3518,72 +3518,62 @@ const commentsEndpoint =
           >
 
 
-          <div class="post-comment-body">
+       <div class="post-comment-body">
 
-            <div class="post-comment-headline">
+  <div class="post-comment-main-line">
 
-              <strong
-                class="post-comment-name"
-              >
-                ${escapeHTML(
-                  commentName
-                )}
-              </strong>
+    <strong class="post-comment-name">
+      ${escapeHTML(
+        commentName
+      )}
+    </strong>
 
-              <span
-                class="post-comment-time"
-              >
-                ${formatRelativeTime(
-                  comment.created_at
-                )}
-              </span>
+    <span class="post-comment-text">
+      ${renderCommentText(
+        comment.content ||
+        ''
+      )}
+    </span>
 
-            </div>
+  </div>
 
 
-            <p
-              class="post-comment-text"
+  <div class="post-comment-actions">
+
+    <span class="post-comment-time">
+      ${formatRelativeTime(
+        comment.created_at
+      )}
+    </span>
+
+    ${
+      STATE.user
+        ? `
+            <button
+              type="button"
+              class="post-comment-reply-button"
+              data-action="comment-reply"
+              data-post-id="${escapeHTML(
+                post.id ||
+                ''
+              )}"
+              data-comment-id="${escapeHTML(
+                comment.id ||
+                ''
+              )}"
+              data-comment-name="${escapeHTML(
+                commentName
+              )}"
             >
-             ${renderCommentText(
-  comment.content ||
-  ''
-)}
-            </p>
+              Balas
+            </button>
+          `
+        : ''
+    }
 
+  </div>
 
-            ${
-              STATE.user
-                ? `
-                    <div
-                      class="post-comment-actions"
-                    >
-
-                      <button
-                        type="button"
-                        class="post-comment-reply-button"
-                        data-action="comment-reply"
-                        data-post-id="${escapeHTML(
-                          post.id ||
-                          ''
-                        )}"
-                        data-comment-id="${escapeHTML(
-                          comment.id ||
-                          ''
-                        )}"
-                        data-comment-name="${escapeHTML(
-                          commentName
-                        )}"
-                      >
-                        Balas
-                      </button>
-
-                    </div>
-                  `
-                : ''
-            }
-
-          </div>
-
+</div>
 
           ${
             canDeleteComment
