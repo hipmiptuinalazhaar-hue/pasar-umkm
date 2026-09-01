@@ -2,14 +2,14 @@
 
 /* =========================================================
    PASAR UMKM - SOCIAL VIEW SHELL
-   Menjaga profil publik dan pesan memakai shell full profile,
-   sehingga app header lama tidak bertumpuk dengan topbar sosial.
+   Menjaga profil publik, pesan, dan notifikasi memakai shell
+   full profile agar header lama tidak bertumpuk.
    ========================================================= */
 
 (() => {
   function syncSocialShell() {
     const socialView = document.querySelector(
-      '.social-universal-profile, .social-messages-page, .social-conversation-page'
+      '.social-universal-profile, .social-messages-page, .social-conversation-page, .social-notifications-page'
     );
 
     if (!socialView) {
