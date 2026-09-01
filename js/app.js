@@ -3520,7 +3520,7 @@ const commentsEndpoint =
 
        <div class="post-comment-body">
 
-  <div class="post-comment-main-line">
+  <div class="post-comment-headline">
 
     <strong class="post-comment-name">
       ${escapeHTML(
@@ -3528,38 +3528,35 @@ const commentsEndpoint =
       )}
     </strong>
 
-    <span class="post-comment-text">
-      ${renderCommentText(
-        comment.content ||
-        ''
-      )}
-    </span>
-
-  </div>
-
-
-  <div class="post-comment-actions">
-
     <span class="post-comment-time">
       ${formatRelativeTime(
         comment.created_at
       )}
     </span>
 
-    ${
-      STATE.user
-        ? `
+  </div>
+
+  <p class="post-comment-text">
+    ${renderCommentText(
+      comment.content ||
+      ''
+    )}
+  </p>
+
+  ${
+    STATE.user
+      ? `
+          <div class="post-comment-actions">
+
             <button
               type="button"
               class="post-comment-reply-button"
               data-action="comment-reply"
               data-post-id="${escapeHTML(
-                post.id ||
-                ''
+                post.id || ''
               )}"
               data-comment-id="${escapeHTML(
-                comment.id ||
-                ''
+                comment.id || ''
               )}"
               data-comment-name="${escapeHTML(
                 commentName
@@ -3567,11 +3564,11 @@ const commentsEndpoint =
             >
               Balas
             </button>
-          `
-        : ''
-    }
 
-  </div>
+          </div>
+        `
+      : ''
+  }
 
 </div>
 
