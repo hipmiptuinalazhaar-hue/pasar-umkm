@@ -19863,3 +19863,80 @@ img {
   }
 
 }
+
+/* =========================================================
+   INSTAGRAM STYLE ACTION COUNTS
+   ========================================================= */
+
+.feed > .post-card
+.action-btn.action-btn-count {
+  width: auto;
+  min-width: 39px;
+  height: 39px;
+
+  padding:
+    0
+    6px;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    4px;
+
+  border-radius:
+    10px;
+}
+
+
+.feed > .post-card
+.action-btn.action-btn-count
+.action-count {
+  display:
+    inline-block;
+
+  min-width:
+    8px;
+
+  color:
+    currentColor;
+
+  font-size:
+    12px;
+
+  line-height:
+    1;
+
+  font-weight:
+    650;
+
+  letter-spacing:
+    -0.02em;
+}
+
+
+/*
+ * Jumlah suka lama disembunyikan.
+ * Sekarang angka sudah ada di sebelah ikon.
+ */
+
+.feed > .post-card
+.post-stats {
+  display:
+    none !important;
+}
+
+
+/* Sedikit ruang seperti Instagram */
+
+.feed > .post-card
+.actions-left {
+  gap:
+    3px;
+}
