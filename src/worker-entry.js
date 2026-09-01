@@ -18,16 +18,51 @@ import { handleChatMediaApi } from "./chat-media-api.js";
 import { ensureNotificationInfrastructure } from "./notification-store.js";
 import { ensureFullFunctionalityInfrastructure } from "./functionality-bootstrap.js";
 
+function schemaUnavailable(error) {
+  console.error("Production schema verification failed:", error);
+
+  return Response.json(
+    {
+      ok: false,
+      error: "Database schema belum siap untuk versi aplikasi ini.",
+      code: "SCHEMA_NOT_READY"
+    },
+    {
+      status: 503,
+      headers: {
+        "Cache-Control": "no-store",
+        "Retry-After": "60"
+      }
+    }
+  );
+}
+
 export default {
   async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+
+    /*
+     * Health endpoint harus tetap tersedia walaupun migration bermasalah.
+     * Endpoint ini read-only dan membantu memastikan DATABASE_URL menunjuk
+     * ke database production yang benar tanpa membocorkan credential.
+     */
+    if (url.pathname === "/api/health") {
+      return legacyWorker.fetch(request, env, ctx);
+    }
+
+    /*
+     * P0: runtime tidak lagi memperbaiki/mengubah schema.
+     * ensure* sekarang hanya memverifikasi hasil migration.
+     */
     try {
       await ensureNotificationInfrastructure(env);
       await ensureFullFunctionalityInfrastructure(env);
     } catch (error) {
-      console.error(
-        "Application infrastructure bootstrap error:",
-        error
-      );
+      if (url.pathname.startsWith("/api/")) {
+        return schemaUnavailable(error);
+      }
+
+      console.error("Non-API schema verification warning:", error);
     }
 
     const notificationResponse =
