@@ -92,6 +92,12 @@
     'socialCoreModule'
   );
 
+  loadScript(
+    'script[data-social-shell-module="true"]',
+    'js/social-shell.js?v=1.0',
+    'socialShellModule'
+  );
+
   openAccount = async function resilientOpenAccount() {
     if (!STATE.user) {
       openLogin();
@@ -195,6 +201,13 @@
       'function'
     ) {
       window.centerProfileTitle();
+    }
+
+    if (
+      typeof window.syncSocialShell ===
+      'function'
+    ) {
+      window.syncSocialShell();
     }
 
     window.scrollTo({
