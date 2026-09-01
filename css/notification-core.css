@@ -1,0 +1,350 @@
+/* =========================================================
+   PASAR UMKM - NOTIFICATION CORE
+   Notifikasi sosial + pengelolaan following.
+   ========================================================= */
+
+.social-notifications-page {
+  width: 100%;
+  min-height: calc(100dvh - 72px);
+  background: #fff;
+  color: #17201b;
+  padding-bottom: 88px;
+}
+
+.notification-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 25;
+  min-height: 56px;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border-bottom: 1px solid rgba(18, 31, 24, 0.07);
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.notification-back {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: #17201b;
+  cursor: pointer;
+}
+
+.notification-back i {
+  font-size: 23px;
+}
+
+.notification-title {
+  min-width: 0;
+  margin: 0;
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 15px;
+  font-weight: 850;
+  letter-spacing: -0.02em;
+}
+
+.notification-read-all {
+  min-height: 34px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 10px;
+  background: #eef7f2;
+  color: #12603f;
+  font-size: 9px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.notification-read-all:disabled {
+  opacity: 0.42;
+  cursor: default;
+}
+
+.notification-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px 14px 8px;
+}
+
+.notification-summary strong {
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.notification-summary span {
+  color: rgba(23, 32, 27, 0.5);
+  font-size: 9px;
+  font-weight: 650;
+}
+
+.notification-list {
+  border-top: 1px solid rgba(18, 31, 24, 0.04);
+}
+
+.notification-row {
+  width: 100%;
+  min-height: 78px;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 22px;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 14px;
+  border: 0;
+  border-bottom: 1px solid rgba(18, 31, 24, 0.055);
+  background: #fff;
+  color: #17201b;
+  text-align: left;
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+
+.notification-row.unread {
+  background: #f3faf6;
+}
+
+.notification-row:active {
+  background: #eef5f1;
+}
+
+.notification-avatar {
+  width: 46px;
+  height: 46px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #eaf5ef;
+  color: #12603f;
+  box-shadow: 0 0 0 1px rgba(18, 96, 63, 0.09);
+}
+
+.notification-avatar img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.notification-avatar.fallback i {
+  font-size: 21px;
+}
+
+.notification-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.notification-copy-main {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.notification-copy-main strong {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 10.5px;
+  line-height: 1.3;
+  font-weight: 850;
+}
+
+.notification-unread-dot {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #12603f;
+}
+
+.notification-message {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: #47534c;
+  font-size: 9.5px;
+  line-height: 1.45;
+}
+
+.notification-time {
+  color: rgba(23, 32, 27, 0.43);
+  font-size: 8.5px;
+  font-weight: 600;
+}
+
+.notification-open-icon {
+  display: grid;
+  place-items: center;
+  color: rgba(23, 32, 27, 0.32);
+}
+
+.notification-open-icon i {
+  font-size: 17px;
+}
+
+.notification-empty,
+.notification-loading {
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 28px;
+  text-align: center;
+}
+
+.notification-empty-icon,
+.notification-loading > i {
+  width: 62px;
+  height: 62px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #edf7f1;
+  color: #12603f;
+  font-size: 29px;
+}
+
+.notification-empty strong,
+.notification-loading strong {
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.notification-empty p {
+  max-width: 260px;
+  margin: 0;
+  color: rgba(23, 32, 27, 0.5);
+  font-size: 9.5px;
+  line-height: 1.55;
+}
+
+/* Header badge berubah dari titik menjadi counter yang tetap ringkas. */
+#notificationButton .badge-dot:not([hidden]) {
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 850;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Batal mengikuti ---------- */
+
+.social-follow-manage-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid rgba(18, 31, 24, 0.05);
+}
+
+.social-follow-manage-row .social-follow-user {
+  min-width: 0;
+  border-bottom: 0;
+}
+
+.social-follow-unfollow {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid rgba(18, 31, 24, 0.09);
+  border-radius: 10px;
+  background: #f4f7f5;
+  color: #344139;
+  font-size: 8.8px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.social-follow-unfollow:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.notification-follow-empty {
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  color: rgba(23, 32, 27, 0.5);
+  text-align: center;
+}
+
+.notification-follow-empty i {
+  font-size: 28px;
+  color: rgba(18, 96, 63, 0.55);
+}
+
+.notification-follow-empty strong {
+  font-size: 10px;
+  color: #344139;
+}
+
+@media (min-width: 480px) {
+  .social-notifications-page {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .notification-row {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+}
+
+@media (max-width: 360px) {
+  .notification-topbar {
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    padding: 0 8px;
+  }
+
+  .notification-read-all {
+    padding: 0 7px;
+    font-size: 8px;
+  }
+
+  .notification-row {
+    grid-template-columns: 42px minmax(0, 1fr) 18px;
+    gap: 9px;
+    padding: 10px 10px;
+  }
+
+  .notification-avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .social-follow-unfollow {
+    padding: 0 8px;
+    font-size: 8px;
+  }
+}
