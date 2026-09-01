@@ -13,37 +13,30 @@
     return;
   }
 
-  const profilesByStore =
-    new Map();
-
+  const profilesByStore = new Map();
   let loadingPromise = null;
 
   async function loadPublicProfiles(force = false) {
-    if (
-      loadingPromise &&
-      !force
-    ) {
+    if (loadingPromise && !force) {
       return loadingPromise;
     }
 
     loadingPromise = (async () => {
-      const response =
-        await fetch(
-          '/api/public-profiles',
-          {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-              Accept: 'application/json'
-            },
-            cache: 'no-store'
-          }
-        );
+      const response = await fetch(
+        '/api/public-profiles',
+        {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            Accept: 'application/json'
+          },
+          cache: 'no-store'
+        }
+      );
 
-      const data =
-        await response
-          .json()
-          .catch(() => ({}));
+      const data = await response
+        .json()
+        .catch(() => ({}));
 
       if (
         !response.ok ||
@@ -59,19 +52,16 @@
       profilesByStore.clear();
 
       for (const profile of data.profiles) {
-        const storeId =
-          String(profile.store_id || '');
+        const storeId = String(
+          profile.store_id || ''
+        );
 
         if (storeId) {
-          profilesByStore.set(
-            storeId,
-            profile
-          );
+          profilesByStore.set(storeId, profile);
         }
       }
 
       syncApplicationProfiles();
-
       return profilesByStore;
     })();
 
@@ -85,8 +75,9 @@
   function syncApplicationProfiles() {
     if (Array.isArray(DATA.posts)) {
       for (const post of DATA.posts) {
-        const storeId =
-          String(post.store?.id || '');
+        const storeId = String(
+          post.store?.id || ''
+        );
 
         const profile =
           profilesByStore.get(storeId);
@@ -94,6 +85,15 @@
         if (!profile || !post.store) {
           continue;
         }
+
+        post.store.businessName =
+          profile.store_name ||
+          post.store.businessName ||
+          post.store.name;
+
+        post.store.name =
+          profile.user_name ||
+          post.store.name;
 
         post.store.avatar =
           profile.user_avatar_url ||
@@ -141,18 +141,14 @@
     }
   }
 
-  function applyPublicProfileIdentity(
-    storeId
-  ) {
-    const profile =
-      profilesByStore.get(
-        String(storeId || '')
-      );
+  function applyPublicProfileIdentity(storeId) {
+    const profile = profilesByStore.get(
+      String(storeId || '')
+    );
 
-    const page =
-      document.querySelector(
-        '.public-seller-profile'
-      );
+    const page = document.querySelector(
+      '.public-seller-profile'
+    );
 
     if (!profile || !page) {
       return;
@@ -161,10 +157,9 @@
     page.dataset.userId =
       String(profile.user_id || '');
 
-    const topbarName =
-      page.querySelector(
-        '.social-account-topbar strong'
-      );
+    const topbarName = page.querySelector(
+      '.social-account-topbar strong'
+    );
 
     if (topbarName) {
       topbarName.textContent =
@@ -173,10 +168,9 @@
         'Profil';
     }
 
-    const profileName =
-      page.querySelector(
-        '.social-account-name'
-      );
+    const profileName = page.querySelector(
+      '.social-account-name'
+    );
 
     if (profileName) {
       profileName.textContent =
@@ -185,10 +179,9 @@
         'Pengguna';
     }
 
-    const avatar =
-      page.querySelector(
-        '.social-account-avatar'
-      );
+    const avatar = page.querySelector(
+      '.social-account-avatar'
+    );
 
     const avatarUrl =
       profile.user_avatar_url ||
@@ -210,10 +203,9 @@
       `;
     }
 
-    const role =
-      page.querySelector(
-        '.social-account-role'
-      );
+    const role = page.querySelector(
+      '.social-account-role'
+    );
 
     if (role) {
       role.textContent =
@@ -223,17 +215,12 @@
     }
   }
 
-  if (
-    typeof openSellerProfile ===
-    'function'
-  ) {
+  if (typeof openSellerProfile === 'function') {
     const originalOpenSellerProfile =
       openSellerProfile;
 
     openSellerProfile =
-      async function connectedSellerProfile(
-        storeId
-      ) {
+      async function connectedSellerProfile(storeId) {
         try {
           await loadPublicProfiles(true);
         } catch (error) {
@@ -243,13 +230,8 @@
           );
         }
 
-        originalOpenSellerProfile(
-          storeId
-        );
-
-        applyPublicProfileIdentity(
-          storeId
-        );
+        originalOpenSellerProfile(storeId);
+        applyPublicProfileIdentity(storeId);
       };
   }
 
@@ -295,8 +277,5 @@
       }
     };
 
-  setTimeout(
-    hydrateFeedIdentity,
-    0
-  );
+  setTimeout(hydrateFeedIdentity, 0);
 })();
