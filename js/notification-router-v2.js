@@ -71,10 +71,10 @@
   function openStartSelling() {
     leaveNotificationShell();
 
-    if (typeof navigate === 'function') {
-      navigate('sell');
-    } else if (typeof openSell === 'function') {
+    if (typeof openSell === 'function') {
       openSell();
+    } else if (typeof navigate === 'function') {
+      navigate('sell');
     }
   }
 
@@ -134,6 +134,18 @@
 
     if (type === 'product') {
       openProduct(entityId);
+      return;
+    }
+
+    if (type === 'reel') {
+      leaveNotificationShell();
+      window.openReelById?.(entityId);
+      return;
+    }
+
+    if (type === 'story') {
+      leaveNotificationShell();
+      window.openStoryV2?.(entityId);
       return;
     }
 
