@@ -99,6 +99,12 @@
   );
 
   loadScript(
+    'script[data-like-core-module="true"]',
+    'js/like-core.js?v=1.0',
+    'likeCoreModule'
+  );
+
+  loadScript(
     'script[data-social-shell-module="true"]',
     'js/social-shell.js?v=1.1',
     'socialShellModule'
@@ -220,6 +226,13 @@
       'function'
     ) {
       window.syncSocialShell();
+    }
+
+    if (
+      typeof window.hydratePersistentLikes ===
+      'function'
+    ) {
+      window.hydratePersistentLikes();
     }
 
     if (
