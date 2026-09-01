@@ -4,6 +4,7 @@
    PASAR UMKM - PERSISTENT LIKE CORE
    Mengganti like lokal menjadi like server-side untuk postingan
    dan produk tanpa mengubah renderer besar app.js.
+   Reels sengaja dilewati karena memakai endpoint engagement sendiri.
    ========================================================= */
 
 (() => {
@@ -43,7 +44,7 @@
   function resolveBackendTarget(postId) {
     const post = getPost(postId);
 
-    if (!post) {
+    if (!post || post.isReel === true) {
       return null;
     }
 
@@ -141,11 +142,6 @@
       STATE.likedPosts.delete(target.postId);
     }
 
-    /*
-     * app.js menambahkan +1 sendiri ketika STATE.likedPosts berisi ID.
-     * Simpan base count dikurangi like milik user agar renderer lama
-     * tetap menghasilkan total server yang benar.
-     */
     target.post.likesCount = Math.max(
       0,
       safeCount - (liked ? 1 : 0)
