@@ -3005,34 +3005,44 @@ async function openComments(postId) {
   }
 
 
-  /*
-   * Produk di feed belum memakai tabel posts.
-   * Jadi komentar sementara khusus postingan sosial.
-   */
-  if (post.product) {
-    showToast(
-      'Komentar produk belum tersedia.'
-    );
-    return;
-  }
+  const isProductComment =
+  Boolean(
+    post.product
+  );
+
+const backendCommentId =
+  String(
+    isProductComment
+      ? post.product?.id
+      : (
+          post.backendId ||
+          post.id ||
+          ''
+        )
+  )
+    .replace(/^post-/, '')
+    .replace(/^product-/, '')
+    .trim();
 
 
-  const backendPostId =
-    String(
-      post.backendId ||
-      post.id ||
-      ''
-    )
-      .replace(/^post-/, '')
-      .trim();
+if (!backendCommentId) {
+  showToast(
+    isProductComment
+      ? 'ID produk tidak valid.'
+      : 'ID postingan tidak valid.'
+  );
+  return;
+}
 
 
-  if (!backendPostId) {
-    showToast(
-      'ID postingan tidak valid.'
-    );
-    return;
-  }
+const commentsEndpoint =
+  isProductComment
+    ? `/api/products/${encodeURIComponent(
+        backendCommentId
+      )}/comments`
+    : `/api/posts/${encodeURIComponent(
+        backendCommentId
+      )}/comments`;
 
 
   /*
@@ -3064,9 +3074,7 @@ async function openComments(postId) {
   try {
     const response =
       await fetch(
-        `/api/posts/${encodeURIComponent(
-          backendPostId
-        )}/comments`,
+  commentsEndpoint,
         {
           method: 'GET',
 
