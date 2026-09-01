@@ -1411,10 +1411,25 @@ function createPostTemplate(post) {
     STATE.savedPosts.has(postId);
 
   const isProductPost =
-    Boolean(post.product);
+  Boolean(post.product);
+
+const actionLikeCount =
+  Number(
+    post.likesCount ||
+    post.likes ||
+    0
+  ) +
+  (liked ? 1 : 0);
+
+const actionCommentCount =
+  Number(
+    post.commentsCount ||
+    post.comments ||
+    0
+  );
 
 
-  return `
+return `
     <article
       class="post-card ${
         isProductPost
