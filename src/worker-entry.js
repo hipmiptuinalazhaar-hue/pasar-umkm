@@ -7,17 +7,13 @@ import { handleNotificationApi } from "./notification-api.js";
 import { handleEngagementApi } from "./engagement-api.js";
 import { handleFunctionalityApi } from "./functionality-api.js";
 import { handleStoreManagementApi } from "./store-management-api.js";
+import { handleRatingApi } from "./rating-api.js";
+import { handleBusinessAgencyApi } from "./business-agency-api.js";
 import { ensureNotificationInfrastructure } from "./notification-store.js";
 import { ensureFullFunctionalityInfrastructure } from "./functionality-bootstrap.js";
 
 export default {
   async fetch(request, env, ctx) {
-    /*
-     * Bootstrap berurutan. Notifikasi menyiapkan kolom dasar,
-     * lalu functionality memperkaya trigger reply, message,
-     * saved, stories, dan commerce. Gagal bootstrap tidak boleh
-     * menjatuhkan route marketplace lama.
-     */
     try {
       await ensureNotificationInfrastructure(env);
       await ensureFullFunctionalityInfrastructure(env);
@@ -35,6 +31,20 @@ export default {
       return notificationResponse;
     }
 
+    const ratingResponse =
+      await handleRatingApi(request, env);
+
+    if (ratingResponse) {
+      return ratingResponse;
+    }
+
+    const businessAgencyResponse =
+      await handleBusinessAgencyApi(request, env);
+
+    if (businessAgencyResponse) {
+      return businessAgencyResponse;
+    }
+
     const storeManagementResponse =
       await handleStoreManagementApi(request, env);
 
@@ -42,10 +52,6 @@ export default {
       return storeManagementResponse;
     }
 
-    /*
-     * Commerce core menangani cart, saved, checkout, orders,
-     * universal search, stories, seller dashboard, dan admin.
-     */
     const functionalityResponse =
       await handleFunctionalityApi(request, env);
 
@@ -53,10 +59,6 @@ export default {
       return functionalityResponse;
     }
 
-    /*
-     * Likes harus diproses sebelum social router umum karena
-     * social router mengembalikan 404 untuk /api/social/* lain.
-     */
     const engagementResponse =
       await handleEngagementApi(request, env);
 
