@@ -393,7 +393,13 @@ async function loadInitialData() {
               '',
 
             createdAt:
-              product.created_at,
+              createdAt:
+  product.created_at,
+
+commentsCount:
+  Number(
+    product.comments_count || 0
+  ),
 
             product: {
               id:
