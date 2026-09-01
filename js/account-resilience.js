@@ -33,8 +33,9 @@
   loadStylesheet('link[data-notification-core-style="true"]', 'css/notification-core.css?v=1.0', 'notificationCoreStyle');
   loadStylesheet('link[data-media-experience-style="true"]', 'css/media-experience.css?v=1.0', 'mediaExperienceStyle');
   loadStylesheet('link[data-mention-autocomplete-style="true"]', 'css/mention-autocomplete.css?v=1.0', 'mentionAutocompleteStyle');
-  loadStylesheet('link[data-chat-experience-style="true"]', 'css/chat-experience.css?v=1.0', 'chatExperienceStyle');
+  loadStylesheet('link[data-chat-experience-style="true"]', 'css/chat-experience.css?v=1.1', 'chatExperienceStyle');
   loadStylesheet('link[data-chat-layout-v2="true"]', 'css/chat-layout-v2.css?v=1.0', 'chatLayoutV2');
+  loadStylesheet('link[data-chat-whatsapp-v3="true"]', 'css/chat-whatsapp-v3.css?v=1.0', 'chatWhatsappV3');
 
   loadScript('script[data-profile-edit-module="true"]', 'js/profile-edit.js?v=3.0', 'profileEditModule');
   loadScript('script[data-profile-identity-module="true"]', 'js/profile-identity.js?v=2.0', 'profileIdentityModule');
@@ -46,7 +47,8 @@
   loadScript('script[data-social-core-module="true"]', 'js/social-core.js?v=1.0', 'socialCoreModule');
   loadScript('script[data-like-core-module="true"]', 'js/like-core.js?v=1.1', 'likeCoreModule');
   loadScript('script[data-social-shell-module="true"]', 'js/social-shell.js?v=1.1', 'socialShellModule');
-  loadScript('script[data-chat-experience-module="true"]', 'js/chat-experience.js?v=1.1', 'chatExperienceModule');
+  loadScript('script[data-chat-experience-module="true"]', 'js/chat-experience.js?v=1.2', 'chatExperienceModule');
+  loadScript('script[data-chat-media-experience="true"]', 'js/chat-media-experience.js?v=1.0', 'chatMediaExperience');
   loadScript('script[data-chat-mark-read-module="true"]', 'js/chat-mark-read.js?v=1.0', 'chatMarkReadModule');
 
   /* Satu router notifikasi saja. Versi lama tidak dimuat lagi. */
