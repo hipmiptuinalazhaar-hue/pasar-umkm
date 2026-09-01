@@ -8,7 +8,9 @@ import { handleEngagementApi } from "./engagement-api.js";
 import { handleFunctionalityApi } from "./functionality-api.js";
 import { handleStoreManagementApi } from "./store-management-api.js";
 import { handleRatingApi } from "./rating-api.js";
+import { handleRatingSummaryV2 } from "./rating-summary-v2.js";
 import { handleBusinessAgencyApi } from "./business-agency-api.js";
+import { handleMediaSocialApi } from "./media-social-api.js";
 import { ensureNotificationInfrastructure } from "./notification-store.js";
 import { ensureFullFunctionalityInfrastructure } from "./functionality-bootstrap.js";
 
@@ -31,11 +33,26 @@ export default {
       return notificationResponse;
     }
 
+    /* Summary v2 harus mendahului rating API lama. */
+    const ratingSummaryResponse =
+      await handleRatingSummaryV2(request, env);
+
+    if (ratingSummaryResponse) {
+      return ratingSummaryResponse;
+    }
+
     const ratingResponse =
       await handleRatingApi(request, env);
 
     if (ratingResponse) {
       return ratingResponse;
+    }
+
+    const mediaSocialResponse =
+      await handleMediaSocialApi(request, env);
+
+    if (mediaSocialResponse) {
+      return mediaSocialResponse;
     }
 
     const businessAgencyResponse =
