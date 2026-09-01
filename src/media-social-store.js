@@ -6,83 +6,36 @@ export async function ensureMediaSocialInfrastructure(sql) {
   if (mediaSocialPromise) return mediaSocialPromise;
 
   mediaSocialPromise = (async () => {
-    await sql`
-      CREATE TABLE IF NOT EXISTS reels (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        store_id UUID REFERENCES stores(id) ON DELETE SET NULL,
-        video_url TEXT NOT NULL,
-        cloudinary_public_id TEXT,
-        caption TEXT,
-        is_active BOOLEAN NOT NULL DEFAULT TRUE,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-      )
+    const rows = await sql`
+      SELECT
+        to_regclass('public.reels') IS NOT NULL AS reels,
+        to_regclass('public.reel_likes') IS NOT NULL AS reel_likes,
+        to_regclass('public.reel_comments') IS NOT NULL AS reel_comments,
+        to_regclass('public.story_likes') IS NOT NULL AS story_likes,
+        to_regclass('public.story_comments') IS NOT NULL AS story_comments
     `;
 
-    await sql`
-      CREATE INDEX IF NOT EXISTS idx_reels_active_created
-      ON reels(is_active, created_at DESC)
-    `;
+    const state = rows[0] || {};
+    const missing = [];
 
-    await sql`
-      CREATE INDEX IF NOT EXISTS idx_reels_user_created
-      ON reels(user_id, created_at DESC)
-    `;
+    for (const name of [
+      "reels",
+      "reel_likes",
+      "reel_comments",
+      "story_likes",
+      "story_comments"
+    ]) {
+      if (!state[name]) missing.push(name);
+    }
 
-    await sql`
-      CREATE TABLE IF NOT EXISTS reel_likes (
-        reel_id UUID NOT NULL REFERENCES reels(id) ON DELETE CASCADE,
-        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        PRIMARY KEY (reel_id, user_id)
-      )
-    `;
-
-    await sql`
-      CREATE TABLE IF NOT EXISTS reel_comments (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        reel_id UUID NOT NULL REFERENCES reels(id) ON DELETE CASCADE,
-        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        body TEXT NOT NULL,
-        is_active BOOLEAN NOT NULL DEFAULT TRUE,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        CONSTRAINT reel_comments_body_check
-          CHECK (char_length(trim(body)) BETWEEN 1 AND 1000)
-      )
-    `;
-
-    await sql`
-      CREATE INDEX IF NOT EXISTS idx_reel_comments_reel_created
-      ON reel_comments(reel_id, created_at ASC)
-    `;
-
-    await sql`
-      CREATE TABLE IF NOT EXISTS story_likes (
-        story_id UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
-        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        PRIMARY KEY (story_id, user_id)
-      )
-    `;
-
-    await sql`
-      CREATE TABLE IF NOT EXISTS story_comments (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        story_id UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
-        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        body TEXT NOT NULL,
-        is_active BOOLEAN NOT NULL DEFAULT TRUE,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        CONSTRAINT story_comments_body_check
-          CHECK (char_length(trim(body)) BETWEEN 1 AND 500)
-      )
-    `;
-
-    await sql`
-      CREATE INDEX IF NOT EXISTS idx_story_comments_story_created
-      ON story_comments(story_id, created_at ASC)
-    `;
+    if (missing.length) {
+      const error = new Error(
+        `[schema:not-ready] Media social schema belum siap: ${missing.join(", ")}. ` +
+        "Jalankan migration database sebelum deploy Worker."
+      );
+      error.code = "SCHEMA_NOT_READY";
+      throw error;
+    }
 
     mediaSocialReady = true;
   })();
