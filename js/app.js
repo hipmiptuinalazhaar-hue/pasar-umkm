@@ -3170,6 +3170,30 @@ async function openComments(postId) {
                         )}
                       </span>
 
+                      ${
+  canDeleteComment
+    ? `
+        <button
+          type="button"
+          class="post-comment-delete"
+          data-action="comment-delete"
+          data-post-id="${escapeHTML(
+            post.id || ''
+          )}"
+          data-comment-id="${escapeHTML(
+            comment.id || ''
+          )}"
+          aria-label="Hapus komentar"
+        >
+          <i
+            class="ph ph-trash"
+            aria-hidden="true"
+          ></i>
+        </button>
+      `
+    : ''
+}
+
                     </div>
 
 
