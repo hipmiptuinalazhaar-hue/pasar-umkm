@@ -1,9 +1,9 @@
 'use strict';
 
 /* =========================================================
-   PASAR UMKM - ACCOUNT PROFILE HARDENING
-   Data resilience + profile highlight layout.
-   Loaded after app.js so stable core code stays untouched.
+   PASAR UMKM - ACCOUNT DATA RESILIENCE
+   Store dan produk dimuat secara independen agar kegagalan
+   satu request tidak menjatuhkan seluruh halaman profil.
    ========================================================= */
 
 (() => {
@@ -16,51 +16,30 @@
 
 
   /* =======================================================
-     PROFILE HIGHLIGHTS LAYOUT
-     3 item = 3 kolom, 4 item = 4 kolom, tetap satu baris.
+     PROFILE RESPONSIVE STYLESHEET
+     Style dipisahkan dari logic agar arsitektur tetap bersih.
      ======================================================= */
 
-  if (!document.getElementById('accountProfileLayoutStyles')) {
-    const style =
-      document.createElement('style');
+  if (
+    !document.querySelector(
+      'link[data-profile-responsive="true"]'
+    )
+  ) {
+    const profileStylesheet =
+      document.createElement('link');
 
-    style.id =
-      'accountProfileLayoutStyles';
+    profileStylesheet.rel =
+      'stylesheet';
 
-    style.textContent = `
-      .social-account-page .social-account-highlights {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(62px, 1fr));
-        align-items: start;
-        gap: 8px;
-        width: 100%;
-        overflow: visible;
-      }
+    profileStylesheet.href =
+      'css/profile-responsive.css?v=1.0';
 
-      .social-account-page .social-account-highlight {
-        width: 100%;
-        min-width: 0;
-        justify-self: stretch;
-      }
+    profileStylesheet.dataset.profileResponsive =
+      'true';
 
-      .social-account-page .social-account-highlight-ring {
-        margin-inline: auto;
-      }
-
-      .social-account-page .social-account-highlight-label {
-        width: 100%;
-        text-align: center;
-      }
-
-      @media (max-width: 360px) {
-        .social-account-page .social-account-highlights {
-          gap: 6px;
-          grid-template-columns: repeat(auto-fit, minmax(58px, 1fr));
-        }
-      }
-    `;
-
-    document.head.appendChild(style);
+    document.head.appendChild(
+      profileStylesheet
+    );
   }
 
 
