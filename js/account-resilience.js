@@ -1,9 +1,8 @@
 'use strict';
 
 /* =========================================================
-   PASAR UMKM - ACCOUNT DATA RESILIENCE
-   Store dan produk dimuat secara independen agar kegagalan
-   satu request tidak menjatuhkan seluruh halaman profil.
+   PASAR UMKM - ACCOUNT PROFILE HARDENING
+   Data resilience + profile highlight layout.
    Loaded after app.js so stable core code stays untouched.
    ========================================================= */
 
@@ -14,6 +13,56 @@
     );
     return;
   }
+
+
+  /* =======================================================
+     PROFILE HIGHLIGHTS LAYOUT
+     3 item = 3 kolom, 4 item = 4 kolom, tetap satu baris.
+     ======================================================= */
+
+  if (!document.getElementById('accountProfileLayoutStyles')) {
+    const style =
+      document.createElement('style');
+
+    style.id =
+      'accountProfileLayoutStyles';
+
+    style.textContent = `
+      .social-account-page .social-account-highlights {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(62px, 1fr));
+        align-items: start;
+        gap: 8px;
+        width: 100%;
+        overflow: visible;
+      }
+
+      .social-account-page .social-account-highlight {
+        width: 100%;
+        min-width: 0;
+        justify-self: stretch;
+      }
+
+      .social-account-page .social-account-highlight-ring {
+        margin-inline: auto;
+      }
+
+      .social-account-page .social-account-highlight-label {
+        width: 100%;
+        text-align: center;
+      }
+
+      @media (max-width: 360px) {
+        .social-account-page .social-account-highlights {
+          gap: 6px;
+          grid-template-columns: repeat(auto-fit, minmax(58px, 1fr));
+        }
+      }
+    `;
+
+    document.head.appendChild(style);
+  }
+
 
   openAccount = async function resilientOpenAccount() {
     if (!STATE.user) {
