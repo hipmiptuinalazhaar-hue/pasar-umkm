@@ -14,83 +14,65 @@
     return;
   }
 
+  function loadStylesheet(selector, href, datasetKey) {
+    if (document.querySelector(selector)) {
+      return;
+    }
 
-  /* =======================================================
-     PROFILE RESPONSIVE STYLESHEET
-     Style dipisahkan dari logic agar arsitektur tetap bersih.
-     ======================================================= */
-
-  if (
-    !document.querySelector(
-      'link[data-profile-responsive="true"]'
-    )
-  ) {
-    const profileStylesheet =
+    const stylesheet =
       document.createElement('link');
 
-    profileStylesheet.rel =
-      'stylesheet';
+    stylesheet.rel = 'stylesheet';
+    stylesheet.href = href;
+    stylesheet.dataset[datasetKey] = 'true';
 
-    profileStylesheet.href =
-      'css/profile-responsive.css?v=1.0';
-
-    profileStylesheet.dataset.profileResponsive =
-      'true';
-
-    document.head.appendChild(
-      profileStylesheet
-    );
+    document.head.appendChild(stylesheet);
   }
 
+  function loadScript(selector, src, datasetKey) {
+    if (document.querySelector(selector)) {
+      return;
+    }
 
-  /* =======================================================
-     EDIT PROFILE MODULE
-     Dimuat sebagai modul kecil agar app.js tidak makin gemuk.
-     ======================================================= */
-
-  if (
-    !document.querySelector(
-      'link[data-profile-edit-style="true"]'
-    )
-  ) {
-    const editStylesheet =
-      document.createElement('link');
-
-    editStylesheet.rel =
-      'stylesheet';
-
-    editStylesheet.href =
-      'css/profile-edit.css?v=2.0';
-
-    editStylesheet.dataset.profileEditStyle =
-      'true';
-
-    document.head.appendChild(
-      editStylesheet
-    );
-  }
-
-  if (
-    !document.querySelector(
-      'script[data-profile-edit-module="true"]'
-    )
-  ) {
-    const editScript =
+    const script =
       document.createElement('script');
 
-    editScript.src =
-      'js/profile-edit.js?v=2.0';
+    script.src = src;
+    script.async = false;
+    script.dataset[datasetKey] = 'true';
 
-    editScript.async = false;
-
-    editScript.dataset.profileEditModule =
-      'true';
-
-    document.head.appendChild(
-      editScript
-    );
+    document.head.appendChild(script);
   }
 
+  loadStylesheet(
+    'link[data-profile-responsive="true"]',
+    'css/profile-responsive.css?v=1.0',
+    'profileResponsive'
+  );
+
+  loadStylesheet(
+    'link[data-profile-edit-style="true"]',
+    'css/profile-edit.css?v=2.0',
+    'profileEditStyle'
+  );
+
+  loadStylesheet(
+    'link[data-profile-premium-style="true"]',
+    'css/profile-premium.css?v=1.0',
+    'profilePremiumStyle'
+  );
+
+  loadScript(
+    'script[data-profile-edit-module="true"]',
+    'js/profile-edit.js?v=2.0',
+    'profileEditModule'
+  );
+
+  loadScript(
+    'script[data-profile-identity-module="true"]',
+    'js/profile-identity.js?v=1.0',
+    'profileIdentityModule'
+  );
 
   openAccount = async function resilientOpenAccount() {
     if (!STATE.user) {
@@ -125,23 +107,13 @@
 
     DOM.feed.innerHTML = `
       <section class="social-account-page">
-
         <section class="social-account-empty">
-
           <div class="social-account-empty-icon">
             <i class="ph ph-user-circle"></i>
           </div>
-
-          <strong>
-            Memuat profil
-          </strong>
-
-          <p>
-            Menyiapkan halaman akun Anda.
-          </p>
-
+          <strong>Memuat profil</strong>
+          <p>Menyiapkan halaman akun Anda.</p>
         </section>
-
       </section>
     `;
 
@@ -152,39 +124,26 @@
       STATE.user.role === 'seller' ||
       STATE.user.role === 'admin'
     ) {
-      const [
-        storeResult,
-        productsResult
-      ] = await Promise.allSettled([
-        loadCurrentAccountStore(),
-        loadCurrentAccountProducts()
-      ]);
+      const [storeResult, productsResult] =
+        await Promise.allSettled([
+          loadCurrentAccountStore(),
+          loadCurrentAccountProducts()
+        ]);
 
-      if (
-        storeResult.status === 'fulfilled'
-      ) {
-        store =
-          storeResult.value;
-
-        STATE.currentStore =
-          storeResult.value;
+      if (storeResult.status === 'fulfilled') {
+        store = storeResult.value;
+        STATE.currentStore = storeResult.value;
       } else {
         console.error(
           '[Pasar UMKM] Account store load error:',
           storeResult.reason
         );
-
-        store =
-          STATE.currentStore || null;
+        store = STATE.currentStore || null;
       }
 
-      if (
-        productsResult.status === 'fulfilled'
-      ) {
+      if (productsResult.status === 'fulfilled') {
         STATE.accountProducts =
-          Array.isArray(
-            productsResult.value
-          )
+          Array.isArray(productsResult.value)
             ? productsResult.value
             : [];
       } else {
@@ -192,10 +151,8 @@
           '[Pasar UMKM] Account products load error:',
           productsResult.reason
         );
-
         STATE.accountProducts = [];
       }
-
     } else {
       STATE.accountProducts = [];
     }
