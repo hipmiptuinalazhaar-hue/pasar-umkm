@@ -3544,10 +3544,10 @@ const commentsEndpoint =
             <p
               class="post-comment-text"
             >
-              ${escapeHTML(
-                comment.content ||
-                ''
-              )}
+             ${renderCommentText(
+  comment.content ||
+  ''
+)}
             </p>
 
 
