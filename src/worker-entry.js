@@ -11,6 +11,7 @@ import { handleRatingApi } from "./rating-api.js";
 import { handleRatingSummaryV2 } from "./rating-summary-v2.js";
 import { handleBusinessAgencyApi } from "./business-agency-api.js";
 import { handleMediaSocialApi } from "./media-social-api.js";
+import { handleStoryUploadApi } from "./story-upload-api.js";
 import { ensureNotificationInfrastructure } from "./notification-store.js";
 import { ensureFullFunctionalityInfrastructure } from "./functionality-bootstrap.js";
 
@@ -46,6 +47,13 @@ export default {
 
     if (ratingResponse) {
       return ratingResponse;
+    }
+
+    const storyUploadResponse =
+      await handleStoryUploadApi(request, env);
+
+    if (storyUploadResponse) {
+      return storyUploadResponse;
     }
 
     const mediaSocialResponse =
