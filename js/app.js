@@ -2092,6 +2092,14 @@ function runAction(action, element) {
   );
   break;
 
+        case 'comment-delete':
+  deleteComment(
+    postId,
+    element.dataset.commentId,
+    element
+  );
+  break;
+
     case 'share':
       sharePost(postId);
       break;
