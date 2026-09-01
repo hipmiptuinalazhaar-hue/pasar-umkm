@@ -241,6 +241,64 @@ async function ensureContentExists(sql, kind, id) {
   return Boolean(rows[0]);
 }
 
+async function createProductLikeNotification(sql, actor, productId) {
+  try {
+    const rows = await sql`
+      SELECT
+        p.name AS product_name,
+        s.owner_id
+      FROM products p
+      JOIN stores s
+        ON s.id = p.store_id
+      WHERE p.id = ${productId}::uuid
+      LIMIT 1
+    `;
+
+    const product = rows[0];
+
+    if (
+      !product ||
+      String(product.owner_id) === String(actor.id)
+    ) {
+      return;
+    }
+
+    await sql`
+      INSERT INTO notifications (
+        user_id,
+        type,
+        title,
+        message,
+        target_type,
+        target_id,
+        actor_user_id,
+        entity_type,
+        entity_id,
+        is_read,
+        created_at
+      )
+      VALUES (
+        ${product.owner_id},
+        'system',
+        'Like produk baru',
+        ${`${actor.name || "Seseorang"} menyukai ${product.product_name || "produk Anda"}.`},
+        'product',
+        ${productId}::uuid,
+        ${actor.id},
+        'product',
+        ${productId}::uuid,
+        FALSE,
+        NOW()
+      )
+    `;
+  } catch (error) {
+    console.error(
+      "Product like notification error:",
+      error
+    );
+  }
+}
+
 async function mutateLike(sql, request, kind, id) {
   const auth = await requireUser(sql, request);
 
@@ -259,7 +317,7 @@ async function mutateLike(sql, request, kind, id) {
 
   if (kind === "product") {
     if (request.method === "POST") {
-      await sql`
+      const inserted = await sql`
         INSERT INTO product_likes (
           user_id,
           product_id
@@ -270,7 +328,16 @@ async function mutateLike(sql, request, kind, id) {
         )
         ON CONFLICT (user_id, product_id)
         DO NOTHING
+        RETURNING product_id
       `;
+
+      if (inserted[0]) {
+        await createProductLikeNotification(
+          sql,
+          auth.user,
+          id
+        );
+      }
     } else {
       await sql`
         DELETE FROM product_likes
