@@ -4134,12 +4134,17 @@ function toggleCommentReplies(
     );
 
 
-  element.textContent =
+  const label =
+  element.querySelector(
+    'span:last-child'
+  );
+
+if (label) {
+  label.textContent =
     isHidden
       ? 'Sembunyikan balasan'
-      : `Lihat ${
-          count
-        } balasan`;
+      : `Lihat ${count} balasan`;
+}
 }
 function insertCommentEmoji(
   element
