@@ -22069,3 +22069,93 @@ line-height:
 .post-comment-thread {
   margin-top: 2px;
 }
+/* INSTAGRAM COMMENT ALIGNMENT - TRUE FINAL */
+
+.post-comments-sheet
+.post-comment-main-line {
+  display: block !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  font-size: 12.5px !important;
+  line-height: 1.32 !important;
+
+  text-align: left !important;
+}
+
+
+.post-comments-sheet
+.post-comment-main-line
+.post-comment-name {
+  display: inline !important;
+
+  max-width: none !important;
+
+  margin: 0 5px 0 0 !important;
+  padding: 0 !important;
+
+  color: #171c19 !important;
+
+  font-size: 12.5px !important;
+  font-weight: 800 !important;
+  line-height: inherit !important;
+
+  white-space: normal !important;
+}
+
+
+.post-comments-sheet
+.post-comment-main-line
+.post-comment-text {
+  display: inline !important;
+
+  width: auto !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  color: #252c28 !important;
+
+  font-size: 12.5px !important;
+  font-weight: 450 !important;
+  line-height: inherit !important;
+
+  white-space: normal !important;
+}
+
+
+.post-comments-sheet
+.post-comment-actions {
+  display: flex !important;
+  align-items: center !important;
+
+  gap: 10px !important;
+
+  margin-top: 3px !important;
+  padding: 0 !important;
+}
+
+
+.post-comments-sheet
+.post-comment-actions
+.post-comment-time {
+  margin: 0 !important;
+
+  color: #929994 !important;
+
+  font-size: 9.5px !important;
+  font-weight: 500 !important;
+}
+
+
+.post-comments-sheet
+.post-comment-reply-button {
+  margin: 0 !important;
+  padding: 0 !important;
+
+  color: #727a74 !important;
+
+  font-size: 10px !important;
+  font-weight: 700 !important;
+}
