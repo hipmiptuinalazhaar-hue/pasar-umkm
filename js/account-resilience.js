@@ -116,6 +116,12 @@
     'notificationCoreModule'
   );
 
+  loadScript(
+    'script[data-functionality-core-module="true"]',
+    'js/functionality-core.js?v=1.0',
+    'functionalityCoreModule'
+  );
+
   openAccount = async function resilientOpenAccount() {
     if (!STATE.user) {
       openLogin();
@@ -196,6 +202,22 @@
       }
     } else {
       STATE.accountProducts = [];
+    }
+
+    if (
+      typeof window.hydratePersistentSaved ===
+      'function'
+    ) {
+      await window.hydratePersistentSaved({
+        force: true
+      });
+    }
+
+    if (
+      typeof window.reloadCommerceCart ===
+      'function'
+    ) {
+      window.reloadCommerceCart().catch(() => null);
     }
 
     renderSocialAccountProfile(store);
