@@ -13,6 +13,7 @@ import { handleBusinessAgencyApi } from "./business-agency-api.js";
 import { handleMediaSocialApi } from "./media-social-api.js";
 import { handleStoryUploadApi } from "./story-upload-api.js";
 import { handleChatManagementApi } from "./chat-management-api.js";
+import { handleChatMarkReadApi } from "./chat-mark-read-api.js";
 import { ensureNotificationInfrastructure } from "./notification-store.js";
 import { ensureFullFunctionalityInfrastructure } from "./functionality-bootstrap.js";
 
@@ -90,6 +91,13 @@ export default {
 
     if (engagementResponse) {
       return engagementResponse;
+    }
+
+    const chatMarkReadResponse =
+      await handleChatMarkReadApi(request, env);
+
+    if (chatMarkReadResponse) {
+      return chatMarkReadResponse;
     }
 
     /*
