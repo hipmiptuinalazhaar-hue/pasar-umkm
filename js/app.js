@@ -1472,26 +1472,31 @@ return `
         <div class="actions-left">
 
           <button
-            type="button"
-            class="action-btn ${
-              liked
-                ? 'liked'
-                : ''
-            }"
-            data-action="like"
-            data-post-id="${escapeHTML(postId)}"
-            aria-label="Sukai postingan"
-            aria-pressed="${liked}"
-          >
-            <i
-              class="${
-                liked
-                  ? 'ph-fill'
-                  : 'ph'
-              } ph-heart"
-            ></i>
-          </button>
+  type="button"
+  class="action-btn action-btn-count ${
+    liked
+      ? 'liked'
+      : ''
+  }"
+  data-action="like"
+  data-post-id="${escapeHTML(postId)}"
+  aria-label="Sukai postingan"
+  aria-pressed="${liked}"
+>
+  <i
+    class="${
+      liked
+        ? 'ph-fill'
+        : 'ph'
+    } ph-heart"
+  ></i>
 
+  <span class="action-count">
+    ${formatCompactNumber(
+      actionLikeCount
+    )}
+  </span>
+</button>
 
           <button
             type="button"
