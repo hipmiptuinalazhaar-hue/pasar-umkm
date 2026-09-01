@@ -52,25 +52,25 @@
 
   loadStylesheet(
     'link[data-profile-edit-style="true"]',
-    'css/profile-edit.css?v=2.0',
+    'css/profile-edit.css?v=3.0',
     'profileEditStyle'
   );
 
   loadStylesheet(
     'link[data-profile-premium-style="true"]',
-    'css/profile-premium.css?v=1.1',
+    'css/profile-premium.css?v=1.2',
     'profilePremiumStyle'
   );
 
   loadScript(
     'script[data-profile-edit-module="true"]',
-    'js/profile-edit.js?v=2.0',
+    'js/profile-edit.js?v=3.0',
     'profileEditModule'
   );
 
   loadScript(
     'script[data-profile-identity-module="true"]',
-    'js/profile-identity.js?v=1.0',
+    'js/profile-identity.js?v=2.0',
     'profileIdentityModule'
   );
 
@@ -117,8 +117,7 @@
       </section>
     `;
 
-    let store =
-      STATE.currentStore || null;
+    let store = STATE.currentStore || null;
 
     if (
       STATE.user.role === 'seller' ||
@@ -158,6 +157,13 @@
     }
 
     renderSocialAccountProfile(store);
+
+    if (
+      typeof window.decorateOwnProfileContacts ===
+      'function'
+    ) {
+      window.decorateOwnProfileContacts();
+    }
 
     window.scrollTo({
       top: 0,
