@@ -43,6 +43,55 @@
   }
 
 
+  /* =======================================================
+     EDIT PROFILE MODULE
+     Dimuat sebagai modul kecil agar app.js tidak makin gemuk.
+     ======================================================= */
+
+  if (
+    !document.querySelector(
+      'link[data-profile-edit-style="true"]'
+    )
+  ) {
+    const editStylesheet =
+      document.createElement('link');
+
+    editStylesheet.rel =
+      'stylesheet';
+
+    editStylesheet.href =
+      'css/profile-edit.css?v=1.0';
+
+    editStylesheet.dataset.profileEditStyle =
+      'true';
+
+    document.head.appendChild(
+      editStylesheet
+    );
+  }
+
+  if (
+    !document.querySelector(
+      'script[data-profile-edit-module="true"]'
+    )
+  ) {
+    const editScript =
+      document.createElement('script');
+
+    editScript.src =
+      'js/profile-edit.js?v=1.0';
+
+    editScript.async = false;
+
+    editScript.dataset.profileEditModule =
+      'true';
+
+    document.head.appendChild(
+      editScript
+    );
+  }
+
+
   openAccount = async function resilientOpenAccount() {
     if (!STATE.user) {
       openLogin();
