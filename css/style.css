@@ -21997,3 +21997,22 @@ strong {
   margin-top:
     4px !important;
 }
+.comment-inline-emoji {
+  display:
+    inline-block;
+
+  width:
+    1.15em;
+
+  height:
+    1.15em;
+
+  margin:
+    0 0.04em;
+
+  vertical-align:
+    -0.18em;
+
+  object-fit:
+    contain;
+}
