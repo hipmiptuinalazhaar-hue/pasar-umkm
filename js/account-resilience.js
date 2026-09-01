@@ -36,6 +36,7 @@
   loadStylesheet('link[data-chat-experience-style="true"]', 'css/chat-experience.css?v=1.1', 'chatExperienceStyle');
   loadStylesheet('link[data-chat-layout-v2="true"]', 'css/chat-layout-v2.css?v=1.0', 'chatLayoutV2');
   loadStylesheet('link[data-chat-whatsapp-v3="true"]', 'css/chat-whatsapp-v3.css?v=1.0', 'chatWhatsappV3');
+  loadStylesheet('link[data-chat-bubble-final="true"]', 'css/chat-bubble-final.css?v=1.0', 'chatBubbleFinal');
 
   loadScript('script[data-profile-edit-module="true"]', 'js/profile-edit.js?v=3.0', 'profileEditModule');
   loadScript('script[data-profile-identity-module="true"]', 'js/profile-identity.js?v=2.0', 'profileIdentityModule');
