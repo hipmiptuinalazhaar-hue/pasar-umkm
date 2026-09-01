@@ -110,6 +110,16 @@
     'socialShellModule'
   );
 
+  /*
+   * Bridge didaftarkan sebelum notification-core agar notifikasi
+   * order/message tidak jatuh ke fallback profil aktor.
+   */
+  loadScript(
+    'script[data-notification-functionality-bridge="true"]',
+    'js/notification-functionality-bridge.js?v=1.0',
+    'notificationFunctionalityBridge'
+  );
+
   loadScript(
     'script[data-notification-core-module="true"]',
     'js/notification-core.js?v=1.0',
