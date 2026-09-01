@@ -12,6 +12,7 @@ import { handleRatingSummaryV2 } from "./rating-summary-v2.js";
 import { handleBusinessAgencyApi } from "./business-agency-api.js";
 import { handleMediaSocialApi } from "./media-social-api.js";
 import { handleStoryUploadApi } from "./story-upload-api.js";
+import { handleChatManagementApi } from "./chat-management-api.js";
 import { ensureNotificationInfrastructure } from "./notification-store.js";
 import { ensureFullFunctionalityInfrastructure } from "./functionality-bootstrap.js";
 
@@ -89,6 +90,17 @@ export default {
 
     if (engagementResponse) {
       return engagementResponse;
+    }
+
+    /*
+     * Chat management harus mendahului social router karena ia
+     * memperkaya endpoint conversation list, unread, dan thread GET.
+     */
+    const chatManagementResponse =
+      await handleChatManagementApi(request, env);
+
+    if (chatManagementResponse) {
+      return chatManagementResponse;
     }
 
     const socialResponse =
