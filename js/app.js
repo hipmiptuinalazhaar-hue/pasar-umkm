@@ -3376,22 +3376,35 @@ const commentsEndpoint =
 
                   <div class="post-comment-body">
 
-                    <div class="post-comment-meta">
+  <div class="post-comment-headline">
 
-                      <strong>
-                        ${escapeHTML(
-                          comment.user_name ||
-                          'Pengguna'
-                        )}
-                      </strong>
+    <strong class="post-comment-name">
+      ${escapeHTML(
+        comment.user_name ||
+        'Pengguna'
+      )}
+    </strong>
 
-                      <span>
-                        ${formatRelativeTime(
-                          comment.created_at
-                        )}
-                      </span>
+    <span class="post-comment-time">
+      ${formatRelativeTime(
+        comment.created_at
+      )}
+    </span>
 
-                      ${
+  </div>
+
+
+  <p class="post-comment-text">
+    ${escapeHTML(
+      comment.content ||
+      ''
+    )}
+  </p>
+
+</div>
+
+
+${
   canDeleteComment
     ? `
         <button
@@ -3414,19 +3427,6 @@ const commentsEndpoint =
       `
     : ''
 }
-
-                    </div>
-
-
-                    <p>
-                      ${escapeHTML(
-                        comment.content ||
-                        ''
-                      )}
-                    </p>
-
-                  </div>
-
                 </article>
               `;
             })
