@@ -2,8 +2,7 @@
 
 /* =========================================================
    PASAR UMKM - EDIT PROFILE
-   Replaces the old informational placeholder with a real,
-   validated profile editor backed by PATCH /api/profile.
+   Native photo picker + client-side avatar processing.
    ========================================================= */
 
 (() => {
@@ -16,6 +15,14 @@
     );
     return;
   }
+
+  const AVATAR_SIZE = 512;
+  const MAX_SOURCE_BYTES = 12 * 1024 * 1024;
+  const MAX_UPLOAD_BYTES = 500 * 1024;
+
+  let pendingAvatarBlob = null;
+  let pendingAvatarPreviewUrl = '';
+  let avatarProcessing = false;
 
   const isSellerAccount = () =>
     STATE.user?.role === 'seller' ||
@@ -42,11 +49,314 @@
     `;
   };
 
+  function clearPendingAvatar() {
+    pendingAvatarBlob = null;
+    avatarProcessing = false;
+
+    if (pendingAvatarPreviewUrl) {
+      URL.revokeObjectURL(
+        pendingAvatarPreviewUrl
+      );
+      pendingAvatarPreviewUrl = '';
+    }
+  }
+
+  function setAvatarStatus(message) {
+    const status =
+      document.getElementById(
+        'profileEditAvatarStatus'
+      );
+
+    if (status) {
+      status.textContent = message;
+    }
+  }
+
+  function loadImageFromFile(file) {
+    return new Promise((resolve, reject) => {
+      const objectUrl =
+        URL.createObjectURL(file);
+
+      const image =
+        new Image();
+
+      image.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(image);
+      };
+
+      image.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        reject(
+          new Error(
+            'Foto tidak dapat dibaca.'
+          )
+        );
+      };
+
+      image.src = objectUrl;
+    });
+  }
+
+  function canvasToBlob(
+    canvas,
+    type,
+    quality
+  ) {
+    return new Promise(resolve => {
+      canvas.toBlob(
+        blob => resolve(blob),
+        type,
+        quality
+      );
+    });
+  }
+
+  async function createAvatarBlob(file) {
+    if (!file) {
+      throw new Error(
+        'Pilih foto terlebih dahulu.'
+      );
+    }
+
+    if (
+      ![
+        'image/jpeg',
+        'image/png',
+        'image/webp'
+      ].includes(file.type)
+    ) {
+      throw new Error(
+        'Format foto harus JPG, PNG, atau WebP.'
+      );
+    }
+
+    if (file.size > MAX_SOURCE_BYTES) {
+      throw new Error(
+        'Foto terlalu besar. Maksimal 12 MB sebelum diproses.'
+      );
+    }
+
+    const image =
+      await loadImageFromFile(file);
+
+    const sourceWidth =
+      image.naturalWidth || image.width;
+
+    const sourceHeight =
+      image.naturalHeight || image.height;
+
+    if (
+      !sourceWidth ||
+      !sourceHeight
+    ) {
+      throw new Error(
+        'Ukuran foto tidak valid.'
+      );
+    }
+
+    const cropSize =
+      Math.min(
+        sourceWidth,
+        sourceHeight
+      );
+
+    const sourceX =
+      Math.max(
+        0,
+        (sourceWidth - cropSize) / 2
+      );
+
+    const sourceY =
+      Math.max(
+        0,
+        (sourceHeight - cropSize) / 2
+      );
+
+    const canvas =
+      document.createElement('canvas');
+
+    canvas.width = AVATAR_SIZE;
+    canvas.height = AVATAR_SIZE;
+
+    const context =
+      canvas.getContext('2d', {
+        alpha: true
+      });
+
+    if (!context) {
+      throw new Error(
+        'Pemrosesan foto tidak didukung browser ini.'
+      );
+    }
+
+    context.imageSmoothingEnabled = true;
+    context.imageSmoothingQuality = 'high';
+
+    context.drawImage(
+      image,
+      sourceX,
+      sourceY,
+      cropSize,
+      cropSize,
+      0,
+      0,
+      AVATAR_SIZE,
+      AVATAR_SIZE
+    );
+
+    let quality = 0.86;
+
+    let blob =
+      await canvasToBlob(
+        canvas,
+        'image/webp',
+        quality
+      );
+
+    while (
+      blob &&
+      blob.size > MAX_UPLOAD_BYTES &&
+      quality > 0.56
+    ) {
+      quality -= 0.1;
+
+      blob =
+        await canvasToBlob(
+          canvas,
+          'image/webp',
+          quality
+        );
+    }
+
+    if (
+      !blob ||
+      blob.size > MAX_UPLOAD_BYTES
+    ) {
+      quality = 0.8;
+
+      blob =
+        await canvasToBlob(
+          canvas,
+          'image/jpeg',
+          quality
+        );
+    }
+
+    while (
+      blob &&
+      blob.size > MAX_UPLOAD_BYTES &&
+      quality > 0.5
+    ) {
+      quality -= 0.1;
+
+      blob =
+        await canvasToBlob(
+          canvas,
+          'image/jpeg',
+          quality
+        );
+    }
+
+    if (
+      !blob ||
+      blob.size > MAX_UPLOAD_BYTES
+    ) {
+      throw new Error(
+        'Foto masih terlalu besar setelah diproses. Pilih foto lain.'
+      );
+    }
+
+    return blob;
+  }
+
+  async function uploadPendingAvatar() {
+    if (!pendingAvatarBlob) {
+      return null;
+    }
+
+    const response =
+      await fetch(
+        '/api/profile/avatar',
+        {
+          method: 'PUT',
+          credentials: 'include',
+          headers: {
+            'Content-Type':
+              pendingAvatarBlob.type,
+            Accept:
+              'application/json'
+          },
+          body:
+            pendingAvatarBlob,
+          cache:
+            'no-store'
+        }
+      );
+
+    const data =
+      await response
+        .json()
+        .catch(() => ({}));
+
+    if (
+      !response.ok ||
+      data.ok !== true
+    ) {
+      throw new Error(
+        data.error ||
+        'Foto profil belum dapat disimpan.'
+      );
+    }
+
+    return data.user || null;
+  }
+
+  function syncStoreState(storeData) {
+    if (!storeData) {
+      return;
+    }
+
+    STATE.currentStore =
+      storeData;
+
+    const publicStore =
+      DATA.stores.find(store =>
+        String(store.id || '') ===
+        String(storeData.id || '')
+      );
+
+    if (!publicStore) {
+      return;
+    }
+
+    Object.assign(
+      publicStore,
+      {
+        name:
+          storeData.name ||
+          publicStore.name,
+        description:
+          storeData.description || '',
+        logo:
+          storeData.logo_url || '',
+        district:
+          storeData.district || '',
+        city:
+          storeData.city || '',
+        province:
+          storeData.province || ''
+      }
+    );
+  }
+
   openAccountEditInfo = function openRealProfileEditor() {
     if (!STATE.user) {
       openLogin();
       return;
     }
+
+    clearPendingAvatar();
 
     const store =
       STATE.currentStore || null;
@@ -167,19 +477,43 @@
           </header>
 
           <section class="profile-edit-avatar-card">
-            <div
-              id="profileEditAvatarPreview"
-              class="profile-edit-avatar-preview"
+            <button
+              id="profileEditAvatarPicker"
+              type="button"
+              class="profile-edit-avatar-picker"
+              aria-label="Pilih foto profil dari perangkat"
             >
-              ${getAvatarTemplate(STATE.user.avatar_url)}
-            </div>
+              <span
+                id="profileEditAvatarPreview"
+                class="profile-edit-avatar-preview"
+              >
+                ${getAvatarTemplate(STATE.user.avatar_url)}
+              </span>
+
+              <span
+                class="profile-edit-avatar-camera"
+                aria-hidden="true"
+              >
+                <i class="ph ph-camera"></i>
+              </span>
+            </button>
 
             <div class="profile-edit-avatar-copy">
               <strong>Foto profil</strong>
               <span>
-                Gunakan URL gambar publik berformat HTTPS.
+                Ketuk foto untuk memilih gambar dari perangkat.
               </span>
+              <small id="profileEditAvatarStatus">
+                JPG, PNG, atau WebP. Foto otomatis dirapikan menjadi persegi.
+              </small>
             </div>
+
+            <input
+              id="profileEditAvatarFile"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              hidden
+            >
           </section>
 
           <section class="profile-edit-section">
@@ -206,29 +540,6 @@
                 value="${escapeHTML(STATE.user.name || '')}"
                 placeholder="Nama profil"
               >
-            </div>
-
-            <div class="profile-edit-field">
-              <label
-                class="profile-edit-label"
-                for="profileEditAvatarUrl"
-              >
-                URL foto profil
-              </label>
-
-              <input
-                id="profileEditAvatarUrl"
-                class="profile-edit-input"
-                type="url"
-                maxlength="2000"
-                inputmode="url"
-                value="${escapeHTML(STATE.user.avatar_url || '')}"
-                placeholder="https://..."
-              >
-
-              <p class="profile-edit-help">
-                Kosongkan jika ingin memakai avatar bawaan.
-              </p>
             </div>
           </section>
 
@@ -258,28 +569,111 @@
   };
 
   document.addEventListener(
-    'input',
+    'click',
     event => {
+      const picker =
+        event.target.closest(
+          '#profileEditAvatarPicker'
+        );
+
+      if (!picker || avatarProcessing) {
+        return;
+      }
+
+      const fileInput =
+        document.getElementById(
+          'profileEditAvatarFile'
+        );
+
+      if (!fileInput) {
+        return;
+      }
+
+      fileInput.value = '';
+      fileInput.click();
+    }
+  );
+
+  document.addEventListener(
+    'change',
+    async event => {
       if (
         event.target?.id !==
-        'profileEditAvatarUrl'
+        'profileEditAvatarFile'
       ) {
         return;
       }
 
-      const preview =
-        document.getElementById(
-          'profileEditAvatarPreview'
-        );
+      const file =
+        event.target.files?.[0];
 
-      if (!preview) {
+      if (!file) {
         return;
       }
 
-      preview.innerHTML =
-        getAvatarTemplate(
-          event.target.value
+      const picker =
+        document.getElementById(
+          'profileEditAvatarPicker'
         );
+
+      avatarProcessing = true;
+      picker?.classList.add(
+        'is-processing'
+      );
+
+      setAvatarStatus(
+        'Menyiapkan foto...'
+      );
+
+      try {
+        const blob =
+          await createAvatarBlob(file);
+
+        if (pendingAvatarPreviewUrl) {
+          URL.revokeObjectURL(
+            pendingAvatarPreviewUrl
+          );
+        }
+
+        pendingAvatarBlob = blob;
+        pendingAvatarPreviewUrl =
+          URL.createObjectURL(blob);
+
+        const preview =
+          document.getElementById(
+            'profileEditAvatarPreview'
+          );
+
+        if (preview) {
+          preview.innerHTML =
+            getAvatarTemplate(
+              pendingAvatarPreviewUrl
+            );
+        }
+
+        setAvatarStatus(
+          'Foto siap disimpan.'
+        );
+      } catch (error) {
+        console.error(
+          '[Pasar UMKM] Avatar process error:',
+          error
+        );
+
+        setAvatarStatus(
+          'Foto belum dipilih.'
+        );
+
+        showToast(
+          error?.message ||
+          'Foto tidak dapat diproses.'
+        );
+      } finally {
+        avatarProcessing = false;
+        picker?.classList.remove(
+          'is-processing'
+        );
+      }
     }
   );
 
@@ -297,14 +691,16 @@
 
       event.preventDefault();
 
+      if (avatarProcessing) {
+        showToast(
+          'Tunggu foto selesai diproses.'
+        );
+        return;
+      }
+
       const nameInput =
         document.getElementById(
           'profileEditName'
-        );
-
-      const avatarInput =
-        document.getElementById(
-          'profileEditAvatarUrl'
         );
 
       const submitButton =
@@ -315,11 +711,6 @@
       const name =
         String(
           nameInput?.value || ''
-        ).trim();
-
-      const avatarUrl =
-        String(
-          avatarInput?.value || ''
         ).trim();
 
       if (
@@ -333,21 +724,8 @@
         return;
       }
 
-      if (
-        avatarUrl &&
-        !/^https?:\/\//i.test(avatarUrl)
-      ) {
-        showToast(
-          'URL foto profil harus diawali http:// atau https://.'
-        );
-        avatarInput?.focus();
-        return;
-      }
-
       const payload = {
-        name,
-        avatar_url:
-          avatarUrl || null
+        name
       };
 
       if (
@@ -427,35 +805,24 @@
           ...data.user
         };
 
-        if (data.store) {
-          STATE.currentStore =
-            data.store;
+        syncStoreState(
+          data.store || null
+        );
 
-          const publicStore =
-            DATA.stores.find(store =>
-              String(store.id || '') ===
-              String(data.store.id || '')
-            );
+        if (pendingAvatarBlob) {
+          if (submitButton) {
+            submitButton.textContent =
+              'Mengunggah foto...';
+          }
 
-          if (publicStore) {
-            Object.assign(
-              publicStore,
-              {
-                name:
-                  data.store.name ||
-                  publicStore.name,
-                description:
-                  data.store.description || '',
-                logo:
-                  data.store.logo_url || '',
-                district:
-                  data.store.district || '',
-                city:
-                  data.store.city || '',
-                province:
-                  data.store.province || ''
-              }
-            );
+          const avatarUser =
+            await uploadPendingAvatar();
+
+          if (avatarUser) {
+            STATE.user = {
+              ...STATE.user,
+              ...avatarUser
+            };
           }
         }
 
@@ -466,7 +833,9 @@
           renderSidebar();
         }
 
+        clearPendingAvatar();
         closeBottomSheet();
+
         showToast(
           'Profil berhasil diperbarui.'
         );
