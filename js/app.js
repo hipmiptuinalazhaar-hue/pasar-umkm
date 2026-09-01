@@ -3116,23 +3116,23 @@ async function openComments(postId) {
         ? comments
             .map(comment => {
 
-              const avatar =
-                 const canDeleteComment =
-  Boolean(
-    STATE.user &&
-    (
-      String(
-        comment.user_id || ''
-      ) ===
-      String(
-        STATE.user.id || ''
-      ) ||
-      STATE.user.role === 'admin'
-    )
-  );
+                            const avatar =
                 comment.user_avatar ||
                 ASSETS.logo;
 
+              const canDeleteComment =
+                Boolean(
+                  STATE.user &&
+                  (
+                    String(
+                      comment.user_id || ''
+                    ) ===
+                    String(
+                      STATE.user.id || ''
+                    ) ||
+                    STATE.user.role === 'admin'
+                  )
+                );
 
               return `
                 <article
