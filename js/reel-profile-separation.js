@@ -14,6 +14,19 @@
     return active.dataset.tab || '';
   }
 
+  function normalizePublicTabColumns(page) {
+    const tabs = page?.querySelector('.social-profile-tabs');
+    if (!tabs) return;
+
+    const count = Math.max(
+      1,
+      tabs.querySelectorAll('.social-profile-tab').length
+    );
+
+    tabs.style.gridTemplateColumns =
+      `repeat(${count}, minmax(0, 1fr))`;
+  }
+
   function cleanOwnProfile() {
     document
       .querySelectorAll('.social-account-page:not(.social-universal-profile)')
@@ -32,6 +45,8 @@
     document
       .querySelectorAll('.social-universal-profile')
       .forEach(page => {
+        normalizePublicTabColumns(page);
+
         if (activePublicTab(page) === 'videos') return;
 
         page
