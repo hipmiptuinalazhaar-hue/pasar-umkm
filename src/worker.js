@@ -4089,6 +4089,330 @@ if (
 }
 
     // ========================================
+// POST COMMENTS - CREATE
+// POST /api/posts/:id/comments
+// ========================================
+
+if (
+  commentsMatch &&
+  request.method === "POST"
+) {
+  try {
+    const postId =
+      String(
+        commentsMatch[1] || ""
+      ).trim();
+
+    const uuidPattern =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+
+    if (!uuidPattern.test(postId)) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "ID postingan tidak valid."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    // =====================================
+    // AUTH
+    // =====================================
+
+    const sessionToken =
+      getCookie(
+        request,
+        "__Host-pasar_umkm_session"
+      );
+
+
+    if (!sessionToken) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Silakan masuk terlebih dahulu."
+        },
+        {
+          status: 401,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const sql =
+      neon(env.DATABASE_URL);
+
+
+    const sessions =
+      await sql`
+        SELECT
+          u.id,
+          u.name,
+          u.avatar_url,
+          u.role
+
+        FROM
+          sessions s
+
+        JOIN
+          users u
+          ON u.id = s.user_id
+
+        WHERE
+          s.token_hash =
+            encode(
+              digest(
+                ${sessionToken},
+                'sha256'
+              ),
+              'hex'
+            )
+
+          AND
+          s.expires_at > NOW()
+
+          AND
+          u.is_active = TRUE
+
+        LIMIT 1
+      `;
+
+
+    if (
+      sessions.length === 0
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Session tidak valid atau sudah berakhir."
+        },
+        {
+          status: 401,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const currentUser =
+      sessions[0];
+
+
+    // =====================================
+    // BODY
+    // =====================================
+
+    const body =
+      await request
+        .json()
+        .catch(() => null);
+
+
+    if (!body) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Data komentar tidak valid."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const content =
+      String(
+        body.content || ""
+      ).trim();
+
+
+    if (!content) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Komentar tidak boleh kosong."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    if (content.length > 500) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Komentar maksimal 500 karakter."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    // =====================================
+    // POST CHECK
+    // =====================================
+
+    const posts =
+      await sql`
+        SELECT
+          id
+
+        FROM
+          posts
+
+        WHERE
+          id = ${postId}
+
+          AND
+          is_active = TRUE
+
+        LIMIT 1
+      `;
+
+
+    if (
+      posts.length === 0
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Postingan tidak ditemukan."
+        },
+        {
+          status: 404,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    // =====================================
+    // CREATE COMMENT
+    // =====================================
+
+    const comments =
+      await sql`
+        INSERT INTO
+          post_comments (
+            post_id,
+            user_id,
+            content,
+            is_active
+          )
+
+        VALUES (
+          ${postId},
+          ${currentUser.id},
+          ${content},
+          TRUE
+        )
+
+        RETURNING
+          id,
+          post_id,
+          user_id,
+          content,
+          created_at,
+          updated_at
+      `;
+
+
+    const comment = {
+      ...comments[0],
+
+      user_name:
+        currentUser.name,
+
+      user_avatar:
+        currentUser.avatar_url ||
+        null
+    };
+
+
+    return Response.json(
+      {
+        ok: true,
+        message:
+          "Komentar berhasil dikirim.",
+        comment
+      },
+      {
+        status: 201,
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+
+
+  } catch (error) {
+    console.error(
+      "Post comments POST error:",
+      error
+    );
+
+
+    return Response.json(
+      {
+        ok: false,
+        error:
+          "Gagal mengirim komentar."
+      },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+  }
+}
+    // ========================================
 // POST COMMENTS - SOFT DELETE
 // DELETE /api/comments/:id
 // ========================================
