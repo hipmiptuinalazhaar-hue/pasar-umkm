@@ -58,7 +58,7 @@
 
   loadScript('script[data-functionality-core-module="true"]', 'js/functionality-core.js?v=1.0', 'functionalityCoreModule');
   loadScript('script[data-saved-remove-core="true"]', 'js/saved-remove-core.js?v=1.0', 'savedRemoveCore');
-  loadScript('script[data-rating-core="true"]', 'js/rating-core.js?v=2.0', 'ratingCore');
+  loadScript('script[data-rating-core="true"]', 'js/rating-core.js?v=2.1', 'ratingCore');
   loadScript('script[data-business-agency="true"]', 'js/business-agency.js?v=1.0', 'businessAgency');
   loadScript('script[data-store-management-core="true"]', 'js/store-management-core.js?v=2.0', 'storeManagementCore');
   loadScript('script[data-story-render-fix="true"]', 'js/story-render-fix.js?v=1.0', 'storyRenderFix');
