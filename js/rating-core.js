@@ -40,11 +40,20 @@
     return data;
   }
 
+  function formatRatingScore(value) {
+    const rating = Math.max(0, Math.min(5, Number(value || 0)));
+
+    return Number.isInteger(rating)
+      ? String(rating)
+      : rating.toFixed(1).replace(/\.0$/, '');
+  }
+
   function starsMarkup(average) {
-    const rounded = Math.max(0, Math.min(5, Math.round(Number(average || 0))));
+    const numericAverage = Number(average || 0);
+    const rounded = Math.max(0, Math.min(5, Math.round(numericAverage)));
 
     return `
-      <span class="rating-stars-v2" aria-label="Rating ${Number(average || 0).toFixed(1)} dari 5">
+      <span class="rating-stars-v2" aria-label="Rating ${formatRatingScore(numericAverage)} dari 5">
         ${[1,2,3,4,5].map(index => `
           <span class="rating-star-v2 ${index <= rounded ? 'filled' : ''}">★</span>
         `).join('')}
@@ -55,12 +64,13 @@
   function ratingMarkup(summary, type) {
     const average = Number(summary?.average_rating || 0);
     const count = Number(summary?.rating_count || 0);
+    const score = formatRatingScore(average);
 
     if (type === 'product') {
       const sold = Number(summary?.sold_count || 0);
       return `
         ${starsMarkup(average)}
-        <span class="rating-meta-v2">(${average.toFixed(1)}/5)</span>
+        <span class="rating-meta-v2">(${score}/5)</span>
         <span class="rating-meta-v2">· ${sold.toLocaleString('id-ID')} terjual</span>
       `;
     }
@@ -68,7 +78,7 @@
     return `
       ${starsMarkup(average)}
       ${count > 0
-        ? `<span class="rating-meta-v2">${average.toFixed(1)}/5 · ${count} rating</span>`
+        ? `<span class="rating-meta-v2">${score}/5 · ${count} rating</span>`
         : ''}
     `;
   }
