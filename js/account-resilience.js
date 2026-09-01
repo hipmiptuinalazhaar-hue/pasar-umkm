@@ -31,6 +31,8 @@
   loadStylesheet('link[data-profile-premium-style="true"]', 'css/profile-premium.css?v=1.2', 'profilePremiumStyle');
   loadStylesheet('link[data-social-core-style="true"]', 'css/social-core.css?v=1.0', 'socialCoreStyle');
   loadStylesheet('link[data-notification-core-style="true"]', 'css/notification-core.css?v=1.0', 'notificationCoreStyle');
+  loadStylesheet('link[data-media-experience-style="true"]', 'css/media-experience.css?v=1.0', 'mediaExperienceStyle');
+  loadStylesheet('link[data-mention-autocomplete-style="true"]', 'css/mention-autocomplete.css?v=1.0', 'mentionAutocompleteStyle');
 
   loadScript('script[data-profile-edit-module="true"]', 'js/profile-edit.js?v=3.0', 'profileEditModule');
   loadScript('script[data-profile-identity-module="true"]', 'js/profile-identity.js?v=2.0', 'profileIdentityModule');
@@ -44,15 +46,19 @@
   loadScript('script[data-social-shell-module="true"]', 'js/social-shell.js?v=1.1', 'socialShellModule');
 
   /* Satu router notifikasi saja. Versi lama tidak dimuat lagi. */
-  loadScript('script[data-notification-router-v2="true"]', 'js/notification-router-v2.js?v=2.0', 'notificationRouterV2');
+  loadScript('script[data-notification-router-v2="true"]', 'js/notification-router-v2.js?v=2.1', 'notificationRouterV2');
   loadScript('script[data-notification-core-module="true"]', 'js/notification-core.js?v=1.1', 'notificationCoreModule');
 
   loadScript('script[data-functionality-core-module="true"]', 'js/functionality-core.js?v=1.0', 'functionalityCoreModule');
   loadScript('script[data-saved-remove-core="true"]', 'js/saved-remove-core.js?v=1.0', 'savedRemoveCore');
-  loadScript('script[data-rating-core="true"]', 'js/rating-core.js?v=1.1', 'ratingCore');
+  loadScript('script[data-rating-core="true"]', 'js/rating-core.js?v=2.0', 'ratingCore');
   loadScript('script[data-business-agency="true"]', 'js/business-agency.js?v=1.0', 'businessAgency');
   loadScript('script[data-store-management-core="true"]', 'js/store-management-core.js?v=2.0', 'storeManagementCore');
   loadScript('script[data-story-render-fix="true"]', 'js/story-render-fix.js?v=1.0', 'storyRenderFix');
+
+  /* Media v2 harus terakhir agar menggantikan story/sell/video placeholder lama. */
+  loadScript('script[data-media-experience-module="true"]', 'js/media-experience.js?v=1.0', 'mediaExperienceModule');
+  loadScript('script[data-mention-autocomplete-module="true"]', 'js/mention-autocomplete.js?v=1.0', 'mentionAutocompleteModule');
 
   openAccount = async function resilientOpenAccount() {
     if (!STATE.user) {
