@@ -2130,7 +2130,26 @@ function runAction(action, element) {
     element
   );
   break;
+case 'comment-reply':
+  startCommentReply(
+    postId,
+    element.dataset.commentId,
+    element.dataset.commentName,
+    element
+  );
+  break;
 
+case 'comment-reply-cancel':
+  cancelCommentReply(
+    element
+  );
+  break;
+
+case 'comment-replies-toggle':
+  toggleCommentReplies(
+    element
+  );
+  break;
         case 'comment-delete':
   deleteComment(
     postId,
