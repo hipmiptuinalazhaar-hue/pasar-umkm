@@ -128,7 +128,10 @@ async function uploadMedia(request, env, user) {
     return error("Pilih media terlebih dahulu.", 400);
   }
 
-  const type = String(file.type || "").toLowerCase();
+  const type = String(file.type || "")
+    .toLowerCase()
+    .split(";")[0]
+    .trim();
   const isImage = kind === "image" && IMAGE_TYPES.has(type);
   const isAudio = kind === "audio" && AUDIO_TYPES.has(type);
 
