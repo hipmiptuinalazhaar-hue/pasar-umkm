@@ -3200,7 +3200,42 @@ async function openComments(postId) {
           <div class="post-comments-list">
             ${commentsHTML}
           </div>
+${
+  STATE.user
+    ? `
+        <div class="post-comment-compose">
 
+          <textarea
+            class="post-comment-input"
+            maxlength="500"
+            rows="1"
+            placeholder="Tulis komentar..."
+            aria-label="Tulis komentar"
+          ></textarea>
+
+          <button
+            type="button"
+            class="post-comment-send"
+            data-action="comment-submit"
+            data-post-id="${escapeHTML(
+              post.id || ''
+            )}"
+          >
+            Kirim
+          </button>
+
+        </div>
+      `
+    : `
+        <button
+          type="button"
+          class="btn-primary"
+          data-action="login"
+        >
+          Masuk untuk berkomentar
+        </button>
+      `
+}
         </div>
       `,
       'comments'
