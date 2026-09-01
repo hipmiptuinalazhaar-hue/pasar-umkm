@@ -2082,6 +2082,13 @@ function runAction(action, element) {
       openComments(postId);
       break;
 
+        case 'comment-submit':
+  submitComment(
+    postId,
+    element
+  );
+  break;
+
     case 'share':
       sharePost(postId);
       break;
