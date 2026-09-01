@@ -4269,9 +4269,15 @@ const commentsEndpoint =
           },
 
           body:
-            JSON.stringify({
-              content
-            })
+  JSON.stringify({
+    content,
+
+    parent_comment_id:
+      String(
+        sheet?.dataset.replyTo ||
+        ''
+      ).trim() || null
+  })
         }
       );
 
