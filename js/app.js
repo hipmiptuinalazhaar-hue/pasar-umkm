@@ -3277,6 +3277,186 @@ ${
   }
 }
 
+async function submitComment(
+  postId,
+  element
+) {
+  const post =
+    findPost(postId);
+
+
+  if (!post || post.product) {
+    showToast(
+      'Postingan tidak ditemukan.'
+    );
+    return;
+  }
+
+
+  if (!STATE.user) {
+    openLogin();
+    return;
+  }
+
+
+  const sheet =
+    element.closest(
+      '.post-comments-sheet'
+    );
+
+
+  const input =
+    sheet?.querySelector(
+      '.post-comment-input'
+    );
+
+
+  const content =
+    String(
+      input?.value || ''
+    ).trim();
+
+
+  if (!content) {
+    showToast(
+      'Tulis komentar terlebih dahulu.'
+    );
+
+    input?.focus();
+    return;
+  }
+
+
+  if (content.length > 500) {
+    showToast(
+      'Komentar maksimal 500 karakter.'
+    );
+    return;
+  }
+
+
+  const backendPostId =
+    String(
+      post.backendId ||
+      post.id ||
+      ''
+    )
+      .replace(/^post-/, '')
+      .trim();
+
+
+  if (!backendPostId) {
+    showToast(
+      'ID postingan tidak valid.'
+    );
+    return;
+  }
+
+
+  const oldText =
+    element.textContent;
+
+
+  element.disabled =
+    true;
+
+  element.textContent =
+    'Mengirim...';
+
+
+  if (input) {
+    input.disabled =
+      true;
+  }
+
+
+  try {
+    const response =
+      await fetch(
+        `/api/posts/${encodeURIComponent(
+          backendPostId
+        )}/comments`,
+        {
+          method: 'POST',
+
+          credentials:
+            'include',
+
+          headers: {
+            Accept:
+              'application/json',
+
+            'Content-Type':
+              'application/json'
+          },
+
+          body:
+            JSON.stringify({
+              content
+            })
+        }
+      );
+
+
+    const data =
+      await response
+        .json()
+        .catch(() => ({}));
+
+
+    if (
+      !response.ok ||
+      data.ok !== true
+    ) {
+      throw new Error(
+        data.error ||
+        'Gagal mengirim komentar.'
+      );
+    }
+
+
+    showToast(
+      'Komentar berhasil dikirim.'
+    );
+
+
+    /*
+     * Muat ulang komentar dari server.
+     */
+    await openComments(
+      postId
+    );
+
+
+  } catch (error) {
+    console.error(
+      '[Pasar UMKM] Comment submit error:',
+      error
+    );
+
+
+    showToast(
+      error.message ||
+      'Gagal mengirim komentar.'
+    );
+
+
+    element.disabled =
+      false;
+
+    element.textContent =
+      oldText;
+
+
+    if (input) {
+      input.disabled =
+        false;
+
+      input.focus();
+    }
+  }
+}
+
 /* =========================================================
    34. SHARE
    ========================================================= */
