@@ -3193,7 +3193,62 @@ function refreshPostInteractionUI(
 /* =========================================================
    33. COMMENTS
    ========================================================= */
+function renderCommentText(
+  content
+) {
+  let output =
+    escapeHTML(
+      String(
+        content || ''
+      )
+    );
 
+
+  const emojiMap = {
+    '❤️':
+      '2764',
+    '🙌':
+      '1f64c',
+    '🔥':
+      '1f525',
+    '👏':
+      '1f44f',
+    '🥹':
+      '1f979',
+    '😍':
+      '1f60d',
+    '😂':
+      '1f602'
+  };
+
+
+  Object.entries(
+    emojiMap
+  ).forEach(
+    ([emoji, code]) => {
+
+      const image = `
+        <img
+          class="comment-inline-emoji"
+          src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/svg/${code}.svg"
+          alt="${emoji}"
+          draggable="false"
+        >
+      `;
+
+
+      output =
+        output.split(
+          emoji
+        ).join(
+          image
+        );
+    }
+  );
+
+
+  return output;
+}
 async function openComments(postId) {
   const post =
     findPost(postId);
