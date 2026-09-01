@@ -34,6 +34,56 @@
     }
   }
 
+  async function openOrderNotification(orderId) {
+    if (!orderId) {
+      return;
+    }
+
+    /*
+     * Seller juga boleh menjadi buyer. Jadi jangan menebak konteks
+     * hanya dari role. Cek dulu apakah order ini milik user sebagai buyer.
+     */
+    try {
+      const response = await fetch(
+        '/api/commerce/orders?scope=buyer',
+        {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            Accept: 'application/json'
+          },
+          cache: 'no-store'
+        }
+      );
+
+      const data = await response.json().catch(() => ({}));
+      const isBuyerOrder =
+        response.ok &&
+        data.ok === true &&
+        Array.isArray(data.orders) &&
+        data.orders.some(order =>
+          String(order.id || '') === String(orderId)
+        );
+
+      if (isBuyerOrder) {
+        window.openCommerceOrder?.(orderId);
+        return;
+      }
+    } catch (error) {
+      console.error(
+        '[Pasar UMKM] Order notification context check error:',
+        error
+      );
+    }
+
+    if (typeof window.openSellerCommerceOrders === 'function') {
+      window.openSellerCommerceOrders();
+      return;
+    }
+
+    window.openCommerceOrder?.(orderId);
+  }
+
   document.addEventListener(
     'click',
     event => {
@@ -70,7 +120,7 @@
           closeBottomSheet();
         }
 
-        window.openCommerceOrder?.(
+        openOrderNotification(
           row.dataset.notificationEntityId || ''
         );
         return;
