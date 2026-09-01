@@ -1499,14 +1499,20 @@ return `
 </button>
 
           <button
-            type="button"
-            class="action-btn"
-            data-action="comments"
-            data-post-id="${escapeHTML(postId)}"
-            aria-label="Komentar"
-          >
-            <i class="ph ph-chat-circle"></i>
-          </button>
+  type="button"
+  class="action-btn action-btn-count"
+  data-action="comments"
+  data-post-id="${escapeHTML(postId)}"
+  aria-label="Komentar"
+>
+  <i class="ph ph-chat-circle"></i>
+
+  <span class="action-count">
+    ${formatCompactNumber(
+      actionCommentCount
+    )}
+  </span>
+</button>
 
 
           <button
