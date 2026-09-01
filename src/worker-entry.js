@@ -4,14 +4,15 @@ import { handleProfileMediaApi } from "./profile-media-api.js";
 import { handlePublicProfileApi } from "./public-profile-api.js";
 import { handleSocialApi } from "./social-api.js";
 import { handleNotificationApi } from "./notification-api.js";
+import { handleEngagementApi } from "./engagement-api.js";
 import { ensureNotificationInfrastructure } from "./notification-store.js";
 
 export default {
   async fetch(request, env, ctx) {
     /*
      * Pastikan trigger notifikasi sudah aktif sebelum route lama
-     * memproses like atau komentar. Gagal menyiapkan notifikasi
-     * tidak boleh menjatuhkan marketplace utama.
+     * memproses komentar. Gagal menyiapkan notifikasi tidak boleh
+     * menjatuhkan marketplace utama.
      */
     try {
       await ensureNotificationInfrastructure(env);
@@ -27,6 +28,17 @@ export default {
 
     if (notificationResponse) {
       return notificationResponse;
+    }
+
+    /*
+     * Likes harus diproses sebelum social router umum karena
+     * social router mengembalikan 404 untuk /api/social/* lain.
+     */
+    const engagementResponse =
+      await handleEngagementApi(request, env);
+
+    if (engagementResponse) {
+      return engagementResponse;
     }
 
     const socialResponse =
