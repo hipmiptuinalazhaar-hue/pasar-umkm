@@ -157,21 +157,51 @@
   -webkit-backdrop-filter: blur(10px);
 }
 
-/* Public seller uses the same visual grammar as own account. */
+/* =========================================================
+   PUBLIC PROFILE TOPBAR
+   Tiga kolom simetris memastikan judul benar-benar berada
+   di pusat viewport, tidak bergeser oleh lebar tombol kiri/
+   kanan yang berbeda.
+   ========================================================= */
+
 .public-seller-profile .social-account-topbar {
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  justify-content: initial;
+  column-gap: 8px;
 }
 
 .public-seller-profile .social-account-topbar > strong,
 .public-seller-profile .social-account-topbar .social-account-username {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(54vw, 260px);
+  position: static;
+  left: auto;
+  top: auto;
+  transform: none;
+  grid-column: 2;
+  grid-row: 1;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  justify-self: stretch;
   text-align: center;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+.public-seller-profile .social-account-topbar > button:first-child {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: start;
+}
+
+.public-seller-profile .social-account-topbar > button:last-child,
+.public-seller-profile .social-account-topbar .social-account-top-actions {
+  grid-column: 3;
+  grid-row: 1;
+  justify-self: end;
 }
 
 .public-seller-profile .social-account-header {
@@ -188,6 +218,11 @@
     min-height: 54px;
     padding-left: 12px;
     padding-right: 12px;
+  }
+
+  .public-seller-profile .social-account-topbar {
+    grid-template-columns: 42px minmax(0, 1fr) 42px;
+    column-gap: 6px;
   }
 
   .social-account-page .social-account-header {
