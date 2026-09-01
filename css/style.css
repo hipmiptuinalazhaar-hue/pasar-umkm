@@ -21324,6 +21324,14 @@ img {
 
   font-size:
     12px;
+
+   font-family:
+  "Plus Jakarta Sans",
+  "Segoe UI Emoji",
+  "Apple Color Emoji",
+  "Noto Color Emoji",
+  system-ui,
+  sans-serif !important;
 }
 
 
@@ -21921,6 +21929,14 @@ strong {
 
   overflow-wrap:
     anywhere !important;
+
+   font-family:
+  "Plus Jakarta Sans",
+  "Segoe UI Emoji",
+  "Apple Color Emoji",
+  "Noto Color Emoji",
+  system-ui,
+  sans-serif !important;
 }
 
 
