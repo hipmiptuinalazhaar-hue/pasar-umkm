@@ -40,20 +40,42 @@
     return data;
   }
 
-  function ratingText(summary) {
-    const average = Number(summary?.average_rating || 0);
-    const count = Number(summary?.rating_count || 0);
-    const rounded = Math.max(0, Math.min(5, Math.round(average)));
-    const stars = '★'.repeat(rounded) + '☆'.repeat(5 - rounded);
+  function starsMarkup(average) {
+    const rounded = Math.max(0, Math.min(5, Math.round(Number(average || 0))));
 
-    return count > 0
-      ? `${stars} ${average.toFixed(1)} (${count})`
-      : '☆☆☆☆☆ Belum ada rating';
+    return `
+      <span class="rating-stars-v2" aria-label="Rating ${Number(average || 0).toFixed(1)} dari 5">
+        ${[1,2,3,4,5].map(index => `
+          <span class="rating-star-v2 ${index <= rounded ? 'filled' : ''}">★</span>
+        `).join('')}
+      </span>
+    `;
   }
 
-  function setTextIfChanged(node, value) {
-    if (node && node.textContent !== value) {
-      node.textContent = value;
+  function ratingMarkup(summary, type) {
+    const average = Number(summary?.average_rating || 0);
+    const count = Number(summary?.rating_count || 0);
+
+    if (type === 'product') {
+      const sold = Number(summary?.sold_count || 0);
+      return `
+        ${starsMarkup(average)}
+        <span class="rating-meta-v2">(${average.toFixed(1)}/5)</span>
+        <span class="rating-meta-v2">· ${sold.toLocaleString('id-ID')} terjual</span>
+      `;
+    }
+
+    return `
+      ${starsMarkup(average)}
+      ${count > 0
+        ? `<span class="rating-meta-v2">${average.toFixed(1)}/5 · ${count} rating</span>`
+        : ''}
+    `;
+  }
+
+  function setHtmlIfChanged(node, value) {
+    if (node && node.innerHTML.trim() !== String(value || '').trim()) {
+      node.innerHTML = value;
     }
   }
 
@@ -144,9 +166,12 @@
           else info.appendChild(line);
         }
 
-        setTextIfChanged(
+        setHtmlIfChanged(
           line,
-          ratingText(RATING.products.get(String(product.id)))
+          ratingMarkup(
+            RATING.products.get(String(product.id)),
+            'product'
+          )
         );
       });
   }
@@ -165,9 +190,12 @@
       else container.appendChild(line);
     }
 
-    setTextIfChanged(
+    setHtmlIfChanged(
       line,
-      ratingText(RATING.stores.get(String(storeId)))
+      ratingMarkup(
+        RATING.stores.get(String(storeId)),
+        'store'
+      )
     );
   }
 
