@@ -62,6 +62,12 @@
     'profilePremiumStyle'
   );
 
+  loadStylesheet(
+    'link[data-social-core-style="true"]',
+    'css/social-core.css?v=1.0',
+    'socialCoreStyle'
+  );
+
   loadScript(
     'script[data-profile-edit-module="true"]',
     'js/profile-edit.js?v=3.0',
@@ -78,6 +84,12 @@
     'script[data-profile-title-center-module="true"]',
     'js/profile-title-center.js?v=1.0',
     'profileTitleCenterModule'
+  );
+
+  loadScript(
+    'script[data-social-core-module="true"]',
+    'js/social-core.js?v=1.0',
+    'socialCoreModule'
   );
 
   openAccount = async function resilientOpenAccount() {
@@ -169,6 +181,13 @@
       'function'
     ) {
       window.decorateOwnProfileContacts();
+    }
+
+    if (
+      typeof window.decorateOwnProfileSocial ===
+      'function'
+    ) {
+      window.decorateOwnProfileSocial();
     }
 
     if (
