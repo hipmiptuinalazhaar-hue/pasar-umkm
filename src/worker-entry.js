@@ -6,6 +6,7 @@ import { handleSocialApi } from "./social-api.js";
 import { handleNotificationApi } from "./notification-api.js";
 import { handleEngagementApi } from "./engagement-api.js";
 import { handleFunctionalityApi } from "./functionality-api.js";
+import { handleStoreManagementApi } from "./store-management-api.js";
 import { ensureNotificationInfrastructure } from "./notification-store.js";
 import { ensureFullFunctionalityInfrastructure } from "./functionality-bootstrap.js";
 
@@ -32,6 +33,13 @@ export default {
 
     if (notificationResponse) {
       return notificationResponse;
+    }
+
+    const storeManagementResponse =
+      await handleStoreManagementApi(request, env);
+
+    if (storeManagementResponse) {
+      return storeManagementResponse;
     }
 
     /*
