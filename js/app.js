@@ -3289,26 +3289,120 @@ const commentsEndpoint =
 ${
   STATE.user
     ? `
-        <div class="post-comment-compose">
+        <div class="post-comment-footer">
 
-          <textarea
-            class="post-comment-input"
-            maxlength="500"
-            rows="1"
-            placeholder="Tulis komentar..."
-            aria-label="Tulis komentar"
-          ></textarea>
-
-          <button
-            type="button"
-            class="post-comment-send"
-            data-action="comment-submit"
-            data-post-id="${escapeHTML(
-              post.id || ''
-            )}"
+          <div
+            class="post-comment-reactions"
+            aria-label="Emoji cepat"
           >
-            Kirim
-          </button>
+
+            <button
+              type="button"
+              class="comment-emoji-btn"
+              data-action="comment-emoji"
+              data-emoji="❤️"
+            >
+              ❤️
+            </button>
+
+            <button
+              type="button"
+              class="comment-emoji-btn"
+              data-action="comment-emoji"
+              data-emoji="🙌"
+            >
+              🙌
+            </button>
+
+            <button
+              type="button"
+              class="comment-emoji-btn"
+              data-action="comment-emoji"
+              data-emoji="🔥"
+            >
+              🔥
+            </button>
+
+            <button
+              type="button"
+              class="comment-emoji-btn"
+              data-action="comment-emoji"
+              data-emoji="👏"
+            >
+              👏
+            </button>
+
+            <button
+              type="button"
+              class="comment-emoji-btn"
+              data-action="comment-emoji"
+              data-emoji="🥹"
+            >
+              🥹
+            </button>
+
+            <button
+              type="button"
+              class="comment-emoji-btn"
+              data-action="comment-emoji"
+              data-emoji="😍"
+            >
+              😍
+            </button>
+
+            <button
+              type="button"
+              class="comment-emoji-btn"
+              data-action="comment-emoji"
+              data-emoji="😂"
+            >
+              😂
+            </button>
+
+          </div>
+
+
+          <div class="post-comment-compose">
+
+            <img
+              class="post-comment-own-avatar"
+              src="${escapeHTML(
+                STATE.user.avatar_url ||
+                ASSETS.logo
+              )}"
+              alt=""
+            >
+
+
+            <div class="post-comment-input-shell">
+
+              <textarea
+                class="post-comment-input"
+                maxlength="500"
+                rows="1"
+                placeholder="Tambahkan komentar..."
+                aria-label="Tambahkan komentar"
+              ></textarea>
+
+
+              <button
+                type="button"
+                class="post-comment-send"
+                data-action="comment-submit"
+                data-post-id="${escapeHTML(
+                  post.id || ''
+                )}"
+                aria-label="Kirim komentar"
+              >
+                <i
+                  class="ph ph-paper-plane-tilt"
+                  aria-hidden="true"
+                ></i>
+              </button>
+
+            </div>
+
+          </div>
 
         </div>
       `
