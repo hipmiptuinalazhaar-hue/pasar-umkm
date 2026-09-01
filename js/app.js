@@ -3463,6 +3463,55 @@ ${
   }
 }
 
+function insertCommentEmoji(
+  element
+) {
+  const emoji =
+    String(
+      element.dataset.emoji ||
+      ''
+    );
+
+  if (!emoji) {
+    return;
+  }
+
+
+  const sheet =
+    element.closest(
+      '.post-comments-sheet'
+    );
+
+  const input =
+    sheet?.querySelector(
+      '.post-comment-input'
+    );
+
+
+  if (!input) {
+    return;
+  }
+
+
+  const start =
+    input.selectionStart ??
+    input.value.length;
+
+  const end =
+    input.selectionEnd ??
+    input.value.length;
+
+
+  input.setRangeText(
+    emoji,
+    start,
+    end,
+    'end'
+  );
+
+  input.focus();
+}
+
 async function submitComment(
   postId,
   element
