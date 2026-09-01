@@ -2122,6 +2122,12 @@ function runAction(action, element) {
   );
   break;
 
+        case 'comment-emoji':
+  insertCommentEmoji(
+    element
+  );
+  break;
+
         case 'comment-delete':
   deleteComment(
     postId,
