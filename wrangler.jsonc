@@ -1,6 +1,6 @@
 {
   "name": "pasar-umkm",
-  "main": "src/worker.js",
+  "main": "src/worker-entry.js",
   "compatibility_date": "2026-08-29",
 
   "assets": {
