@@ -2363,6 +2363,772 @@ p.created_at
       }
     }
 
+    // ========================================
+// PRODUCT COMMENTS - ROUTE MATCH
+// GET/POST /api/products/:id/comments
+// ========================================
+
+const productCommentsMatch =
+  url.pathname.match(
+    /^\/api\/products\/([^/]+)\/comments$/
+  );
+
+
+// ========================================
+// PRODUCT COMMENTS - LIST
+// GET /api/products/:id/comments
+// ========================================
+
+if (
+  productCommentsMatch &&
+  request.method === "GET"
+) {
+  try {
+    const productId =
+      String(
+        productCommentsMatch[1] || ""
+      ).trim();
+
+    const uuidPattern =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+
+    if (
+      !uuidPattern.test(productId)
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "ID produk tidak valid."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const sql =
+      neon(env.DATABASE_URL);
+
+
+    const comments =
+      await sql`
+        SELECT
+          c.id,
+          c.product_id,
+          c.user_id,
+          c.content,
+          c.created_at,
+          c.updated_at,
+
+          u.name
+            AS user_name,
+
+          u.avatar_url
+            AS user_avatar
+
+        FROM
+          product_comments c
+
+        JOIN
+          users u
+          ON u.id = c.user_id
+
+        JOIN
+          products p
+          ON p.id = c.product_id
+
+        JOIN
+          stores s
+          ON s.id = p.store_id
+
+        WHERE
+          c.product_id =
+            ${productId}
+
+          AND
+          c.is_active = TRUE
+
+          AND
+          u.is_active = TRUE
+
+          AND
+          p.is_active = TRUE
+
+          AND
+          s.is_active = TRUE
+
+        ORDER BY
+          c.created_at ASC
+      `;
+
+
+    return Response.json(
+      {
+        ok: true,
+        count:
+          comments.length,
+        comments
+      },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+
+
+  } catch (error) {
+    console.error(
+      "Product comments GET error:",
+      error
+    );
+
+
+    return Response.json(
+      {
+        ok: false,
+        error:
+          "Gagal memuat komentar produk."
+      },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+  }
+}
+
+
+// ========================================
+// PRODUCT COMMENTS - CREATE
+// POST /api/products/:id/comments
+// ========================================
+
+if (
+  productCommentsMatch &&
+  request.method === "POST"
+) {
+  try {
+    const productId =
+      String(
+        productCommentsMatch[1] || ""
+      ).trim();
+
+    const uuidPattern =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+
+    if (
+      !uuidPattern.test(productId)
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "ID produk tidak valid."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    // =====================================
+    // AUTH
+    // =====================================
+
+    const sessionToken =
+      getCookie(
+        request,
+        "__Host-pasar_umkm_session"
+      );
+
+
+    if (!sessionToken) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Silakan masuk terlebih dahulu."
+        },
+        {
+          status: 401,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const sql =
+      neon(env.DATABASE_URL);
+
+
+    const sessions =
+      await sql`
+        SELECT
+          u.id,
+          u.name,
+          u.avatar_url,
+          u.role
+
+        FROM
+          sessions s
+
+        JOIN
+          users u
+          ON u.id = s.user_id
+
+        WHERE
+          s.token_hash =
+            encode(
+              digest(
+                ${sessionToken},
+                'sha256'
+              ),
+              'hex'
+            )
+
+          AND
+          s.expires_at > NOW()
+
+          AND
+          u.is_active = TRUE
+
+        LIMIT 1
+      `;
+
+
+    if (
+      sessions.length === 0
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Session tidak valid atau sudah berakhir."
+        },
+        {
+          status: 401,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const currentUser =
+      sessions[0];
+
+
+    // =====================================
+    // BODY
+    // =====================================
+
+    const body =
+      await request
+        .json()
+        .catch(() => null);
+
+
+    if (!body) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Data komentar tidak valid."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const content =
+      String(
+        body.content || ""
+      ).trim();
+
+
+    if (!content) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Komentar tidak boleh kosong."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    if (
+      content.length > 500
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Komentar maksimal 500 karakter."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    // =====================================
+    // PRODUCT CHECK
+    // =====================================
+
+    const products =
+      await sql`
+        SELECT
+          p.id
+
+        FROM
+          products p
+
+        JOIN
+          stores s
+          ON s.id = p.store_id
+
+        WHERE
+          p.id =
+            ${productId}
+
+          AND
+          p.is_active = TRUE
+
+          AND
+          s.is_active = TRUE
+
+        LIMIT 1
+      `;
+
+
+    if (
+      products.length === 0
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Produk tidak ditemukan."
+        },
+        {
+          status: 404,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    // =====================================
+    // CREATE COMMENT
+    // =====================================
+
+    const comments =
+      await sql`
+        INSERT INTO
+          product_comments (
+            product_id,
+            user_id,
+            content,
+            is_active
+          )
+
+        VALUES (
+          ${productId},
+          ${currentUser.id},
+          ${content},
+          TRUE
+        )
+
+        RETURNING
+          id,
+          product_id,
+          user_id,
+          content,
+          created_at,
+          updated_at
+      `;
+
+
+    const comment = {
+      ...comments[0],
+
+      user_name:
+        currentUser.name,
+
+      user_avatar:
+        currentUser.avatar_url ||
+        null
+    };
+
+
+    return Response.json(
+      {
+        ok: true,
+
+        message:
+          "Komentar produk berhasil dikirim.",
+
+        comment
+      },
+      {
+        status: 201,
+
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+
+
+  } catch (error) {
+    console.error(
+      "Product comments POST error:",
+      error
+    );
+
+
+    return Response.json(
+      {
+        ok: false,
+        error:
+          "Gagal mengirim komentar produk."
+      },
+      {
+        status: 500,
+
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+  }
+}
+
+
+// ========================================
+// PRODUCT COMMENTS - SOFT DELETE
+// DELETE /api/product-comments/:id
+// ========================================
+
+if (
+  url.pathname.startsWith(
+    "/api/product-comments/"
+  ) &&
+  request.method === "DELETE"
+) {
+  try {
+    const commentId =
+      url.pathname
+        .slice(
+          "/api/product-comments/".length
+        )
+        .trim();
+
+
+    const uuidPattern =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+
+    if (
+      !uuidPattern.test(commentId)
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "ID komentar tidak valid."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    // =====================================
+    // AUTH
+    // =====================================
+
+    const sessionToken =
+      getCookie(
+        request,
+        "__Host-pasar_umkm_session"
+      );
+
+
+    if (!sessionToken) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Silakan masuk terlebih dahulu."
+        },
+        {
+          status: 401,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const sql =
+      neon(env.DATABASE_URL);
+
+
+    const sessions =
+      await sql`
+        SELECT
+          u.id,
+          u.role
+
+        FROM
+          sessions s
+
+        JOIN
+          users u
+          ON u.id = s.user_id
+
+        WHERE
+          s.token_hash =
+            encode(
+              digest(
+                ${sessionToken},
+                'sha256'
+              ),
+              'hex'
+            )
+
+          AND
+          s.expires_at > NOW()
+
+          AND
+          u.is_active = TRUE
+
+        LIMIT 1
+      `;
+
+
+    if (
+      sessions.length === 0
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Session tidak valid atau sudah berakhir."
+        },
+        {
+          status: 401,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const currentUser =
+      sessions[0];
+
+
+    // =====================================
+    // FIND COMMENT
+    // =====================================
+
+    const comments =
+      await sql`
+        SELECT
+          id,
+          user_id,
+          product_id,
+          is_active
+
+        FROM
+          product_comments
+
+        WHERE
+          id =
+            ${commentId}
+
+        LIMIT 1
+      `;
+
+
+    if (
+      comments.length === 0 ||
+      comments[0].is_active !== true
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Komentar tidak ditemukan."
+        },
+        {
+          status: 404,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const comment =
+      comments[0];
+
+
+    const isOwner =
+      String(
+        comment.user_id
+      ) ===
+      String(
+        currentUser.id
+      );
+
+    const isAdmin =
+      currentUser.role ===
+      "admin";
+
+
+    if (
+      !isOwner &&
+      !isAdmin
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Anda tidak memiliki izin menghapus komentar ini."
+        },
+        {
+          status: 403,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    // =====================================
+    // SOFT DELETE
+    // =====================================
+
+    await sql`
+      UPDATE
+        product_comments
+
+      SET
+        is_active = FALSE,
+        updated_at = NOW()
+
+      WHERE
+        id =
+          ${commentId}
+    `;
+
+
+    return Response.json(
+      {
+        ok: true,
+
+        message:
+          "Komentar berhasil dihapus."
+      },
+      {
+        status: 200,
+
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+
+
+  } catch (error) {
+    console.error(
+      "Product comments DELETE error:",
+      error
+    );
+
+
+    return Response.json(
+      {
+        ok: false,
+        error:
+          "Gagal menghapus komentar."
+      },
+      {
+        status: 500,
+
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+  }
+}
       // ========================================
     // STORES - CREATE
     // POST /api/stores
