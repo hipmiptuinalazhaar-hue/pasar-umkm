@@ -3699,7 +3699,171 @@ ${
     );
   }
 }
+function startCommentReply(
+  postId,
+  commentId,
+  commentName,
+  element
+) {
+  const sheet =
+    element.closest(
+      '.post-comments-sheet'
+    );
 
+  if (!sheet) {
+    return;
+  }
+
+
+  commentId =
+    String(
+      commentId || ''
+    ).trim();
+
+  commentName =
+    String(
+      commentName ||
+      'Pengguna'
+    ).trim();
+
+
+  if (!commentId) {
+    return;
+  }
+
+
+  sheet.dataset.replyTo =
+    commentId;
+
+  sheet.dataset.replyName =
+    commentName;
+
+
+  const replyBar =
+    sheet.querySelector(
+      '.post-comment-reply-bar'
+    );
+
+  const replyName =
+    sheet.querySelector(
+      '.post-comment-reply-name'
+    );
+
+  const input =
+    sheet.querySelector(
+      '.post-comment-input'
+    );
+
+
+  if (replyBar) {
+    replyBar.hidden =
+      false;
+  }
+
+
+  if (replyName) {
+    replyName.textContent =
+      `@${commentName}`;
+  }
+
+
+  if (input) {
+    input.placeholder =
+      `Balas @${commentName}...`;
+
+    input.focus();
+  }
+}
+
+
+function cancelCommentReply(
+  element
+) {
+  const sheet =
+    element.closest(
+      '.post-comments-sheet'
+    );
+
+  if (!sheet) {
+    return;
+  }
+
+
+  delete sheet.dataset.replyTo;
+  delete sheet.dataset.replyName;
+
+
+  const replyBar =
+    sheet.querySelector(
+      '.post-comment-reply-bar'
+    );
+
+  const input =
+    sheet.querySelector(
+      '.post-comment-input'
+    );
+
+
+  if (replyBar) {
+    replyBar.hidden =
+      true;
+  }
+
+
+  if (input) {
+    input.placeholder =
+      'Tambahkan komentar...';
+
+    input.focus();
+  }
+}
+
+
+function toggleCommentReplies(
+  element
+) {
+  const thread =
+    element.closest(
+      '.post-comment-thread'
+    );
+
+  if (!thread) {
+    return;
+  }
+
+
+  const replies =
+    thread.querySelector(
+      '.post-comment-replies'
+    );
+
+  if (!replies) {
+    return;
+  }
+
+
+  const isHidden =
+    replies.hidden;
+
+
+  replies.hidden =
+    !isHidden;
+
+
+  const count =
+    Number(
+      element.dataset.replyCount ||
+      0
+    );
+
+
+  element.textContent =
+    isHidden
+      ? 'Sembunyikan balasan'
+      : `Lihat ${
+          count
+        } balasan`;
+}
 function insertCommentEmoji(
   element
 ) {
