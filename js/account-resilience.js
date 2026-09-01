@@ -111,9 +111,15 @@
   );
 
   /*
-   * Bridge didaftarkan sebelum notification-core agar notifikasi
-   * order/message tidak jatuh ke fallback profil aktor.
+   * Interceptor window capture harus didaftarkan sebelum listener
+   * notifikasi document-level supaya satu klik hanya punya satu target.
    */
+  loadScript(
+    'script[data-notification-click-fix="true"]',
+    'js/notification-click-fix.js?v=1.0',
+    'notificationClickFix'
+  );
+
   loadScript(
     'script[data-notification-functionality-bridge="true"]',
     'js/notification-functionality-bridge.js?v=1.0',
@@ -130,6 +136,12 @@
     'script[data-functionality-core-module="true"]',
     'js/functionality-core.js?v=1.0',
     'functionalityCoreModule'
+  );
+
+  loadScript(
+    'script[data-saved-remove-core="true"]',
+    'js/saved-remove-core.js?v=1.0',
+    'savedRemoveCore'
   );
 
   loadScript(
