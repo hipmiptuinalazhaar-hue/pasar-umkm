@@ -1,0 +1,168 @@
+/* =========================================================
+   PASAR UMKM - PROFILE RESPONSIVE LAYER
+   Mobile-first hardening for 360px - 430px profile surfaces.
+   Loaded dynamically by account-resilience.js.
+   ========================================================= */
+
+.social-account-page {
+  width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+}
+
+.social-account-page .social-account-header {
+  padding-left: clamp(12px, 4vw, 16px);
+  padding-right: clamp(12px, 4vw, 16px);
+}
+
+.social-account-page .social-account-main {
+  grid-template-columns:
+    clamp(72px, 20vw, 82px)
+    minmax(0, 1fr);
+  gap: clamp(12px, 4vw, 22px);
+}
+
+.social-account-page .social-account-avatar-wrap {
+  width: clamp(72px, 20vw, 82px);
+  height: clamp(72px, 20vw, 82px);
+}
+
+.social-account-page .social-account-avatar {
+  width: 100%;
+  height: 100%;
+}
+
+.social-account-page .social-account-stats {
+  min-width: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(3px, 1.5vw, 8px);
+}
+
+.social-account-page .social-account-stat {
+  min-width: 0;
+}
+
+.social-account-page .social-account-stat strong {
+  font-size: clamp(14px, 4vw, 16px);
+}
+
+.social-account-page .social-account-stat span {
+  font-size: clamp(8px, 2.35vw, 9.5px);
+  overflow-wrap: anywhere;
+}
+
+.social-account-page .social-account-bio,
+.social-account-page .social-account-description,
+.social-account-page .social-account-link,
+.social-account-page .social-account-seller-badge,
+.social-account-page .social-account-status {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.social-account-page .social-account-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(7px, 2vw, 9px);
+}
+
+.social-account-page .social-account-action {
+  min-width: 0;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+/* Default buyer profile: 3 highlight cards. */
+.social-account-page .social-account-highlights {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: clamp(6px, 2vw, 9px);
+  padding: 14px clamp(10px, 3vw, 14px) 16px;
+  overflow: visible;
+}
+
+/* Seller profile: exactly 4 cards on one row. */
+.social-account-page .social-account-highlights:has(
+  > .social-account-highlight:nth-child(4)
+) {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.social-account-page .social-account-highlight {
+  width: 100%;
+  min-width: 0;
+  padding: 9px 3px 9px;
+  gap: 6px;
+}
+
+.social-account-page .social-account-highlight-ring {
+  width: clamp(42px, 12vw, 52px);
+  height: clamp(42px, 12vw, 52px);
+  margin-inline: auto;
+}
+
+.social-account-page .social-account-highlight-inner i {
+  font-size: clamp(17px, 5vw, 20px);
+}
+
+.social-account-page .social-account-highlight-label {
+  width: 100%;
+  min-width: 0;
+  text-align: center;
+  font-size: clamp(8.5px, 2.4vw, 9.5px);
+}
+
+.social-account-page .social-account-tabs {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+.social-account-page .social-account-tab {
+  min-width: 0;
+}
+
+.social-account-page .social-account-grid,
+.social-account-page .social-account-post-grid,
+.social-account-page .saved-profile-grid {
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.social-account-page .social-account-grid-item,
+.social-account-page .social-account-post-item,
+.social-account-page .saved-profile-item {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.social-account-page .social-account-grid-item img,
+.social-account-page .social-account-post-item img,
+.social-account-page .saved-profile-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 360px) {
+  .social-account-page .social-account-highlights {
+    gap: 5px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .social-account-page .social-account-highlight {
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+
+  .social-account-page .social-account-actions {
+    gap: 7px;
+  }
+
+  .social-account-page .social-account-action {
+    font-size: 9.5px;
+  }
+}
