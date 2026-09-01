@@ -90,15 +90,24 @@ async function ensureFollowNotificationTrigger(sql) {
   `;
 
   await sql`
-    DROP TRIGGER IF EXISTS trg_notify_user_follow
-    ON user_follows
-  `;
-
-  await sql`
-    CREATE TRIGGER trg_notify_user_follow
-    AFTER INSERT ON user_follows
-    FOR EACH ROW
-    EXECUTE FUNCTION notify_user_follow_event()
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1
+        FROM pg_trigger
+        WHERE
+          tgname = 'trg_notify_user_follow'
+          AND tgrelid = 'user_follows'::regclass
+          AND NOT tgisinternal
+      ) THEN
+        CREATE TRIGGER trg_notify_user_follow
+        AFTER INSERT ON user_follows
+        FOR EACH ROW
+        EXECUTE FUNCTION notify_user_follow_event();
+      END IF;
+    EXCEPTION
+      WHEN duplicate_object THEN NULL;
+    END $$
   `;
 }
 
@@ -164,15 +173,24 @@ async function ensurePostLikeNotificationTrigger(sql) {
   `;
 
   await sql`
-    DROP TRIGGER IF EXISTS trg_notify_post_like
-    ON post_likes
-  `;
-
-  await sql`
-    CREATE TRIGGER trg_notify_post_like
-    AFTER INSERT ON post_likes
-    FOR EACH ROW
-    EXECUTE FUNCTION notify_post_like_event()
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1
+        FROM pg_trigger
+        WHERE
+          tgname = 'trg_notify_post_like'
+          AND tgrelid = 'post_likes'::regclass
+          AND NOT tgisinternal
+      ) THEN
+        CREATE TRIGGER trg_notify_post_like
+        AFTER INSERT ON post_likes
+        FOR EACH ROW
+        EXECUTE FUNCTION notify_post_like_event();
+      END IF;
+    EXCEPTION
+      WHEN duplicate_object THEN NULL;
+    END $$
   `;
 }
 
@@ -238,15 +256,24 @@ async function ensurePostCommentNotificationTrigger(sql) {
   `;
 
   await sql`
-    DROP TRIGGER IF EXISTS trg_notify_post_comment
-    ON post_comments
-  `;
-
-  await sql`
-    CREATE TRIGGER trg_notify_post_comment
-    AFTER INSERT ON post_comments
-    FOR EACH ROW
-    EXECUTE FUNCTION notify_post_comment_event()
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1
+        FROM pg_trigger
+        WHERE
+          tgname = 'trg_notify_post_comment'
+          AND tgrelid = 'post_comments'::regclass
+          AND NOT tgisinternal
+      ) THEN
+        CREATE TRIGGER trg_notify_post_comment
+        AFTER INSERT ON post_comments
+        FOR EACH ROW
+        EXECUTE FUNCTION notify_post_comment_event();
+      END IF;
+    EXCEPTION
+      WHEN duplicate_object THEN NULL;
+    END $$
   `;
 }
 
@@ -318,15 +345,24 @@ async function ensureProductCommentNotificationTrigger(sql) {
   `;
 
   await sql`
-    DROP TRIGGER IF EXISTS trg_notify_product_comment
-    ON product_comments
-  `;
-
-  await sql`
-    CREATE TRIGGER trg_notify_product_comment
-    AFTER INSERT ON product_comments
-    FOR EACH ROW
-    EXECUTE FUNCTION notify_product_comment_event()
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1
+        FROM pg_trigger
+        WHERE
+          tgname = 'trg_notify_product_comment'
+          AND tgrelid = 'product_comments'::regclass
+          AND NOT tgisinternal
+      ) THEN
+        CREATE TRIGGER trg_notify_product_comment
+        AFTER INSERT ON product_comments
+        FOR EACH ROW
+        EXECUTE FUNCTION notify_product_comment_event();
+      END IF;
+    EXCEPTION
+      WHEN duplicate_object THEN NULL;
+    END $$
   `;
 }
 
