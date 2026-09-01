@@ -5,14 +5,14 @@ import { handlePublicProfileApi } from "./public-profile-api.js";
 import { handleSocialApi } from "./social-api.js";
 import { handleNotificationApi } from "./notification-api.js";
 import { handleEngagementApi } from "./engagement-api.js";
+import { handleFunctionalityApi } from "./functionality-api.js";
 import { ensureNotificationInfrastructure } from "./notification-store.js";
 
 export default {
   async fetch(request, env, ctx) {
     /*
-     * Pastikan trigger notifikasi sudah aktif sebelum route lama
-     * memproses komentar. Gagal menyiapkan notifikasi tidak boleh
-     * menjatuhkan marketplace utama.
+     * Trigger notifikasi disiapkan sebelum API lain menulis aktivitas.
+     * Kegagalan bootstrap notifikasi tidak boleh menjatuhkan marketplace.
      */
     try {
       await ensureNotificationInfrastructure(env);
@@ -28,6 +28,17 @@ export default {
 
     if (notificationResponse) {
       return notificationResponse;
+    }
+
+    /*
+     * Commerce core menangani cart, saved, checkout, orders,
+     * universal search, stories, seller dashboard, dan admin.
+     */
+    const functionalityResponse =
+      await handleFunctionalityApi(request, env);
+
+    if (functionalityResponse) {
+      return functionalityResponse;
     }
 
     /*
