@@ -42,7 +42,7 @@
   loadScript('script[data-navigation-refresh-guard="true"]', 'js/navigation-refresh-guard.js?v=1.0', 'navigationRefreshGuard');
 
   loadScript('script[data-social-core-module="true"]', 'js/social-core.js?v=1.0', 'socialCoreModule');
-  loadScript('script[data-like-core-module="true"]', 'js/like-core.js?v=1.0', 'likeCoreModule');
+  loadScript('script[data-like-core-module="true"]', 'js/like-core.js?v=1.1', 'likeCoreModule');
   loadScript('script[data-social-shell-module="true"]', 'js/social-shell.js?v=1.1', 'socialShellModule');
 
   /* Satu router notifikasi saja. Versi lama tidak dimuat lagi. */
@@ -58,6 +58,7 @@
 
   /* Media v2 harus terakhir agar menggantikan story/sell/video placeholder lama. */
   loadScript('script[data-media-experience-module="true"]', 'js/media-experience.js?v=1.0', 'mediaExperienceModule');
+  loadScript('script[data-reel-profile-separation="true"]', 'js/reel-profile-separation.js?v=1.0', 'reelProfileSeparation');
   loadScript('script[data-mention-autocomplete-module="true"]', 'js/mention-autocomplete.js?v=1.0', 'mentionAutocompleteModule');
 
   openAccount = async function resilientOpenAccount() {
@@ -133,6 +134,7 @@
     window.hydratePersistentLikes?.();
     window.refreshNotificationBadge?.();
     window.refreshRatingSummaries?.();
+    window.cleanReelsFromPhotoProfileGrids?.();
 
     window.scrollTo({ top: 0, behavior: 'auto' });
   };
