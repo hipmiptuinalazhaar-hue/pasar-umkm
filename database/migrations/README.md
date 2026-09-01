@@ -14,4 +14,9 @@ Saat ini:
   - menambahkan `parent_comment_id` untuk reply pada `post_comments` dan `product_comments`;
   - menambahkan foreign key, index, dan trigger `updated_at` yang dibutuhkan Worker saat ini.
 
+- `002_soft_delete_comment_replies.sql`
+  - menambahkan trigger untuk soft-delete reply ketika komentar induk dinonaktifkan;
+  - mencegah orphan reply yang tetap aktif tetapi tidak punya root comment aktif;
+  - menjaga jumlah komentar tetap konsisten dengan komentar yang benar-benar dapat ditampilkan frontend.
+
 Semua migration harus sebisa mungkin idempotent agar aman dijalankan ulang pada environment yang sudah pernah menerima perubahan manual.
