@@ -3351,119 +3351,313 @@ const commentsEndpoint =
         }
       });
 
+       /*
+     * Pisahkan komentar utama
+     * dan balasan.
+     */
+
+    const rootComments =
+      comments.filter(
+        comment =>
+          !comment.parent_comment_id
+      );
+
+
+    const repliesByParent =
+      new Map();
+
+
+    comments.forEach(comment => {
+      const parentId =
+        String(
+          comment.parent_comment_id ||
+          ''
+        ).trim();
+
+      if (!parentId) {
+        return;
+      }
+
+
+      if (
+        !repliesByParent.has(
+          parentId
+        )
+      ) {
+        repliesByParent.set(
+          parentId,
+          []
+        );
+      }
+
+
+      repliesByParent
+        .get(parentId)
+        .push(comment);
+    });
+
+
+    function renderSingleComment(
+      comment,
+      options = {}
+    ) {
+      const isReply =
+        Boolean(
+          options.isReply
+        );
+
+      const avatar =
+        comment.user_avatar ||
+        ASSETS.logo;
+
+
+      const canDeleteComment =
+        Boolean(
+          STATE.user &&
+          (
+            String(
+              comment.user_id ||
+              ''
+            ) ===
+            String(
+              STATE.user.id ||
+              ''
+            ) ||
+            STATE.user.role ===
+              'admin'
+          )
+        );
+
+
+      const commentName =
+        String(
+          comment.user_name ||
+          'Pengguna'
+        );
+
+
+      return `
+        <article
+          class="
+            post-comment-item
+            ${
+              isReply
+                ? 'is-reply'
+                : ''
+            }
+          "
+          data-comment-id="${escapeHTML(
+            comment.id ||
+            ''
+          )}"
+        >
+
+          <img
+            class="post-comment-avatar"
+            src="${escapeHTML(
+              avatar
+            )}"
+            alt=""
+            loading="lazy"
+            decoding="async"
+          >
+
+
+          <div class="post-comment-body">
+
+            <div class="post-comment-headline">
+
+              <strong
+                class="post-comment-name"
+              >
+                ${escapeHTML(
+                  commentName
+                )}
+              </strong>
+
+              <span
+                class="post-comment-time"
+              >
+                ${formatRelativeTime(
+                  comment.created_at
+                )}
+              </span>
+
+            </div>
+
+
+            <p
+              class="post-comment-text"
+            >
+              ${escapeHTML(
+                comment.content ||
+                ''
+              )}
+            </p>
+
+
+            ${
+              STATE.user
+                ? `
+                    <div
+                      class="post-comment-actions"
+                    >
+
+                      <button
+                        type="button"
+                        class="post-comment-reply-button"
+                        data-action="comment-reply"
+                        data-post-id="${escapeHTML(
+                          post.id ||
+                          ''
+                        )}"
+                        data-comment-id="${escapeHTML(
+                          comment.id ||
+                          ''
+                        )}"
+                        data-comment-name="${escapeHTML(
+                          commentName
+                        )}"
+                      >
+                        Balas
+                      </button>
+
+                    </div>
+                  `
+                : ''
+            }
+
+          </div>
+
+
+          ${
+            canDeleteComment
+              ? `
+                  <button
+                    type="button"
+                    class="post-comment-delete"
+                    data-action="comment-delete"
+                    data-post-id="${escapeHTML(
+                      post.id ||
+                      ''
+                    )}"
+                    data-comment-id="${escapeHTML(
+                      comment.id ||
+                      ''
+                    )}"
+                    aria-label="Hapus komentar"
+                  >
+                    <i
+                      class="ph ph-trash"
+                      aria-hidden="true"
+                    ></i>
+                  </button>
+                `
+              : ''
+          }
+
+        </article>
+      `;
+    }
+
+
     const commentsHTML =
-      comments.length
-        ? comments
+      rootComments.length
+        ? rootComments
             .map(comment => {
 
-                            const avatar =
-                comment.user_avatar ||
-                ASSETS.logo;
-
-              const canDeleteComment =
-                Boolean(
-                  STATE.user &&
-                  (
-                    String(
-                      comment.user_id || ''
-                    ) ===
-                    String(
-                      STATE.user.id || ''
-                    ) ||
-                    STATE.user.role === 'admin'
+              const replies =
+                repliesByParent.get(
+                  String(
+                    comment.id ||
+                    ''
                   )
-                );
+                ) || [];
+
+
+              const repliesHTML =
+                replies
+                  .map(reply =>
+                    renderSingleComment(
+                      reply,
+                      {
+                        isReply: true
+                      }
+                    )
+                  )
+                  .join('');
+
 
               return `
-                <article
-                  class="post-comment-item"
-                  data-comment-id="${escapeHTML(
-                    comment.id || ''
+                <section
+                  class="post-comment-thread"
+                  data-thread-id="${escapeHTML(
+                    comment.id ||
+                    ''
                   )}"
                 >
 
-                  <img
-                    class="post-comment-avatar"
-                    src="${escapeHTML(
-                      avatar
-                    )}"
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                  >
+                  ${renderSingleComment(
+                    comment
+                  )}
 
 
-                  <div class="post-comment-body">
+                  ${
+                    replies.length
+                      ? `
+                          <button
+                            type="button"
+                            class="post-comment-replies-toggle"
+                            data-action="comment-replies-toggle"
+                            data-reply-count="${replies.length}"
+                          >
+                            <span
+                              class="post-comment-replies-line"
+                              aria-hidden="true"
+                            ></span>
 
-  <div class="post-comment-headline">
-
-    <strong class="post-comment-name">
-      ${escapeHTML(
-        comment.user_name ||
-        'Pengguna'
-      )}
-    </strong>
-
-    <span class="post-comment-time">
-      ${formatRelativeTime(
-        comment.created_at
-      )}
-    </span>
-
-  </div>
-
-
-  <p class="post-comment-text">
-    ${escapeHTML(
-      comment.content ||
-      ''
-    )}
-  </p>
-
-</div>
+                            <span>
+                              Lihat ${formatCompactNumber(
+                                replies.length
+                              )} balasan
+                            </span>
+                          </button>
 
 
-${
-  canDeleteComment
-    ? `
-        <button
-          type="button"
-          class="post-comment-delete"
-          data-action="comment-delete"
-          data-post-id="${escapeHTML(
-            post.id || ''
-          )}"
-          data-comment-id="${escapeHTML(
-            comment.id || ''
-          )}"
-          aria-label="Hapus komentar"
-        >
-          <i
-            class="ph ph-trash"
-            aria-hidden="true"
-          ></i>
-        </button>
-      `
-    : ''
-}
-                </article>
+                          <div
+                            class="post-comment-replies"
+                            hidden
+                          >
+                            ${repliesHTML}
+                          </div>
+                        `
+                      : ''
+                  }
+
+                </section>
               `;
             })
             .join('')
 
         : `
-            <section class="empty-state">
+            <section
+              class="empty-state"
+            >
 
               <i
                 class="ph ph-chat-circle"
                 aria-hidden="true"
               ></i>
 
-              <strong class="empty-state-title">
+              <strong
+                class="empty-state-title"
+              >
                 Belum ada komentar
               </strong>
 
-              <p class="empty-state-text">
+              <p
+                class="empty-state-text"
+              >
                 Jadilah yang pertama memberikan komentar.
               </p>
 
