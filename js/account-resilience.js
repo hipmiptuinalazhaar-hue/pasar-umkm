@@ -74,6 +74,12 @@
     'profileIdentityModule'
   );
 
+  loadScript(
+    'script[data-profile-title-center-module="true"]',
+    'js/profile-title-center.js?v=1.0',
+    'profileTitleCenterModule'
+  );
+
   openAccount = async function resilientOpenAccount() {
     if (!STATE.user) {
       openLogin();
@@ -163,6 +169,13 @@
       'function'
     ) {
       window.decorateOwnProfileContacts();
+    }
+
+    if (
+      typeof window.centerProfileTitle ===
+      'function'
+    ) {
+      window.centerProfileTitle();
     }
 
     window.scrollTo({
