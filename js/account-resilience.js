@@ -132,6 +132,12 @@
     'functionalityCoreModule'
   );
 
+  loadScript(
+    'script[data-story-render-fix="true"]',
+    'js/story-render-fix.js?v=1.0',
+    'storyRenderFix'
+  );
+
   openAccount = async function resilientOpenAccount() {
     if (!STATE.user) {
       openLogin();
