@@ -3505,6 +3505,109 @@ async function submitComment(
   }
 }
 
+async function deleteComment(
+  postId,
+  commentId,
+  element
+) {
+  commentId =
+    String(
+      commentId || ''
+    ).trim();
+
+  if (!commentId) {
+    showToast(
+      'ID komentar tidak valid.'
+    );
+    return;
+  }
+
+  if (!STATE.user) {
+    openLogin();
+    return;
+  }
+
+  const confirmed =
+    window.confirm(
+      'Hapus komentar ini?'
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  const oldHTML =
+    element.innerHTML;
+
+  element.disabled = true;
+
+  element.innerHTML = `
+    <i
+      class="ph ph-spinner-gap"
+      aria-hidden="true"
+    ></i>
+  `;
+
+  try {
+    const response =
+      await fetch(
+        `/api/comments/${encodeURIComponent(
+          commentId
+        )}`,
+        {
+          method: 'DELETE',
+
+          credentials:
+            'include',
+
+          headers: {
+            Accept:
+              'application/json'
+          }
+        }
+      );
+
+    const data =
+      await response
+        .json()
+        .catch(() => ({}));
+
+    if (
+      !response.ok ||
+      data.ok !== true
+    ) {
+      throw new Error(
+        data.error ||
+        'Gagal menghapus komentar.'
+      );
+    }
+
+    showToast(
+      'Komentar berhasil dihapus.'
+    );
+
+    await openComments(
+      postId
+    );
+
+  } catch (error) {
+    console.error(
+      '[Pasar UMKM] Comment delete error:',
+      error
+    );
+
+    showToast(
+      error.message ||
+      'Gagal menghapus komentar.'
+    );
+
+    element.disabled =
+      false;
+
+    element.innerHTML =
+      oldHTML;
+  }
+}
 /* =========================================================
    34. SHARE
    ========================================================= */
