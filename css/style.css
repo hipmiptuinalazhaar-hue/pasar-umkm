@@ -21686,333 +21686,149 @@ strong {
 }
 
 /* =========================================================
-   COMMENT LAYOUT - INSTAGRAM FINAL
+   COMMENT UI - CLEAN FINAL
    ========================================================= */
 
-.post-comments-sheet
-.post-comments-list {
-  padding:
-    10px
-    16px
-    20px !important;
+.post-comments-sheet .post-comments-list {
+  padding: 8px 14px 20px !important;
 }
 
 
-/* SATU BARIS KOMENTAR */
+/* THREAD */
 
-.post-comments-sheet
-.post-comment-item {
-  position:
-    relative !important;
+.post-comment-thread {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
 
-  width:
-    100% !important;
 
-  display:
-    grid !important;
+/* COMMENT */
+
+.post-comments-sheet .post-comment-item {
+  width: 100% !important;
+
+  display: grid !important;
 
   grid-template-columns:
-    38px
+    34px
     minmax(0, 1fr)
-    28px !important;
+    26px !important;
 
-  column-gap:
-    10px !important;
+  column-gap: 9px !important;
+  align-items: start !important;
 
-  align-items:
-    start !important;
-
-  margin:
-    0 !important;
+  margin: 0 !important;
 
   padding:
-    10px
+    7px
     0 !important;
 
-  border:
-    0 !important;
-
-  background:
-    transparent !important;
-
-  text-align:
-    left !important;
+  border: 0 !important;
+  background: transparent !important;
 }
 
 
 /* AVATAR */
 
-.post-comments-sheet
-.post-comment-avatar {
-  grid-column:
-    1 !important;
+.post-comments-sheet .post-comment-avatar {
+  grid-column: 1;
 
-  width:
-    38px !important;
+  width: 34px !important;
+  height: 34px !important;
 
-  height:
-    38px !important;
+  margin: 0 !important;
 
-  margin:
-    0 !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
 
-  padding:
-    0 !important;
-
-  border-radius:
-    50% !important;
-
-  object-fit:
-    cover !important;
+  background: #f2f4f2;
 }
 
 
-/* AREA TEKS */
+/* BODY */
 
-.post-comments-sheet
-.post-comment-body {
-  grid-column:
-    2 !important;
+.post-comments-sheet .post-comment-body {
+  grid-column: 2;
 
-  width:
-    100% !important;
+  min-width: 0 !important;
 
-  min-width:
-    0 !important;
-
-  margin:
-    0 !important;
-
-  padding:
-    0 !important;
-
-  display:
-    block !important;
-
-  text-align:
-    left !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 
-/* USERNAME + WAKTU */
+/* USER + TIME */
 
-.post-comments-sheet
-.post-comment-headline {
-  width:
-    100%;
+.post-comments-sheet .post-comment-headline {
+  display: flex;
+  align-items: baseline;
 
-  display:
-    flex;
+  gap: 5px;
 
-  align-items:
-    baseline;
-
-  justify-content:
-    flex-start;
-
-  gap:
-    5px;
-
-  margin:
-    0;
-
-  padding:
-    0;
+  margin: 0;
+  padding: 0;
 }
 
 
-.post-comments-sheet
-.post-comment-name {
-  display:
-    inline-block;
+.post-comments-sheet .post-comment-name {
+  max-width: 72%;
 
-  max-width:
-    72%;
+  overflow: hidden;
 
-  margin:
-    0;
+  color: #171c19;
 
-  padding:
-    0;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.25;
 
-  overflow:
-    hidden;
-
-  color:
-    #171c19;
-
-  font-size:
-    12px;
-
-  font-weight:
-    800;
-
-  line-height:
-    1.35;
-
-  text-overflow:
-    ellipsis;
-
-  white-space:
-    nowrap;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 
-.post-comments-sheet
-.post-comment-time {
-  flex:
-    0
-    0
-    auto;
+.post-comments-sheet .post-comment-time {
+  flex: 0 0 auto;
 
-  margin:
-    0;
+  color: #929994;
 
-  padding:
-    0;
+  font-size: 9px;
+  font-weight: 500;
+  line-height: 1.25;
 
-  color:
-    #929994;
-
-  font-size:
-    9px;
-
-  font-weight:
-    500;
-
-  line-height:
-    1.35;
-
-  white-space:
-    nowrap;
+  white-space: nowrap;
 }
 
 
 /* ISI KOMENTAR */
 
-.post-comments-sheet
-.post-comment-text {
-  width:
-    100% !important;
+.post-comments-sheet .post-comment-text {
+  width: 100% !important;
 
   margin:
-    3px
+    1px
     0
     0 !important;
 
-  padding:
-    0 !important;
+  padding: 0 !important;
 
-  color:
-    #252c28 !important;
+  color: #252c28 !important;
 
-  font-size:
-    12.5px !important;
+  font-family:
+    "Plus Jakarta Sans",
+    "Segoe UI Emoji",
+    "Apple Color Emoji",
+    "Noto Color Emoji",
+    system-ui,
+    sans-serif !important;
 
-  font-weight:
-    450 !important;
+  font-size: 12.5px !important;
+  font-weight: 450 !important;
 
-  line-height:
-    1.45 !important;
+  line-height: 1.38 !important;
 
-  letter-spacing:
-    0 !important;
+  text-align: left !important;
 
-  text-align:
-    left !important;
-
-  text-indent:
-    0 !important;
-
-  white-space:
-    pre-wrap !important;
-
-  overflow-wrap:
-    anywhere !important;
-
-   font-family:
-  "Plus Jakarta Sans",
-  "Segoe UI Emoji",
-  "Apple Color Emoji",
-  "Noto Color Emoji",
-  system-ui,
-  sans-serif !important;
-}
-
-
-/* DELETE DI KOLOM KANAN */
-
-.post-comments-sheet
-.post-comment-delete {
-  position:
-    static !important;
-
-  grid-column:
-    3 !important;
-
-  width:
-    28px !important;
-
-  height:
-    28px !important;
-
-  margin:
-    -4px
-    0
-    0 !important;
-
-  padding:
-    0 !important;
-
-  display:
-    grid !important;
-
-  place-items:
-    center !important;
-
-  justify-self:
-    end;
-
-  color:
-    #a0a7a2;
-
-  background:
-    transparent !important;
-}
-
-
-.post-comments-sheet
-.post-comment-delete i {
-  font-size:
-    14px !important;
-}
-
-
-/* JARAK KOMENTAR */
-
-.post-comments-sheet
-.post-comment-item
-+
-.post-comment-item {
-  margin-top:
-    4px !important;
-}
-.comment-inline-emoji {
-  display:
-    inline-block;
-
-  width:
-    1.15em;
-
-  height:
-    1.15em;
-
-  margin:
-    0 0.04em;
-
-  vertical-align:
-    -0.18em;
-
-  object-fit:
-    contain;
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere !important;
 }
