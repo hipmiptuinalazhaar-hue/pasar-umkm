@@ -2753,9 +2753,8 @@ function toggleLike(postId) {
   }
 
   saveLocalState();
-  renderFeed();
+  refreshPostInteractionUI(postId);
 }
-
 
 /* =========================================================
    32. SAVE
@@ -2770,16 +2769,200 @@ function toggleSave(postId) {
 
   if (STATE.savedPosts.has(postId)) {
     STATE.savedPosts.delete(postId);
-    showToast('Dihapus dari favorit.');
+
+    showToast(
+      'Dihapus dari favorit.'
+    );
   } else {
     STATE.savedPosts.add(postId);
-    showToast('Disimpan ke favorit.');
+
+    showToast(
+      'Disimpan ke favorit.'
+    );
   }
 
   saveLocalState();
-  renderFeed();
+  refreshPostInteractionUI(postId);
 }
 
+function refreshPostInteractionUI(
+  postId
+) {
+  postId =
+    String(postId || '');
+
+  if (!postId) {
+    return;
+  }
+
+
+  const post =
+    findPost(postId);
+
+  if (!post) {
+    return;
+  }
+
+
+  const liked =
+    STATE.likedPosts.has(
+      postId
+    );
+
+  const saved =
+    STATE.savedPosts.has(
+      postId
+    );
+
+
+  const serverLikes =
+    Number(
+      post.likesCount ||
+      post.likes ||
+      0
+    );
+
+
+  const likeCount =
+    serverLikes +
+    (liked ? 1 : 0);
+
+
+  document
+    .querySelectorAll(
+      '.post-card[data-post-id]'
+    )
+    .forEach(card => {
+
+      if (
+        String(
+          card.dataset.postId || ''
+        ) !== postId
+      ) {
+        return;
+      }
+
+
+      /* LIKE BUTTON */
+
+      const likeButton =
+        card.querySelector(
+          '[data-action="like"]'
+        );
+
+      if (likeButton) {
+        likeButton.classList.toggle(
+          'liked',
+          liked
+        );
+
+        likeButton.setAttribute(
+          'aria-pressed',
+          String(liked)
+        );
+
+
+        const icon =
+          likeButton.querySelector('i');
+
+        if (icon) {
+          icon.classList.toggle(
+            'ph-fill',
+            liked
+          );
+
+          icon.classList.toggle(
+            'ph',
+            !liked
+          );
+        }
+      }
+
+
+      /* SAVE BUTTON */
+
+      const saveButton =
+        card.querySelector(
+          '[data-action="save"]'
+        );
+
+      if (saveButton) {
+        saveButton.classList.toggle(
+          'saved',
+          saved
+        );
+
+        saveButton.setAttribute(
+          'aria-pressed',
+          String(saved)
+        );
+
+
+        const icon =
+          saveButton.querySelector('i');
+
+        if (icon) {
+          icon.classList.toggle(
+            'ph-fill',
+            saved
+          );
+
+          icon.classList.toggle(
+            'ph',
+            !saved
+          );
+        }
+      }
+
+
+      /* JUMLAH LIKE */
+
+      let stats =
+        card.querySelector(
+          '.post-stats'
+        );
+
+
+      if (likeCount > 0) {
+
+        if (!stats) {
+          stats =
+            document.createElement(
+              'div'
+            );
+
+          stats.className =
+            'post-stats';
+
+
+          const actions =
+            card.querySelector(
+              '.post-actions'
+            );
+
+
+          if (actions) {
+            actions.insertAdjacentElement(
+              'afterend',
+              stats
+            );
+          }
+        }
+
+
+        stats.textContent =
+          `${formatCompactNumber(
+            likeCount
+          )} suka`;
+
+      } else if (stats) {
+
+        stats.remove();
+
+      }
+
+    });
+}
 
 /* =========================================================
    33. COMMENTS
