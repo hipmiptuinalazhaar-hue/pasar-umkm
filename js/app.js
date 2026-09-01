@@ -3117,6 +3117,19 @@ async function openComments(postId) {
             .map(comment => {
 
               const avatar =
+                 const canDeleteComment =
+  Boolean(
+    STATE.user &&
+    (
+      String(
+        comment.user_id || ''
+      ) ===
+      String(
+        STATE.user.id || ''
+      ) ||
+      STATE.user.role === 'admin'
+    )
+  );
                 comment.user_avatar ||
                 ASSETS.logo;
 
