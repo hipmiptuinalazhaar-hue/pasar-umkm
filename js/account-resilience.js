@@ -68,6 +68,12 @@
     'socialCoreStyle'
   );
 
+  loadStylesheet(
+    'link[data-notification-core-style="true"]',
+    'css/notification-core.css?v=1.0',
+    'notificationCoreStyle'
+  );
+
   loadScript(
     'script[data-profile-edit-module="true"]',
     'js/profile-edit.js?v=3.0',
@@ -96,6 +102,12 @@
     'script[data-social-shell-module="true"]',
     'js/social-shell.js?v=1.0',
     'socialShellModule'
+  );
+
+  loadScript(
+    'script[data-notification-core-module="true"]',
+    'js/notification-core.js?v=1.0',
+    'notificationCoreModule'
   );
 
   openAccount = async function resilientOpenAccount() {
@@ -208,6 +220,13 @@
       'function'
     ) {
       window.syncSocialShell();
+    }
+
+    if (
+      typeof window.refreshNotificationBadge ===
+      'function'
+    ) {
+      window.refreshNotificationBadge();
     }
 
     window.scrollTo({
