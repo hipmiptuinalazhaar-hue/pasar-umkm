@@ -2,7 +2,7 @@
 
 /* =========================================================
    PASAR UMKM - SAVED PROFILE TAB
-   Full saved item renderer + clickable saved viewer.
+   3-column saved grid + full scrollable saved viewer.
    Loaded after app.js so stable core code stays untouched.
    ========================================================= */
 
@@ -23,6 +23,38 @@
       STATE.savedPosts.has(
         String(post.id || '')
       )
+    );
+  }
+
+
+  function getSavedPreviewImage(item) {
+    if (item?.product) {
+      return (
+        item.product.image ||
+        item.product.image_url ||
+        ASSETS.logo
+      );
+    }
+
+    return (
+      item?.media?.src ||
+      ASSETS.logo
+    );
+  }
+
+
+  function getSavedPreviewAlt(item) {
+    if (item?.product) {
+      return (
+        item.product.name ||
+        'Produk tersimpan'
+      );
+    }
+
+    return (
+      item?.media?.alt ||
+      item?.caption ||
+      'Postingan tersimpan'
     );
   }
 
@@ -53,18 +85,45 @@
     }
 
     return `
-      <div class="post-viewer-list saved-profile-list">
+      <div
+        class="social-account-grid social-account-post-grid saved-profile-grid"
+      >
 
         ${savedItems
           .map(item => `
-            <div
-              class="post-viewer-item saved-profile-item"
+            <button
+              type="button"
+              class="social-account-grid-item social-account-post-item saved-profile-item"
               data-saved-item-id="${escapeHTML(
                 item.id || ''
               )}"
+              aria-label="Buka ${escapeHTML(
+                item.product?.name ||
+                item.caption ||
+                'item tersimpan'
+              )}"
             >
-              ${createPostTemplate(item)}
-            </div>
+
+              <img
+                src="${escapeHTML(
+                  getSavedPreviewImage(item)
+                )}"
+                alt="${escapeHTML(
+                  getSavedPreviewAlt(item)
+                )}"
+                loading="lazy"
+                decoding="async"
+              >
+
+              <span class="social-account-grid-overlay">
+                <i class="ph ${
+                  item.product
+                    ? 'ph-shopping-bag'
+                    : 'ph-images'
+                }"></i>
+              </span>
+
+            </button>
           `)
           .join('')}
 
@@ -102,21 +161,9 @@
       return;
     }
 
-    if (selectedItem.product?.id) {
-      openProductDetail(
-        selectedItem.product.id
-      );
-      return;
-    }
-
-    const savedPosts =
-      savedItems.filter(item =>
-        !item.product
-      );
-
-    const orderedPosts = [
+    const orderedItems = [
       selectedItem,
-      ...savedPosts.filter(item =>
+      ...savedItems.filter(item =>
         String(item.id || '') !==
         String(selectedItem.id || '')
       )
@@ -171,15 +218,15 @@
 
         <div class="post-viewer-list">
 
-          ${orderedPosts
-            .map(post => `
+          ${orderedItems
+            .map(item => `
               <div
                 class="post-viewer-item"
                 data-viewer-post-id="${escapeHTML(
-                  post.id || ''
+                  item.id || ''
                 )}"
               >
-                ${createPostTemplate(post)}
+                ${createPostTemplate(item)}
               </div>
             `)
             .join('')}
@@ -238,18 +285,8 @@
         return;
       }
 
-      const interactiveTarget =
-        event.target.closest(
-          'button, a, input, textarea, select, ' +
-          '[data-action], [data-menu-action]'
-        );
-
-      if (
-        interactiveTarget &&
-        interactiveTarget !== savedItem
-      ) {
-        return;
-      }
+      event.preventDefault();
+      event.stopImmediatePropagation();
 
       openSavedItemViewer(
         savedItem.dataset.savedItemId
