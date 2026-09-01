@@ -2968,14 +2968,52 @@ function refreshPostInteractionUI(
    33. COMMENTS
    ========================================================= */
 
-function openComments(postId) {
+async function openComments(postId) {
   const post =
     findPost(postId);
 
+
   if (!post) {
+    showToast(
+      'Postingan tidak ditemukan.'
+    );
     return;
   }
 
+
+  /*
+   * Produk di feed belum memakai tabel posts.
+   * Jadi komentar sementara khusus postingan sosial.
+   */
+  if (post.product) {
+    showToast(
+      'Komentar produk belum tersedia.'
+    );
+    return;
+  }
+
+
+  const backendPostId =
+    String(
+      post.backendId ||
+      post.id ||
+      ''
+    )
+      .replace(/^post-/, '')
+      .trim();
+
+
+  if (!backendPostId) {
+    showToast(
+      'ID postingan tidak valid.'
+    );
+    return;
+  }
+
+
+  /*
+   * Loading state
+   */
   openBottomSheet(
     `
       <h2 id="sheetTitle">
@@ -2983,25 +3021,219 @@ function openComments(postId) {
       </h2>
 
       <section class="empty-state">
+
         <i
-          class="ph ph-chat-circle"
+          class="ph ph-spinner-gap"
           aria-hidden="true"
         ></i>
 
         <strong class="empty-state-title">
-          Belum ada percakapan
+          Memuat komentar...
         </strong>
 
-        <p class="empty-state-text">
-          Komentar asli akan muncul di sini setelah
-          sistem akun dan backend diaktifkan.
-        </p>
       </section>
     `,
     'comments'
   );
-}
 
+
+  try {
+    const response =
+      await fetch(
+        `/api/posts/${encodeURIComponent(
+          backendPostId
+        )}/comments`,
+        {
+          method: 'GET',
+
+          credentials:
+            'include',
+
+          headers: {
+            Accept:
+              'application/json'
+          },
+
+          cache:
+            'no-store'
+        }
+      );
+
+
+    const data =
+      await response
+        .json()
+        .catch(() => ({}));
+
+
+    if (
+      !response.ok ||
+      data.ok !== true
+    ) {
+      throw new Error(
+        data.error ||
+        'Gagal memuat komentar.'
+      );
+    }
+
+
+    const comments =
+      Array.isArray(
+        data.comments
+      )
+        ? data.comments
+        : [];
+
+
+    /*
+     * Simpan jumlah komentar
+     * ke data post frontend.
+     */
+    post.commentsCount =
+      comments.length;
+
+
+    const commentsHTML =
+      comments.length
+        ? comments
+            .map(comment => {
+
+              const avatar =
+                comment.user_avatar ||
+                ASSETS.logo;
+
+
+              return `
+                <article
+                  class="post-comment-item"
+                  data-comment-id="${escapeHTML(
+                    comment.id || ''
+                  )}"
+                >
+
+                  <img
+                    class="post-comment-avatar"
+                    src="${escapeHTML(
+                      avatar
+                    )}"
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                  >
+
+
+                  <div class="post-comment-body">
+
+                    <div class="post-comment-meta">
+
+                      <strong>
+                        ${escapeHTML(
+                          comment.user_name ||
+                          'Pengguna'
+                        )}
+                      </strong>
+
+                      <span>
+                        ${formatRelativeTime(
+                          comment.created_at
+                        )}
+                      </span>
+
+                    </div>
+
+
+                    <p>
+                      ${escapeHTML(
+                        comment.content ||
+                        ''
+                      )}
+                    </p>
+
+                  </div>
+
+                </article>
+              `;
+            })
+            .join('')
+
+        : `
+            <section class="empty-state">
+
+              <i
+                class="ph ph-chat-circle"
+                aria-hidden="true"
+              ></i>
+
+              <strong class="empty-state-title">
+                Belum ada komentar
+              </strong>
+
+              <p class="empty-state-text">
+                Jadilah yang pertama memberikan komentar.
+              </p>
+
+            </section>
+          `;
+
+
+    openBottomSheet(
+      `
+        <div
+          class="post-comments-sheet"
+          data-post-id="${escapeHTML(
+            post.id || ''
+          )}"
+        >
+
+          <h2 id="sheetTitle">
+            Komentar
+          </h2>
+
+
+          <div class="post-comments-list">
+            ${commentsHTML}
+          </div>
+
+        </div>
+      `,
+      'comments'
+    );
+
+
+  } catch (error) {
+    console.error(
+      '[Pasar UMKM] Comments load error:',
+      error
+    );
+
+
+    openBottomSheet(
+      `
+        <h2 id="sheetTitle">
+          Komentar
+        </h2>
+
+        <section class="empty-state">
+
+          <i
+            class="ph ph-warning-circle"
+            aria-hidden="true"
+          ></i>
+
+          <strong class="empty-state-title">
+            Komentar gagal dimuat
+          </strong>
+
+          <p class="empty-state-text">
+            Coba buka kembali beberapa saat lagi.
+          </p>
+
+        </section>
+      `,
+      'comments'
+    );
+  }
+}
 
 /* =========================================================
    34. SHARE
