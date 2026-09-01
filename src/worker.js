@@ -4087,6 +4087,405 @@ if (
     );
   }
 }
+
+    // ========================================
+// POST COMMENTS - LIST
+// GET /api/posts/:id/comments
+// ========================================
+
+const commentsMatch =
+  url.pathname.match(
+    /^\/api\/posts\/([^/]+)\/comments$/
+  );
+
+if (
+  commentsMatch &&
+  request.method === "GET"
+) {
+  try {
+    const postId =
+      String(
+        commentsMatch[1] || ""
+      ).trim();
+
+    const uuidPattern =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+
+    if (!uuidPattern.test(postId)) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "ID postingan tidak valid."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const sql =
+      neon(env.DATABASE_URL);
+
+
+    const comments =
+      await sql`
+        SELECT
+          c.id,
+          c.post_id,
+          c.user_id,
+          c.content,
+          c.created_at,
+          c.updated_at,
+
+          u.name
+            AS user_name,
+
+          u.avatar_url
+            AS user_avatar
+
+        FROM
+          post_comments c
+
+        JOIN
+          users u
+          ON u.id = c.user_id
+
+        JOIN
+          posts p
+          ON p.id = c.post_id
+
+        WHERE
+          c.post_id = ${postId}
+
+          AND
+          c.is_active = TRUE
+
+          AND
+          u.is_active = TRUE
+
+          AND
+          p.is_active = TRUE
+
+        ORDER BY
+          c.created_at ASC
+      `;
+
+
+    return Response.json(
+      {
+        ok: true,
+        comments
+      },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+
+
+  } catch (error) {
+    console.error(
+      "Post comments GET error:",
+      error
+    );
+
+
+    return Response.json(
+      {
+        ok: false,
+        error:
+          "Gagal memuat komentar."
+      },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+  }
+}
+
+    // ========================================
+// POST COMMENTS - SOFT DELETE
+// DELETE /api/comments/:id
+// ========================================
+
+if (
+  url.pathname.startsWith(
+    "/api/comments/"
+  ) &&
+  request.method === "DELETE"
+) {
+  try {
+    const commentId =
+      url.pathname
+        .slice(
+          "/api/comments/".length
+        )
+        .trim();
+
+
+    const uuidPattern =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+
+    if (
+      !uuidPattern.test(commentId)
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "ID komentar tidak valid."
+        },
+        {
+          status: 400,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    // =====================================
+    // AUTH
+    // =====================================
+
+    const sessionToken =
+      getCookie(
+        request,
+        "__Host-pasar_umkm_session"
+      );
+
+
+    if (!sessionToken) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Silakan masuk terlebih dahulu."
+        },
+        {
+          status: 401,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const sql =
+      neon(env.DATABASE_URL);
+
+
+    const sessions =
+      await sql`
+        SELECT
+          u.id,
+          u.role
+
+        FROM
+          sessions s
+
+        JOIN
+          users u
+          ON u.id = s.user_id
+
+        WHERE
+          s.token_hash =
+            encode(
+              digest(
+                ${sessionToken},
+                'sha256'
+              ),
+              'hex'
+            )
+
+          AND
+          s.expires_at > NOW()
+
+          AND
+          u.is_active = TRUE
+
+        LIMIT 1
+      `;
+
+
+    if (
+      sessions.length === 0
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Session tidak valid atau sudah berakhir."
+        },
+        {
+          status: 401,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const currentUser =
+      sessions[0];
+
+
+    // =====================================
+    // FIND COMMENT
+    // =====================================
+
+    const comments =
+      await sql`
+        SELECT
+          id,
+          user_id,
+          is_active
+
+        FROM
+          post_comments
+
+        WHERE
+          id = ${commentId}
+
+        LIMIT 1
+      `;
+
+
+    if (
+      comments.length === 0 ||
+      comments[0].is_active !== true
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Komentar tidak ditemukan."
+        },
+        {
+          status: 404,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    const comment =
+      comments[0];
+
+
+    // =====================================
+    // OWNER / ADMIN ONLY
+    // =====================================
+
+    const isOwner =
+      String(comment.user_id) ===
+      String(currentUser.id);
+
+    const isAdmin =
+      currentUser.role === "admin";
+
+
+    if (
+      !isOwner &&
+      !isAdmin
+    ) {
+      return Response.json(
+        {
+          ok: false,
+          error:
+            "Anda tidak memiliki izin menghapus komentar ini."
+        },
+        {
+          status: 403,
+          headers: {
+            "Cache-Control":
+              "no-store"
+          }
+        }
+      );
+    }
+
+
+    // =====================================
+    // SOFT DELETE
+    // =====================================
+
+    await sql`
+      UPDATE
+        post_comments
+
+      SET
+        is_active = FALSE,
+        updated_at = NOW()
+
+      WHERE
+        id = ${commentId}
+    `;
+
+
+    return Response.json(
+      {
+        ok: true,
+        message:
+          "Komentar berhasil dihapus."
+      },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+
+
+  } catch (error) {
+    console.error(
+      "Post comments DELETE error:",
+      error
+    );
+
+
+    return Response.json(
+      {
+        ok: false,
+        error:
+          "Gagal menghapus komentar."
+      },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control":
+            "no-store"
+        }
+      }
+    );
+  }
+}
     
     // ========================================
 // POSTS - SOFT DELETE
