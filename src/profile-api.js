@@ -2,6 +2,8 @@ import { neon } from "@neondatabase/serverless";
 
 const SESSION_COOKIE = "__Host-pasar_umkm_session";
 
+class ProfileValidationError extends Error {}
+
 function getCookie(request, name) {
   const cookieHeader = request.headers.get("Cookie");
 
@@ -50,14 +52,18 @@ function normalizeAvatarUrl(value) {
   try {
     parsed = new URL(text);
   } catch {
-    throw new Error("URL foto profil tidak valid.");
+    throw new ProfileValidationError(
+      "URL foto profil tidak valid."
+    );
   }
 
   if (
     parsed.protocol !== "https:" &&
     parsed.protocol !== "http:"
   ) {
-    throw new Error("URL foto profil harus menggunakan http atau https.");
+    throw new ProfileValidationError(
+      "URL foto profil harus menggunakan http atau https."
+    );
   }
 
   return parsed.toString();
@@ -277,9 +283,7 @@ export async function handleProfileApi(request, env) {
           city = ${city},
           province = ${province},
           updated_at = NOW()
-        WHERE
-          owner_id = ${currentUser.id}
-          AND ${Boolean(currentStore)} = TRUE
+        WHERE owner_id = ${currentUser.id}
         RETURNING
           id,
           owner_id,
@@ -316,7 +320,7 @@ export async function handleProfileApi(request, env) {
     const updated = result[0];
 
     if (!updated?.user) {
-      throw new Error("Profil gagal diperbarui.");
+      throw new Error("Profile update returned no user row.");
     }
 
     return Response.json(
@@ -336,16 +340,19 @@ export async function handleProfileApi(request, env) {
   } catch (error) {
     console.error("Profile update error:", error);
 
+    const isValidationError =
+      error instanceof ProfileValidationError;
+
     return Response.json(
       {
         ok: false,
         error:
-          error instanceof Error
+          isValidationError
             ? error.message
             : "Profil belum dapat diperbarui."
       },
       {
-        status: 500,
+        status: isValidationError ? 400 : 500,
         headers: {
           "Cache-Control": "no-store"
         }
