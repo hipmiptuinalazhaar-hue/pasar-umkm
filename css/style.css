@@ -22284,3 +22284,96 @@ line-height:
 
   line-height: 12px !important;
 }
+
+/* =========================================================
+   TAMBAH PRODUK - INPUT ICON FIX
+   ========================================================= */
+
+#productCreateShell .auth-input-wrap {
+  display: flex !important;
+  align-items: center !important;
+
+  overflow: hidden !important;
+}
+
+
+/* ICON JANGAN ABSOLUTE */
+
+#productCreateShell .auth-input-wrap .auth-input-icon {
+  position: static !important;
+
+  top: auto !important;
+  left: auto !important;
+
+  transform: none !important;
+
+  z-index: auto !important;
+
+  flex:
+    0
+    0
+    38px !important;
+
+  width:
+    38px !important;
+
+  height:
+    45px !important;
+
+  display: grid !important;
+  place-items: center !important;
+
+  margin:
+    0
+    0
+    0
+    5px !important;
+
+  padding:
+    0 !important;
+
+  color:
+    rgba(18, 96, 63, 0.62) !important;
+
+  font-size:
+    16px !important;
+
+  line-height:
+    1 !important;
+
+  pointer-events:
+    none !important;
+}
+
+
+/* INPUT MEMBERI RUANG NORMAL SETELAH ICON */
+
+#productCreateShell
+.auth-input-wrap
+.auth-input {
+  flex:
+    1
+    1
+    auto !important;
+
+  width:
+    auto !important;
+
+  min-width:
+    0 !important;
+
+  padding:
+    0
+    14px
+    0
+    5px !important;
+
+  border:
+    0 !important;
+
+  background:
+    transparent !important;
+
+  box-shadow:
+    none !important;
+}
