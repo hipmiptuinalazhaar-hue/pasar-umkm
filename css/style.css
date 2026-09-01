@@ -22439,3 +22439,47 @@ i {
   line-height:
     1 !important;
 }
+
+/* =========================================================
+   PUBLIC SELLER PROFILE - 2 TAB FIX
+   Postingan | Produk
+   ========================================================= */
+
+.public-seller-profile
+.social-account-tabs {
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr)) !important;
+
+  padding:
+    0
+    8px !important;
+}
+
+
+.public-seller-profile
+.social-account-tab {
+  width:
+    100% !important;
+
+  min-width:
+    0 !important;
+
+  min-height:
+    52px !important;
+
+  display:
+    flex !important;
+
+  align-items:
+    center !important;
+
+  justify-content:
+    center !important;
+}
+
+
+.public-seller-profile
+.social-account-tab i {
+  font-size:
+    20px !important;
+}
