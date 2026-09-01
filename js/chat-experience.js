@@ -8,6 +8,7 @@
     metaLoading: false,
     metaTimer: null,
     listTimer: null,
+    listSyncing: false,
     longPressTimer: null,
     pressStartX: 0,
     pressStartY: 0,
@@ -151,15 +152,32 @@
   }
 
   async function syncConversationListState() {
+    if (CHAT.listSyncing) return;
+
     const page = document.querySelector('.social-messages-page');
     const list = page?.querySelector('.social-messages-list');
     if (!list) return;
+
+    CHAT.listSyncing = true;
 
     try {
       const data = await api('/api/social/conversations');
       const conversations = Array.isArray(data.conversations)
         ? data.conversations
         : [];
+
+      const signature = conversations
+        .map(item => [
+          item.id,
+          item.viewer_pinned ? 1 : 0,
+          item.viewer_archived ? 1 : 0,
+          item.last_message_at || item.updated_at || ''
+        ].join(':'))
+        .join('|');
+
+      if (list.dataset.chatStateSignature === signature) {
+        return;
+      }
 
       const rowMap = new Map(
         [...list.querySelectorAll('.social-conversation-row')]
@@ -208,14 +226,18 @@
         archivedRows.forEach(row => archiveList.appendChild(row));
         list.appendChild(archive);
       }
+
+      list.dataset.chatStateSignature = signature;
     } catch (error) {
       console.error('[Pasar UMKM] Sync conversation state error:', error);
+    } finally {
+      CHAT.listSyncing = false;
     }
   }
 
   function scheduleConversationState() {
     clearTimeout(CHAT.listTimer);
-    CHAT.listTimer = setTimeout(syncConversationListState, 120);
+    CHAT.listTimer = setTimeout(syncConversationListState, 140);
   }
 
   function openSheet(html, key) {
@@ -395,9 +417,7 @@
 
   async function messageAction(messageId, action) {
     if (action === 'delete_everyone') {
-      const confirmed = window.confirm(
-        'Hapus pesan ini untuk semua?'
-      );
+      const confirmed = window.confirm('Hapus pesan ini untuk semua?');
       if (!confirmed) return;
     }
 
