@@ -48,7 +48,13 @@
 
     return count > 0
       ? `${stars} ${average.toFixed(1)} (${count})`
-      : `☆☆☆☆☆ Belum ada rating`;
+      : '☆☆☆☆☆ Belum ada rating';
+  }
+
+  function setTextIfChanged(node, value) {
+    if (node && node.textContent !== value) {
+      node.textContent = value;
+    }
   }
 
   function collectIds() {
@@ -138,8 +144,9 @@
           else info.appendChild(line);
         }
 
-        line.textContent = ratingText(
-          RATING.products.get(String(product.id))
+        setTextIfChanged(
+          line,
+          ratingText(RATING.products.get(String(product.id)))
         );
       });
   }
@@ -158,8 +165,9 @@
       else container.appendChild(line);
     }
 
-    line.textContent = ratingText(
-      RATING.stores.get(String(storeId))
+    setTextIfChanged(
+      line,
+      ratingText(RATING.stores.get(String(storeId)))
     );
   }
 
@@ -358,7 +366,7 @@
   const observer = new MutationObserver(() => {
     decorate();
     clearTimeout(RATING.timer);
-    RATING.timer = setTimeout(refreshSummaries, 140);
+    RATING.timer = setTimeout(refreshSummaries, 180);
   });
 
   observer.observe(document.body, { childList: true, subtree: true });
