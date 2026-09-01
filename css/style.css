@@ -21355,3 +21355,324 @@ img {
   }
 
 }
+
+/* =========================================================
+   COMMENT TEXT ALIGNMENT FINAL FIX
+   ========================================================= */
+
+.post-comments-sheet
+.post-comment-item {
+  display: grid !important;
+
+  grid-template-columns:
+    38px
+    minmax(0, 1fr) !important;
+
+  grid-template-rows:
+    auto !important;
+
+  column-gap:
+    10px !important;
+
+  align-items:
+    start !important;
+
+  width:
+    100% !important;
+
+  padding:
+    10px
+    0 !important;
+
+  margin:
+    0 !important;
+}
+
+
+/* AVATAR */
+
+.post-comments-sheet
+.post-comment-avatar {
+  grid-column:
+    1 !important;
+
+  grid-row:
+    1 !important;
+
+  width:
+    38px !important;
+
+  height:
+    38px !important;
+
+  margin:
+    0 !important;
+
+  padding:
+    0 !important;
+
+  border-radius:
+    50% !important;
+
+  object-fit:
+    cover !important;
+}
+
+
+/* BODY KOMENTAR */
+
+.post-comments-sheet
+.post-comment-body {
+  grid-column:
+    2 !important;
+
+  grid-row:
+    1 !important;
+
+  display:
+    block !important;
+
+  width:
+    100% !important;
+
+  min-width:
+    0 !important;
+
+  margin:
+    0 !important;
+
+  padding:
+    0 !important;
+
+  text-align:
+    left !important;
+}
+
+
+/* BARIS NAMA + WAKTU */
+
+.post-comments-sheet
+.post-comment-meta {
+  position:
+    relative !important;
+
+  display:
+    flex !important;
+
+  flex-direction:
+    row !important;
+
+  align-items:
+    center !important;
+
+  justify-content:
+    flex-start !important;
+
+  gap:
+    5px !important;
+
+  width:
+    100% !important;
+
+  min-height:
+    18px !important;
+
+  margin:
+    0
+    0
+    3px !important;
+
+  padding:
+    0
+    32px
+    0
+    0 !important;
+
+  text-align:
+    left !important;
+}
+
+
+/* NAMA USER */
+
+.post-comments-sheet
+.post-comment-meta
+strong {
+  display:
+    inline-block !important;
+
+  width:
+    auto !important;
+
+  max-width:
+    70% !important;
+
+  margin:
+    0 !important;
+
+  padding:
+    0 !important;
+
+  color:
+    #171c19 !important;
+
+  font-size:
+    12px !important;
+
+  font-weight:
+    800 !important;
+
+  line-height:
+    1.3 !important;
+
+  text-align:
+    left !important;
+
+  white-space:
+    nowrap !important;
+
+  overflow:
+    hidden !important;
+
+  text-overflow:
+    ellipsis !important;
+}
+
+
+/* WAKTU */
+
+.post-comments-sheet
+.post-comment-meta
+> span {
+  display:
+    inline-block !important;
+
+  width:
+    auto !important;
+
+  margin:
+    0 !important;
+
+  padding:
+    0 !important;
+
+  color:
+    #929994 !important;
+
+  font-size:
+    9px !important;
+
+  font-weight:
+    500 !important;
+
+  line-height:
+    1.3 !important;
+
+  text-align:
+    left !important;
+
+  white-space:
+    nowrap !important;
+}
+
+
+/* ISI KOMENTAR */
+
+.post-comments-sheet
+.post-comment-body
+> p {
+  display:
+    block !important;
+
+  width:
+    100% !important;
+
+  max-width:
+    100% !important;
+
+  margin:
+    0 !important;
+
+  margin-left:
+    0 !important;
+
+  margin-right:
+    0 !important;
+
+  padding:
+    0 !important;
+
+  padding-left:
+    0 !important;
+
+  text-indent:
+    0 !important;
+
+  color:
+    #252c28 !important;
+
+  font-size:
+    12.5px !important;
+
+  font-weight:
+    450 !important;
+
+  line-height:
+    1.48 !important;
+
+  letter-spacing:
+    0 !important;
+
+  text-align:
+    left !important;
+
+  white-space:
+    pre-wrap !important;
+
+  overflow-wrap:
+    anywhere !important;
+}
+
+
+/* TOMBOL HAPUS */
+
+.post-comments-sheet
+.post-comment-delete {
+  position:
+    absolute !important;
+
+  top:
+    -5px !important;
+
+  right:
+    -3px !important;
+
+  width:
+    27px !important;
+
+  height:
+    27px !important;
+
+  margin:
+    0 !important;
+
+  padding:
+    0 !important;
+
+  display:
+    grid !important;
+
+  place-items:
+    center !important;
+}
+
+
+/* JARAK ANTAR KOMENTAR */
+
+.post-comments-sheet
+.post-comment-item
++
+.post-comment-item {
+  margin-top:
+    4px !important;
+}
