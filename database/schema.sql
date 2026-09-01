@@ -552,7 +552,55 @@ CREATE TABLE IF NOT EXISTS post_likes (
 
 );
 
+-- =========================================================
+-- POST COMMENTS
+-- =========================================================
 
+CREATE TABLE IF NOT EXISTS post_comments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+
+    post_id UUID NOT NULL
+        REFERENCES posts(id)
+        ON DELETE CASCADE,
+
+    user_id UUID NOT NULL
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    content TEXT NOT NULL,
+
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT post_comments_content_not_empty
+        CHECK (
+            char_length(trim(content)) > 0
+        ),
+
+    CONSTRAINT post_comments_content_length
+        CHECK (
+            char_length(content) <= 500
+        )
+);
+
+
+CREATE INDEX IF NOT EXISTS idx_post_comments_post_id
+    ON post_comments(post_id);
+
+
+CREATE INDEX IF NOT EXISTS idx_post_comments_user_id
+    ON post_comments(user_id);
+
+
+CREATE INDEX IF NOT EXISTS idx_post_comments_created_at
+    ON post_comments(created_at DESC);
+
+
+CREATE INDEX IF NOT EXISTS idx_post_comments_active_post
+    ON post_comments(post_id, created_at)
+    WHERE is_active = TRUE;
 
 -- =========================================================
 -- PRODUCT FAVORITES
@@ -915,6 +963,13 @@ BEFORE UPDATE ON posts
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS post_comments_updated_at
+ON post_comments;
+
+CREATE TRIGGER post_comments_updated_at
+BEFORE UPDATE ON post_comments
+FOR EACH ROW
+EXECUTE FUNCTION set_updated_at();
 
 
 DROP TRIGGER IF EXISTS carts_updated_at
