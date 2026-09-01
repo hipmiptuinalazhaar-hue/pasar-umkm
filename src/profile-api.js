@@ -1,4 +1,9 @@
 import { neon } from "@neondatabase/serverless";
+import {
+  getStoreSocialLinks,
+  normalizeSocialUrl,
+  upsertStoreSocialLinks
+} from "./profile-social-store.js";
 
 const SESSION_COOKIE = "__Host-pasar_umkm_session";
 
@@ -47,6 +52,10 @@ function normalizeAvatarUrl(value) {
     return null;
   }
 
+  if (text.startsWith("/api/profile/avatar/")) {
+    return text;
+  }
+
   let parsed;
 
   try {
@@ -67,6 +76,34 @@ function normalizeAvatarUrl(value) {
   }
 
   return parsed.toString();
+}
+
+function normalizeWhatsapp(value) {
+  const raw = String(value || "").trim();
+
+  if (!raw) {
+    return null;
+  }
+
+  let digits = raw.replace(/\D/g, "");
+
+  if (digits.startsWith("0")) {
+    digits = `62${digits.slice(1)}`;
+  } else if (digits.startsWith("8")) {
+    digits = `62${digits}`;
+  }
+
+  if (
+    !digits.startsWith("62") ||
+    digits.length < 10 ||
+    digits.length > 15
+  ) {
+    throw new ProfileValidationError(
+      "Nomor WhatsApp tidak valid. Gunakan nomor Indonesia aktif."
+    );
+  }
+
+  return `+${digits}`;
 }
 
 async function getAuthenticatedUser(sql, request) {
@@ -99,6 +136,54 @@ async function getAuthenticatedUser(sql, request) {
   return rows[0] || null;
 }
 
+async function getCurrentStore(sql, userId) {
+  const stores = await sql`
+    SELECT
+      id,
+      owner_id,
+      category_id,
+      name,
+      slug,
+      description,
+      logo_url,
+      cover_url,
+      phone,
+      whatsapp,
+      email,
+      address,
+      district,
+      city,
+      province,
+      latitude,
+      longitude,
+      verification_status,
+      verified_at,
+      is_active,
+      created_at,
+      updated_at
+    FROM stores
+    WHERE owner_id = ${userId}
+    LIMIT 1
+  `;
+
+  return stores[0] || null;
+}
+
+function jsonError(message, status) {
+  return Response.json(
+    {
+      ok: false,
+      error: message
+    },
+    {
+      status,
+      headers: {
+        "Cache-Control": "no-store"
+      }
+    }
+  );
+}
+
 export async function handleProfileApi(request, env) {
   const url = new URL(request.url);
 
@@ -106,36 +191,67 @@ export async function handleProfileApi(request, env) {
     return null;
   }
 
-  if (request.method !== "PATCH") {
-    return Response.json(
-      {
-        ok: false,
-        error: "Metode tidak diizinkan."
-      },
-      {
-        status: 405,
-        headers: {
-          "Cache-Control": "no-store",
-          "Allow": "PATCH"
-        }
-      }
-    );
-  }
-
   try {
     const sql = neon(env.DATABASE_URL);
     const currentUser = await getAuthenticatedUser(sql, request);
 
     if (!currentUser) {
+      return jsonError(
+        "Silakan masuk kembali untuk mengelola profil.",
+        401
+      );
+    }
+
+    const isSeller =
+      currentUser.role === "seller" ||
+      currentUser.role === "admin";
+
+    const currentStore = isSeller
+      ? await getCurrentStore(sql, currentUser.id)
+      : null;
+
+    if (request.method === "GET") {
+      let store = currentStore;
+
+      if (store) {
+        const social = await getStoreSocialLinks(
+          sql,
+          store.id
+        );
+
+        store = {
+          ...store,
+          instagram_url: social.instagram_url || null,
+          tiktok_url: social.tiktok_url || null
+        };
+      }
+
+      return Response.json(
+        {
+          ok: true,
+          user: currentUser,
+          store
+        },
+        {
+          status: 200,
+          headers: {
+            "Cache-Control": "no-store"
+          }
+        }
+      );
+    }
+
+    if (request.method !== "PATCH") {
       return Response.json(
         {
           ok: false,
-          error: "Silakan masuk kembali untuk mengubah profil."
+          error: "Metode tidak diizinkan."
         },
         {
-          status: 401,
+          status: 405,
           headers: {
-            "Cache-Control": "no-store"
+            "Cache-Control": "no-store",
+            "Allow": "GET, PATCH"
           }
         }
       );
@@ -144,17 +260,9 @@ export async function handleProfileApi(request, env) {
     const body = await request.json().catch(() => null);
 
     if (!body || typeof body !== "object") {
-      return Response.json(
-        {
-          ok: false,
-          error: "Data profil tidak valid."
-        },
-        {
-          status: 400,
-          headers: {
-            "Cache-Control": "no-store"
-          }
-        }
+      return jsonError(
+        "Data profil tidak valid.",
+        400
       );
     }
 
@@ -165,62 +273,15 @@ export async function handleProfileApi(request, env) {
     ).trim();
 
     if (name.length < 2 || name.length > 100) {
-      return Response.json(
-        {
-          ok: false,
-          error: "Nama profil harus 2 sampai 100 karakter."
-        },
-        {
-          status: 400,
-          headers: {
-            "Cache-Control": "no-store"
-          }
-        }
+      return jsonError(
+        "Nama profil harus 2 sampai 100 karakter.",
+        400
       );
     }
 
     const avatarUrl = hasOwn(body, "avatar_url")
       ? normalizeAvatarUrl(body.avatar_url)
       : currentUser.avatar_url;
-
-    const isSeller =
-      currentUser.role === "seller" ||
-      currentUser.role === "admin";
-
-    let currentStore = null;
-
-    if (isSeller) {
-      const stores = await sql`
-        SELECT
-          id,
-          owner_id,
-          category_id,
-          name,
-          slug,
-          description,
-          logo_url,
-          cover_url,
-          phone,
-          whatsapp,
-          email,
-          address,
-          district,
-          city,
-          province,
-          latitude,
-          longitude,
-          verification_status,
-          verified_at,
-          is_active,
-          created_at,
-          updated_at
-        FROM stores
-        WHERE owner_id = ${currentUser.id}
-        LIMIT 1
-      `;
-
-      currentStore = stores[0] || null;
-    }
 
     const storeInput =
       body.store && typeof body.store === "object"
@@ -259,6 +320,50 @@ export async function handleProfileApi(request, env) {
         )
       : null;
 
+    const whatsapp = currentStore
+      ? (
+          hasOwn(storeInput, "whatsapp")
+            ? normalizeWhatsapp(storeInput.whatsapp)
+            : currentStore.whatsapp
+        )
+      : null;
+
+    let currentSocial = {
+      instagram_url: null,
+      tiktok_url: null
+    };
+
+    if (currentStore) {
+      currentSocial = await getStoreSocialLinks(
+        sql,
+        currentStore.id
+      );
+    }
+
+    let instagramUrl = currentSocial.instagram_url || null;
+    let tiktokUrl = currentSocial.tiktok_url || null;
+
+    try {
+      if (hasOwn(storeInput, "instagram_url")) {
+        instagramUrl = normalizeSocialUrl(
+          storeInput.instagram_url,
+          "instagram"
+        );
+      }
+
+      if (hasOwn(storeInput, "tiktok_url")) {
+        tiktokUrl = normalizeSocialUrl(
+          storeInput.tiktok_url,
+          "tiktok"
+        );
+      }
+    } catch (error) {
+      throw new ProfileValidationError(
+        error?.message ||
+        "Akun sosial media tidak valid."
+      );
+    }
+
     const result = await sql`
       WITH updated_user AS (
         UPDATE users
@@ -282,6 +387,7 @@ export async function handleProfileApi(request, env) {
           district = ${district},
           city = ${city},
           province = ${province},
+          whatsapp = ${whatsapp},
           updated_at = NOW()
         WHERE owner_id = ${currentUser.id}
         RETURNING
@@ -323,12 +429,29 @@ export async function handleProfileApi(request, env) {
       throw new Error("Profile update returned no user row.");
     }
 
+    let updatedStore = updated.store || null;
+
+    if (updatedStore) {
+      const social = await upsertStoreSocialLinks(
+        sql,
+        updatedStore.id,
+        instagramUrl,
+        tiktokUrl
+      );
+
+      updatedStore = {
+        ...updatedStore,
+        instagram_url: social.instagram_url || null,
+        tiktok_url: social.tiktok_url || null
+      };
+    }
+
     return Response.json(
       {
         ok: true,
         message: "Profil berhasil diperbarui.",
         user: updated.user,
-        store: updated.store || null
+        store: updatedStore
       },
       {
         status: 200,
@@ -343,20 +466,11 @@ export async function handleProfileApi(request, env) {
     const isValidationError =
       error instanceof ProfileValidationError;
 
-    return Response.json(
-      {
-        ok: false,
-        error:
-          isValidationError
-            ? error.message
-            : "Profil belum dapat diperbarui."
-      },
-      {
-        status: isValidationError ? 400 : 500,
-        headers: {
-          "Cache-Control": "no-store"
-        }
-      }
+    return jsonError(
+      isValidationError
+        ? error.message
+        : "Profil belum dapat diperbarui.",
+      isValidationError ? 400 : 500
     );
   }
 }
