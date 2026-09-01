@@ -60,7 +60,7 @@
       'stylesheet';
 
     editStylesheet.href =
-      'css/profile-edit.css?v=1.0';
+      'css/profile-edit.css?v=2.0';
 
     editStylesheet.dataset.profileEditStyle =
       'true';
@@ -79,7 +79,7 @@
       document.createElement('script');
 
     editScript.src =
-      'js/profile-edit.js?v=1.0';
+      'js/profile-edit.js?v=2.0';
 
     editScript.async = false;
 
