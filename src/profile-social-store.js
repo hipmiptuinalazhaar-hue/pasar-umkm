@@ -1,20 +1,19 @@
 let socialTableReady = false;
 
 export async function ensureStoreSocialLinksTable(sql) {
-  if (socialTableReady) {
-    return;
-  }
+  if (socialTableReady) return;
 
-  await sql`
-    CREATE TABLE IF NOT EXISTS store_social_links (
-      store_id UUID PRIMARY KEY
-        REFERENCES stores(id)
-        ON DELETE CASCADE,
-      instagram_url TEXT,
-      tiktok_url TEXT,
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
+  const rows = await sql`
+    SELECT to_regclass('public.store_social_links') IS NOT NULL AS exists
   `;
+
+  if (!rows[0]?.exists) {
+    const error = new Error(
+      "[schema:not-ready] store_social_links belum tersedia. Jalankan migration database sebelum deploy Worker."
+    );
+    error.code = "SCHEMA_NOT_READY";
+    throw error;
+  }
 
   socialTableReady = true;
 }
