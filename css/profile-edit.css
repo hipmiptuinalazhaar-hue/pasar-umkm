@@ -1,0 +1,232 @@
+/* =========================================================
+   PASAR UMKM - EDIT PROFILE
+   Mobile-first bottom sheet for account profile editing.
+   ========================================================= */
+
+.profile-edit-sheet {
+  padding: 4px 0 22px;
+}
+
+.profile-edit-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 4px 16px;
+}
+
+.profile-edit-title-wrap {
+  min-width: 0;
+}
+
+.profile-edit-title {
+  margin: 0;
+  color: #17201b;
+  font-size: 18px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.profile-edit-subtitle {
+  margin: 5px 0 0;
+  color: rgba(23, 32, 27, 0.52);
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.profile-edit-close {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #f4f7f5;
+  color: #243028;
+}
+
+.profile-edit-close i {
+  font-size: 20px;
+}
+
+.profile-edit-avatar-card {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(15, 25, 30, 0.06);
+  border-radius: 18px;
+  background: linear-gradient(145deg, #ffffff, #f8fbf9);
+}
+
+.profile-edit-avatar-preview {
+  width: 68px;
+  height: 68px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #eef6f1;
+  box-shadow: inset 0 0 0 1px rgba(18, 96, 63, 0.08);
+}
+
+.profile-edit-avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-edit-avatar-preview i {
+  color: #12603f;
+  font-size: 28px;
+}
+
+.profile-edit-avatar-copy strong {
+  display: block;
+  color: #17201b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.profile-edit-avatar-copy span {
+  display: block;
+  margin-top: 4px;
+  color: rgba(23, 32, 27, 0.52);
+  font-size: 9.5px;
+  line-height: 1.45;
+}
+
+.profile-edit-section {
+  padding: 14px;
+  margin-top: 10px;
+  border: 1px solid rgba(15, 25, 30, 0.055);
+  border-radius: 18px;
+  background: #fff;
+}
+
+.profile-edit-section-title {
+  margin: 0 0 12px;
+  color: #1b251f;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.profile-edit-field + .profile-edit-field {
+  margin-top: 12px;
+}
+
+.profile-edit-label {
+  display: block;
+  margin-bottom: 6px;
+  color: #344039;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.profile-edit-input,
+.profile-edit-textarea {
+  width: 100%;
+  border: 1px solid #e2e8e4;
+  border-radius: 13px;
+  background: #fafcfb;
+  color: #17201b;
+  outline: 0;
+  transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+}
+
+.profile-edit-input {
+  min-height: 44px;
+  padding: 0 12px;
+}
+
+.profile-edit-textarea {
+  min-height: 96px;
+  resize: vertical;
+  padding: 11px 12px;
+  line-height: 1.5;
+}
+
+.profile-edit-input:focus,
+.profile-edit-textarea:focus {
+  border-color: rgba(18, 96, 63, 0.36);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(18, 96, 63, 0.07);
+}
+
+.profile-edit-help {
+  margin: 6px 0 0;
+  color: rgba(23, 32, 27, 0.45);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.profile-edit-location-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.profile-edit-location-grid .profile-edit-field:last-child {
+  grid-column: 1 / -1;
+}
+
+.profile-edit-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 9px;
+  margin-top: 16px;
+  padding: 12px 0 calc(2px + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(255,255,255,0), #fff 28%);
+}
+
+.profile-edit-button {
+  min-height: 44px;
+  border-radius: 13px;
+  font-size: 10.5px;
+  font-weight: 800;
+}
+
+.profile-edit-button.secondary {
+  border: 1px solid #e2e8e4;
+  background: #f7f9f8;
+  color: #344039;
+}
+
+.profile-edit-button.primary {
+  background: #12603f;
+  color: #fff;
+  box-shadow: 0 7px 16px rgba(18, 96, 63, 0.16);
+}
+
+.profile-edit-button[disabled] {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+@media (max-width: 360px) {
+  .profile-edit-avatar-card {
+    grid-template-columns: 58px minmax(0, 1fr);
+    gap: 11px;
+  }
+
+  .profile-edit-avatar-preview {
+    width: 58px;
+    height: 58px;
+  }
+
+  .profile-edit-location-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-edit-location-grid .profile-edit-field:last-child {
+    grid-column: auto;
+  }
+}
