@@ -22377,3 +22377,65 @@ line-height:
   box-shadow:
     none !important;
 }
+/* =========================================================
+   PROFILE POST VIEWER - ACTION COUNT FIX
+   ========================================================= */
+
+.post-viewer-item
+.action-btn.action-btn-count {
+  width: auto !important;
+  min-width: 40px !important;
+  height: 40px !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  gap: 4px !important;
+
+  padding:
+    0
+    6px !important;
+
+  border-radius:
+    10px !important;
+}
+
+
+.post-viewer-item
+.action-btn.action-btn-count
+i {
+  flex:
+    0
+    0
+    auto !important;
+
+  font-size:
+    22px !important;
+}
+
+
+.post-viewer-item
+.action-btn.action-btn-count
+.action-count {
+  display:
+    inline-block !important;
+
+  min-width:
+    0 !important;
+
+  margin:
+    0 !important;
+
+  padding:
+    0 !important;
+
+  font-size:
+    11px !important;
+
+  font-weight:
+    650 !important;
+
+  line-height:
+    1 !important;
+}
