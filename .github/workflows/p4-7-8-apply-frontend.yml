@@ -1,0 +1,59 @@
+name: P4.7 P4.8 Frontend Bootstrap
+
+on:
+  push:
+    branches:
+      - p4-7-8-cursor-pagination
+    paths:
+      - scripts/p4_7_8_frontend_patch.py
+      - .github/workflows/p4-7-8-apply-frontend.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install exact locked toolchain
+        run: npm ci --no-audit --no-fund
+
+      - name: Apply frontend pagination patch
+        run: python scripts/p4_7_8_frontend_patch.py
+
+      - name: Rebuild deterministic runtime assets
+        run: npm run build:runtime
+
+      - name: Validate patched frontend
+        run: |
+          set -euo pipefail
+          node --check js/app.js
+          node --check js/app.runtime.js
+          grep -qF 'CATALOG_PAGINATION' js/app.js
+          grep -qF 'nextCursor' js/app.js
+          grep -qF 'IntersectionObserver' js/app.js
+          grep -qF 'catalog-load-more' js/app.js
+          grep -qF 'stores-load-more' js/app.js
+          grep -qE 'js/app\.runtime\.js\?v=[0-9a-f]{12}' index.html
+
+      - name: Commit patched runtime
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add js/app.js js/app.runtime.js css/style.runtime.css index.html
+          git diff --cached --quiet && { echo 'No frontend changes to commit'; exit 1; }
+          git commit -m 'feat(p4.7): add incremental catalog loading'
+          git push origin "HEAD:${GITHUB_REF_NAME}"
