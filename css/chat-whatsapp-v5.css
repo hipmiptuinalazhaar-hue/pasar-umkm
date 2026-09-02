@@ -1,1 +1,468 @@
-/* PASAR UMKM P4.12 placeholder */
+/* PASAR UMKM P4.12 - WhatsApp-like chat experience, original assets/colors. */
+
+.app.chat-thread-active .social-conversation-page {
+  --wa-green: #0b6b4b;
+  --wa-green-soft: #d9fdd3;
+  --wa-incoming: #fff;
+  --wa-chat-bg: #efeae2;
+  --wa-ink: #111b21;
+  --wa-muted: #667781;
+  --wa-read: #53bdeb;
+  background-color: var(--wa-chat-bg) !important;
+  background-image:
+    radial-gradient(circle at 18px 22px, rgba(17,27,33,.035) 0 1px, transparent 1.3px),
+    radial-gradient(circle at 62px 54px, rgba(17,27,33,.025) 0 1.2px, transparent 1.5px),
+    linear-gradient(35deg, transparent 47%, rgba(17,27,33,.018) 48% 50%, transparent 51%);
+  background-size: 78px 78px, 96px 96px, 112px 112px;
+}
+
+.app.chat-thread-active .social-conversation-page > .social-page-topbar {
+  min-height: 60px !important;
+  height: 60px !important;
+  padding: 6px 8px !important;
+  display: grid !important;
+  grid-template-columns: 38px minmax(0,1fr) auto !important;
+  align-items: center !important;
+  gap: 4px !important;
+  background: #fff !important;
+  border-bottom: 1px solid rgba(17,27,33,.08) !important;
+  box-shadow: none !important;
+}
+
+.app.chat-thread-active .social-conversation-page .social-page-back,
+.app.chat-thread-active .social-conversation-page .social-page-action,
+.app.chat-thread-active .social-conversation-page .wa-header-action {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  min-height: 38px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  display: grid !important;
+  place-items: center !important;
+  background: transparent !important;
+  color: #202c33 !important;
+  font-size: 23px !important;
+}
+
+.app.chat-thread-active .social-conversation-page .social-thread-title {
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+  text-align: left !important;
+}
+
+.app.chat-thread-active .social-conversation-page .social-thread-avatar {
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  background: #e6eee9 !important;
+}
+
+.app.chat-thread-active .social-conversation-page .social-thread-avatar img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.app.chat-thread-active .social-conversation-page .social-thread-title-copy {
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1px !important;
+}
+
+.app.chat-thread-active .social-conversation-page .social-thread-title-copy strong {
+  color: #111b21 !important;
+  font-size: 16px !important;
+  line-height: 1.15 !important;
+  font-weight: 650 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.app.chat-thread-active .social-conversation-page .social-thread-title-copy span {
+  color: #667781 !important;
+  font-size: 11.5px !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.app.chat-thread-active .social-conversation-page .wa-header-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0 !important;
+}
+
+.app.chat-thread-active .social-conversation-page .wa-header-action {
+  width: 35px !important;
+  min-width: 35px !important;
+  height: 35px !important;
+  min-height: 35px !important;
+  font-size: 20px !important;
+}
+
+.app.chat-thread-active .social-conversation-page .social-thread-messages {
+  gap: 2px !important;
+  padding: 10px 8px 12px !important;
+  background: transparent !important;
+}
+
+.app.chat-thread-active .social-conversation-page .social-message-row {
+  width: 100% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: flex-end !important;
+}
+
+.app.chat-thread-active .social-conversation-page .social-message-row.mine { justify-content: flex-end !important; }
+.app.chat-thread-active .social-conversation-page .social-message-row.theirs { justify-content: flex-start !important; }
+
+.app.chat-thread-active .social-conversation-page .social-message-row .social-message-bubble {
+  position: relative !important;
+  box-sizing: border-box !important;
+  width: fit-content !important;
+  min-width: 0 !important;
+  max-width: min(82%, 420px) !important;
+  min-height: 0 !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 5px 7px 4px !important;
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: flex-end !important;
+  gap: 6px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px .5px rgba(11,20,26,.13) !important;
+  overflow: visible !important;
+}
+
+.app.chat-thread-active .social-conversation-page .social-message-row.mine .social-message-bubble {
+  background: var(--wa-green-soft) !important;
+  border-top-right-radius: 3px !important;
+}
+
+.app.chat-thread-active .social-conversation-page .social-message-row.theirs .social-message-bubble {
+  background: var(--wa-incoming) !important;
+  border-top-left-radius: 3px !important;
+}
+
+.app.chat-thread-active .social-conversation-page .social-message-row.mine .social-message-bubble::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: -7px;
+  border-top: 8px solid var(--wa-green-soft);
+  border-right: 8px solid transparent;
+}
+
+.app.chat-thread-active .social-conversation-page .social-message-row.theirs .social-message-bubble::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -7px;
+  border-top: 8px solid var(--wa-incoming);
+  border-left: 8px solid transparent;
+}
+
+.app.chat-thread-active .social-conversation-page .social-message-row .social-message-text {
+  flex: 0 1 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: block !important;
+  color: var(--wa-ink) !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  line-height: 1.32 !important;
+  white-space: pre-wrap !important;
+  overflow-wrap: anywhere !important;
+}
+
+.app.chat-thread-active .social-conversation-page .social-message-row .social-message-foot {
+  flex: 0 0 auto !important;
+  min-width: max-content !important;
+  min-height: 0 !important;
+  height: 12px !important;
+  margin: 0 0 0 2px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: flex-end !important;
+  gap: 2px !important;
+  align-self: flex-end !important;
+  color: var(--wa-muted) !important;
+  font-size: 9px !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+.app.chat-thread-active .social-conversation-page .social-message-row .social-message-foot i {
+  color: #8696a0 !important;
+  font-size: 12px !important;
+}
+
+.app.chat-thread-active .social-conversation-page .social-message-row .social-message-foot i.wa-read {
+  color: var(--wa-read) !important;
+}
+
+.app.chat-thread-active .social-conversation-page .social-message-row.chat-stable-rich .social-message-bubble,
+.app.chat-thread-active .social-conversation-page .social-message-row.chat-rich-message-row .social-message-bubble {
+  width: fit-content !important;
+  max-width: min(74vw, 270px) !important;
+  min-height: 0 !important;
+  padding: 3px !important;
+  display: block !important;
+  border-radius: 8px !important;
+  overflow: visible !important;
+}
+
+.app.chat-thread-active .social-conversation-page .social-message-row.chat-stable-rich .social-message-text,
+.app.chat-thread-active .social-conversation-page .social-message-row.chat-rich-message-row .social-message-text {
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: block !important;
+}
+
+.app.chat-thread-active .social-conversation-page .chat-stable-photo,
+.app.chat-thread-active .social-conversation-page .chat-photo-message {
+  width: min(72vw, 260px) !important;
+  max-width: 100% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  aspect-ratio: auto !important;
+  display: block !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  overflow: hidden !important;
+  background: #dfe5e2 !important;
+}
+
+.app.chat-thread-active .social-conversation-page .chat-stable-photo img,
+.app.chat-thread-active .social-conversation-page .chat-photo-message img {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 330px !important;
+  display: block !important;
+  object-fit: cover !important;
+  border-radius: 6px !important;
+}
+
+.app.chat-thread-active .social-conversation-page .wa-voice {
+  width: min(76vw, 286px) !important;
+  min-width: 226px !important;
+  min-height: 54px !important;
+  display: grid !important;
+  grid-template-columns: 38px 1fr !important;
+  grid-template-rows: auto auto !important;
+  column-gap: 8px !important;
+  row-gap: 2px !important;
+  align-items: center !important;
+  padding: 5px 6px 4px !important;
+  color: var(--wa-ink) !important;
+}
+
+.app.chat-thread-active .social-conversation-page .wa-voice-play {
+  grid-row: 1 / span 2 !important;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+  background: transparent !important;
+  color: #54656f !important;
+  font-size: 25px !important;
+}
+
+.app.chat-thread-active .social-conversation-page .wa-wave-wrap {
+  position: relative !important;
+  height: 28px !important;
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  cursor: pointer !important;
+  touch-action: manipulation !important;
+}
+
+.app.chat-thread-active .social-conversation-page .wa-wave {
+  --wa-progress: 0%;
+  position: relative !important;
+  width: 100% !important;
+  height: 23px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 2px !important;
+  overflow: hidden !important;
+}
+
+.app.chat-thread-active .social-conversation-page .wa-wave-bars,
+.app.chat-thread-active .social-conversation-page .wa-wave-progress .wa-wave-bars {
+  width: 100% !important;
+  height: 23px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 2px !important;
+}
+
+.app.chat-thread-active .social-conversation-page .wa-wave-bar {
+  flex: 1 1 2px !important;
+  min-width: 1px !important;
+  max-width: 3px !important;
+  height: var(--h, 8px) !important;
+  border-radius: 99px !important;
+  background: #8696a0 !important;
+  opacity: .72 !important;
+}
+
+.app.chat-thread-active .social-conversation-page .wa-wave-progress {
+  position: absolute !important;
+  inset: 0 auto 0 0 !important;
+  width: var(--wa-progress) !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+}
+
+.app.chat-thread-active .social-conversation-page .wa-wave-progress .wa-wave-bar {
+  background: var(--wa-green) !important;
+  opacity: 1 !important;
+}
+
+.app.chat-thread-active .social-conversation-page .wa-voice-meta {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  min-width: 0 !important;
+  color: #667781 !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+}
+
+.app.chat-thread-active .social-conversation-page .wa-voice-duration { font-variant-numeric: tabular-nums !important; }
+.app.chat-thread-active .social-conversation-page .wa-voice-mic { color: #53bdeb !important; font-size: 13px !important; }
+.app.chat-thread-active .social-conversation-page .wa-native-audio { display: none !important; }
+
+.app.chat-thread-active .social-conversation-page .social-thread-composer.chat-rich-composer {
+  min-height: 58px !important;
+  padding: 6px 7px calc(6px + env(safe-area-inset-bottom)) !important;
+  display: flex !important;
+  align-items: flex-end !important;
+  gap: 6px !important;
+  background: var(--wa-chat-bg) !important;
+  border: 0 !important;
+}
+
+.app.chat-thread-active .social-conversation-page .chat-input-shell {
+  flex: 1 1 auto !important;
+  min-height: 44px !important;
+  height: auto !important;
+  padding: 0 4px !important;
+  display: flex !important;
+  align-items: flex-end !important;
+  gap: 1px !important;
+  border: 0 !important;
+  border-radius: 23px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.app.chat-thread-active .social-conversation-page .chat-composer-icon,
+.app.chat-thread-active .social-conversation-page .wa-emoji-button {
+  width: 38px !important;
+  height: 42px !important;
+  min-width: 38px !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #667781 !important;
+  font-size: 23px !important;
+}
+
+.app.chat-thread-active .social-conversation-page #socialThreadInput {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  min-height: 42px !important;
+  max-height: 112px !important;
+  margin: 0 !important;
+  padding: 11px 5px 9px !important;
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  color: #111b21 !important;
+  font-size: 15px !important;
+  line-height: 1.35 !important;
+  resize: none !important;
+}
+
+.app.chat-thread-active .social-conversation-page .chat-voice-button,
+.app.chat-thread-active .social-conversation-page #socialThreadSend {
+  width: 46px !important;
+  height: 46px !important;
+  min-width: 46px !important;
+  min-height: 46px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  display: grid !important;
+  place-items: center !important;
+  background: var(--wa-green) !important;
+  color: #fff !important;
+  box-shadow: 0 1px 2px rgba(11,20,26,.16) !important;
+  font-size: 22px !important;
+}
+
+.app.chat-thread-active .social-conversation-page .chat-has-text .chat-voice-button { display: none !important; }
+.app.chat-thread-active .social-conversation-page .social-thread-composer:not(.chat-has-text) #socialThreadSend { display: none !important; }
+
+.app.chat-thread-active .social-conversation-page .wa-emoji-popover {
+  position: absolute !important;
+  left: 8px !important;
+  bottom: calc(62px + env(safe-area-inset-bottom)) !important;
+  z-index: 50 !important;
+  width: min(330px, calc(100vw - 16px)) !important;
+  padding: 8px !important;
+  display: grid !important;
+  grid-template-columns: repeat(6,1fr) !important;
+  gap: 3px !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  box-shadow: 0 6px 24px rgba(11,20,26,.18) !important;
+}
+
+.app.chat-thread-active .social-conversation-page .wa-emoji-popover button {
+  height: 39px !important;
+  border: 0 !important;
+  border-radius: 9px !important;
+  background: transparent !important;
+  font-size: 23px !important;
+}
+
+@media (max-width: 430px) {
+  .app.chat-thread-active .social-conversation-page .social-thread-messages { padding-inline: 7px !important; }
+  .app.chat-thread-active .social-conversation-page .social-message-row .social-message-bubble { max-width: 84% !important; }
+  .app.chat-thread-active .social-conversation-page .wa-voice { width: min(78vw, 278px) !important; min-width: 218px !important; }
+}
