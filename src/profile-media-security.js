@@ -76,11 +76,49 @@ export function parseOwnedProfileMediaUrl(value, env, userId) {
   const encodedLeaf = assetSegments[3];
   const dot = encodedLeaf.lastIndexOf(".");
   const leaf = dot > 0 ? encodedLeaf.slice(0, dot) : encodedLeaf;
-  if (leaf !== "avatar") return null;
+  if (!UUID_PATTERN.test(leaf)) return null;
 
   return {
     url: parsed.toString(),
-    publicId: `${PROFILE_ROOT.join("/")}/${user}/avatar`,
+    publicId: `${PROFILE_ROOT.join("/")}/${user}/${leaf}`,
     userId: user
   };
+}
+
+export async function destroyOwnedProfileMedia(env, descriptor) {
+  if (!descriptor?.publicId) {
+    return { ok: false, reason: "invalid_descriptor" };
+  }
+
+  const cloudName = String(env?.CLOUDINARY_CLOUD_NAME || "").trim();
+  const apiKey = String(env?.CLOUDINARY_API_KEY || "").trim();
+  const apiSecret = String(env?.CLOUDINARY_API_SECRET || "").trim();
+
+  if (!cloudName || !apiKey || !apiSecret) {
+    return { ok: false, reason: "provider_not_configured" };
+  }
+
+  const timestamp = Math.floor(Date.now() / 1000);
+  const signature = await sha1Hex(
+    `invalidate=true&public_id=${descriptor.publicId}&timestamp=${timestamp}${apiSecret}`
+  );
+
+  const form = new FormData();
+  form.append("public_id", descriptor.publicId);
+  form.append("timestamp", String(timestamp));
+  form.append("api_key", apiKey);
+  form.append("invalidate", "true");
+  form.append("signature", signature);
+
+  const endpoint = `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/image/destroy`;
+  const response = await fetch(endpoint, { method: "POST", body: form });
+  const data = await response.json().catch(() => ({}));
+  const result = String(data?.result || "").toLowerCase();
+
+  if (response.ok && (result === "ok" || result === "not found")) {
+    return { ok: true, result };
+  }
+
+  console.error("Profile media provider cleanup failed:", { status: response.status });
+  return { ok: false, reason: "provider_cleanup_failed" };
 }
