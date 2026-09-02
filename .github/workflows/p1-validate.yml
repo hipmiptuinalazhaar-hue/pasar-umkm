@@ -1,0 +1,77 @@
+name: P1 Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+      - p0-runtime-schema-hardening
+  push:
+    branches:
+      - p1-security-performance
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Check JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            node --check "$file"
+          done < <(find src js -type f -name '*.js' -print0)
+
+      - name: Verify rate-limit coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='src/rate-limit.js'
+          test -s "$file"
+          grep -q '/api/auth/login' "$file"
+          grep -q '/api/auth/register' "$file"
+          grep -q '/api/story-v2/upload-image' "$file"
+          grep -q '/api/chat/media/upload' "$file"
+          grep -q 'status: 429' "$file"
+          grep -q 'Retry-After' "$file"
+
+      - name: Verify catalog pagination
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='src/public-catalog-api.js'
+          test -s "$file"
+          grep -q 'pagination' "$file"
+          grep -q 'LIMIT' "$file"
+          grep -q 'OFFSET' "$file"
+          grep -q 'COUNT(*)::int AS total' "$file"
+
+      - name: Verify P1 migration safety
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='database/migrations/2026-09-02-p1-security-performance.sql'
+          test -s "$file"
+          grep -q 'P1 migration ditolak' "$file"
+          grep -q '2026-09-02-p0-runtime-schema-hardening' "$file"
+          grep -q 'uq_stores_owner_id' "$file"
+          grep -q '2026-09-02-p1-security-performance' "$file"
+
+      - name: Verify entry-point wiring
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'enforceRateLimit' src/worker-entry.js
+          grep -q 'handlePublicCatalogApi' src/worker-entry.js
+          grep -q 'p1_applied' src/worker-entry.js
