@@ -167,9 +167,9 @@ async function uploadProfileMedia(env, userId, buffer, mimeType) {
 
   const descriptor = parseOwnedProfileMediaUrl(data.secure_url, env, userId);
   if (!descriptor || descriptor.publicId !== expectedPublicId) {
-    if (descriptor) {
-      await destroyOwnedProfileMedia(env, descriptor).catch(() => null);
-    }
+    // public_id berasal dari nilai server-side yang kita generate sendiri.
+    // Bersihkan asset walau URL provider ternyata malformed/tidak lolos parser.
+    await destroyOwnedProfileMedia(env, { publicId: expectedPublicId }).catch(() => null);
     console.error("Profile media provider returned unexpected ownership metadata.");
     return { ok: false, response: jsonError("Foto profil gagal diverifikasi.", 502) };
   }
@@ -315,9 +315,14 @@ export async function handleProfileMediaApi(request, env) {
       return jsonError("Foto profil belum dapat disimpan.", 500);
     }
 
+    // Database sekarang sudah menunjuk ke asset baru. Sejak titik ini,
+    // outer catch tidak boleh membersihkan asset yang sudah committed.
+    const committedDescriptor = uploadedDescriptor;
+    uploadedDescriptor = null;
+
     if (
       previousDescriptor &&
-      previousDescriptor.publicId !== uploadedDescriptor.publicId
+      previousDescriptor.publicId !== committedDescriptor.publicId
     ) {
       await destroyOwnedProfileMedia(env, previousDescriptor).catch(error => {
         console.error("Old profile media cleanup failed:", error);
