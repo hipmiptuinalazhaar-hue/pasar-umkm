@@ -1,0 +1,107 @@
+name: P4.9 P4.10 Validation
+
+on:
+  push:
+    branches:
+      - p4-9-10-chat-profile-hardening
+  pull_request:
+    branches:
+      - p4-7-8-cursor-pagination
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Syntax check
+        run: |
+          set -euo pipefail
+          node --check src/chat-management-api.js
+          node --check src/chat-media-api-v2.js
+          node --check src/profile-media-api.js
+          node --check src/profile-media-security.js
+
+      - name: Verify deterministic latest-200 chat window
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          management = Path('src/chat-management-api.js').read_text(encoding='utf-8')
+          rich = Path('src/chat-media-api-v2.js').read_text(encoding='utf-8')
+          if management.count('ORDER BY dm.created_at DESC, dm.id DESC') < 2:
+              raise SystemExit('management latest-window query missing')
+          if management.count('ORDER BY recent.created_at ASC, recent.id ASC') < 2:
+              raise SystemExit('management stable chronological output missing')
+          if 'ORDER BY dm.created_at ASC\n    LIMIT 200' in management:
+              raise SystemExit('oldest-200 metadata regression detected')
+          if 'ORDER BY dm.created_at ASC, dm.id ASC\n    LIMIT 200' in rich:
+              raise SystemExit('oldest-200 rich-meta regression detected')
+          if 'ORDER BY dm.created_at DESC, dm.id DESC' not in rich:
+              raise SystemExit('rich-meta latest-window query missing')
+          if 'ORDER BY recent.created_at ASC, recent.id ASC' not in rich:
+              raise SystemExit('rich-meta stable output ordering missing')
+          PY
+
+      - name: Verify external avatar ownership and failure cleanup
+        run: |
+          set -euo pipefail
+          f=src/profile-media-api.js
+          grep -qF 'profileMediaFolder' "$f"
+          grep -qF 'publicLeaf = crypto.randomUUID()' "$f"
+          grep -qF 'String(data.public_id || "") !== expectedPublicId' "$f"
+          grep -qF 'destroyOwnedProfileMedia(env, { publicId: expectedPublicId })' "$f"
+          grep -qF 'const committedDescriptor = uploadedDescriptor' "$f"
+          grep -qF 'uploadedDescriptor = null' "$f"
+          grep -qF 'previousDescriptor.publicId !== committedDescriptor.publicId' "$f"
+          grep -qF 'storage: "media_provider"' "$f"
+          grep -qF "encode(image_data, 'base64') AS image_base64" "$f"
+          ! grep -qF 'INSERT INTO user_profile_media' "$f"
+          ! grep -qF 'decode(${imageBase64}' "$f"
+
+      - name: Attack-test profile media ownership parser
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { parseOwnedProfileMediaUrl, profileMediaFolder } from './src/profile-media-security.js';
+          const env = { CLOUDINARY_CLOUD_NAME: 'demo' };
+          const user = '22222222-2222-4222-8222-222222222222';
+          const other = '44444444-4444-4444-8444-444444444444';
+          const leaf = '33333333-3333-4333-8333-333333333333';
+          const valid = `https://res.cloudinary.com/demo/image/upload/v1/pasar-umkm/profile/${user}/${leaf}.webp`;
+          const parsed = parseOwnedProfileMediaUrl(valid, env, user);
+          assert.ok(parsed);
+          assert.equal(profileMediaFolder(user), `pasar-umkm/profile/${user}`);
+          assert.equal(parsed.publicId, `pasar-umkm/profile/${user}/${leaf}`);
+          assert.equal(parseOwnedProfileMediaUrl(valid, env, other), null);
+          assert.equal(parseOwnedProfileMediaUrl(valid, { CLOUDINARY_CLOUD_NAME: 'evil' }, user), null);
+          assert.equal(parseOwnedProfileMediaUrl(valid.replace('res.cloudinary.com', 'res.cloudinary.com.evil.test'), env, user), null);
+          assert.equal(parseOwnedProfileMediaUrl(valid.replace(leaf, '..%2F' + leaf), env, user), null);
+          NODE
+
+      - name: Bundle final Worker
+        run: |
+          set -euo pipefail
+          ./node_modules/.bin/esbuild src/worker-entry.js --bundle --format=esm --platform=browser --target=es2022 --outfile=/tmp/worker-entry.js
+          test -s /tmp/worker-entry.js
+
+      - name: Verify temporary P4.9 P4.10 tooling is absent
+        run: |
+          set -euo pipefail
+          test ! -e scripts/p4_9_chat_window_patch.py
+          test ! -e .github/workflows/p4-9-apply-chat-window.yml
+          test ! -e scripts/p4_10_commit_guard_patch.py
+          test ! -e .github/workflows/p4-10-commit-guard-bootstrap.yml
