@@ -157,7 +157,7 @@
     const avatar =
       reel.user_avatar_url ||
       reel.store_logo_url ||
-      (typeof ASSETS !== 'undefined' ? ASSETS.logo : 'assets/logo.png');
+      (typeof ASSETS !== 'undefined' ? ASSETS.logo : 'assets/logo.webp');
 
     return {
       id: `reel-${reel.id}`,
