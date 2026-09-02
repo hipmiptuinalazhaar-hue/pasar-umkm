@@ -1,16 +1,16 @@
 /* =========================================================
    PASAR UMKM - CHAT STABILITY V4
    Compact mobile-first bubbles + stable media presentation.
-   Loaded after legacy chat styles and intentionally overrides them.
+   Selectors intentionally outrank deferred legacy chat layers.
    ========================================================= */
 
-.app.chat-thread-active .social-thread-messages {
+.app.chat-thread-active .social-conversation-page .social-thread-messages {
   gap: 3px;
   padding: 10px 7px 8px;
   scroll-behavior: smooth;
 }
 
-.app.chat-thread-active .social-thread-messages .social-message-row {
+.app.chat-thread-active .social-conversation-page .social-thread-messages .social-message-row {
   width: 100%;
   min-height: 0;
   margin: 0;
@@ -20,25 +20,28 @@
   contain: layout style;
 }
 
-.app.chat-thread-active .social-thread-messages .social-message-row.mine {
+.app.chat-thread-active .social-conversation-page .social-thread-messages .social-message-row.mine {
   justify-content: flex-end;
 }
 
-.app.chat-thread-active .social-thread-messages .social-message-row.theirs {
+.app.chat-thread-active .social-conversation-page .social-thread-messages .social-message-row.theirs {
   justify-content: flex-start;
 }
 
-.app.chat-thread-active .social-thread-messages .social-message-bubble {
+.app.chat-thread-active .social-conversation-page .social-thread-messages .social-message-row .social-message-bubble {
   box-sizing: border-box;
+  flex: 0 1 auto;
   width: fit-content;
   min-width: 0;
   max-width: min(74%, 430px);
   min-height: 0;
+  height: auto;
   margin: 0;
   padding: 6px 8px 5px;
   display: inline-flex;
   flex-direction: row;
   align-items: flex-end;
+  justify-content: flex-start;
   gap: 5px;
   border: 0;
   border-radius: 15px;
@@ -49,22 +52,26 @@
   touch-action: pan-y;
 }
 
-.app.chat-thread-active .social-thread-messages .social-message-row.mine .social-message-bubble {
+.app.chat-thread-active .social-conversation-page .social-thread-messages .social-message-row.mine .social-message-bubble {
   background: #dcf8d3;
   border-bottom-right-radius: 5px;
 }
 
-.app.chat-thread-active .social-thread-messages .social-message-row.theirs .social-message-bubble {
+.app.chat-thread-active .social-conversation-page .social-thread-messages .social-message-row.theirs .social-message-bubble {
   background: #fff;
   border-bottom-left-radius: 5px;
 }
 
-.app.chat-thread-active .social-thread-messages .social-message-text {
+.app.chat-thread-active .social-conversation-page .social-thread-messages .social-message-row .social-message-bubble .social-message-text {
   flex: 0 1 auto;
   width: auto;
   min-width: 0;
+  min-height: 0;
+  height: auto;
   margin: 0;
   padding: 0;
+  display: block;
+  align-self: center;
   font-size: 13px;
   font-weight: 400;
   line-height: 1.32;
@@ -73,9 +80,11 @@
   color: #17231d;
 }
 
-.app.chat-thread-active .social-thread-messages .social-message-foot {
+.app.chat-thread-active .social-conversation-page .social-thread-messages .social-message-row .social-message-bubble .social-message-foot {
   flex: 0 0 auto;
   min-width: max-content;
+  min-height: 0;
+  height: auto;
   margin: 0 0 1px;
   padding: 0;
   display: inline-flex;
@@ -89,13 +98,13 @@
   color: rgba(23, 35, 29, 0.48);
 }
 
-.app.chat-thread-active .social-thread-messages .social-message-foot i {
+.app.chat-thread-active .social-conversation-page .social-thread-messages .social-message-row .social-message-foot i {
   font-size: 11px;
 }
 
 /* Rich media uses its own vertical bubble. */
-.app.chat-thread-active .social-thread-messages .social-message-row.chat-stable-rich .social-message-bubble,
-.app.chat-thread-active .social-thread-messages .social-message-row.chat-rich-message-row .social-message-bubble {
+.app.chat-thread-active .social-conversation-page .social-thread-messages .social-message-row.chat-stable-rich .social-message-bubble,
+.app.chat-thread-active .social-conversation-page .social-thread-messages .social-message-row.chat-rich-message-row .social-message-bubble {
   width: fit-content;
   max-width: min(72vw, 238px);
   padding: 3px;
@@ -103,8 +112,8 @@
   border-radius: 13px;
 }
 
-.chat-stable-photo,
-.chat-photo-message {
+.app.chat-thread-active .social-conversation-page .chat-stable-photo,
+.app.chat-thread-active .social-conversation-page .chat-photo-message {
   position: relative;
   display: block;
   width: min(70vw, 232px);
@@ -118,8 +127,8 @@
   aspect-ratio: 4 / 3;
 }
 
-.chat-stable-photo img,
-.chat-photo-message img {
+.app.chat-thread-active .social-conversation-page .chat-stable-photo img,
+.app.chat-thread-active .social-conversation-page .chat-photo-message img {
   display: block;
   width: 100%;
   height: 100%;
@@ -131,8 +140,8 @@
   backface-visibility: hidden;
 }
 
-.chat-stable-voice,
-.chat-voice-message {
+.app.chat-thread-active .social-conversation-page .chat-stable-voice,
+.app.chat-thread-active .social-conversation-page .chat-voice-message {
   width: min(70vw, 248px);
   min-height: 42px;
   display: grid;
@@ -142,8 +151,8 @@
   padding: 4px 5px;
 }
 
-.chat-stable-voice-icon,
-.chat-voice-avatar {
+.app.chat-thread-active .social-conversation-page .chat-stable-voice-icon,
+.app.chat-thread-active .social-conversation-page .chat-voice-avatar {
   width: 32px;
   height: 32px;
   display: grid;
@@ -153,14 +162,14 @@
   color: #12603f;
 }
 
-.chat-stable-voice audio,
-.chat-voice-message audio {
+.app.chat-thread-active .social-conversation-page .chat-stable-voice audio,
+.app.chat-thread-active .social-conversation-page .chat-voice-message audio {
   width: 100%;
   height: 32px;
 }
 
-.chat-stable-location,
-.chat-location-message {
+.app.chat-thread-active .social-conversation-page .chat-stable-location,
+.app.chat-thread-active .social-conversation-page .chat-location-message {
   width: min(68vw, 228px);
   display: grid;
   grid-template-columns: 54px minmax(0, 1fr);
@@ -170,8 +179,8 @@
   text-decoration: none;
 }
 
-.chat-stable-location-map,
-.chat-location-map {
+.app.chat-thread-active .social-conversation-page .chat-stable-location-map,
+.app.chat-thread-active .social-conversation-page .chat-location-map {
   width: 54px;
   height: 52px;
   display: grid;
@@ -220,30 +229,30 @@
 }
 
 @media (max-width: 430px) {
-  .app.chat-thread-active .social-thread-messages {
+  .app.chat-thread-active .social-conversation-page .social-thread-messages {
     padding-inline: 6px;
   }
 
-  .app.chat-thread-active .social-thread-messages .social-message-bubble {
+  .app.chat-thread-active .social-conversation-page .social-thread-messages .social-message-row .social-message-bubble {
     max-width: 76%;
     padding: 5px 7px 4px;
     border-radius: 14px;
   }
 
-  .app.chat-thread-active .social-thread-messages .social-message-row.mine .social-message-bubble {
+  .app.chat-thread-active .social-conversation-page .social-thread-messages .social-message-row.mine .social-message-bubble {
     border-bottom-right-radius: 4px;
   }
 
-  .app.chat-thread-active .social-thread-messages .social-message-row.theirs .social-message-bubble {
+  .app.chat-thread-active .social-conversation-page .social-thread-messages .social-message-row.theirs .social-message-bubble {
     border-bottom-left-radius: 4px;
   }
 
-  .app.chat-thread-active .social-thread-messages .social-message-text {
+  .app.chat-thread-active .social-conversation-page .social-thread-messages .social-message-row .social-message-bubble .social-message-text {
     font-size: 12.75px;
   }
 
-  .chat-stable-photo,
-  .chat-photo-message {
+  .app.chat-thread-active .social-conversation-page .chat-stable-photo,
+  .app.chat-thread-active .social-conversation-page .chat-photo-message {
     width: min(68vw, 220px);
   }
 }
