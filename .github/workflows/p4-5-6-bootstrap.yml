@@ -1,0 +1,120 @@
+name: P4.5 P4.6 Supply Chain Bootstrap
+
+on:
+  push:
+    branches:
+      - p4-5-6-pipeline-supply-chain
+    paths:
+      - .github/workflows/p4-5-6-bootstrap.yml
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: p4-5-6-pipeline-supply-chain
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+
+      - name: Remove superseded and one-time workflows
+        run: |
+          git rm .github/workflows/p3-build-runtime.yml
+          git rm .github/workflows/p3-optimize-logo.yml
+          git rm .github/workflows/p4-5-6-bootstrap.yml
+
+      - name: Pin every external GitHub Action to a full commit SHA
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          replacements = {
+              'actions/checkout@v4': 'actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4',
+              'actions/setup-node@v4': 'actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4',
+              'actions/setup-python@v5': 'actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5',
+          }
+
+          for path in sorted(Path('.github/workflows').glob('*.yml')):
+              text = path.read_text(encoding='utf-8')
+              for old, new in replacements.items():
+                  text = text.replace(old, new)
+              path.write_text(text, encoding='utf-8')
+
+          external = re.compile(r'^\s*uses:\s*([^\s#]+)', re.M)
+          full_sha = re.compile(r'^[0-9a-f]{40}$')
+          offenders = []
+
+          for path in sorted(Path('.github/workflows').glob('*.yml')):
+              text = path.read_text(encoding='utf-8')
+              for match in external.finditer(text):
+                  target = match.group(1)
+                  if target.startswith('./') or target.startswith('docker://'):
+                      continue
+                  if '@' not in target:
+                      offenders.append(f'{path}: missing ref: {target}')
+                      continue
+                  action, ref = target.rsplit('@', 1)
+                  if not full_sha.fullmatch(ref):
+                      offenders.append(f'{path}: mutable action ref: {action}@{ref}')
+
+          if offenders:
+              raise SystemExit('\n'.join(offenders))
+          PY
+
+      - name: Generate npm lockfile from exact manifest
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+
+      - name: Reinstall exactly from lockfile
+        run: npm ci --no-audit --no-fund
+
+      - name: Verify dependency graph and lock integrity
+        run: |
+          npm ls --all
+          node <<'NODE'
+          const fs = require('node:fs');
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+          const root = lock.packages?.[''];
+
+          if (lock.lockfileVersion !== 3) throw new Error(`Expected lockfileVersion 3, got ${lock.lockfileVersion}`);
+          if (!root) throw new Error('Lockfile root package metadata missing.');
+          if (pkg.dependencies['@neondatabase/serverless'] !== '1.0.0') throw new Error('Neon dependency must be exact 1.0.0.');
+          if (pkg.devDependencies.esbuild !== '0.25.10') throw new Error('esbuild must be exact 0.25.10.');
+          if (root.dependencies['@neondatabase/serverless'] !== '1.0.0') throw new Error('Lock root Neon version mismatch.');
+          if (root.devDependencies.esbuild !== '0.25.10') throw new Error('Lock root esbuild version mismatch.');
+          if (lock.packages['node_modules/@neondatabase/serverless']?.version !== '1.0.0') throw new Error('Resolved Neon version mismatch.');
+          if (lock.packages['node_modules/esbuild']?.version !== '0.25.10') throw new Error('Resolved esbuild version mismatch.');
+
+          for (const [path, meta] of Object.entries(lock.packages)) {
+            if (!path || !path.startsWith('node_modules/')) continue;
+            if (meta.resolved && !meta.integrity) throw new Error(`Missing integrity for ${path}`);
+          }
+          console.log('Exact dependency and integrity checks passed.');
+          NODE
+
+      - name: Audit production dependencies for high severity vulnerabilities
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Verify runtime builder can execute from locked toolchain
+        run: |
+          node --check scripts/build-runtime.mjs
+          npm run build:runtime
+          git checkout -- .assetsignore index.html js/app.runtime.js css/style.runtime.css
+
+      - name: Commit locked supply chain
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package-lock.json .github/workflows
+          git commit -m 'security(p4.6): lock dependencies and pin GitHub Actions by SHA'
+          git push origin HEAD:p4-5-6-pipeline-supply-chain
