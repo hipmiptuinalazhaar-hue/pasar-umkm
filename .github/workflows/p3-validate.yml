@@ -1,0 +1,92 @@
+name: P3 Validation
+
+on:
+  push:
+    branches:
+      - p3-asset-bundle-optimization
+  pull_request:
+    branches:
+      - p2-frontend-performance
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check JavaScript syntax
+        run: |
+          find src js -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+
+      - name: Verify optimized runtime logo
+        run: |
+          test -s assets/logo.webp
+          test -s assets/logo.png
+          ! grep -R --exclude='p3-optimize-logo.yml' --exclude='p3-validate.yml' --exclude-dir='.git' -nF 'assets/logo.png' index.html js css
+          grep -R -qF 'assets/logo.webp' index.html js
+          python - <<'PY'
+          from pathlib import Path
+          png = Path('assets/logo.png').stat().st_size
+          webp = Path('assets/logo.webp').stat().st_size
+          reduction = 100 * (png - webp) / png
+          print(f'PNG source: {png} bytes')
+          print(f'WebP runtime: {webp} bytes')
+          print(f'Reduction: {reduction:.1f}%')
+          if webp > 150_000:
+              raise SystemExit('Runtime logo melewati budget 150 KB')
+          if reduction < 80:
+              raise SystemExit('Runtime logo harus minimal 80% lebih kecil dari source PNG')
+          PY
+
+      - name: Verify heavy source assets are excluded from deployment
+        run: |
+          grep -Fxq 'assets/logo.png' .assetsignore
+          grep -Fxq 'assets/images/' .assetsignore
+          grep -Fxq 'assets/logo1.png' .assetsignore
+          grep -Fxq 'assets/logo2.png' .assetsignore
+          grep -Fxq 'assets/branding/' .assetsignore
+
+      - name: Verify removed broken placeholders
+        run: |
+          test ! -e 'assets/branding/logo-hipmi-pt gagal'
+          test ! -e 'assets/branding/logo-hipmi-pt1.png'
+          test ! -e 'assets/branding/logogagal'
+
+      - name: Report asset footprint
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          candidates = [
+              Path('assets/logo.png'),
+              Path('assets/logo.webp'),
+              Path('assets/logo1.png'),
+              Path('assets/logo2.png'),
+              Path('assets/branding/logo-hipmi-pt.png'),
+              Path('assets/branding/logo-uin-alazhaar.png'),
+          ]
+
+          image_dir = Path('assets/images')
+          if image_dir.exists():
+              candidates.extend(sorted(p for p in image_dir.iterdir() if p.is_file()))
+
+          total = 0
+          for path in candidates:
+              if path.exists():
+                  size = path.stat().st_size
+                  total += size
+                  print(f'{size:>10}  {path}')
+
+          print(f'Tracked source/design footprint reviewed: {total} bytes')
+          print('Heavy source assets remain in git for design safety but are excluded by .assetsignore.')
+          PY
