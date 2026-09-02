@@ -48,6 +48,41 @@ jobs:
               raise SystemExit('Runtime logo harus minimal 80% lebih kecil dari source PNG')
           PY
 
+      - name: Verify compact runtime bundles
+        run: |
+          test -s js/app.runtime.js
+          test -s css/style.runtime.css
+          node --check js/app.runtime.js
+          grep -qF 'js/app.runtime.js?v=' index.html
+          grep -qF 'css/style.runtime.css?v=' index.html
+          ! grep -qE 'js/app\.js\?v=|css/style\.css\?v=' index.html
+          grep -Fxq 'js/app.js' .assetsignore
+          grep -Fxq 'css/style.css' .assetsignore
+          grep -qF 'https://unpkg.com/@phosphor-icons/web" defer' index.html
+          python - <<'PY'
+          from pathlib import Path
+
+          checks = [
+              (Path('js/app.js'), Path('js/app.runtime.js'), 0.20, 190_000),
+              (Path('css/style.css'), Path('css/style.runtime.css'), 0.25, 200_000),
+          ]
+
+          for source, runtime, min_reduction, runtime_budget in checks:
+              source_size = source.stat().st_size
+              runtime_size = runtime.stat().st_size
+              reduction = (source_size - runtime_size) / source_size
+              print(
+                  f'{source}: {source_size} -> {runtime_size} bytes '
+                  f'({reduction * 100:.1f}% smaller)'
+              )
+              if runtime_size > runtime_budget:
+                  raise SystemExit(f'{runtime} melewati budget {runtime_budget} byte')
+              if reduction < min_reduction:
+                  raise SystemExit(
+                      f'{runtime} reduction {reduction:.1%} di bawah target {min_reduction:.0%}'
+                  )
+          PY
+
       - name: Verify heavy source assets are excluded from deployment
         run: |
           grep -Fxq 'assets/logo.png' .assetsignore
@@ -74,6 +109,10 @@ jobs:
               Path('assets/logo2.png'),
               Path('assets/branding/logo-hipmi-pt.png'),
               Path('assets/branding/logo-uin-alazhaar.png'),
+              Path('js/app.js'),
+              Path('js/app.runtime.js'),
+              Path('css/style.css'),
+              Path('css/style.runtime.css'),
           ]
 
           image_dir = Path('assets/images')
@@ -87,6 +126,6 @@ jobs:
                   total += size
                   print(f'{size:>10}  {path}')
 
-          print(f'Tracked source/design footprint reviewed: {total} bytes')
-          print('Heavy source assets remain in git for design safety but are excluded by .assetsignore.')
+          print(f'Tracked source/runtime footprint reviewed: {total} bytes')
+          print('Heavy source/design files stay in git but are excluded from Worker static upload when runtime alternatives exist.')
           PY
