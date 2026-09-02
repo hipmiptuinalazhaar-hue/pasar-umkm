@@ -213,12 +213,17 @@
 
   async function uploadFile(file, kind) {
     if (!file || MEDIA.uploading) return null;
+
+    const conversationId = MEDIA.conversationId || await resolveConversationId();
+    if (!conversationId) throw new Error('Percakapan belum tersedia.');
+
     MEDIA.uploading = true;
 
     try {
       const form = new FormData();
       form.append('file', file, file.name || (kind === 'audio' ? 'voice.webm' : 'chat.jpg'));
       form.append('kind', kind);
+      form.append('conversation_id', conversationId);
 
       const response = await fetch('/api/chat/media/upload', {
         method: 'POST',
@@ -231,14 +236,39 @@
         throw new Error(data.error || 'Media gagal diunggah.');
       }
 
-      return data.media || null;
+      return data.media
+        ? { ...data.media, conversation_id: conversationId }
+        : null;
     } finally {
       MEDIA.uploading = false;
     }
   }
 
-  async function sendRich(payload) {
-    const conversationId = MEDIA.conversationId || await resolveConversationId();
+  async function cleanupUploadedMedia(media) {
+    const conversationId = String(media?.conversation_id || '').trim();
+    const mediaUrl = String(media?.url || '').trim();
+    if (!conversationId || !mediaUrl) return;
+
+    try {
+      await jsonRequest('/api/chat/media/cleanup', {
+        method: 'POST',
+        body: {
+          conversation_id: conversationId,
+          media_url: mediaUrl
+        }
+      });
+    } catch (error) {
+      if (error?.status !== 409) {
+        console.error('[Pasar UMKM] Unused chat media cleanup error:', error);
+      }
+    }
+  }
+
+  async function sendRich(payload, fixedConversationId = '') {
+    const conversationId =
+      String(fixedConversationId || '').trim() ||
+      MEDIA.conversationId ||
+      await resolveConversationId();
     if (!conversationId) throw new Error('Percakapan belum tersedia.');
 
     const data = await jsonRequest(
@@ -378,18 +408,21 @@
   async function handleImage(file) {
     if (!file) return;
 
+    let media = null;
+
     try {
       toast('Mengunggah foto...');
-      const media = await uploadFile(file, 'image');
+      media = await uploadFile(file, 'image');
       if (!media?.url) throw new Error('Foto gagal diunggah.');
 
       await sendRich({
         type: 'image',
         media_url: media.url,
         media_name: media.original_filename || file.name || 'Foto'
-      });
+      }, media.conversation_id);
       toast('Foto terkirim.');
     } catch (error) {
+      if (media?.url) await cleanupUploadedMedia(media);
       toast(error.message || 'Foto belum dapat dikirim.');
     }
   }
@@ -526,11 +559,13 @@
           return;
         }
 
+        let media = null;
+
         try {
           toast('Mengirim voice note...');
           const ext = blob.type.includes('mp4') ? 'm4a' : blob.type.includes('ogg') ? 'ogg' : 'webm';
           const file = new File([blob], `voice-${Date.now()}.${ext}`, { type: blob.type });
-          const media = await uploadFile(file, 'audio');
+          media = await uploadFile(file, 'audio');
           if (!media?.url) throw new Error('Voice note gagal diunggah.');
 
           await sendRich({
@@ -538,9 +573,10 @@
             media_url: media.url,
             media_name: file.name,
             duration_seconds: durationSeconds
-          });
+          }, media.conversation_id);
           toast('Voice note terkirim.');
         } catch (error) {
+          if (media?.url) await cleanupUploadedMedia(media);
           toast(error.message || 'Voice note belum dapat dikirim.');
         }
       });

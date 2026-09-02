@@ -607,7 +607,7 @@
         </strong>
 
       </section>
-    `,"comments");try{let renderSingleComment=function(comment,options={}){const isReply=!!options.isReply,avatar=comment.user_avatar||ASSETS.logo,canDeleteComment=!!(STATE.user&&(String(comment.user_id||"")===String(STATE.user.id||"")||STATE.user.role==="admin")),commentName=String(comment.user_name||"Pengguna");return`
+    `,"comments");try{let renderSingleComment=function(comment,options={}){const isReply=!!options.isReply,isDeleted=!!comment.is_deleted,avatar=isDeleted?ASSETS.logo:comment.user_avatar||ASSETS.logo,canDeleteComment=!!(!isDeleted&&STATE.user&&(String(comment.user_id||"")===String(STATE.user.id||"")||STATE.user.role==="admin")),commentName=isDeleted?"Komentar dihapus":String(comment.user_name||"Pengguna");return`
         <article
           class="
             post-comment-item
@@ -643,7 +643,7 @@
     ${renderCommentText(comment.content||"")}
   </p>
 
-  ${STATE.user?`
+  ${STATE.user&&!isDeleted?`
           <div class="post-comment-actions">
 
             <button

@@ -3461,13 +3461,21 @@ const commentsEndpoint =
           options.isReply
         );
 
+      const isDeleted =
+        Boolean(
+          comment.is_deleted
+        );
+
       const avatar =
-        comment.user_avatar ||
-        ASSETS.logo;
+        isDeleted
+          ? ASSETS.logo
+          : comment.user_avatar ||
+            ASSETS.logo;
 
 
       const canDeleteComment =
         Boolean(
+          !isDeleted &&
           STATE.user &&
           (
             String(
@@ -3485,10 +3493,12 @@ const commentsEndpoint =
 
 
       const commentName =
-        String(
-          comment.user_name ||
-          'Pengguna'
-        );
+        isDeleted
+          ? 'Komentar dihapus'
+          : String(
+              comment.user_name ||
+              'Pengguna'
+            );
 
 
       return `
@@ -3544,7 +3554,7 @@ const commentsEndpoint =
   </p>
 
   ${
-    STATE.user
+    STATE.user && !isDeleted
       ? `
           <div class="post-comment-actions">
 
