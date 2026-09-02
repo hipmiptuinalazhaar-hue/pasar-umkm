@@ -1,0 +1,128 @@
+name: Supply Chain Validation
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate-supply-chain:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install exact locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Verify exact manifest and lockfile integrity
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+          const root = lock.packages?.[''];
+
+          if (lock.lockfileVersion !== 3) throw new Error(`Unexpected lockfileVersion: ${lock.lockfileVersion}`);
+          if (!root) throw new Error('Lockfile root metadata missing.');
+          if (pkg.dependencies['@neondatabase/serverless'] !== '1.0.0') throw new Error('Neon dependency must remain exact.');
+          if (pkg.devDependencies.esbuild !== '0.25.10') throw new Error('esbuild must remain exact.');
+          if (root.dependencies['@neondatabase/serverless'] !== '1.0.0') throw new Error('Neon lock root mismatch.');
+          if (root.devDependencies.esbuild !== '0.25.10') throw new Error('esbuild lock root mismatch.');
+          if (lock.packages['node_modules/@neondatabase/serverless']?.version !== '1.0.0') throw new Error('Resolved Neon version mismatch.');
+          if (lock.packages['node_modules/esbuild']?.version !== '0.25.10') throw new Error('Resolved esbuild version mismatch.');
+
+          for (const [path, meta] of Object.entries(lock.packages)) {
+            if (!path || !path.startsWith('node_modules/')) continue;
+            if (meta.resolved && !meta.integrity) throw new Error(`Missing package integrity metadata: ${path}`);
+          }
+          NODE
+          npm ls --all
+
+      - name: Audit production dependency vulnerabilities
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Require immutable GitHub Action references
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          uses = re.compile(r'^\s*uses:\s*([^\s#]+)', re.M)
+          full_sha = re.compile(r'^[0-9a-f]{40}$')
+          offenders = []
+
+          for path in sorted(Path('.github/workflows').glob('*.yml')):
+              text = path.read_text(encoding='utf-8')
+              for match in uses.finditer(text):
+                  target = match.group(1)
+                  if target.startswith('./') or target.startswith('docker://'):
+                      continue
+                  if '@' not in target:
+                      offenders.append(f'{path}: action tanpa ref: {target}')
+                      continue
+                  action, ref = target.rsplit('@', 1)
+                  if not full_sha.fullmatch(ref):
+                      offenders.append(f'{path}: mutable ref: {action}@{ref}')
+
+          if offenders:
+              raise SystemExit('\n'.join(offenders))
+          print('All external GitHub Actions are pinned to immutable full SHAs.')
+          PY
+
+      - name: Block dynamic package execution in CI
+        run: |
+          set -euo pipefail
+          if grep -R -nE '\bnpx([[:space:]]+--yes)?[[:space:]]+' .github/workflows; then
+            echo 'Dynamic npx execution is not allowed in workflows.' >&2
+            exit 1
+          fi
+
+      - name: Verify runtime pipeline architecture
+        run: |
+          set -euo pipefail
+          test -s .github/workflows/runtime-assets.yml
+          test -s .github/workflows/runtime-assets-check.yml
+          test -s .github/workflows/runtime-assets-refresh.yml
+          test -s scripts/build-runtime.mjs
+          test -s scripts/optimize-logo.py
+          grep -qF 'workflow_call:' .github/workflows/runtime-assets.yml
+          grep -qF 'write_changes:' .github/workflows/runtime-assets.yml
+          grep -qF 'confirm_write:' .github/workflows/runtime-assets-refresh.yml
+          grep -qF 'git diff --exit-code' .github/workflows/runtime-assets.yml
+          ! grep -R -nF 'p3-asset-bundle-optimization' .github/workflows/runtime-assets*.yml
+          test ! -e .github/workflows/p3-build-runtime.yml
+          test ! -e .github/workflows/p3-optimize-logo.yml
+
+      - name: Verify dependency monitoring and npm policy
+        run: |
+          set -euo pipefail
+          grep -qF 'save-exact=true' .npmrc
+          grep -qF 'package-ecosystem: npm' .github/dependabot.yml
+          grep -qF 'package-ecosystem: github-actions' .github/dependabot.yml
+
+      - name: Verify one-time bootstrap tooling is absent
+        run: |
+          test ! -e .github/workflows/p4-5-6-bootstrap.yml
+          test ! -e .github/workflows/p4-6-lockfile-bootstrap.yml
+          test ! -e .github/workflows/p4-5-runtime-bootstrap.yml
+
+      - name: Bundle Worker from locked toolchain
+        run: |
+          ./node_modules/.bin/esbuild src/worker-entry.js \
+            --bundle \
+            --format=esm \
+            --platform=browser \
+            --target=es2022 \
+            --outfile=/tmp/worker-entry.js
+          test -s /tmp/worker-entry.js
