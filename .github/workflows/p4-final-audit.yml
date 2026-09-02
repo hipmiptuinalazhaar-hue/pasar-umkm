@@ -1,0 +1,256 @@
+name: P4 Final Audit
+
+on:
+  push:
+    branches:
+      - p4-9-10-chat-profile-hardening
+  pull_request:
+    branches:
+      - p4-7-8-cursor-pagination
+      - p4-5-6-pipeline-supply-chain
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Syntax check complete runtime
+        run: |
+          set -euo pipefail
+          find src -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+          find js -maxdepth 1 -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+
+      - name: P4.1 atomic order transaction
+        run: |
+          set -euo pipefail
+          f=src/functionality-api.js
+          grep -qF 'new Client({ connectionString: env.DATABASE_URL })' "$f"
+          grep -qF 'await client.query("BEGIN")' "$f"
+          grep -qF 'await client.query("COMMIT")' "$f"
+          grep -qF 'await client.query("ROLLBACK")' "$f"
+          grep -qF 'FOR UPDATE OF p' "$f"
+          grep -qF 'FOR UPDATE OF o' "$f"
+          grep -qF 'AND stock >= $1' "$f"
+          ! grep -qF 'const decremented = []' "$f"
+          ! grep -qF 'const orderId = crypto.randomUUID();' "$f"
+          ! grep -qF 'FOR UPDATE OF p, s' "$f"
+          ! grep -qF 'FOR UPDATE OF o, s' "$f"
+
+      - name: P4.2 zero runtime schema DDL
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          pattern = re.compile(r'\b(?:CREATE|ALTER|DROP)\s+(?:TABLE|INDEX|TRIGGER|FUNCTION|EXTENSION|VIEW|TYPE|SCHEMA)\b', re.I)
+          offenders = []
+          for path in sorted(Path('src').glob('*.js')):
+              text = path.read_text(encoding='utf-8')
+              if pattern.search(text): offenders.append(str(path))
+          if offenders: raise SystemExit('runtime DDL: ' + ', '.join(offenders))
+          PY
+          grep -qF 'ensureFunctionalityInfrastructure' src/chat-management-api.js
+          grep -qF 'ensureFunctionalityInfrastructure' src/profile-media-api.js
+          ! grep -qF 'ensureChatSchema' src/chat-management-api.js
+          ! grep -qF 'ensureProfileMediaTable' src/profile-media-api.js
+
+      - name: P4.3 comment reply integrity
+        run: |
+          set -euo pipefail
+          f=src/comment-api.js
+          grep -qF 'root.is_active = TRUE' "$f"
+          grep -qF 'root.parent_comment_id IS NULL' "$f"
+          grep -qF 'FOR UPDATE OF candidate, root' "$f"
+          grep -qF 'SET is_active = FALSE' "$f"
+          grep -qF 'AS is_deleted' "$f"
+          ! grep -qE 'DELETE FROM (post_comments|product_comments)' "$f"
+          grep -qF 'comment.is_deleted' js/app.js
+
+      - name: P4.4 chat media ownership and cleanup
+        run: |
+          set -euo pipefail
+          grep -qF 'chatMediaFolder(conversationId, user.id)' src/chat-media-api-v2.js
+          grep -qF 'publicLeaf = crypto.randomUUID()' src/chat-media-api-v2.js
+          grep -qF 'parseOwnedChatMediaUrl' src/chat-media-api-v2.js
+          grep -qF 'pg_advisory_xact_lock' src/chat-media-api-v2.js
+          grep -qF 'destroyOwnedChatMedia' src/chat-media-api-v2.js
+          grep -qF 'Hanya pengirim yang dapat menghapus pesan untuk semua.' src/chat-message-action-api.js
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { parseOwnedChatMediaUrl } from './src/chat-media-security.js';
+          const env = { CLOUDINARY_CLOUD_NAME: 'demo' };
+          const c = '11111111-1111-4111-8111-111111111111';
+          const u = '22222222-2222-4222-8222-222222222222';
+          const leaf = '33333333-3333-4333-8333-333333333333';
+          const valid = `https://res.cloudinary.com/demo/image/upload/v1/pasar-umkm/chat/${c}/${u}/${leaf}.webp`;
+          assert.ok(parseOwnedChatMediaUrl(valid, env, { conversationId: c, userId: u, kind: 'image' }));
+          assert.equal(parseOwnedChatMediaUrl(valid, { CLOUDINARY_CLOUD_NAME: 'other' }, { conversationId: c, userId: u, kind: 'image' }), null);
+          assert.equal(parseOwnedChatMediaUrl(valid.replace(u, '44444444-4444-4444-8444-444444444444'), env, { conversationId: c, userId: u, kind: 'image' }), null);
+          NODE
+
+      - name: P4.5 reusable deterministic runtime pipeline
+        run: |
+          set -euo pipefail
+          test -s .github/workflows/runtime-assets.yml
+          test -s .github/workflows/runtime-assets-check.yml
+          test -s .github/workflows/runtime-assets-refresh.yml
+          grep -qF 'workflow_call:' .github/workflows/runtime-assets.yml
+          grep -qF 'write_changes:' .github/workflows/runtime-assets.yml
+          grep -qF 'confirm_write:' .github/workflows/runtime-assets-refresh.yml
+          grep -qF 'git diff --exit-code' .github/workflows/runtime-assets.yml
+          ! grep -R -nF 'p3-asset-bundle-optimization' .github/workflows/runtime-assets*.yml
+          test ! -e .github/workflows/p3-build-runtime.yml
+          test ! -e .github/workflows/p3-optimize-logo.yml
+
+      - name: P4.6 supply-chain reproducibility
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('node:fs');
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+          if (pkg.dependencies['@neondatabase/serverless'] !== '1.0.0') throw new Error('Neon must be exact');
+          if (pkg.devDependencies.esbuild !== '0.25.10') throw new Error('esbuild must be exact');
+          if (lock.lockfileVersion !== 3) throw new Error('lockfileVersion must be 3');
+          NODE
+          grep -qF 'save-exact=true' .npmrc
+          grep -qF 'package-ecosystem: npm' .github/dependabot.yml
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          uses = re.compile(r'^\s*uses:\s*([^\s#]+)', re.M)
+          sha = re.compile(r'^[0-9a-f]{40}$')
+          bad = []
+          for path in sorted(Path('.github/workflows').glob('*.yml')):
+              for target in uses.findall(path.read_text(encoding='utf-8')):
+                  if target.startswith('./') or target.startswith('docker://'): continue
+                  if '@' not in target or not sha.fullmatch(target.rsplit('@',1)[1]): bad.append(f'{path}: {target}')
+          if bad: raise SystemExit('mutable actions:\n' + '\n'.join(bad))
+          PY
+
+      - name: P4.7 incremental catalog loading
+        run: |
+          set -euo pipefail
+          f=js/app.js
+          grep -qF 'const CATALOG_PAGE_LIMIT = 24' "$f"
+          grep -qF 'CATALOG_PAGINATION' "$f"
+          grep -qF 'loadMoreProducts' "$f"
+          grep -qF 'loadMoreStores' "$f"
+          grep -qF 'IntersectionObserver' "$f"
+          grep -qF "rootMargin: '700px 0px'" "$f"
+          grep -qF 'cursor: state.nextCursor' "$f"
+
+      - name: P4.8 keyset catalog pagination
+        run: |
+          set -euo pipefail
+          f=src/public-catalog-api.js
+          grep -qF 'const DEFAULT_LIMIT = 24' "$f"
+          grep -qF 'const MAX_LIMIT = 50' "$f"
+          grep -qF 'const queryLimit = limit + 1' "$f"
+          grep -qF 'mode: "cursor"' "$f"
+          grep -qF 'next_cursor' "$f"
+          grep -qF '(p.created_at, p.id) <' "$f"
+          grep -qF 'CURSOR_REQUIRED' "$f"
+          ! grep -qF 'OFFSET ${offset}' "$f"
+          ! grep -qF 'COUNT(*)::int AS total' "$f"
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { handlePublicCatalogApi } from './src/public-catalog-api.js';
+          const env = { DATABASE_URL: 'postgresql://u:p@localhost.invalid/db' };
+          for (const url of [
+            'https://example.test/api/products?page=99999',
+            'https://example.test/api/stores?page=2',
+            'https://example.test/api/products?cursor=not%2Bbase64%2Furl',
+            `https://example.test/api/stores?cursor=${'a'.repeat(900)}`
+          ]) {
+            const r = await handlePublicCatalogApi(new Request(url), env);
+            assert.equal(r.status, 400);
+          }
+          NODE
+
+      - name: P4.9 latest deterministic chat window
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          management = Path('src/chat-management-api.js').read_text(encoding='utf-8')
+          rich = Path('src/chat-media-api-v2.js').read_text(encoding='utf-8')
+          if management.count('ORDER BY dm.created_at DESC, dm.id DESC') < 2:
+              raise SystemExit('chat-management latest-window markers missing')
+          if management.count('ORDER BY recent.created_at ASC, recent.id ASC') < 2:
+              raise SystemExit('chat-management stable output ordering missing')
+          if 'ORDER BY dm.created_at ASC\n    LIMIT 200' in management:
+              raise SystemExit('oldest-200 metadata regression detected')
+          if 'ORDER BY dm.created_at ASC, dm.id ASC\n    LIMIT 200' in rich:
+              raise SystemExit('oldest-200 rich metadata regression detected')
+          if 'ORDER BY dm.created_at DESC, dm.id DESC' not in rich or 'ORDER BY recent.created_at ASC, recent.id ASC' not in rich:
+              raise SystemExit('rich latest-window markers missing')
+          PY
+
+      - name: P4.10 external profile media with legacy fallback
+        run: |
+          set -euo pipefail
+          f=src/profile-media-api.js
+          grep -qF 'profileMediaFolder' "$f"
+          grep -qF 'publicLeaf = crypto.randomUUID()' "$f"
+          grep -qF 'parseOwnedProfileMediaUrl' "$f"
+          grep -qF 'destroyOwnedProfileMedia' "$f"
+          grep -qF 'storage: "media_provider"' "$f"
+          grep -qF "encode(image_data, 'base64') AS image_base64" "$f"
+          ! grep -qF 'INSERT INTO user_profile_media' "$f"
+          ! grep -qF 'decode(${imageBase64}' "$f"
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { parseOwnedProfileMediaUrl, profileMediaFolder } from './src/profile-media-security.js';
+          const env = { CLOUDINARY_CLOUD_NAME: 'demo' };
+          const u = '22222222-2222-4222-8222-222222222222';
+          const other = '44444444-4444-4444-8444-444444444444';
+          const leaf = '33333333-3333-4333-8333-333333333333';
+          assert.equal(profileMediaFolder(u), `pasar-umkm/profile/${u}`);
+          const valid = `https://res.cloudinary.com/demo/image/upload/v1/pasar-umkm/profile/${u}/${leaf}.webp`;
+          const parsed = parseOwnedProfileMediaUrl(valid, env, u);
+          assert.ok(parsed);
+          assert.equal(parsed.publicId, `pasar-umkm/profile/${u}/${leaf}`);
+          assert.equal(parseOwnedProfileMediaUrl(valid, env, other), null);
+          assert.equal(parseOwnedProfileMediaUrl(valid, { CLOUDINARY_CLOUD_NAME: 'evil' }, u), null);
+          assert.equal(parseOwnedProfileMediaUrl(valid.replace('res.cloudinary.com', 'res.cloudinary.com.evil.test'), env, u), null);
+          assert.equal(parseOwnedProfileMediaUrl(valid.replace(leaf, '..%2F' + leaf), env, u), null);
+          NODE
+
+      - name: Rebuild deterministic frontend assets
+        run: |
+          set -euo pipefail
+          npm run build:runtime
+          git diff --exit-code -- js/app.runtime.js css/style.runtime.css index.html
+
+      - name: Bundle final Worker
+        run: |
+          set -euo pipefail
+          ./node_modules/.bin/esbuild src/worker-entry.js --bundle --format=esm --platform=browser --target=es2022 --outfile=/tmp/worker-entry.js
+          test -s /tmp/worker-entry.js
+
+      - name: No one-time P4 mutation tooling remains
+        run: |
+          set -euo pipefail
+          test ! -e scripts/p4_9_chat_window_patch.py
+          test ! -e .github/workflows/p4-9-apply-chat-window.yml
+          test ! -e scripts/p4_7_8_frontend_patch.py
+          test ! -e .github/workflows/p4-7-8-apply-frontend.yml
+          test ! -e .github/workflows/p4-5-6-bootstrap.yml
+          test ! -e .github/workflows/p4-6-lockfile-bootstrap.yml
+          test ! -e .github/workflows/p4-5-runtime-bootstrap.yml
+          test ! -e scripts/p4_3_4_frontend_patch.py
+          test ! -e scripts/p4_4_backend_cleanup.py
