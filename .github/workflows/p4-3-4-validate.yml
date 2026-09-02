@@ -1,0 +1,206 @@
+name: P4.3 P4.4 Validation
+
+on:
+  push:
+    branches:
+      - p4-3-chat-integrity-security
+  pull_request:
+    branches:
+      - p4-transaction-runtime-ddl-hardening
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Syntax check runtime JavaScript
+        run: |
+          set -euo pipefail
+          find src -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+          node --check js/app.js
+          node --check js/app.runtime.js
+          node --check js/chat-media-experience.js
+
+      - name: Verify P4.3 canonical reply integrity
+        run: |
+          set -euo pipefail
+          grep -qF 'root.is_active = TRUE' src/comment-api.js
+          grep -qF 'root.parent_comment_id IS NULL' src/comment-api.js
+          grep -qF 'FOR UPDATE OF candidate, root' src/comment-api.js
+          grep -qF 'Komentar yang ingin dibalas tidak ditemukan atau sudah dihapus.' src/comment-api.js
+          grep -qF "'Komentar telah dihapus.'" src/comment-api.js
+          grep -qF 'AS is_deleted' src/comment-api.js
+          grep -qF 'comment.is_deleted' js/app.js
+          grep -qF 'STATE.user && !isDeleted' js/app.js
+
+      - name: Verify P4.3 transaction and tombstone semantics
+        run: |
+          set -euo pipefail
+          grep -qF 'await client.query("BEGIN")' src/comment-api.js
+          grep -qF 'await client.query("COMMIT")' src/comment-api.js
+          grep -qF 'await client.query("ROLLBACK")' src/comment-api.js
+          grep -qF 'SET is_active = FALSE' src/comment-api.js
+          ! grep -qE 'DELETE FROM (post_comments|product_comments)' src/comment-api.js
+
+      - name: Verify P4.4 conversation-bound media ownership
+        run: |
+          set -euo pipefail
+          grep -qF 'conversation_id' src/chat-media-api-v2.js
+          grep -qF 'chatMediaFolder(conversationId, user.id)' src/chat-media-api-v2.js
+          grep -qF 'publicLeaf = crypto.randomUUID()' src/chat-media-api-v2.js
+          grep -qF 'fileSignatureMatches' src/chat-media-api-v2.js
+          grep -qF 'pg_advisory_xact_lock' src/chat-media-api-v2.js
+          grep -qF 'Media ini sudah digunakan pada pesan lain.' src/chat-media-api-v2.js
+          grep -qF 'Media bukan milik akun ini atau bukan untuk percakapan ini.' src/chat-media-api-v2.js
+          grep -qF 'WHERE media_url = ${descriptor.url}' src/chat-media-api-v2.js
+          grep -qF 'Hanya pengirim yang dapat menghapus pesan untuk semua.' src/chat-message-action-api.js
+          grep -qF 'allowLegacy: true' src/chat-message-action-api.js
+
+      - name: Attack-test Cloudinary ownership parser
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { parseOwnedChatMediaUrl } from './src/chat-media-security.js';
+
+          const env = { CLOUDINARY_CLOUD_NAME: 'demo' };
+          const conversationId = '11111111-1111-4111-8111-111111111111';
+          const userId = '22222222-2222-4222-8222-222222222222';
+          const otherUserId = '33333333-3333-4333-8333-333333333333';
+          const otherConversationId = '55555555-5555-4555-8555-555555555555';
+          const leaf = '44444444-4444-4444-8444-444444444444';
+          const valid = `https://res.cloudinary.com/demo/image/upload/v1700000000/pasar-umkm/chat/${conversationId}/${userId}/${leaf}.webp`;
+
+          assert.ok(parseOwnedChatMediaUrl(valid, env, { conversationId, userId, kind: 'image' }));
+          assert.equal(parseOwnedChatMediaUrl(valid, env, { conversationId, userId: otherUserId, kind: 'image' }), null);
+          assert.equal(parseOwnedChatMediaUrl(valid, env, { conversationId: otherConversationId, userId, kind: 'image' }), null);
+          assert.equal(parseOwnedChatMediaUrl(valid, { CLOUDINARY_CLOUD_NAME: 'other' }, { conversationId, userId, kind: 'image' }), null);
+          assert.equal(parseOwnedChatMediaUrl(valid.replace('/image/', '/video/'), env, { conversationId, userId, kind: 'image' }), null);
+          assert.equal(parseOwnedChatMediaUrl(valid.replace('res.cloudinary.com', 'res.cloudinary.com.evil.example'), env, { conversationId, userId, kind: 'image' }), null);
+
+          const encodedTraversal = `https://res.cloudinary.com/demo/image/upload/v1700000000/pasar-umkm/chat/${conversationId}/${userId}/..%2F${leaf}.webp`;
+          assert.equal(parseOwnedChatMediaUrl(encodedTraversal, env, { conversationId, userId, kind: 'image' }), null);
+
+          const legacy = `https://res.cloudinary.com/demo/image/upload/v1700000000/pasar-umkm/chat/${userId}/legacy_asset_123.jpg`;
+          assert.ok(parseOwnedChatMediaUrl(legacy, env, { conversationId, userId, kind: 'image', allowLegacy: true }));
+          assert.equal(parseOwnedChatMediaUrl(legacy, env, { conversationId, userId, kind: 'image', allowLegacy: false }), null);
+
+          console.log('Cloudinary ownership attack tests passed');
+          NODE
+
+      - name: Verify upload content checks and provider secrecy
+        run: |
+          set -euo pipefail
+          grep -qF '0xff, 0xd8, 0xff' src/chat-media-api-v2.js
+          grep -qF '0x89, 0x50, 0x4e, 0x47' src/chat-media-api-v2.js
+          grep -qF 'ascii(bytes, 8, 4) === "WEBP"' src/chat-media-api-v2.js
+          grep -qF '0x1a, 0x45, 0xdf, 0xa3' src/chat-media-api-v2.js
+          grep -qF 'ascii(bytes, 0, 4) === "OggS"' src/chat-media-api-v2.js
+          ! grep -qF 'data?.error?.message' src/chat-media-api-v2.js
+          ! grep -qF 'apiSecret' js/chat-media-experience.js
+
+      - name: Verify media cleanup and message authorization boundaries
+        run: |
+          set -euo pipefail
+          grep -qF '/api/chat/media/cleanup' js/chat-media-experience.js
+          grep -qF "form.append('conversation_id', conversationId)" js/chat-media-experience.js
+          grep -qF 'error.status = response.status' js/chat-media-experience.js
+          grep -qF 'media.conversation_id' js/chat-media-experience.js
+          grep -qF 'action: "delete_me"' src/chat-message-action-api.js
+          grep -qF 'action: "delete_everyone"' src/chat-message-action-api.js
+          grep -qF 'String(message.sender_id) !== String(userId)' src/chat-message-action-api.js
+          grep -qF 'direct_message_user_state' src/chat-message-action-api.js
+
+      - name: Verify rate-limit perimeter
+        run: |
+          set -euo pipefail
+          grep -qF 'name: "chat-media-cleanup"' src/rate-limit.js
+          grep -qF 'name: "comment-write"' src/rate-limit.js
+          grep -qF 'url.pathname === "/api/chat/media/cleanup"' src/rate-limit.js
+
+      - name: Verify hardened router precedence and dead-code removal
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          text = Path('src/worker-entry.js').read_text(encoding='utf-8')
+          required = [
+              'handleCommentApi(request, env)',
+              'handleChatMediaApiV2(request, env)',
+              'handleChatMessageActionApi(request, env)',
+              'handleChatManagementApi(request, env)',
+              'legacyWorker.fetch(request, env, ctx)',
+          ]
+          for marker in required:
+              if marker not in text:
+                  raise SystemExit(f'missing router marker: {marker}')
+
+          indexes = [text.index(marker) for marker in required]
+          if indexes != sorted(indexes):
+              raise SystemExit('hardened router precedence is incorrect')
+
+          forbidden = [
+              'handleChatMediaApi(request, env)',
+              'from "./chat-media-api.js"',
+          ]
+          for marker in forbidden:
+              if marker in text:
+                  raise SystemExit(f'deprecated runtime route remains: {marker}')
+          PY
+          test ! -e src/chat-media-api.js
+          ! grep -qF 'async function messageAction(' src/chat-management-api.js
+          ! grep -qF 'messageActionMatch' src/chat-management-api.js
+
+      - name: Verify zero runtime schema DDL remains
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          pattern = re.compile(r'\b(CREATE\s+(?:TABLE|INDEX|TRIGGER|FUNCTION|EXTENSION)|ALTER\s+TABLE|DROP\s+(?:TABLE|INDEX|TRIGGER|FUNCTION))\b', re.I)
+          offenders = []
+          for path in Path('src').glob('*.js'):
+              text = path.read_text(encoding='utf-8')
+              if pattern.search(text):
+                  offenders.append(str(path))
+          if offenders:
+              raise SystemExit('runtime schema DDL detected: ' + ', '.join(offenders))
+          PY
+
+      - name: Verify runtime app bundle is current
+        run: |
+          npx --yes esbuild@0.25.10 js/app.js \
+            --minify-whitespace \
+            --minify-syntax \
+            --target=es2022 \
+            --outfile=/tmp/app.runtime.js
+          cmp -s /tmp/app.runtime.js js/app.runtime.js
+          grep -qE 'js/app\.runtime\.js\?v=[0-9a-f]{8}' index.html
+
+      - name: Bundle Worker entrypoint
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          npx --yes esbuild@0.25.10 src/worker-entry.js \
+            --bundle \
+            --format=esm \
+            --platform=browser \
+            --target=es2022 \
+            --outfile=/tmp/worker-entry.js
+          test -s /tmp/worker-entry.js
+
+      - name: Verify no one-time mutation tooling remains
+        run: |
+          test ! -e scripts/p4_3_4_frontend_patch.py
+          test ! -e scripts/p4_4_backend_cleanup.py
+          test ! -e .github/workflows/p4-3-4-apply-frontend.yml
+          test ! -e .github/workflows/p4-4-cleanup.yml
+          test ! -e .github/workflows/p4-3-4-finalize-cleanup.yml
