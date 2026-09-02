@@ -1,0 +1,118 @@
+name: P2 Validation
+
+on:
+  pull_request:
+    branches:
+      - p1-security-performance
+      - p0-runtime-schema-hardening
+      - main
+  push:
+    branches:
+      - p2-frontend-performance
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Check JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            node --check "$file"
+          done < <(find src js -type f -name '*.js' -print0)
+
+      - name: Verify bootstrap acceleration
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='js/account-resilience.js'
+          grep -q 'warmPublicBootstrap' "$file"
+          grep -q 'PUBLIC_CACHE_TTL_MS' "$file"
+          grep -q '/api/categories' "$file"
+          grep -q '/api/stores' "$file"
+          grep -q '/api/products' "$file"
+          grep -q '/api/posts' "$file"
+          grep -q 'requestIdleCallback' "$file"
+          grep -q 'loadDeferredEnhancements' "$file"
+
+      - name: Verify secondary modules are deferred
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
+          const text = fs.readFileSync('js/account-resilience.js', 'utf8');
+          const marker = text.indexOf('function loadDeferredEnhancements()');
+          if (marker < 0) throw new Error('deferred loader marker missing');
+
+          const secondary = [
+            'js/profile-edit.js',
+            'js/chat-media-experience.js',
+            'js/rating-core.js',
+            'js/business-agency.js',
+            'js/store-management-core.js',
+            'js/media-experience.js'
+          ];
+
+          for (const asset of secondary) {
+            const position = text.indexOf(asset);
+            if (position < marker) {
+              throw new Error(`${asset} is no longer deferred`);
+            }
+          }
+          NODE
+
+      - name: Verify static cache and security headers
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s _headers
+          grep -q 'X-Content-Type-Options: nosniff' _headers
+          grep -q 'X-Frame-Options: SAMEORIGIN' _headers
+          grep -q 'Referrer-Policy: strict-origin-when-cross-origin' _headers
+          grep -q '/css/\*' _headers
+          grep -q '/js/\*' _headers
+          grep -q '/assets/\*' _headers
+          grep -q 'stale-while-revalidate' _headers
+          ! grep -qx '_headers' .assetsignore
+
+      - name: Enforce initial payload budgets
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          app_js=$(wc -c < js/app.js)
+          resilience_js=$(wc -c < js/account-resilience.js)
+          saved_js=$(wc -c < js/profile-saved.js)
+          base_css=$(wc -c < css/style.css)
+          tokens_css=$(wc -c < css/tokens.css)
+
+          initial_js=$((app_js + resilience_js + saved_js))
+          initial_css=$((base_css + tokens_css))
+
+          echo "Initial JS bytes: $initial_js"
+          echo "Initial CSS bytes: $initial_css"
+
+          test "$app_js" -le 300000
+          test "$initial_js" -le 290000
+          test "$initial_css" -le 330000
+
+      - name: Report oversized repository assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'Assets larger than 1 MiB (informational):'
+          find assets -type f -size +1M -print || true
