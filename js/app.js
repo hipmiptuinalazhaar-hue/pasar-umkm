@@ -109,6 +109,19 @@ menuOpen: false,
    06. DOM CACHE
    ========================================================= */
 
+const CATALOG_PAGE_LIMIT = 24;
+const CATALOG_PAGINATION = {
+  products: { nextCursor: null, hasNext: false, loading: false },
+  stores: { nextCursor: null, hasNext: false, loading: false }
+};
+let catalogIntersectionObserver = null;
+
+function applyCatalogPagination(target, pagination) {
+  const nextCursor = String(pagination?.next_cursor || '').trim();
+  target.nextCursor = nextCursor || null;
+  target.hasNext = Boolean(pagination?.has_next && nextCursor);
+}
+
 const DOM = {};
 
 
@@ -307,7 +320,7 @@ async function loadInitialData() {
     postsResponse
   ] = await Promise.all([
     fetch(
-      '/api/products',
+      `/api/products?limit=${CATALOG_PAGE_LIMIT}`,
       {
         method: 'GET',
 
@@ -362,6 +375,11 @@ async function loadInitialData() {
         productsData.products
       )
     ) {
+      applyCatalogPagination(
+        CATALOG_PAGINATION.products,
+        productsData.pagination
+      );
+
       const productPosts =
         productsData.products.map(
           product => ({
@@ -745,165 +763,236 @@ async function loadCategories() {
    LOAD STORES
    ========================================================= */
 
-async function loadStores() {
-  try {
-    const response =
-      await fetch(
-        '/api/stores',
-        {
-          method: 'GET',
+async function loadStores({ append = false } = {}) {
+  const state = CATALOG_PAGINATION.stores;
 
-          credentials:
-            'include',
-
-          headers: {
-            Accept:
-              'application/json'
-          },
-
-          cache:
-            'no-store'
-        }
-      );
-
-
-    if (!response.ok) {
-      throw new Error(
-        `Stores request failed: ${response.status}`
-      );
-    }
-
-
-    const data =
-      await response.json();
-
-
-    if (
-      data.ok !== true ||
-      !Array.isArray(
-        data.stores
-      )
-    ) {
-      throw new Error(
-        'Format data UMKM tidak valid.'
-      );
-    }
-
-
-    DATA.stores =
-      data.stores
-        .map(store => ({
-
-          id:
-            String(
-              store.id || ''
-            ),
-
-          categoryId:
-            String(
-              store.category_id || ''
-            ),
-
-          category:
-            String(
-              store.category_name || ''
-            ),
-
-          name:
-            String(
-              store.name || ''
-            ),
-
-          slug:
-            String(
-              store.slug || ''
-            ),
-
-          description:
-            String(
-              store.description || ''
-            ),
-
-          logo:
-            String(
-              store.logo_url || ''
-            ),
-
-          cover:
-            String(
-              store.cover_url || ''
-            ),
-
-          phone:
-            String(
-              store.phone || ''
-            ),
-
-          whatsapp:
-            String(
-              store.whatsapp || ''
-            ),
-
-          address:
-            String(
-              store.address || ''
-            ),
-
-          district:
-            String(
-              store.district || ''
-            ),
-
-          city:
-            String(
-              store.city || ''
-            ),
-
-          province:
-            String(
-              store.province || ''
-            ),
-
-          verificationStatus:
-            String(
-              store.verification_status ||
-              'pending'
-            ),
-
-          verifiedAt:
-            store.verified_at || null,
-
-          productCount:
-            Number(
-              store.product_count || 0
-            ),
-
-          createdAt:
-            store.created_at || null
-
-        }))
-        .filter(store => {
-          return (
-            store.id &&
-            store.name
-          );
-        });
-
-
-  } catch (error) {
-    console.error(
-      '[Pasar UMKM] Stores load error:',
-      error
-    );
-
-
-    DATA.stores = [];
-
-
-    showToast(
-      'Daftar UMKM belum dapat dimuat.'
-    );
+  if (append && (!state.hasNext || !state.nextCursor || state.loading)) {
+    return [];
   }
+
+  state.loading = true;
+
+  try {
+    const params = new URLSearchParams({
+      limit: String(CATALOG_PAGE_LIMIT)
+    });
+
+    if (append && state.nextCursor) {
+      params.set('cursor', state.nextCursor);
+    }
+
+    const response = await fetch(
+      `/api/stores?${params.toString()}`,
+      {
+        method: 'GET',
+        credentials: 'include',
+        headers: { Accept: 'application/json' },
+        cache: 'no-store'
+      }
+    );
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok || data.ok !== true || !Array.isArray(data.stores)) {
+      throw new Error(data.error || `Stores request failed: ${response.status}`);
+    }
+
+    const normalized = data.stores
+      .map(normalizePublicStore)
+      .filter(store => store.id && store.name);
+
+    if (append) {
+      const seen = new Set(DATA.stores.map(store => String(store.id)));
+      DATA.stores.push(...normalized.filter(store => !seen.has(String(store.id))));
+    } else {
+      DATA.stores = normalized;
+    }
+
+    applyCatalogPagination(state, data.pagination);
+    return normalized;
+  } catch (error) {
+    console.error('[Pasar UMKM] Stores load error:', error);
+
+    if (!append) {
+      DATA.stores = [];
+      state.nextCursor = null;
+      state.hasNext = false;
+      showToast('Daftar UMKM belum dapat dimuat.');
+    } else {
+      showToast(error.message || 'UMKM berikutnya belum dapat dimuat.');
+    }
+
+    return [];
+  } finally {
+    state.loading = false;
+  }
+}
+
+function normalizePublicStore(store) {
+  return {
+    id: String(store.id || ''),
+    categoryId: String(store.category_id || ''),
+    category: String(store.category_name || ''),
+    name: String(store.name || ''),
+    slug: String(store.slug || ''),
+    description: String(store.description || ''),
+    logo: String(store.logo_url || ''),
+    cover: String(store.cover_url || ''),
+    phone: String(store.phone || ''),
+    whatsapp: String(store.whatsapp || ''),
+    address: String(store.address || ''),
+    district: String(store.district || ''),
+    city: String(store.city || ''),
+    province: String(store.province || ''),
+    verificationStatus: String(store.verification_status || 'pending'),
+    verifiedAt: store.verified_at || null,
+    productCount: Number(store.product_count || 0),
+    createdAt: store.created_at || null
+  };
+}
+
+function createPublicProductFeedPost(product) {
+  return {
+    id: `product-${product.id}`,
+    store: {
+      id: product.store_id,
+      name: product.store_name || 'UMKM Lokal',
+      avatar: product.store_logo_url || ASSETS.logo,
+      location: CONFIG.CITY,
+      verified: product.store_verification_status === 'verified'
+    },
+    caption: product.description || '',
+    createdAt: product.created_at,
+    commentsCount: Number(product.comments_count || 0),
+    product: {
+      id: product.id,
+      name: product.name,
+      image: product.image_url || ASSETS.logo,
+      category: product.category_name || '',
+      categoryId: product.category_id || '',
+      price: Number(product.price || 0),
+      stock: Number(product.stock || 0),
+      unit: product.unit || ''
+    }
+  };
+}
+
+async function loadMoreProducts() {
+  const state = CATALOG_PAGINATION.products;
+  if (!state.hasNext || !state.nextCursor || state.loading) return;
+
+  state.loading = true;
+  const sentinel = document.querySelector('[data-catalog-sentinel]');
+  const button = sentinel?.querySelector('button');
+  if (button) button.disabled = true;
+
+  try {
+    const params = new URLSearchParams({
+      limit: String(CATALOG_PAGE_LIMIT),
+      cursor: state.nextCursor
+    });
+
+    const response = await fetch(
+      `/api/products?${params.toString()}`,
+      {
+        method: 'GET',
+        credentials: 'include',
+        headers: { Accept: 'application/json' },
+        cache: 'no-store'
+      }
+    );
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.ok !== true || !Array.isArray(data.products)) {
+      throw new Error(data.error || `Products request failed: ${response.status}`);
+    }
+
+    const existing = new Set(DATA.posts.map(post => String(post.id || '')));
+    for (const product of data.products) {
+      const post = createPublicProductFeedPost(product);
+      if (!existing.has(String(post.id))) {
+        DATA.posts.push(post);
+        existing.add(String(post.id));
+      }
+    }
+
+    applyCatalogPagination(state, data.pagination);
+
+    if (STATE.activeCategory) {
+      const category = CATEGORIES.find(item => item.id === STATE.activeCategory) || null;
+      if (category) {
+        renderFeed(
+          DATA.posts.filter(post => (
+            normalizeText(post.product?.category) === normalizeText(category.name) ||
+            normalizeText(post.product?.categoryId) === normalizeText(category.id)
+          )),
+          category
+        );
+      }
+    } else if (STATE.activeNav === 'home') {
+      renderFeed();
+    }
+  } catch (error) {
+    console.error('[Pasar UMKM] Product pagination error:', error);
+    showToast(error.message || 'Produk berikutnya belum dapat dimuat.');
+  } finally {
+    state.loading = false;
+    if (button?.isConnected) button.disabled = false;
+  }
+}
+
+async function loadMoreStores() {
+  const state = CATALOG_PAGINATION.stores;
+  if (!state.hasNext || !state.nextCursor || state.loading) return;
+
+  const previousScroll = DOM.sheetContent?.scrollTop || 0;
+  await loadStores({ append: true });
+  openStores();
+  requestAnimationFrame(() => {
+    if (DOM.sheetContent) DOM.sheetContent.scrollTop = previousScroll;
+  });
+}
+
+function createCatalogLoadMoreTemplate(category = null) {
+  if (!CATALOG_PAGINATION.products.hasNext) return '';
+
+  return `
+    <section class="catalog-load-more" data-catalog-sentinel>
+      <button
+        type="button"
+        class="btn-primary"
+        data-action="catalog-load-more"
+      >
+        <i class="ph ph-arrow-down"></i>
+        <span>${category ? 'Muat produk kategori lainnya' : 'Muat produk lainnya'}</span>
+      </button>
+    </section>
+  `;
+}
+
+function scheduleCatalogPaginationObserver(category = null) {
+  catalogIntersectionObserver?.disconnect();
+  catalogIntersectionObserver = null;
+
+  if (
+    category ||
+    STATE.activeNav !== 'home' ||
+    !CATALOG_PAGINATION.products.hasNext ||
+    !('IntersectionObserver' in window)
+  ) {
+    return;
+  }
+
+  const sentinel = document.querySelector('[data-catalog-sentinel]');
+  if (!sentinel) return;
+
+  catalogIntersectionObserver = new IntersectionObserver(entries => {
+    if (!entries.some(entry => entry.isIntersecting)) return;
+    catalogIntersectionObserver?.disconnect();
+    loadMoreProducts();
+  }, { rootMargin: '700px 0px' });
+
+  catalogIntersectionObserver.observe(sentinel);
 }
 
 /* =========================================================
@@ -1268,8 +1357,14 @@ function renderFeed(
     DOM.feed.innerHTML =
       createEmptyFeedTemplate(
         category
+      ) +
+      createCatalogLoadMoreTemplate(
+        category
       );
 
+    scheduleCatalogPaginationObserver(
+      category
+    );
     return;
   }
 
@@ -1333,7 +1428,15 @@ function renderFeed(
         createPostTemplate
       )
       .join('')}
+
+    ${createCatalogLoadMoreTemplate(
+      category
+    )}
   `;
+
+  scheduleCatalogPaginationObserver(
+    category
+  );
 }
 
 /* =========================================================
@@ -2104,6 +2207,14 @@ function runAction(action, element) {
 
     case 'all-categories':
       openAllCategories();
+      break;
+
+    case 'catalog-load-more':
+      loadMoreProducts();
+      break;
+
+    case 'stores-load-more':
+      loadMoreStores();
       break;
 
     case 'like':
@@ -10590,6 +10701,21 @@ function openStores() {
       <div class="store-directory-list">
         ${html}
       </div>
+
+      ${
+        CATALOG_PAGINATION.stores.hasNext
+          ? `
+              <button
+                type="button"
+                class="menu-sheet-btn"
+                data-action="stores-load-more"
+              >
+                <i class="ph ph-arrow-down"></i>
+                Muat UMKM lainnya
+              </button>
+            `
+          : ''
+      }
     `,
     'stores'
   );
