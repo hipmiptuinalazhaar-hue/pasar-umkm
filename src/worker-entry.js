@@ -16,10 +16,13 @@ import { handleStoryUploadApi } from "./story-upload-api.js";
 import { handleChatManagementApi } from "./chat-management-api.js";
 import { handleChatMarkReadApi } from "./chat-mark-read-api.js";
 import { handleChatMediaApi } from "./chat-media-api.js";
+import { handlePublicCatalogApi } from "./public-catalog-api.js";
+import { enforceRateLimit } from "./rate-limit.js";
 import { ensureNotificationInfrastructure } from "./notification-store.js";
 import { ensureFullFunctionalityInfrastructure } from "./functionality-bootstrap.js";
 
 const P0_MIGRATION = "2026-09-02-p0-runtime-schema-hardening";
+const P1_MIGRATION = "2026-09-02-p1-security-performance";
 
 function schemaUnavailable(error) {
   console.error("Production schema verification failed:", error);
@@ -77,6 +80,7 @@ async function handleHealth(env) {
 
     const missingCore = required.filter(name => !state[name]);
     let p0Applied = false;
+    let p1Applied = false;
     let latestMigration = null;
 
     if (state.schema_migrations) {
@@ -89,15 +93,15 @@ async function handleHealth(env) {
 
       latestMigration = migrationRows[0]?.version || null;
 
-      const p0Rows = await sql`
-        SELECT EXISTS (
-          SELECT 1
-          FROM schema_migrations
-          WHERE version = ${P0_MIGRATION}
-        ) AS applied
+      const appliedRows = await sql`
+        SELECT version
+        FROM schema_migrations
+        WHERE version = ANY(${[P0_MIGRATION, P1_MIGRATION]}::text[])
       `;
 
-      p0Applied = Boolean(p0Rows[0]?.applied);
+      const applied = new Set(appliedRows.map(row => row.version));
+      p0Applied = applied.has(P0_MIGRATION);
+      p1Applied = applied.has(P1_MIGRATION);
     }
 
     return Response.json(
@@ -115,6 +119,8 @@ async function handleHealth(env) {
           missing_core: missingCore,
           p0_migration: P0_MIGRATION,
           p0_applied: p0Applied,
+          p1_migration: P1_MIGRATION,
+          p1_applied: p1Applied,
           latest_migration: latestMigration
         }
       },
@@ -148,18 +154,15 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
-    /*
-     * Health endpoint selalu read-only dan tidak menjalankan schema bootstrap.
-     * Ini menjadi sumber kebenaran DATABASE_URL setelah deployment.
-     */
     if (url.pathname === "/api/health") {
       return handleHealth(env);
     }
 
-    /*
-     * P0: runtime tidak lagi memperbaiki/mengubah schema.
-     * ensure* sekarang hanya memverifikasi hasil migration.
-     */
+    const rateLimitResponse = await enforceRateLimit(request);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+
     try {
       await ensureNotificationInfrastructure(env);
       await ensureFullFunctionalityInfrastructure(env);
@@ -171,6 +174,13 @@ export default {
       console.error("Non-API schema verification warning:", error);
     }
 
+    const publicCatalogResponse =
+      await handlePublicCatalogApi(request, env);
+
+    if (publicCatalogResponse) {
+      return publicCatalogResponse;
+    }
+
     const notificationResponse =
       await handleNotificationApi(request, env);
 
@@ -178,7 +188,6 @@ export default {
       return notificationResponse;
     }
 
-    /* Summary v2 harus mendahului rating API lama. */
     const ratingSummaryResponse =
       await handleRatingSummaryV2(request, env);
 
@@ -249,10 +258,6 @@ export default {
       return chatMarkReadResponse;
     }
 
-    /*
-     * Chat management harus mendahului social router karena ia
-     * memperkaya endpoint conversation list, unread, dan thread GET.
-     */
     const chatManagementResponse =
       await handleChatManagementApi(request, env);
 
@@ -288,10 +293,6 @@ export default {
       return profileResponse;
     }
 
-    return legacyWorker.fetch(
-      request,
-      env,
-      ctx
-    );
+    return legacyWorker.fetch(request, env, ctx);
   }
 };
