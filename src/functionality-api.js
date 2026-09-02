@@ -680,7 +680,7 @@ async function checkoutCart(sql, request, env) {
           JOIN stores s ON s.id = p.store_id
           WHERE p.id = ANY($1::uuid[])
           ORDER BY p.id ASC
-          FOR UPDATE OF p, s
+          FOR UPDATE OF p
         `,
         [productIds]
       );
@@ -732,13 +732,11 @@ async function checkoutCart(sql, request, env) {
           (sum, item) => sum + item.price * item.quantity,
           0
         );
-        const orderId = crypto.randomUUID();
         const number = orderNumber();
 
         const insertedOrder = await client.query(
           `
             INSERT INTO orders (
-              id,
               order_number,
               buyer_id,
               store_id,
@@ -752,23 +750,21 @@ async function checkoutCart(sql, request, env) {
               notes
             )
             VALUES (
-              $1::uuid,
-              $2,
+              $1,
+              $2::uuid,
               $3::uuid,
-              $4::uuid,
               'pending',
-              $5,
+              $4,
               0,
+              $4,
               $5,
               $6,
               $7,
-              $8,
-              $9
+              $8
             )
             RETURNING *
           `,
           [
-            orderId,
             number,
             auth.user.id,
             storeId,
@@ -1018,7 +1014,7 @@ async function updateOrderStatus(sql, request, orderId, env) {
           FROM orders o
           JOIN stores s ON s.id = o.store_id
           WHERE o.id = $1::uuid
-          FOR UPDATE OF o, s
+          FOR UPDATE OF o
         `,
         [orderId]
       );
@@ -1052,7 +1048,7 @@ async function updateOrderStatus(sql, request, orderId, env) {
             created_at
           FROM order_items
           WHERE order_id = $1::uuid
-          ORDER BY created_at ASC, id ASC
+          ORDER BY product_id ASC NULLS LAST, id ASC
         `,
         [order.id]
       );
