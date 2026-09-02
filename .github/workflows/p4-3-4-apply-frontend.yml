@@ -1,0 +1,86 @@
+name: P4.3 P4.4 Apply Frontend Integrity
+
+on:
+  push:
+    branches:
+      - p4-3-chat-integrity-security
+    paths:
+      - scripts/p4_3_4_frontend_patch.py
+      - .github/workflows/p4-3-4-apply-frontend.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: p4-3-chat-integrity-security
+          fetch-depth: 0
+
+      - name: Apply frontend patch
+        run: python scripts/p4_3_4_frontend_patch.py
+
+      - name: Validate source syntax
+        run: |
+          node --check js/app.js
+          node --check js/chat-media-experience.js
+          node --check src/comment-api.js
+          node --check src/chat-media-security.js
+          node --check src/chat-media-api-v2.js
+          node --check src/chat-message-action-api.js
+          node --check src/worker-entry.js
+
+      - name: Build runtime app bundle
+        run: |
+          npx --yes esbuild@0.25.10 js/app.js \
+            --minify-whitespace \
+            --minify-syntax \
+            --target=es2022 \
+            --outfile=js/app.runtime.js
+          node --check js/app.runtime.js
+
+      - name: Refresh runtime cache key
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import os
+          import re
+
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+          version = os.environ['SOURCE_SHA'][:8]
+          text, count = re.subn(
+              r'js/app\.runtime\.js\?v=[^"\']+',
+              f'js/app.runtime.js?v={version}',
+              text,
+              count=1,
+          )
+          if count != 1:
+              raise SystemExit(f'Expected one runtime app reference, found {count}')
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Verify frontend hardening markers
+        run: |
+          grep -qF "comment.is_deleted" js/app.js
+          grep -qF "STATE.user && !isDeleted" js/app.js
+          grep -qF "form.append('conversation_id', conversationId)" js/chat-media-experience.js
+          grep -qF "/api/chat/media/cleanup" js/chat-media-experience.js
+          grep -qF "media.conversation_id" js/chat-media-experience.js
+          ! grep -qF "async function uploadFile(file, kind) {\n    if (!file || MEDIA.uploading) return null;\n    MEDIA.uploading = true;" js/chat-media-experience.js
+          grep -qE 'js/app\.runtime\.js\?v=[0-9a-f]{8}' index.html
+
+      - name: Commit frontend hardening
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add js/app.js js/app.runtime.js js/chat-media-experience.js index.html
+          git commit -m 'feat(p4.3-p4.4): harden comment tombstones and chat media client'
+          git push origin HEAD:p4-3-chat-integrity-security
