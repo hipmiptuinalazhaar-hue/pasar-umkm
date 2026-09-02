@@ -633,18 +633,17 @@ async function checkoutCart(sql, request, env) {
     const createdOrders = await withDbTransaction(env, async client => {
       const cartResult = await client.query(
         `
-          INSERT INTO carts (user_id)
-          VALUES ($1)
-          ON CONFLICT (user_id)
-          DO UPDATE SET updated_at = carts.updated_at
-          RETURNING id
+          SELECT id
+          FROM carts
+          WHERE user_id = $1::uuid
+          FOR UPDATE
         `,
         [auth.user.id]
       );
 
       const cartId = cartResult.rows[0]?.id;
       if (!cartId) {
-        throw transactionError("Keranjang belum dapat diproses.", 500);
+        throw transactionError("Keranjang masih kosong.", 409);
       }
 
       const cartItemsResult = await client.query(
