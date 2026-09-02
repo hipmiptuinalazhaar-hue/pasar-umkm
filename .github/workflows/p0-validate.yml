@@ -1,0 +1,64 @@
+name: P0 Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - p0-runtime-schema-hardening
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Check JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' file; do
+            echo "Checking $file"
+            node --check "$file"
+          done < <(find src js -type f -name '*.js' -print0)
+
+      - name: Block runtime DDL in hardened schema stores
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          files=(
+            src/social-store.js
+            src/notification-store.js
+            src/functionality-store.js
+            src/engagement-store.js
+            src/rating-store.js
+            src/media-social-store.js
+            src/business-agency-store.js
+            src/profile-social-store.js
+          )
+
+          if grep -Eni \
+            'CREATE[[:space:]]+(TABLE|INDEX|TRIGGER|FUNCTION)|ALTER[[:space:]]+TABLE|DROP[[:space:]]+TRIGGER' \
+            "${files[@]}"; then
+            echo "Runtime DDL ditemukan pada hardened schema store."
+            exit 1
+          fi
+
+      - name: Verify P0 migration guard exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          file='database/migrations/2026-09-02-p0-runtime-schema-hardening.sql'
+          test -s "$file"
+          grep -q 'P0 migration ditolak' "$file"
+          grep -q 'schema_migrations' "$file"
+          grep -q '2026-09-02-p0-runtime-schema-hardening' "$file"

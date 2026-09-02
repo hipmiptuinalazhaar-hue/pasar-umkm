@@ -2,38 +2,21 @@ let engagementSchemaReady = false;
 let engagementSchemaPromise = null;
 
 export async function ensureEngagementSchema(sql) {
-  if (engagementSchemaReady) {
-    return;
-  }
-
-  if (engagementSchemaPromise) {
-    return engagementSchemaPromise;
-  }
+  if (engagementSchemaReady) return;
+  if (engagementSchemaPromise) return engagementSchemaPromise;
 
   engagementSchemaPromise = (async () => {
-    await sql`
-      CREATE TABLE IF NOT EXISTS product_likes (
-        user_id UUID NOT NULL
-          REFERENCES users(id)
-          ON DELETE CASCADE,
-        product_id UUID NOT NULL
-          REFERENCES products(id)
-          ON DELETE CASCADE,
-        created_at TIMESTAMPTZ NOT NULL
-          DEFAULT NOW(),
-        PRIMARY KEY (user_id, product_id)
-      )
+    const rows = await sql`
+      SELECT to_regclass('public.product_likes') IS NOT NULL AS product_likes
     `;
 
-    await sql`
-      CREATE INDEX IF NOT EXISTS idx_product_likes_product
-      ON product_likes(product_id, created_at DESC)
-    `;
-
-    await sql`
-      CREATE INDEX IF NOT EXISTS idx_product_likes_user
-      ON product_likes(user_id, created_at DESC)
-    `;
+    if (!rows[0]?.product_likes) {
+      const error = new Error(
+        "[schema:not-ready] product_likes belum tersedia. Jalankan migration database sebelum deploy Worker."
+      );
+      error.code = "SCHEMA_NOT_READY";
+      throw error;
+    }
 
     engagementSchemaReady = true;
   })();
