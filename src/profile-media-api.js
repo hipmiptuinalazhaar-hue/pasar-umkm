@@ -1,5 +1,11 @@
 import { neon } from "@neondatabase/serverless";
 import { ensureFunctionalityInfrastructure } from "./functionality-store.js";
+import {
+  destroyOwnedProfileMedia,
+  parseOwnedProfileMediaUrl,
+  profileMediaFolder,
+  sha1Hex
+} from "./profile-media-security.js";
 
 const SESSION_COOKIE = "__Host-pasar_umkm_session";
 const MAX_AVATAR_BYTES = 512 * 1024;
@@ -11,17 +17,11 @@ const ALLOWED_MIME_TYPES = new Set([
 
 function getCookie(request, name) {
   const cookieHeader = request.headers.get("Cookie");
-
-  if (!cookieHeader) {
-    return null;
-  }
+  if (!cookieHeader) return null;
 
   for (const cookie of cookieHeader.split(";")) {
     const [key, ...valueParts] = cookie.trim().split("=");
-
-    if (key === name) {
-      return valueParts.join("=") || null;
-    }
+    if (key === name) return valueParts.join("=") || null;
   }
 
   return null;
@@ -35,10 +35,7 @@ function isUuid(value) {
 
 async function getAuthenticatedUser(sql, request) {
   const sessionToken = getCookie(request, SESSION_COOKIE);
-
-  if (!sessionToken) {
-    return null;
-  }
+  if (!sessionToken) return null;
 
   const rows = await sql`
     SELECT
@@ -48,36 +45,15 @@ async function getAuthenticatedUser(sql, request) {
       u.role,
       u.avatar_url
     FROM sessions s
-    JOIN users u
-      ON u.id = s.user_id
+    JOIN users u ON u.id = s.user_id
     WHERE
-      s.token_hash = encode(
-        digest(${sessionToken}, 'sha256'),
-        'hex'
-      )
+      s.token_hash = encode(digest(${sessionToken}, 'sha256'), 'hex')
       AND s.expires_at > NOW()
       AND u.is_active = TRUE
     LIMIT 1
   `;
 
   return rows[0] || null;
-}
-
-function arrayBufferToBase64(buffer) {
-  const bytes = new Uint8Array(buffer);
-  const chunkSize = 0x8000;
-  let binary = "";
-
-  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
-    const chunk = bytes.subarray(
-      offset,
-      Math.min(offset + chunkSize, bytes.length)
-    );
-
-    binary += String.fromCharCode(...chunk);
-  }
-
-  return btoa(binary);
 }
 
 function base64ToBytes(base64) {
@@ -134,17 +110,71 @@ function matchesImageSignature(bytes, mimeType) {
 
 function jsonError(message, status) {
   return Response.json(
-    {
-      ok: false,
-      error: message
-    },
+    { ok: false, error: message },
     {
       status,
-      headers: {
-        "Cache-Control": "no-store"
-      }
+      headers: { "Cache-Control": "no-store" }
     }
   );
+}
+
+async function uploadProfileMedia(env, userId, buffer, mimeType) {
+  const cloudName = String(env.CLOUDINARY_CLOUD_NAME || "").trim();
+  const apiKey = String(env.CLOUDINARY_API_KEY || "").trim();
+  const apiSecret = String(env.CLOUDINARY_API_SECRET || "").trim();
+
+  if (!cloudName || !apiKey || !apiSecret) {
+    return { ok: false, response: jsonError("Konfigurasi foto profil belum tersedia.", 500) };
+  }
+
+  const folder = profileMediaFolder(userId);
+  if (!folder) {
+    return { ok: false, response: jsonError("Identitas foto profil tidak valid.", 400) };
+  }
+
+  const publicLeaf = crypto.randomUUID();
+  const expectedPublicId = `${folder}/${publicLeaf}`;
+  const timestamp = Math.floor(Date.now() / 1000);
+  const signature = await sha1Hex(
+    `folder=${folder}&public_id=${publicLeaf}&timestamp=${timestamp}${apiSecret}`
+  );
+
+  const extension =
+    mimeType === "image/png" ? "png" :
+    mimeType === "image/webp" ? "webp" : "jpg";
+
+  const form = new FormData();
+  form.append("file", new Blob([buffer], { type: mimeType }), `avatar.${extension}`);
+  form.append("api_key", apiKey);
+  form.append("timestamp", String(timestamp));
+  form.append("folder", folder);
+  form.append("public_id", publicLeaf);
+  form.append("signature", signature);
+
+  const endpoint = `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/image/upload`;
+  const providerResponse = await fetch(endpoint, { method: "POST", body: form });
+  const data = await providerResponse.json().catch(() => ({}));
+
+  if (
+    !providerResponse.ok ||
+    !data.secure_url ||
+    String(data.public_id || "") !== expectedPublicId ||
+    String(data.resource_type || "") !== "image"
+  ) {
+    console.error("Profile media provider upload failed:", { status: providerResponse.status });
+    return { ok: false, response: jsonError("Foto profil gagal diunggah.", 502) };
+  }
+
+  const descriptor = parseOwnedProfileMediaUrl(data.secure_url, env, userId);
+  if (!descriptor || descriptor.publicId !== expectedPublicId) {
+    // public_id berasal dari nilai server-side yang kita generate sendiri.
+    // Bersihkan asset walau URL provider ternyata malformed/tidak lolos parser.
+    await destroyOwnedProfileMedia(env, { publicId: expectedPublicId }).catch(() => null);
+    console.error("Profile media provider returned unexpected ownership metadata.");
+    return { ok: false, response: jsonError("Foto profil gagal diverifikasi.", 502) };
+  }
+
+  return { ok: true, descriptor };
 }
 
 export async function handleProfileMediaApi(request, env) {
@@ -177,7 +207,6 @@ export async function handleProfileMediaApi(request, env) {
       `;
 
       const media = rows[0];
-
       if (!media?.image_base64) {
         return jsonError("Foto profil tidak ditemukan.", 404);
       }
@@ -194,21 +223,16 @@ export async function handleProfileMediaApi(request, env) {
         }
       });
     } catch (error) {
-      console.error("Profile avatar GET error:", error);
+      console.error("Profile avatar legacy GET error:", error);
       return jsonError("Foto profil belum dapat dimuat.", 500);
     }
   }
 
-  if (url.pathname !== "/api/profile/avatar") {
-    return null;
-  }
+  if (url.pathname !== "/api/profile/avatar") return null;
 
   if (request.method !== "PUT") {
     return new Response(
-      JSON.stringify({
-        ok: false,
-        error: "Metode tidak diizinkan."
-      }),
+      JSON.stringify({ ok: false, error: "Metode tidak diizinkan." }),
       {
         status: 405,
         headers: {
@@ -220,100 +244,60 @@ export async function handleProfileMediaApi(request, env) {
     );
   }
 
+  let uploadedDescriptor = null;
+
   try {
     const currentUser = await getAuthenticatedUser(sql, request);
-
     if (!currentUser) {
-      return jsonError(
-        "Silakan masuk kembali untuk mengganti foto profil.",
-        401
-      );
+      return jsonError("Silakan masuk kembali untuk mengganti foto profil.", 401);
     }
 
-    const mimeType = String(
-      request.headers.get("Content-Type") || ""
-    )
+    const mimeType = String(request.headers.get("Content-Type") || "")
       .split(";")[0]
       .trim()
       .toLowerCase();
 
     if (!ALLOWED_MIME_TYPES.has(mimeType)) {
-      return jsonError(
-        "Format foto harus JPG, PNG, atau WebP.",
-        415
-      );
+      return jsonError("Format foto harus JPG, PNG, atau WebP.", 415);
     }
 
-    const declaredLength = Number(
-      request.headers.get("Content-Length") || 0
-    );
-
-    if (
-      Number.isFinite(declaredLength) &&
-      declaredLength > MAX_AVATAR_BYTES
-    ) {
-      return jsonError(
-        "Ukuran foto profil terlalu besar.",
-        413
-      );
+    const declaredLength = Number(request.headers.get("Content-Length") || 0);
+    if (Number.isFinite(declaredLength) && declaredLength > MAX_AVATAR_BYTES) {
+      return jsonError("Ukuran foto profil terlalu besar.", 413);
     }
 
     const buffer = await request.arrayBuffer();
-
-    if (
-      buffer.byteLength === 0 ||
-      buffer.byteLength > MAX_AVATAR_BYTES
-    ) {
-      return jsonError(
-        "Ukuran foto profil harus di bawah 512 KB setelah diproses.",
-        413
-      );
+    if (buffer.byteLength === 0 || buffer.byteLength > MAX_AVATAR_BYTES) {
+      return jsonError("Ukuran foto profil harus di bawah 512 KB setelah diproses.", 413);
     }
 
     const bytes = new Uint8Array(buffer);
-
     if (!matchesImageSignature(bytes, mimeType)) {
-      return jsonError(
-        "Isi file tidak cocok dengan format gambar.",
-        400
-      );
+      return jsonError("Isi file tidak cocok dengan format gambar.", 400);
     }
 
     await ensureFunctionalityInfrastructure(sql);
 
-    const imageBase64 = arrayBufferToBase64(buffer);
+    const uploaded = await uploadProfileMedia(
+      env,
+      currentUser.id,
+      buffer,
+      mimeType
+    );
 
-    await sql`
-      INSERT INTO user_profile_media (
-        user_id,
-        image_data,
-        mime_type,
-        byte_size,
-        updated_at
-      )
-      VALUES (
-        ${currentUser.id},
-        decode(${imageBase64}, 'base64'),
-        ${mimeType},
-        ${buffer.byteLength},
-        NOW()
-      )
-      ON CONFLICT (user_id)
-      DO UPDATE SET
-        image_data = EXCLUDED.image_data,
-        mime_type = EXCLUDED.mime_type,
-        byte_size = EXCLUDED.byte_size,
-        updated_at = NOW()
-    `;
+    if (!uploaded.ok) return uploaded.response;
+    uploadedDescriptor = uploaded.descriptor;
 
-    const version = Date.now().toString(36);
-    const avatarUrl =
-      `/api/profile/avatar/${currentUser.id}?v=${version}`;
+    const previousDescriptor = parseOwnedProfileMediaUrl(
+      currentUser.avatar_url,
+      env,
+      currentUser.id
+    );
 
     const updatedUsers = await sql`
       UPDATE users
       SET
-        avatar_url = ${avatarUrl},
+        avatar_url = ${uploadedDescriptor.url},
         updated_at = NOW()
       WHERE id = ${currentUser.id}
       RETURNING
@@ -325,25 +309,45 @@ export async function handleProfileMediaApi(request, env) {
         updated_at
     `;
 
+    if (!updatedUsers[0]) {
+      await destroyOwnedProfileMedia(env, uploadedDescriptor).catch(() => null);
+      uploadedDescriptor = null;
+      return jsonError("Foto profil belum dapat disimpan.", 500);
+    }
+
+    // Database sekarang sudah menunjuk ke asset baru. Sejak titik ini,
+    // outer catch tidak boleh membersihkan asset yang sudah committed.
+    const committedDescriptor = uploadedDescriptor;
+    uploadedDescriptor = null;
+
+    if (
+      previousDescriptor &&
+      previousDescriptor.publicId !== committedDescriptor.publicId
+    ) {
+      await destroyOwnedProfileMedia(env, previousDescriptor).catch(error => {
+        console.error("Old profile media cleanup failed:", error);
+      });
+    }
+
     return Response.json(
       {
         ok: true,
         message: "Foto profil berhasil diperbarui.",
+        storage: "media_provider",
         user: updatedUsers[0]
       },
       {
         status: 200,
-        headers: {
-          "Cache-Control": "no-store"
-        }
+        headers: { "Cache-Control": "no-store" }
       }
     );
   } catch (error) {
     console.error("Profile avatar PUT error:", error);
 
-    return jsonError(
-      "Foto profil belum dapat disimpan.",
-      500
-    );
+    if (uploadedDescriptor) {
+      await destroyOwnedProfileMedia(env, uploadedDescriptor).catch(() => null);
+    }
+
+    return jsonError("Foto profil belum dapat disimpan.", 500);
   }
 }

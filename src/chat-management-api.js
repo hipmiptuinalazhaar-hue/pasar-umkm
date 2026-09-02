@@ -235,10 +235,10 @@ async function getMessages(sql, request, conversationId) {
         dm.conversation_id = ${conversationId}::uuid
         AND COALESCE(mus.is_hidden, FALSE) = FALSE
         AND (${conversation.hidden_before}::timestamptz IS NULL OR dm.created_at > ${conversation.hidden_before}::timestamptz)
-      ORDER BY dm.created_at DESC
+      ORDER BY dm.created_at DESC, dm.id DESC
       LIMIT 200
     ) recent
-    ORDER BY recent.created_at ASC
+    ORDER BY recent.created_at ASC, recent.id ASC
   `;
 
   return json({ ok: true, conversation, count: messages.length, messages });
@@ -269,19 +269,22 @@ async function messageMeta(sql, request, conversationId) {
   if (!conversation) return error("Percakapan tidak ditemukan.", 404);
 
   const messages = await sql`
-    SELECT
-      dm.id,
-      dm.sender_id,
-      dm.created_at
-    FROM direct_messages dm
-    LEFT JOIN direct_message_user_state mus
-      ON mus.message_id = dm.id AND mus.user_id = ${auth.user.id}
-    WHERE
-      dm.conversation_id = ${conversationId}::uuid
-      AND COALESCE(mus.is_hidden, FALSE) = FALSE
-      AND (${conversation.hidden_before}::timestamptz IS NULL OR dm.created_at > ${conversation.hidden_before}::timestamptz)
-    ORDER BY dm.created_at ASC
-    LIMIT 200
+    SELECT * FROM (
+      SELECT
+        dm.id,
+        dm.sender_id,
+        dm.created_at
+      FROM direct_messages dm
+      LEFT JOIN direct_message_user_state mus
+        ON mus.message_id = dm.id AND mus.user_id = ${auth.user.id}
+      WHERE
+        dm.conversation_id = ${conversationId}::uuid
+        AND COALESCE(mus.is_hidden, FALSE) = FALSE
+        AND (${conversation.hidden_before}::timestamptz IS NULL OR dm.created_at > ${conversation.hidden_before}::timestamptz)
+      ORDER BY dm.created_at DESC, dm.id DESC
+      LIMIT 200
+    ) recent
+    ORDER BY recent.created_at ASC, recent.id ASC
   `;
 
   return json({

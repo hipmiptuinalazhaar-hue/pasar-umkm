@@ -444,30 +444,33 @@ async function richMeta(sql, conversationId, user) {
   }
 
   const messages = await sql`
-    SELECT
-      dm.id,
-      dm.sender_id,
-      dm.message,
-      dm.message_type,
-      dm.media_url,
-      dm.media_name,
-      dm.media_duration_seconds,
-      dm.latitude,
-      dm.longitude,
-      dm.created_at,
-      dm.is_read,
-      dm.read_at
-    FROM direct_messages dm
-    LEFT JOIN direct_message_user_state mus
-      ON mus.message_id = dm.id AND mus.user_id = ${user.id}
-    LEFT JOIN direct_conversation_user_state cs
-      ON cs.conversation_id = dm.conversation_id AND cs.user_id = ${user.id}
-    WHERE
-      dm.conversation_id = ${conversationId}::uuid
-      AND COALESCE(mus.is_hidden, FALSE) = FALSE
-      AND (cs.hidden_before IS NULL OR dm.created_at > cs.hidden_before)
-    ORDER BY dm.created_at ASC, dm.id ASC
-    LIMIT 200
+    SELECT * FROM (
+      SELECT
+        dm.id,
+        dm.sender_id,
+        dm.message,
+        dm.message_type,
+        dm.media_url,
+        dm.media_name,
+        dm.media_duration_seconds,
+        dm.latitude,
+        dm.longitude,
+        dm.created_at,
+        dm.is_read,
+        dm.read_at
+      FROM direct_messages dm
+      LEFT JOIN direct_message_user_state mus
+        ON mus.message_id = dm.id AND mus.user_id = ${user.id}
+      LEFT JOIN direct_conversation_user_state cs
+        ON cs.conversation_id = dm.conversation_id AND cs.user_id = ${user.id}
+      WHERE
+        dm.conversation_id = ${conversationId}::uuid
+        AND COALESCE(mus.is_hidden, FALSE) = FALSE
+        AND (cs.hidden_before IS NULL OR dm.created_at > cs.hidden_before)
+      ORDER BY dm.created_at DESC, dm.id DESC
+      LIMIT 200
+    ) recent
+    ORDER BY recent.created_at ASC, recent.id ASC
   `;
 
   return json({
