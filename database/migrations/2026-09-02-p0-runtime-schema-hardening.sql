@@ -10,10 +10,9 @@
 -- Idempotent: aman dijalankan ulang pada database yang benar.
 -- =========================================================
 
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
 -- ---------------------------------------------------------
 -- GUARD: JANGAN PERNAH MEMBANGUN P0 DI DATABASE YANG SALAH
+-- IMPORTANT: blok ini wajib menjadi operasi pertama dan bersifat read-only.
 -- ---------------------------------------------------------
 DO $$
 DECLARE
@@ -51,6 +50,18 @@ BEGIN
       array_to_string(missing_objects, ', ');
   END IF;
 END $$;
+
+-- Mulai titik ini database target sudah lolos preflight.
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Pastikan helper updated_at tersedia sebelum trigger feature dibuat.
+CREATE OR REPLACE FUNCTION set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
 -- ---------------------------------------------------------
 -- MIGRATION LEDGER
