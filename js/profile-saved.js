@@ -294,3 +294,22 @@
     }
   );
 })();
+
+/* P4.12 loader: kept separate so the saved-tab patch can fail independently. */
+(() => {
+  if (!document.querySelector('link[data-chat-whatsapp-v5]')) {
+    const style = document.createElement('link');
+    style.rel = 'stylesheet';
+    style.href = 'css/chat-whatsapp-v5.css?v=5.0';
+    style.dataset.chatWhatsappV5 = 'true';
+    document.head.appendChild(style);
+  }
+
+  if (!document.querySelector('script[data-chat-whatsapp-v5]')) {
+    const script = document.createElement('script');
+    script.src = 'js/chat-whatsapp-v5.js?v=5.0';
+    script.defer = true;
+    script.dataset.chatWhatsappV5 = 'true';
+    document.body.appendChild(script);
+  }
+})();
