@@ -7,3 +7,9 @@ wrangler.jsonc
 package.json
 package-lock.json
 README.md
+
+# P3: keep source/design assets in git, exclude unused heavy files from Worker static upload.
+assets/images/
+assets/logo1.png
+assets/logo2.png
+assets/branding/
