@@ -17,6 +17,15 @@ const RULES = [
     includeAccount: true
   },
   {
+    name: "public-catalog",
+    match: (request, url) => request.method === "GET" && (
+      url.pathname === "/api/products" ||
+      url.pathname === "/api/stores"
+    ),
+    limit: 240,
+    windowMs: 60 * 1000
+  },
+  {
     name: "story-upload",
     match: (request, url) => request.method === "POST" && url.pathname === "/api/story-v2/upload-image",
     limit: 30,
