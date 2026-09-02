@@ -3,82 +3,63 @@ from pathlib import Path
 path = Path('src/functionality-api.js')
 text = path.read_text(encoding='utf-8')
 
-if text.count('FOR UPDATE OF p, s') != 1:
-    raise SystemExit('Expected exactly one product/store lock')
-text = text.replace('FOR UPDATE OF p, s', 'FOR UPDATE OF p', 1)
+old_cart = r'''      const cartResult = await client.query(
+        `
+          INSERT INTO carts (user_id)
+          VALUES ($1)
+          ON CONFLICT (user_id)
+          DO UPDATE SET updated_at = carts.updated_at
+          RETURNING id
+        `,
+        [auth.user.id]
+      );
 
-if text.count('FOR UPDATE OF o, s') != 1:
-    raise SystemExit('Expected exactly one order/store lock')
-text = text.replace('FOR UPDATE OF o, s', 'FOR UPDATE OF o', 1)
-
-old_ordering = '''          WHERE order_id = $1::uuid
-          ORDER BY created_at ASC, id ASC
+      const cartId = cartResult.rows[0]?.id;
+      if (!cartId) {
+        throw transactionError("Keranjang belum dapat diproses.", 500);
+      }
 '''
-new_ordering = '''          WHERE order_id = $1::uuid
-          ORDER BY product_id ASC NULLS LAST, id ASC
+
+new_cart = r'''      const cartResult = await client.query(
+        `
+          SELECT id
+          FROM carts
+          WHERE user_id = $1::uuid
+          FOR UPDATE
+        `,
+        [auth.user.id]
+      );
+
+      const cartId = cartResult.rows[0]?.id;
+      if (!cartId) {
+        throw transactionError("Keranjang masih kosong.", 409);
+      }
 '''
-if old_ordering not in text:
-    raise SystemExit('Order item locking order marker not found')
-text = text.replace(old_ordering, new_ordering, 1)
 
-checkout_start = text.index('async function checkoutCart(')
-insert_start = text.index('        const insertedOrder = await client.query(', checkout_start)
-insert_end = text.index('        const order = insertedOrder.rows[0];', insert_start)
-old_segment = text[insert_start:insert_end]
+if text.count(old_cart) != 1:
+    raise SystemExit('Expected exactly one checkout cart lock block')
 
-new_segment = r'''        const insertedOrder = await client.query(
-          `
-            INSERT INTO orders (
-              order_number,
-              buyer_id,
-              store_id,
-              status,
-              subtotal,
-              delivery_fee,
-              total,
-              customer_name,
-              customer_phone,
-              delivery_address,
-              notes
-            )
-            VALUES (
-              $1,
-              $2::uuid,
-              $3::uuid,
-              'pending',
-              $4,
-              0,
-              $4,
-              $5,
-              $6,
-              $7,
-              $8
-            )
-            RETURNING *
-          `,
-          [
-            number,
-            auth.user.id,
-            storeId,
-            subtotal,
-            customerName,
-            customerPhone,
-            deliveryAddress,
-            notes || null
-          ]
-        );
+text = text.replace(old_cart, new_cart, 1)
 
-'''
-text = text[:insert_start] + new_segment + text[insert_end:]
+required = [
+    'FOR UPDATE OF p',
+    'FOR UPDATE OF o',
+    'ORDER BY product_id ASC NULLS LAST, id ASC',
+    'await client.query("BEGIN")',
+    'await client.query("COMMIT")',
+    'await client.query("ROLLBACK")',
+]
+for marker in required:
+    if marker not in text:
+        raise SystemExit(f'Required transaction marker missing: {marker}')
 
-order_id_line = '        const orderId = crypto.randomUUID();\n'
-if order_id_line not in text:
-    raise SystemExit('Manual order ID line not found')
-text = text.replace(order_id_line, '', 1)
-
-if 'FOR UPDATE OF p, s' in text or 'FOR UPDATE OF o, s' in text:
-    raise SystemExit('Store row locks still present')
-if 'const orderId = crypto.randomUUID();' in text:
-    raise SystemExit('Manual order ID still present')
+for forbidden in [
+    'FOR UPDATE OF p, s',
+    'FOR UPDATE OF o, s',
+    'const orderId = crypto.randomUUID();',
+    'DO UPDATE SET updated_at = carts.updated_at',
+]:
+    if forbidden in text:
+        raise SystemExit(f'Forbidden transaction marker remains: {forbidden}')
 
 path.write_text(text, encoding='utf-8')
