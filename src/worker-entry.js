@@ -1,3 +1,4 @@
+import { neon } from "@neondatabase/serverless";
 import legacyWorker from "./worker.js";
 import { handleProfileApi } from "./profile-api.js";
 import { handleProfileMediaApi } from "./profile-media-api.js";
@@ -18,6 +19,8 @@ import { handleChatMediaApi } from "./chat-media-api.js";
 import { ensureNotificationInfrastructure } from "./notification-store.js";
 import { ensureFullFunctionalityInfrastructure } from "./functionality-bootstrap.js";
 
+const P0_MIGRATION = "2026-09-02-p0-runtime-schema-hardening";
+
 function schemaUnavailable(error) {
   console.error("Production schema verification failed:", error);
 
@@ -37,17 +40,120 @@ function schemaUnavailable(error) {
   );
 }
 
+async function handleHealth(env) {
+  try {
+    const sql = neon(env.DATABASE_URL);
+
+    const rows = await sql`
+      SELECT
+        current_database() AS database_name,
+        (
+          SELECT COUNT(*)::int
+          FROM information_schema.tables
+          WHERE table_schema = 'public'
+        ) AS public_tables,
+        to_regclass('public.users') IS NOT NULL AS users,
+        to_regclass('public.sessions') IS NOT NULL AS sessions,
+        to_regclass('public.categories') IS NOT NULL AS categories,
+        to_regclass('public.stores') IS NOT NULL AS stores,
+        to_regclass('public.products') IS NOT NULL AS products,
+        to_regclass('public.posts') IS NOT NULL AS posts,
+        to_regclass('public.orders') IS NOT NULL AS orders,
+        to_regclass('public.notifications') IS NOT NULL AS notifications,
+        to_regclass('public.schema_migrations') IS NOT NULL AS schema_migrations
+    `;
+
+    const state = rows[0] || {};
+    const required = [
+      "users",
+      "sessions",
+      "categories",
+      "stores",
+      "products",
+      "posts",
+      "orders",
+      "notifications"
+    ];
+
+    const missingCore = required.filter(name => !state[name]);
+    let p0Applied = false;
+    let latestMigration = null;
+
+    if (state.schema_migrations) {
+      const migrationRows = await sql`
+        SELECT version, applied_at
+        FROM schema_migrations
+        ORDER BY applied_at DESC, version DESC
+        LIMIT 1
+      `;
+
+      latestMigration = migrationRows[0]?.version || null;
+
+      const p0Rows = await sql`
+        SELECT EXISTS (
+          SELECT 1
+          FROM schema_migrations
+          WHERE version = ${P0_MIGRATION}
+        ) AS applied
+      `;
+
+      p0Applied = Boolean(p0Rows[0]?.applied);
+    }
+
+    return Response.json(
+      {
+        ok: true,
+        app: "Pasar UMKM",
+        backend: "Cloudflare Workers",
+        database: {
+          connected: true,
+          name: state.database_name,
+          public_tables: Number(state.public_tables || 0)
+        },
+        schema: {
+          core_ready: missingCore.length === 0,
+          missing_core: missingCore,
+          p0_migration: P0_MIGRATION,
+          p0_applied: p0Applied,
+          latest_migration: latestMigration
+        }
+      },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "no-store"
+        }
+      }
+    );
+  } catch (error) {
+    console.error("Health diagnostic error:", error);
+
+    return Response.json(
+      {
+        ok: false,
+        app: "Pasar UMKM",
+        error: "Database connection failed"
+      },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control": "no-store"
+        }
+      }
+    );
+  }
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
     /*
-     * Health endpoint harus tetap tersedia walaupun migration bermasalah.
-     * Endpoint ini read-only dan membantu memastikan DATABASE_URL menunjuk
-     * ke database production yang benar tanpa membocorkan credential.
+     * Health endpoint selalu read-only dan tidak menjalankan schema bootstrap.
+     * Ini menjadi sumber kebenaran DATABASE_URL setelah deployment.
      */
     if (url.pathname === "/api/health") {
-      return legacyWorker.fetch(request, env, ctx);
+      return handleHealth(env);
     }
 
     /*
