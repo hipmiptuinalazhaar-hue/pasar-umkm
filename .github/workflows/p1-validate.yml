@@ -39,12 +39,12 @@ jobs:
           set -euo pipefail
           file='src/rate-limit.js'
           test -s "$file"
-          grep -q '/api/auth/login' "$file"
-          grep -q '/api/auth/register' "$file"
-          grep -q '/api/story-v2/upload-image' "$file"
-          grep -q '/api/chat/media/upload' "$file"
-          grep -q 'status: 429' "$file"
-          grep -q 'Retry-After' "$file"
+          grep -Fq '/api/auth/login' "$file"
+          grep -Fq '/api/auth/register' "$file"
+          grep -Fq '/api/story-v2/upload-image' "$file"
+          grep -Fq '/api/chat/media/upload' "$file"
+          grep -Fq 'status: 429' "$file"
+          grep -Fq 'Retry-After' "$file"
 
       - name: Verify catalog pagination
         shell: bash
@@ -52,10 +52,10 @@ jobs:
           set -euo pipefail
           file='src/public-catalog-api.js'
           test -s "$file"
-          grep -q 'pagination' "$file"
-          grep -q 'LIMIT' "$file"
-          grep -q 'OFFSET' "$file"
-          grep -q 'COUNT(*)::int AS total' "$file"
+          grep -Fq 'pagination' "$file"
+          grep -Fq 'LIMIT' "$file"
+          grep -Fq 'OFFSET' "$file"
+          grep -Fq 'COUNT(*)::int AS total' "$file"
 
       - name: Verify P1 migration safety
         shell: bash
@@ -63,15 +63,15 @@ jobs:
           set -euo pipefail
           file='database/migrations/2026-09-02-p1-security-performance.sql'
           test -s "$file"
-          grep -q 'P1 migration ditolak' "$file"
-          grep -q '2026-09-02-p0-runtime-schema-hardening' "$file"
-          grep -q 'uq_stores_owner_id' "$file"
-          grep -q '2026-09-02-p1-security-performance' "$file"
+          grep -Fq 'P1 migration ditolak' "$file"
+          grep -Fq '2026-09-02-p0-runtime-schema-hardening' "$file"
+          grep -Fq 'uq_stores_owner_id' "$file"
+          grep -Fq '2026-09-02-p1-security-performance' "$file"
 
       - name: Verify entry-point wiring
         shell: bash
         run: |
           set -euo pipefail
-          grep -q 'enforceRateLimit' src/worker-entry.js
-          grep -q 'handlePublicCatalogApi' src/worker-entry.js
-          grep -q 'p1_applied' src/worker-entry.js
+          grep -Fq 'enforceRateLimit' src/worker-entry.js
+          grep -Fq 'handlePublicCatalogApi' src/worker-entry.js
+          grep -Fq 'p1_applied' src/worker-entry.js
