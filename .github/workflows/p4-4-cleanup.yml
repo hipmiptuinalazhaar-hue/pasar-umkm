@@ -1,0 +1,43 @@
+name: P4.4 Security Path Cleanup
+
+on:
+  push:
+    branches:
+      - p4-3-chat-integrity-security
+    paths:
+      - scripts/p4_4_backend_cleanup.py
+      - .github/workflows/p4-4-cleanup.yml
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: p4-3-chat-integrity-security
+          fetch-depth: 0
+
+      - name: Apply cleanup
+        run: python scripts/p4_4_backend_cleanup.py
+
+      - name: Validate cleanup
+        run: |
+          node --check src/chat-management-api.js
+          node --check js/chat-media-experience.js
+          ! grep -qF 'async function messageAction(' src/chat-management-api.js
+          ! grep -qF 'messageActionMatch' src/chat-management-api.js
+          grep -qF 'error.status = response.status' js/chat-media-experience.js
+          grep -qF "cameraInput.accept = 'image/jpeg,image/png,image/webp';" js/chat-media-experience.js
+
+      - name: Commit cleanup
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/chat-management-api.js js/chat-media-experience.js
+          git commit -m 'security(p4.4): remove duplicate legacy message-action path'
+          git push origin HEAD:p4-3-chat-integrity-security
