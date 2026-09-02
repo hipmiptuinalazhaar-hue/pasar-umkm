@@ -1,0 +1,124 @@
+name: P4.7 P4.8 Validation
+
+on:
+  push:
+    branches:
+      - p4-7-8-cursor-pagination
+  pull_request:
+    branches:
+      - p4-5-6-pipeline-supply-chain
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install exact locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Check JavaScript syntax
+        run: |
+          set -euo pipefail
+          node --check src/public-catalog-api.js
+          node --check src/rate-limit.js
+          node --check js/app.js
+          node --check js/app.runtime.js
+
+      - name: Verify P4.8 keyset pagination
+        run: |
+          set -euo pipefail
+          file='src/public-catalog-api.js'
+          grep -qF 'const DEFAULT_LIMIT = 24' "$file"
+          grep -qF 'const MAX_LIMIT = 50' "$file"
+          grep -qF 'const queryLimit = limit + 1' "$file"
+          grep -qF 'mode: "cursor"' "$file"
+          grep -qF 'next_cursor' "$file"
+          grep -qF '(p.created_at, p.id) <' "$file"
+          grep -qF 's.name > ${cursor.name}' "$file"
+          grep -qF 'CURSOR_REQUIRED' "$file"
+          grep -qF 'MAX_CURSOR_LENGTH' "$file"
+          ! grep -qF 'OFFSET ${offset}' "$file"
+          ! grep -qF 'COUNT(*)::int AS total' "$file"
+
+      - name: Attack-test rejected legacy and malformed cursors
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { handlePublicCatalogApi } from './src/public-catalog-api.js';
+
+          const env = { DATABASE_URL: 'postgresql://user:pass@localhost.invalid/db' };
+
+          for (const url of [
+            'https://example.test/api/products?page=99999',
+            'https://example.test/api/stores?page=2',
+            'https://example.test/api/products?cursor=not%2Bbase64%2Furl',
+            `https://example.test/api/stores?cursor=${'a'.repeat(900)}`
+          ]) {
+            const response = await handlePublicCatalogApi(new Request(url), env);
+            assert.equal(response.status, 400, url);
+            const data = await response.json();
+            assert.equal(data.ok, false, url);
+          }
+
+          console.log('Catalog cursor rejection tests passed');
+          NODE
+
+      - name: Verify bounded public catalog rate limit
+        run: |
+          set -euo pipefail
+          file='src/rate-limit.js'
+          grep -qF 'name: "public-catalog"' "$file"
+          grep -qF 'url.pathname === "/api/products"' "$file"
+          grep -qF 'url.pathname === "/api/stores"' "$file"
+          grep -qF 'limit: 240' "$file"
+          grep -qF 'windowMs: 60 * 1000' "$file"
+
+      - name: Verify P4.7 incremental frontend loading
+        run: |
+          set -euo pipefail
+          file='js/app.js'
+          grep -qF 'const CATALOG_PAGE_LIMIT = 24' "$file"
+          grep -qF 'CATALOG_PAGINATION' "$file"
+          grep -qF 'loadMoreProducts' "$file"
+          grep -qF 'loadMoreStores' "$file"
+          grep -qF 'catalog-load-more' "$file"
+          grep -qF 'stores-load-more' "$file"
+          grep -qF 'IntersectionObserver' "$file"
+          grep -qF "rootMargin: '700px 0px'" "$file"
+          grep -qF "category ||" "$file"
+          grep -qF "STATE.activeNav !== 'home'" "$file"
+          grep -qF 'cursor: state.nextCursor' "$file"
+
+      - name: Verify deterministic runtime stays in sync
+        run: |
+          set -euo pipefail
+          npm run build:runtime
+          node --check js/app.runtime.js
+          git diff --exit-code -- js/app.runtime.js css/style.runtime.css index.html
+
+      - name: Bundle Worker from locked toolchain
+        run: |
+          set -euo pipefail
+          ./node_modules/.bin/esbuild src/worker-entry.js \
+            --bundle \
+            --format=esm \
+            --platform=browser \
+            --target=es2022 \
+            --outfile=/tmp/worker-entry.js
+          test -s /tmp/worker-entry.js
+
+      - name: Verify one-time mutation tooling is absent
+        run: |
+          test ! -e scripts/p4_7_8_frontend_patch.py
+          test ! -e .github/workflows/p4-7-8-apply-frontend.yml
