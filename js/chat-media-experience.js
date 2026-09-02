@@ -53,7 +53,9 @@
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok || data.ok !== true) {
-      throw new Error(data.error || 'Aksi chat belum dapat diproses.');
+      const error = new Error(data.error || 'Aksi chat belum dapat diproses.');
+      error.status = response.status;
+      throw error;
     }
 
     return data;
@@ -185,7 +187,7 @@
 
     const cameraInput = document.createElement('input');
     cameraInput.type = 'file';
-    cameraInput.accept = 'image/*';
+    cameraInput.accept = 'image/jpeg,image/png,image/webp';
     cameraInput.setAttribute('capture', 'environment');
     cameraInput.className = 'chat-hidden-input';
     cameraInput.dataset.chatMediaInput = 'camera';
