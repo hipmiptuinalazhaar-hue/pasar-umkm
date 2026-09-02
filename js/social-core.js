@@ -340,7 +340,7 @@
     const fallback =
       typeof ASSETS !== 'undefined'
         ? ASSETS.logo
-        : 'assets/logo.png';
+        : 'assets/logo.webp';
 
     return `
       <button

@@ -52,7 +52,7 @@ const ASSETS = Object.freeze({
   /*
    * Sesuaikan jika nama file logo final berbeda.
    */
-  logo: 'assets/logo.png'
+  logo: 'assets/logo.webp'
 });
 
 
