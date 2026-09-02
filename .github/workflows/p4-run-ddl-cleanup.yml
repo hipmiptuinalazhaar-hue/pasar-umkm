@@ -1,0 +1,51 @@
+name: P4 Run Runtime DDL Cleanup
+
+on:
+  push:
+    branches:
+      - p4-transaction-runtime-ddl-hardening
+    paths:
+      - scripts/p4_remove_runtime_ddl.py
+      - .github/workflows/p4-run-ddl-cleanup.yml
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: p4-transaction-runtime-ddl-hardening
+          fetch-depth: 0
+
+      - name: Remove runtime DDL
+        run: python scripts/p4_remove_runtime_ddl.py
+
+      - name: Validate JavaScript syntax
+        run: |
+          for file in src/*.js; do
+            node --check "$file"
+          done
+
+      - name: Verify runtime DDL is zero
+        run: |
+          test ! -s audit/p4-runtime-ddl-leftovers.txt
+          ! grep -REni '\b(CREATE|ALTER|DROP)[[:space:]]+(TABLE|INDEX|TRIGGER|FUNCTION|EXTENSION|VIEW|TYPE|SCHEMA)\b' src/*.js
+          grep -qF 'ensureFunctionalityInfrastructure' src/chat-media-api.js
+          grep -qF 'ensureFunctionalityInfrastructure' src/chat-management-api.js
+          grep -qF 'ensureFunctionalityInfrastructure' src/profile-media-api.js
+          ! grep -qF 'ensureRichChatSchema' src/chat-media-api.js
+          ! grep -qF 'ensureChatSchema' src/chat-management-api.js
+          ! grep -qF 'ensureProfileMediaTable' src/profile-media-api.js
+
+      - name: Commit P4.2
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/chat-media-api.js src/chat-management-api.js src/profile-media-api.js
+          git commit -m 'fix(p4.2): remove remaining runtime schema DDL'
+          git push origin HEAD:p4-transaction-runtime-ddl-hardening
