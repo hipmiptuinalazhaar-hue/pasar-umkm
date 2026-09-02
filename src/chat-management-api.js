@@ -1,10 +1,8 @@
 import { neon } from "@neondatabase/serverless";
+import { ensureFunctionalityInfrastructure } from "./functionality-store.js";
 
 const SESSION_COOKIE = "__Host-pasar_umkm_session";
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
-let chatSchemaReady = false;
-let chatSchemaPromise = null;
 
 function json(data, status = 200) {
   return Response.json(data, {
@@ -32,73 +30,6 @@ function getCookie(request, name) {
 function uuid(value) {
   const id = String(value || "").trim().toLowerCase();
   return UUID_PATTERN.test(id) ? id : null;
-}
-
-async function ensureChatSchema(sql) {
-  if (chatSchemaReady) return;
-  if (chatSchemaPromise) return chatSchemaPromise;
-
-  chatSchemaPromise = (async () => {
-    await sql`
-      CREATE TABLE IF NOT EXISTS direct_conversation_user_state (
-        conversation_id UUID NOT NULL
-          REFERENCES direct_conversations(id)
-          ON DELETE CASCADE,
-        user_id UUID NOT NULL
-          REFERENCES users(id)
-          ON DELETE CASCADE,
-        hidden_before TIMESTAMPTZ,
-        is_pinned BOOLEAN NOT NULL DEFAULT FALSE,
-        is_archived BOOLEAN NOT NULL DEFAULT FALSE,
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        PRIMARY KEY (conversation_id, user_id)
-      )
-    `;
-
-    await sql`
-      ALTER TABLE direct_conversation_user_state
-      ADD COLUMN IF NOT EXISTS is_pinned BOOLEAN NOT NULL DEFAULT FALSE
-    `;
-
-    await sql`
-      ALTER TABLE direct_conversation_user_state
-      ADD COLUMN IF NOT EXISTS is_archived BOOLEAN NOT NULL DEFAULT FALSE
-    `;
-
-    await sql`
-      CREATE INDEX IF NOT EXISTS idx_direct_conversation_user_state_user
-      ON direct_conversation_user_state(user_id, updated_at DESC)
-    `;
-
-    await sql`
-      CREATE TABLE IF NOT EXISTS direct_message_user_state (
-        message_id UUID NOT NULL
-          REFERENCES direct_messages(id)
-          ON DELETE CASCADE,
-        user_id UUID NOT NULL
-          REFERENCES users(id)
-          ON DELETE CASCADE,
-        is_pinned BOOLEAN NOT NULL DEFAULT FALSE,
-        is_archived BOOLEAN NOT NULL DEFAULT FALSE,
-        is_hidden BOOLEAN NOT NULL DEFAULT FALSE,
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        PRIMARY KEY (message_id, user_id)
-      )
-    `;
-
-    await sql`
-      CREATE INDEX IF NOT EXISTS idx_direct_message_user_state_user
-      ON direct_message_user_state(user_id, updated_at DESC)
-    `;
-
-    chatSchemaReady = true;
-  })();
-
-  try {
-    await chatSchemaPromise;
-  } finally {
-    chatSchemaPromise = null;
-  }
 }
 
 async function currentUser(sql, request) {
@@ -549,7 +480,7 @@ export async function handleChatManagementApi(request, env) {
 
   try {
     const sql = neon(env.DATABASE_URL);
-    await ensureChatSchema(sql);
+    await ensureFunctionalityInfrastructure(sql);
 
     if (isSocialConversationList) return await listConversations(sql, request);
     if (isSocialUnread) return await unreadCount(sql, request);

@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { ensureFunctionalityInfrastructure } from "./functionality-store.js";
 
 const SESSION_COOKIE = "__Host-pasar_umkm_session";
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -13,9 +14,6 @@ const AUDIO_TYPES = new Set([
 ]);
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const MAX_AUDIO_BYTES = 12 * 1024 * 1024;
-
-let richChatReady = false;
-let richChatPromise = null;
 
 function json(data, status = 200) {
   return Response.json(data, {
@@ -40,45 +38,6 @@ function getCookie(request, name) {
 function uuid(value) {
   const id = String(value || "").trim().toLowerCase();
   return UUID_PATTERN.test(id) ? id : null;
-}
-
-async function ensureRichChatSchema(sql) {
-  if (richChatReady) return;
-  if (richChatPromise) return richChatPromise;
-
-  richChatPromise = (async () => {
-    await sql`
-      ALTER TABLE direct_messages
-      ADD COLUMN IF NOT EXISTS message_type VARCHAR(20) NOT NULL DEFAULT 'text'
-    `;
-    await sql`
-      ALTER TABLE direct_messages
-      ADD COLUMN IF NOT EXISTS media_url TEXT
-    `;
-    await sql`
-      ALTER TABLE direct_messages
-      ADD COLUMN IF NOT EXISTS media_name TEXT
-    `;
-    await sql`
-      ALTER TABLE direct_messages
-      ADD COLUMN IF NOT EXISTS media_duration_seconds INTEGER
-    `;
-    await sql`
-      ALTER TABLE direct_messages
-      ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION
-    `;
-    await sql`
-      ALTER TABLE direct_messages
-      ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION
-    `;
-    richChatReady = true;
-  })();
-
-  try {
-    await richChatPromise;
-  } finally {
-    richChatPromise = null;
-  }
 }
 
 async function currentUser(sql, request) {
@@ -353,7 +312,7 @@ export async function handleChatMediaApi(request, env) {
 
   try {
     const sql = neon(env.DATABASE_URL);
-    await ensureRichChatSchema(sql);
+    await ensureFunctionalityInfrastructure(sql);
 
     const user = await currentUser(sql, request);
     if (!user) return error("Silakan masuk terlebih dahulu.", 401);
