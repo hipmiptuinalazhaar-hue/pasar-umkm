@@ -1,0 +1,149 @@
+name: P4 Validation
+
+on:
+  push:
+    branches:
+      - p4-transaction-runtime-ddl-hardening
+  pull_request:
+    branches:
+      - p3-asset-bundle-optimization
+      - p2-frontend-performance
+      - p1-security-performance
+      - p0-runtime-schema-hardening
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check all runtime JavaScript syntax
+        run: |
+          set -euo pipefail
+          for file in src/*.js; do
+            node --check "$file"
+          done
+
+      - name: Verify Neon Client transaction capability
+        run: |
+          npm install --ignore-scripts --no-audit --no-fund
+          node --input-type=module <<'NODE'
+          import { Client, neon } from '@neondatabase/serverless';
+          if (typeof Client !== 'function') {
+            throw new Error('Neon Client export tidak tersedia');
+          }
+          if (typeof neon !== 'function') {
+            throw new Error('Neon HTTP export tidak tersedia');
+          }
+          NODE
+
+      - name: Verify P4.1 transaction lifecycle
+        run: |
+          set -euo pipefail
+          file='src/functionality-api.js'
+
+          grep -qF 'import { Client, neon } from "@neondatabase/serverless";' "$file"
+          grep -qF 'new Client({ connectionString: env.DATABASE_URL })' "$file"
+          grep -qF 'await client.query("BEGIN")' "$file"
+          grep -qF 'await client.query("COMMIT")' "$file"
+          grep -qF 'await client.query("ROLLBACK")' "$file"
+          grep -qF 'await client.end()' "$file"
+
+          grep -qF 'checkoutCart(sql, request, env)' "$file"
+          grep -qF 'updateOrderStatus(sql, request, orderId, env)' "$file"
+          grep -qF 'handleOrders(sql, request, url, env)' "$file"
+
+          ! grep -qF 'const decremented = []' "$file"
+          ! grep -qF 'for (const item of decremented.reverse())' "$file"
+          ! grep -qF 'DO UPDATE SET updated_at = carts.updated_at' "$file"
+          ! grep -qF 'const orderId = crypto.randomUUID();' "$file"
+
+      - name: Verify P4.1 lock ordering and stock guards
+        run: |
+          set -euo pipefail
+          file='src/functionality-api.js'
+
+          grep -qF 'FROM carts' "$file"
+          grep -qF 'WHERE user_id = $1::uuid' "$file"
+          grep -qF 'FOR UPDATE OF p' "$file"
+          grep -qF 'FOR UPDATE OF o' "$file"
+          grep -qF 'ORDER BY p.id ASC' "$file"
+          grep -qF 'ORDER BY product_id ASC NULLS LAST, id ASC' "$file"
+          grep -qF 'AND stock >= $1' "$file"
+
+          ! grep -qF 'FOR UPDATE OF p, s' "$file"
+          ! grep -qF 'FOR UPDATE OF o, s' "$file"
+
+      - name: Verify P4.2 zero runtime schema DDL
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          pattern = re.compile(
+              r'\b(?:CREATE|ALTER|DROP)\s+'
+              r'(?:TABLE|INDEX|TRIGGER|FUNCTION|EXTENSION|VIEW|TYPE|SCHEMA)\b',
+              re.IGNORECASE,
+          )
+
+          violations = []
+          for path in sorted(Path('src').glob('*.js')):
+              text = path.read_text(encoding='utf-8')
+              for match in pattern.finditer(text):
+                  line = text.count('\n', 0, match.start()) + 1
+                  violations.append(f'{path}:{line}: {match.group(0)}')
+
+          if violations:
+              raise SystemExit(
+                  'Runtime schema DDL ditemukan:\n' + '\n'.join(violations)
+              )
+
+          print('Runtime schema DDL: 0')
+
+      - name: Verify removed legacy schema bootstraps
+        run: |
+          set -euo pipefail
+          ! grep -qF 'ensureRichChatSchema' src/chat-media-api.js
+          ! grep -qF 'ensureChatSchema' src/chat-management-api.js
+          ! grep -qF 'ensureProfileMediaTable' src/profile-media-api.js
+
+          grep -qF 'ensureFunctionalityInfrastructure' src/chat-media-api.js
+          grep -qF 'ensureFunctionalityInfrastructure' src/chat-management-api.js
+          grep -qF 'ensureFunctionalityInfrastructure' src/profile-media-api.js
+
+      - name: Verify P0 migration owns required schema
+        run: |
+          set -euo pipefail
+          migration='database/migrations/2026-09-02-p0-runtime-schema-hardening.sql'
+
+          grep -qF 'CREATE TABLE IF NOT EXISTS direct_conversation_user_state' "$migration"
+          grep -qF 'CREATE TABLE IF NOT EXISTS direct_message_user_state' "$migration"
+          grep -qF 'CREATE TABLE IF NOT EXISTS user_profile_media' "$migration"
+          grep -qF 'ADD COLUMN IF NOT EXISTS message_type' "$migration"
+          grep -qF 'ADD COLUMN IF NOT EXISTS media_url' "$migration"
+          grep -qF 'ADD COLUMN IF NOT EXISTS media_name' "$migration"
+          grep -qF 'ADD COLUMN IF NOT EXISTS media_duration_seconds' "$migration"
+          grep -qF 'ADD COLUMN IF NOT EXISTS latitude' "$migration"
+          grep -qF 'ADD COLUMN IF NOT EXISTS longitude' "$migration"
+
+      - name: Verify no one-time P4 mutation tooling remains
+        run: |
+          set -euo pipefail
+          test ! -e scripts/p4_transaction_patch.py
+          test ! -e scripts/p4_remove_runtime_ddl.py
+          test ! -e scripts/p4_transaction_refine.py
+          test ! -e .github/workflows/p4-apply-transaction-hardening.yml
+          test ! -e .github/workflows/p4-run-transaction-patch.yml
+          test ! -e .github/workflows/p4-run-ddl-cleanup.yml
+          test ! -e .github/workflows/p4-run-transaction-refine.yml

@@ -1,4 +1,4 @@
-import { neon } from "@neondatabase/serverless";
+import { Client, neon } from "@neondatabase/serverless";
 import { ensureFunctionalityInfrastructure } from "./functionality-store.js";
 
 const SESSION_COOKIE = "__Host-pasar_umkm_session";
@@ -538,6 +538,45 @@ async function handleSaved(sql, request, url) {
   return jsonError("Metode tidak diizinkan.", 405);
 }
 
+function transactionError(message, status = 409) {
+  const error = new Error(message);
+  error.status = status;
+  return error;
+}
+
+async function withDbTransaction(env, work) {
+  const client = new Client({ connectionString: env.DATABASE_URL });
+  let inTransaction = false;
+
+  try {
+    await client.connect();
+    await client.query("BEGIN");
+    inTransaction = true;
+
+    const result = await work(client);
+
+    await client.query("COMMIT");
+    inTransaction = false;
+    return result;
+  } catch (error) {
+    if (inTransaction) {
+      try {
+        await client.query("ROLLBACK");
+      } catch (rollbackError) {
+        console.error("Database rollback failed:", rollbackError);
+      }
+    }
+
+    throw error;
+  } finally {
+    try {
+      await client.end();
+    } catch (closeError) {
+      console.error("Database client close failed:", closeError);
+    }
+  }
+}
+
 function orderNumber() {
   const stamp = Date.now().toString().slice(-10);
   const suffix = crypto.randomUUID().replace(/-/g, "").slice(0, 6).toUpperCase();
@@ -560,7 +599,7 @@ async function getOrderItems(sql, orderId) {
   `;
 }
 
-async function checkoutCart(sql, request) {
+async function checkoutCart(sql, request, env) {
   const auth = await requireUser(sql, request);
 
   if (auth.response) {
@@ -590,170 +629,238 @@ async function checkoutCart(sql, request) {
     return jsonError("Alamat pengantaran belum valid.", 400);
   }
 
-  const cart = await getCart(sql, auth.user.id);
-
-  if (!cart.items.length) {
-    return jsonError("Keranjang masih kosong.", 409);
-  }
-
-  const groups = new Map();
-
-  for (const item of cart.items) {
-    const quantity = Number(item.quantity || 0);
-    const stock = Number(item.stock || 0);
-
-    if (quantity < 1 || quantity > stock) {
-      return jsonError(
-        `Stok ${item.name || "produk"} tidak mencukupi.`,
-        409
-      );
-    }
-
-    const storeId = String(item.store_id);
-
-    if (!groups.has(storeId)) {
-      groups.set(storeId, []);
-    }
-
-    groups.get(storeId).push(item);
-  }
-
-  const createdOrders = [];
-  const decremented = [];
-
   try {
-    for (const [storeId, items] of groups.entries()) {
-      const subtotal = items.reduce(
-        (sum, item) =>
-          sum + Number(item.price || 0) * Number(item.quantity || 0),
-        0
+    const createdOrders = await withDbTransaction(env, async client => {
+      const cartResult = await client.query(
+        `
+          SELECT id
+          FROM carts
+          WHERE user_id = $1::uuid
+          FOR UPDATE
+        `,
+        [auth.user.id]
       );
 
-      const stores = await sql`
-        SELECT id, owner_id, name
-        FROM stores
-        WHERE
-          id = ${storeId}::uuid
-          AND is_active = TRUE
-        LIMIT 1
-      `;
-
-      if (!stores[0]) {
-        throw new Error("UMKM pada keranjang tidak lagi tersedia.");
+      const cartId = cartResult.rows[0]?.id;
+      if (!cartId) {
+        throw transactionError("Keranjang masih kosong.", 409);
       }
 
-      const insertedOrders = await sql`
-        INSERT INTO orders (
-          order_number,
-          buyer_id,
-          store_id,
-          status,
-          subtotal,
-          delivery_fee,
-          total,
-          customer_name,
-          customer_phone,
-          delivery_address,
-          notes
-        )
-        VALUES (
-          ${orderNumber()},
-          ${auth.user.id},
-          ${storeId}::uuid,
-          'pending',
-          ${subtotal},
-          0,
-          ${subtotal},
-          ${customerName},
-          ${customerPhone},
-          ${deliveryAddress},
-          ${notes || null}
-        )
-        RETURNING *
-      `;
+      const cartItemsResult = await client.query(
+        `
+          SELECT id, product_id, quantity, created_at
+          FROM cart_items
+          WHERE cart_id = $1
+          ORDER BY created_at ASC, id ASC
+          FOR UPDATE
+        `,
+        [cartId]
+      );
 
-      const order = insertedOrders[0];
-      createdOrders.push(order);
+      const cartItems = cartItemsResult.rows;
+      if (!cartItems.length) {
+        throw transactionError("Keranjang masih kosong.", 409);
+      }
 
-      for (const item of items) {
-        const quantity = Number(item.quantity || 0);
-        const price = Number(item.price || 0);
+      const productIds = cartItems.map(item => item.product_id);
+      const productsResult = await client.query(
+        `
+          SELECT
+            p.id,
+            p.name,
+            p.price,
+            p.stock,
+            p.store_id,
+            p.is_active,
+            s.name AS store_name,
+            s.owner_id,
+            s.is_active AS store_active
+          FROM products p
+          JOIN stores s ON s.id = p.store_id
+          WHERE p.id = ANY($1::uuid[])
+          ORDER BY p.id ASC
+          FOR UPDATE OF p
+        `,
+        [productIds]
+      );
 
-        const stockRows = await sql`
-          UPDATE products
-          SET
-            stock = stock - ${quantity},
-            updated_at = NOW()
-          WHERE
-            id = ${item.product_id}::uuid
-            AND is_active = TRUE
-            AND stock >= ${quantity}
-          RETURNING id
-        `;
+      const products = new Map(
+        productsResult.rows.map(product => [String(product.id), product])
+      );
+      const groups = new Map();
 
-        if (!stockRows[0]) {
-          throw new Error(`Stok ${item.name || "produk"} berubah. Coba checkout kembali.`);
+      for (const cartItem of cartItems) {
+        const product = products.get(String(cartItem.product_id));
+        if (!product || !product.is_active || !product.store_active) {
+          throw transactionError("Ada produk di keranjang yang tidak lagi tersedia.", 409);
         }
 
-        decremented.push({
-          product_id: item.product_id,
-          quantity
-        });
+        const quantity = Number(cartItem.quantity || 0);
+        const stock = Number(product.stock || 0);
+        const price = Number(product.price || 0);
 
-        await sql`
-          INSERT INTO order_items (
-            order_id,
-            product_id,
-            product_name,
-            product_price,
-            quantity,
-            subtotal
-          )
-          VALUES (
-            ${order.id},
-            ${item.product_id}::uuid,
-            ${String(item.name || "Produk")},
-            ${price},
-            ${quantity},
-            ${price * quantity}
-          )
-        `;
+        if (!Number.isInteger(quantity) || quantity < 1) {
+          throw transactionError("Jumlah produk di keranjang tidak valid.", 409);
+        }
+
+        if (quantity > stock) {
+          throw transactionError(`Stok ${product.name || "produk"} tidak mencukupi.`, 409);
+        }
+
+        const normalized = {
+          product_id: product.id,
+          name: product.name,
+          price,
+          quantity,
+          store_id: product.store_id,
+          store_name: product.store_name,
+          owner_id: product.owner_id
+        };
+        const storeId = String(product.store_id);
+
+        if (!groups.has(storeId)) {
+          groups.set(storeId, []);
+        }
+        groups.get(storeId).push(normalized);
       }
 
-      await sql`
-        INSERT INTO notifications (
-          user_id,
-          type,
-          title,
-          message,
-          target_type,
-          target_id,
-          actor_user_id,
-          entity_type,
-          entity_id,
-          is_read,
-          created_at
-        )
-        VALUES (
-          ${stores[0].owner_id},
-          'order',
-          'Pesanan baru',
-          ${`${auth.user.name || "Pembeli"} membuat pesanan ${order.order_number}.`},
-          'order',
-          ${order.id},
-          ${auth.user.id},
-          'order',
-          ${order.id},
-          FALSE,
-          NOW()
-        )
-      `;
-    }
+      const orders = [];
 
-    await sql`
-      DELETE FROM cart_items
-      WHERE cart_id = ${cart.id}
-    `;
+      for (const [storeId, items] of groups.entries()) {
+        const subtotal = items.reduce(
+          (sum, item) => sum + item.price * item.quantity,
+          0
+        );
+        const number = orderNumber();
+
+        const insertedOrder = await client.query(
+          `
+            INSERT INTO orders (
+              order_number,
+              buyer_id,
+              store_id,
+              status,
+              subtotal,
+              delivery_fee,
+              total,
+              customer_name,
+              customer_phone,
+              delivery_address,
+              notes
+            )
+            VALUES (
+              $1,
+              $2::uuid,
+              $3::uuid,
+              'pending',
+              $4,
+              0,
+              $4,
+              $5,
+              $6,
+              $7,
+              $8
+            )
+            RETURNING *
+          `,
+          [
+            number,
+            auth.user.id,
+            storeId,
+            subtotal,
+            customerName,
+            customerPhone,
+            deliveryAddress,
+            notes || null
+          ]
+        );
+
+        const order = insertedOrder.rows[0];
+        if (!order) {
+          throw transactionError("Pesanan gagal dibuat.", 500);
+        }
+
+        for (const item of items) {
+          const stockResult = await client.query(
+            `
+              UPDATE products
+              SET
+                stock = stock - $1,
+                updated_at = NOW()
+              WHERE
+                id = $2::uuid
+                AND is_active = TRUE
+                AND stock >= $1
+              RETURNING id, stock
+            `,
+            [item.quantity, item.product_id]
+          );
+
+          if (!stockResult.rows[0]) {
+            throw transactionError(
+              `Stok ${item.name || "produk"} berubah. Coba checkout kembali.`,
+              409
+            );
+          }
+
+          await client.query(
+            `
+              INSERT INTO order_items (
+                order_id,
+                product_id,
+                product_name,
+                product_price,
+                quantity,
+                subtotal
+              )
+              VALUES ($1::uuid, $2::uuid, $3, $4, $5, $6)
+            `,
+            [
+              order.id,
+              item.product_id,
+              String(item.name || "Produk"),
+              item.price,
+              item.quantity,
+              item.price * item.quantity
+            ]
+          );
+        }
+
+        await client.query(
+          `
+            INSERT INTO notifications (
+              user_id,
+              type,
+              title,
+              message,
+              target_type,
+              target_id,
+              actor_user_id,
+              entity_type,
+              entity_id,
+              is_read,
+              created_at
+            )
+            VALUES ($1::uuid, 'order', 'Pesanan baru', $2, 'order', $3::uuid, $4::uuid, 'order', $3::uuid, FALSE, NOW())
+          `,
+          [
+            items[0].owner_id,
+            `${auth.user.name || "Pembeli"} membuat pesanan ${order.order_number}.`,
+            order.id,
+            auth.user.id
+          ]
+        );
+
+        orders.push(order);
+      }
+
+      await client.query(
+        `DELETE FROM cart_items WHERE cart_id = $1::uuid`,
+        [cartId]
+      );
+
+      return orders;
+    });
 
     return json({
       ok: true,
@@ -761,26 +868,14 @@ async function checkoutCart(sql, request) {
       orders: createdOrders
     }, 201);
   } catch (error) {
-    for (const item of decremented.reverse()) {
-      await sql`
-        UPDATE products
-        SET
-          stock = stock + ${item.quantity},
-          updated_at = NOW()
-        WHERE id = ${item.product_id}::uuid
-      `.catch(() => null);
+    if (error?.code === "40001" || error?.code === "40P01") {
+      return jsonError("Checkout sedang bersaing dengan transaksi lain. Silakan coba lagi.", 409);
     }
 
-    for (const order of createdOrders.reverse()) {
-      await sql`
-        DELETE FROM orders
-        WHERE id = ${order.id}
-      `.catch(() => null);
-    }
-
+    console.error("Checkout transaction error:", error);
     return jsonError(
       error?.message || "Checkout belum dapat diproses.",
-      409
+      Number.isInteger(error?.status) ? error.status : 500
     );
   }
 }
@@ -885,7 +980,7 @@ function canTransition(current, next, isSeller, isBuyer) {
   return Boolean(allowed[current]?.has(next));
 }
 
-async function updateOrderStatus(sql, request, orderId) {
+async function updateOrderStatus(sql, request, orderId, env) {
   const auth = await requireUser(sql, request);
 
   if (auth.response) {
@@ -907,106 +1002,147 @@ async function updateOrderStatus(sql, request, orderId) {
     return jsonError("Status pesanan tidak valid.", 400);
   }
 
-  const rows = await sql`
-    SELECT
-      o.*,
-      s.owner_id AS seller_user_id,
-      s.name AS store_name
-    FROM orders o
-    JOIN stores s ON s.id = o.store_id
-    WHERE o.id = ${orderId}::uuid
-    LIMIT 1
-  `;
+  try {
+    const result = await withDbTransaction(env, async client => {
+      const orderResult = await client.query(
+        `
+          SELECT
+            o.*,
+            s.owner_id AS seller_user_id,
+            s.name AS store_name
+          FROM orders o
+          JOIN stores s ON s.id = o.store_id
+          WHERE o.id = $1::uuid
+          FOR UPDATE OF o
+        `,
+        [orderId]
+      );
 
-  const order = rows[0];
-
-  if (!order) {
-    return jsonError("Pesanan tidak ditemukan.", 404);
-  }
-
-  const isAdmin = auth.user.role === "admin";
-  const isSeller = isAdmin || String(order.seller_user_id) === String(auth.user.id);
-  const isBuyer = String(order.buyer_id) === String(auth.user.id) && !isSeller;
-
-  if (!canTransition(order.status, nextStatus, isSeller, isBuyer)) {
-    return jsonError("Perubahan status pesanan tidak diizinkan.", 403);
-  }
-
-  if (nextStatus === "cancelled" && order.status !== "cancelled") {
-    const items = await getOrderItems(sql, order.id);
-
-    for (const item of items) {
-      if (item.product_id) {
-        await sql`
-          UPDATE products
-          SET
-            stock = stock + ${Number(item.quantity || 0)},
-            updated_at = NOW()
-          WHERE id = ${item.product_id}
-        `;
+      const order = orderResult.rows[0];
+      if (!order) {
+        throw transactionError("Pesanan tidak ditemukan.", 404);
       }
+
+      const isAdmin = auth.user.role === "admin";
+      const isSeller = isAdmin || String(order.seller_user_id) === String(auth.user.id);
+      const isBuyer = String(order.buyer_id) === String(auth.user.id) && !isSeller;
+
+      if (!isSeller && !isBuyer) {
+        throw transactionError("Anda tidak memiliki akses ke pesanan ini.", 403);
+      }
+
+      if (!canTransition(order.status, nextStatus, isSeller, isBuyer)) {
+        throw transactionError("Perubahan status pesanan tidak diizinkan.", 403);
+      }
+
+      const itemsResult = await client.query(
+        `
+          SELECT
+            id,
+            product_id,
+            product_name,
+            product_price,
+            quantity,
+            subtotal,
+            created_at
+          FROM order_items
+          WHERE order_id = $1::uuid
+          ORDER BY product_id ASC NULLS LAST, id ASC
+        `,
+        [order.id]
+      );
+      const items = itemsResult.rows;
+
+      if (nextStatus === "cancelled" && order.status !== "cancelled") {
+        for (const item of items) {
+          if (!item.product_id) continue;
+
+          await client.query(
+            `
+              UPDATE products
+              SET
+                stock = stock + $1,
+                updated_at = NOW()
+              WHERE id = $2::uuid
+            `,
+            [Number(item.quantity || 0), item.product_id]
+          );
+        }
+      }
+
+      const updatedResult = await client.query(
+        `
+          UPDATE orders
+          SET
+            status = $1,
+            updated_at = NOW()
+          WHERE id = $2::uuid
+          RETURNING *
+        `,
+        [nextStatus, order.id]
+      );
+      const updated = updatedResult.rows[0];
+
+      const recipientId = isBuyer ? order.seller_user_id : order.buyer_id;
+      if (recipientId && String(recipientId) !== String(auth.user.id)) {
+        await client.query(
+          `
+            INSERT INTO notifications (
+              user_id,
+              type,
+              title,
+              message,
+              target_type,
+              target_id,
+              actor_user_id,
+              entity_type,
+              entity_id,
+              is_read,
+              created_at
+            )
+            VALUES ($1::uuid, 'order', 'Status pesanan diperbarui', $2, 'order', $3::uuid, $4::uuid, 'order', $3::uuid, FALSE, NOW())
+          `,
+          [
+            recipientId,
+            `Pesanan ${order.order_number} sekarang berstatus ${nextStatus}.`,
+            order.id,
+            auth.user.id
+          ]
+        );
+      }
+
+      return {
+        order: updated,
+        items
+      };
+    });
+
+    return json({
+      ok: true,
+      order: {
+        ...result.order,
+        items: result.items
+      }
+    });
+  } catch (error) {
+    if (error?.code === "40001" || error?.code === "40P01") {
+      return jsonError("Status pesanan berubah bersamaan. Silakan coba lagi.", 409);
     }
+
+    console.error("Order status transaction error:", error);
+    return jsonError(
+      error?.message || "Status pesanan belum dapat diperbarui.",
+      Number.isInteger(error?.status) ? error.status : 500
+    );
   }
-
-  const updated = await sql`
-    UPDATE orders
-    SET
-      status = ${nextStatus},
-      updated_at = NOW()
-    WHERE id = ${orderId}::uuid
-    RETURNING *
-  `;
-
-  const recipientId = isBuyer
-    ? order.seller_user_id
-    : order.buyer_id;
-
-  if (recipientId && String(recipientId) !== String(auth.user.id)) {
-    await sql`
-      INSERT INTO notifications (
-        user_id,
-        type,
-        title,
-        message,
-        target_type,
-        target_id,
-        actor_user_id,
-        entity_type,
-        entity_id,
-        is_read,
-        created_at
-      )
-      VALUES (
-        ${recipientId},
-        'order',
-        'Status pesanan diperbarui',
-        ${`Pesanan ${order.order_number} sekarang berstatus ${nextStatus}.`},
-        'order',
-        ${order.id},
-        ${auth.user.id},
-        'order',
-        ${order.id},
-        FALSE,
-        NOW()
-      )
-    `;
-  }
-
-  return json({
-    ok: true,
-    order: {
-      ...updated[0],
-      items: await getOrderItems(sql, order.id)
-    }
-  });
 }
 
-async function handleOrders(sql, request, url) {
+async function handleOrders(sql, request, url, env) {
   if (
     url.pathname === "/api/commerce/checkout" &&
     request.method === "POST"
   ) {
-    return await checkoutCart(sql, request);
+    return await checkoutCart(sql, request, env);
   }
 
   if (
@@ -1027,7 +1163,7 @@ async function handleOrders(sql, request, url) {
       return jsonError("Pesanan tidak valid.", 400);
     }
 
-    return await updateOrderStatus(sql, request, orderId);
+    return await updateOrderStatus(sql, request, orderId, env);
   }
 
   return null;
@@ -1490,7 +1626,7 @@ export async function handleFunctionalityApi(request, env) {
     const sellerResponse = await handleSellerSummary(sql, request, url);
     if (sellerResponse) return sellerResponse;
 
-    const orderResponse = await handleOrders(sql, request, url);
+    const orderResponse = await handleOrders(sql, request, url, env);
     if (orderResponse) return orderResponse;
 
     if (url.pathname.startsWith("/api/commerce/cart")) {

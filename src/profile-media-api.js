@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { ensureFunctionalityInfrastructure } from "./functionality-store.js";
 
 const SESSION_COOKIE = "__Host-pasar_umkm_session";
 const MAX_AVATAR_BYTES = 512 * 1024;
@@ -7,8 +8,6 @@ const ALLOWED_MIME_TYPES = new Set([
   "image/png",
   "image/webp"
 ]);
-
-let mediaTableReady = false;
 
 function getCookie(request, name) {
   const cookieHeader = request.headers.get("Cookie");
@@ -32,39 +31,6 @@ function isUuid(value) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
     String(value || "")
   );
-}
-
-async function ensureProfileMediaTable(sql) {
-  if (mediaTableReady) {
-    return;
-  }
-
-  await sql`
-    CREATE TABLE IF NOT EXISTS user_profile_media (
-      user_id UUID PRIMARY KEY
-        REFERENCES users(id)
-        ON DELETE CASCADE,
-      image_data BYTEA NOT NULL,
-      mime_type VARCHAR(30) NOT NULL,
-      byte_size INTEGER NOT NULL,
-      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      CONSTRAINT user_profile_media_mime_check
-        CHECK (
-          mime_type IN (
-            'image/jpeg',
-            'image/png',
-            'image/webp'
-          )
-        ),
-      CONSTRAINT user_profile_media_size_check
-        CHECK (
-          byte_size > 0
-          AND byte_size <= 524288
-        )
-    )
-  `;
-
-  mediaTableReady = true;
 }
 
 async function getAuthenticatedUser(sql, request) {
@@ -197,7 +163,7 @@ export async function handleProfileMediaApi(request, env) {
     }
 
     try {
-      await ensureProfileMediaTable(sql);
+      await ensureFunctionalityInfrastructure(sql);
 
       const rows = await sql`
         SELECT
@@ -313,7 +279,7 @@ export async function handleProfileMediaApi(request, env) {
       );
     }
 
-    await ensureProfileMediaTable(sql);
+    await ensureFunctionalityInfrastructure(sql);
 
     const imageBase64 = arrayBufferToBase64(buffer);
 
