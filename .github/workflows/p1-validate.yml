@@ -43,19 +43,23 @@ jobs:
           grep -Fq '/api/auth/register' "$file"
           grep -Fq '/api/story-v2/upload-image' "$file"
           grep -Fq '/api/chat/media/upload' "$file"
+          grep -Fq 'name: "public-catalog"' "$file"
           grep -Fq 'status: 429' "$file"
           grep -Fq 'Retry-After' "$file"
 
-      - name: Verify catalog pagination
+      - name: Verify catalog cursor pagination
         shell: bash
         run: |
           set -euo pipefail
           file='src/public-catalog-api.js'
           test -s "$file"
-          grep -Fq 'pagination' "$file"
-          grep -Fq 'LIMIT' "$file"
-          grep -Fq 'OFFSET' "$file"
-          grep -Fq 'COUNT(*)::int AS total' "$file"
+          grep -Fq 'mode: "cursor"' "$file"
+          grep -Fq 'next_cursor' "$file"
+          grep -Fq 'LIMIT ${queryLimit}' "$file"
+          grep -Fq 'const queryLimit = limit + 1' "$file"
+          grep -Fq '(p.created_at, p.id) <' "$file"
+          ! grep -Fq 'OFFSET ${offset}' "$file"
+          ! grep -Fq 'COUNT(*)::int AS total' "$file"
 
       - name: Verify P1 migration safety
         shell: bash
