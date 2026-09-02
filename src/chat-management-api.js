@@ -388,76 +388,6 @@ async function conversationAction(sql, request, conversationId) {
   });
 }
 
-async function messageAction(sql, request, messageId) {
-  const auth = await requireUser(sql, request);
-  if (auth.response) return auth.response;
-
-  const rows = await sql`
-    SELECT dm.id, dm.conversation_id, dm.sender_id
-    FROM direct_messages dm
-    JOIN direct_conversations c ON c.id = dm.conversation_id
-    WHERE
-      dm.id = ${messageId}::uuid
-      AND (c.user_a_id = ${auth.user.id} OR c.user_b_id = ${auth.user.id})
-    LIMIT 1
-  `;
-
-  const message = rows[0];
-  if (!message) return error("Pesan tidak ditemukan.", 404);
-
-  const body = await request.json().catch(() => null);
-  const action = String(body?.action || "").trim().toLowerCase();
-
-  if (action === "delete_me") {
-    await sql`
-      INSERT INTO direct_message_user_state (
-        message_id,
-        user_id,
-        is_hidden,
-        updated_at
-      )
-      VALUES (
-        ${messageId}::uuid,
-        ${auth.user.id},
-        TRUE,
-        NOW()
-      )
-      ON CONFLICT (message_id, user_id)
-      DO UPDATE SET is_hidden = TRUE, updated_at = NOW()
-    `;
-
-    return json({
-      ok: true,
-      action,
-      message_id: messageId,
-      conversation_id: message.conversation_id
-    });
-  }
-
-  if (action === "delete_everyone") {
-    if (String(message.sender_id) !== String(auth.user.id)) {
-      return error(
-        "Hanya pengirim yang dapat menghapus pesan untuk semua.",
-        403
-      );
-    }
-
-    await sql`
-      DELETE FROM direct_messages
-      WHERE id = ${messageId}::uuid
-    `;
-
-    return json({
-      ok: true,
-      action,
-      message_id: messageId,
-      conversation_id: message.conversation_id
-    });
-  }
-
-  return error("Aksi pesan tidak valid.", 400);
-}
-
 export async function handleChatManagementApi(request, env) {
   const url = new URL(request.url);
 
@@ -516,15 +446,6 @@ export async function handleChatManagementApi(request, env) {
       const conversationId = uuid(conversationActionMatch[1]);
       if (!conversationId) return error("Percakapan tidak valid.", 400);
       return await conversationAction(sql, request, conversationId);
-    }
-
-    const messageActionMatch = url.pathname.match(
-      /^\/api\/chat\/messages\/([0-9a-f-]{36})\/action$/i
-    );
-    if (messageActionMatch && request.method === "POST") {
-      const messageId = uuid(messageActionMatch[1]);
-      if (!messageId) return error("Pesan tidak valid.", 400);
-      return await messageAction(sql, request, messageId);
     }
 
     return error("Endpoint chat tidak ditemukan.", 404);

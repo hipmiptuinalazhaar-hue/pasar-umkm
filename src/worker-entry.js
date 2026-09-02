@@ -15,7 +15,9 @@ import { handleMediaSocialApi } from "./media-social-api.js";
 import { handleStoryUploadApi } from "./story-upload-api.js";
 import { handleChatManagementApi } from "./chat-management-api.js";
 import { handleChatMarkReadApi } from "./chat-mark-read-api.js";
-import { handleChatMediaApi } from "./chat-media-api.js";
+import { handleChatMediaApiV2 } from "./chat-media-api-v2.js";
+import { handleChatMessageActionApi } from "./chat-message-action-api.js";
+import { handleCommentApi } from "./comment-api.js";
 import { handlePublicCatalogApi } from "./public-catalog-api.js";
 import { enforceRateLimit } from "./rate-limit.js";
 import { ensureNotificationInfrastructure } from "./notification-store.js";
@@ -244,11 +246,25 @@ export default {
       return engagementResponse;
     }
 
+    const commentResponse =
+      await handleCommentApi(request, env);
+
+    if (commentResponse) {
+      return commentResponse;
+    }
+
     const chatMediaResponse =
-      await handleChatMediaApi(request, env);
+      await handleChatMediaApiV2(request, env);
 
     if (chatMediaResponse) {
       return chatMediaResponse;
+    }
+
+    const chatMessageActionResponse =
+      await handleChatMessageActionApi(request, env);
+
+    if (chatMessageActionResponse) {
+      return chatMessageActionResponse;
     }
 
     const chatMarkReadResponse =

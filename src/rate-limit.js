@@ -31,6 +31,36 @@ const RULES = [
     includeSession: true
   },
   {
+    name: "chat-media-cleanup",
+    match: (request, url) => request.method === "POST" && url.pathname === "/api/chat/media/cleanup",
+    limit: 30,
+    windowMs: 10 * 60 * 1000,
+    includeSession: true
+  },
+  {
+    name: "comment-write",
+    match: (request, url) => {
+      if (request.method === "POST") {
+        return (
+          /^\/api\/posts\/[0-9a-f-]{36}\/comments$/i.test(url.pathname) ||
+          /^\/api\/products\/[0-9a-f-]{36}\/comments$/i.test(url.pathname)
+        );
+      }
+
+      if (request.method === "DELETE") {
+        return (
+          /^\/api\/comments\/[0-9a-f-]{36}$/i.test(url.pathname) ||
+          /^\/api\/product-comments\/[0-9a-f-]{36}$/i.test(url.pathname)
+        );
+      }
+
+      return false;
+    },
+    limit: 60,
+    windowMs: 10 * 60 * 1000,
+    includeSession: true
+  },
+  {
     name: "avatar-upload",
     match: (request, url) => request.method === "PUT" && url.pathname === "/api/profile/avatar",
     limit: 20,
