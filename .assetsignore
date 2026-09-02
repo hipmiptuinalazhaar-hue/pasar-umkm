@@ -1,14 +1,14 @@
 node_modules/
 src/
 database/
+scripts/
 .git/
 .github/
 wrangler.jsonc
 package.json
 package-lock.json
 README.md
-
-# P3: keep source/design assets in git, exclude unused heavy files from Worker static upload.
+# Runtime source/design assets remain in git but are excluded from Worker static upload.
 assets/images/
 assets/logo1.png
 assets/logo2.png

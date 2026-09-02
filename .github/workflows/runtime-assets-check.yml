@@ -1,0 +1,18 @@
+name: Runtime Assets Check
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  verify-runtime-assets:
+    uses: ./.github/workflows/runtime-assets.yml
+    with:
+      write_changes: false
+    permissions:
+      contents: read

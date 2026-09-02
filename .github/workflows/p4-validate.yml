@@ -21,12 +21,16 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
+          cache: npm
+
+      - name: Install exact locked dependencies
+        run: npm ci --no-audit --no-fund
 
       - name: Check all runtime JavaScript syntax
         run: |
@@ -37,7 +41,6 @@ jobs:
 
       - name: Verify Neon Client transaction capability
         run: |
-          npm install --ignore-scripts --no-audit --no-fund
           node --input-type=module <<'NODE'
           import { Client, neon } from '@neondatabase/serverless';
           if (typeof Client !== 'function') {
@@ -114,11 +117,11 @@ jobs:
       - name: Verify removed legacy schema bootstraps
         run: |
           set -euo pipefail
-          ! grep -qF 'ensureRichChatSchema' src/chat-media-api.js
+          test ! -e src/chat-media-api.js
+          ! grep -qF 'ensureRichChatSchema' src/chat-media-api-v2.js
           ! grep -qF 'ensureChatSchema' src/chat-management-api.js
           ! grep -qF 'ensureProfileMediaTable' src/profile-media-api.js
 
-          grep -qF 'ensureFunctionalityInfrastructure' src/chat-media-api.js
           grep -qF 'ensureFunctionalityInfrastructure' src/chat-management-api.js
           grep -qF 'ensureFunctionalityInfrastructure' src/profile-media-api.js
 

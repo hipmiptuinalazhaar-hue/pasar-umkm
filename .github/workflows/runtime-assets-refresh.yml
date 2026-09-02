@@ -1,0 +1,22 @@
+name: Runtime Assets Refresh
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_write:
+        description: Commit refreshed runtime assets to the selected branch.
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-runtime-assets:
+    if: ${{ inputs.confirm_write }}
+    uses: ./.github/workflows/runtime-assets.yml
+    with:
+      write_changes: true
+    permissions:
+      contents: write

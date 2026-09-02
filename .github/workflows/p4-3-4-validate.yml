@@ -16,12 +16,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
+          cache: npm
+
+      - name: Install exact locked dependencies
+        run: npm ci --no-audit --no-fund
 
       - name: Syntax check runtime JavaScript
         run: |
@@ -178,18 +182,17 @@ jobs:
 
       - name: Verify runtime app bundle is current
         run: |
-          npx --yes esbuild@0.25.10 js/app.js \
+          ./node_modules/.bin/esbuild js/app.js \
             --minify-whitespace \
             --minify-syntax \
             --target=es2022 \
             --outfile=/tmp/app.runtime.js
           cmp -s /tmp/app.runtime.js js/app.runtime.js
-          grep -qE 'js/app\.runtime\.js\?v=[0-9a-f]{8}' index.html
+          grep -qE 'js/app\.runtime\.js\?v=[0-9a-f]{12}' index.html
 
       - name: Bundle Worker entrypoint
         run: |
-          npm install --ignore-scripts --no-audit --no-fund
-          npx --yes esbuild@0.25.10 src/worker-entry.js \
+          ./node_modules/.bin/esbuild src/worker-entry.js \
             --bundle \
             --format=esm \
             --platform=browser \
