@@ -300,7 +300,9 @@
     '.social-follow-user',
     '.post-comment-name',
     '.post-comment-avatar',
-    '.notification-row'
+    '.notification-row',
+    '.reel-author[data-media-action="reel-profile"]',
+    '.story-viewer-author'
   ].join(',');
 
   function socialIntentKind(target) {
