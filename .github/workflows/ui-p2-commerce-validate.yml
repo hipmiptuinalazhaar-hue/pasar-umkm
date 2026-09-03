@@ -1,0 +1,169 @@
+name: UI P2 Commerce Validation
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'js/commerce-experience-v2.js'
+      - 'css/commerce-experience-v2.css'
+      - 'js/profile-saved.js'
+      - 'js/store-management-core.js'
+      - '.github/workflows/ui-p2-commerce-validate.yml'
+  push:
+    branches:
+      - ui-p2-commerce
+
+permissions:
+  contents: read
+
+jobs:
+  validate-commerce:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Validate JavaScript syntax
+        run: |
+          node --check js/commerce-experience-v2.js
+          node --check js/profile-saved.js
+          node --check js/store-management-core.js
+
+      - name: Validate commerce ownership, lazy loading, and design budgets
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          import sys
+
+          css_path = Path('css/commerce-experience-v2.css')
+          js_path = Path('js/commerce-experience-v2.js')
+          loader_path = Path('js/profile-saved.js')
+          legacy_store_path = Path('js/store-management-core.js')
+          index_path = Path('index.html')
+
+          errors = []
+
+          for path in (css_path, js_path, loader_path, legacy_store_path, index_path):
+              if not path.exists():
+                  errors.append(f'Missing required file: {path}')
+
+          if errors:
+              print('\n'.join(errors))
+              sys.exit(1)
+
+          css = css_path.read_text(encoding='utf-8')
+          js = js_path.read_text(encoding='utf-8')
+          loader = loader_path.read_text(encoding='utf-8')
+          legacy_store = legacy_store_path.read_text(encoding='utf-8')
+          index = index_path.read_text(encoding='utf-8')
+
+          css_size = css_path.stat().st_size
+          js_size = js_path.stat().st_size
+
+          if css_size > 28_000:
+              errors.append(f'Commerce CSS exceeds 28KB source budget: {css_size} bytes')
+
+          if js_size > 80_000:
+              errors.append(f'Commerce JS exceeds 80KB source budget: {js_size} bytes')
+
+          tiny_fonts = [
+              float(value)
+              for value in re.findall(r'font-size\s*:\s*([0-9.]+)px', css)
+              if float(value) < 10
+          ]
+          if tiny_fonts:
+              errors.append(f'Commerce CSS contains font sizes below 10px: {tiny_fonts}')
+
+          if 'linear-gradient(' in css or 'radial-gradient(' in css:
+              errors.append('Commerce CSS contains decorative gradients; P2 restrained-design contract forbids them')
+
+          important_count = css.count('!important')
+          if important_count > 20:
+              errors.append(f'Commerce !important debt exceeds budget: {important_count} > 20')
+
+          # Commerce route assets must NOT be part of the initial HTML payload.
+          for asset in ('commerce-experience-v2.css', 'commerce-experience-v2.js'):
+              if asset in index:
+                  errors.append(f'{asset} is referenced directly by index.html; commerce must remain lazy-loaded')
+
+          # The always-loaded carrier itself must be cache-busted when its bootstrap changes.
+          if 'js/profile-saved.js?v=2.0' not in index:
+              errors.append('index.html must reference profile-saved.js?v=2.0 for the P2 bootstrap cache boundary')
+
+          loader_contracts = (
+              'window.__PASAR_COMMERCE_V2__ = true',
+              'css/commerce-experience-v2.css?v=2.0',
+              'js/commerce-experience-v2.js?v=2.0',
+              "document.addEventListener('pointerdown'",
+              "document.addEventListener('click'",
+          )
+          for contract in loader_contracts:
+              if contract not in loader:
+                  errors.append(f'Missing commerce lazy-loader contract: {contract}')
+
+          if 'if (window.__PASAR_COMMERCE_V2__)' not in legacy_store:
+              errors.append('Legacy store-management owner is not retired when Commerce V2 is active')
+
+          css_contracts = (
+              'min-height: 44px',
+              'min-height: 48px',
+              '.commerce-hide-nav',
+              '.commerce-sticky',
+              'aspect-ratio: 4 / 5',
+              'prefers-reduced-motion: reduce',
+          )
+          for contract in css_contracts:
+              if contract not in css:
+                  errors.append(f'Missing commerce CSS contract: {contract}')
+
+          route_contracts = (
+              "case 'cart'",
+              "case 'checkout'",
+              "case 'buyer-orders'",
+              "case 'seller-orders'",
+              "case 'order-detail'",
+              "case 'seller-center'",
+              "case 'store-profile'",
+              "case 'products'",
+              "case 'product-editor'",
+              "case 'product-detail'",
+              "case 'onboarding'",
+          )
+          for contract in route_contracts:
+              if contract not in js:
+                  errors.append(f'Missing commerce route: {contract}')
+
+          endpoint_contracts = (
+              '/api/commerce/cart',
+              '/api/commerce/checkout',
+              '/api/commerce/orders?scope=',
+              '/api/commerce/seller/summary',
+              '/api/store-management',
+              '/api/products/me',
+              '/api/products',
+              '/api/uploads/product-image',
+          )
+          for contract in endpoint_contracts:
+              if contract not in js:
+                  errors.append(f'Missing commerce API contract: {contract}')
+
+          sheet_count = js.count('openBottomSheet(')
+          if sheet_count > 2:
+              errors.append(
+                  f'Commerce uses bottom sheet {sheet_count} times; only quick actions and confirmation are allowed'
+              )
+
+          print(f'Commerce CSS source: {css_size} bytes / 28000')
+          print(f'Commerce JS source: {js_size} bytes / 80000')
+          print(f'Commerce !important migration debt: {important_count} / 20')
+          print(f'Commerce bottom-sheet calls: {sheet_count} / 2')
+
+          if errors:
+              print('UI P2 Commerce validation failed:')
+              for error in errors:
+                  print(f'- {error}')
+              sys.exit(1)
+
+          print('UI P2 Commerce validation passed.')
