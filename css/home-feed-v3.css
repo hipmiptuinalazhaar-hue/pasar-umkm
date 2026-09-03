@@ -1,0 +1,843 @@
+/* Pasar UMKM — Home + Feed v3
+   UI-P1. Mobile-first editorial social-commerce.
+   Restrained by design: no decorative AI-slop, no fake luxury effects. */
+
+/* =========================================================
+   01. HOME CANVAS
+   ========================================================= */
+
+html body #homeDiscovery {
+  min-height: 0;
+  margin: 0;
+  padding: 12px var(--page-gutter, 16px) 0;
+  background: var(--surface-page, #faf9f5);
+}
+
+/* =========================================================
+   02. EDITORIAL HERO
+   ========================================================= */
+
+html body #homeDiscovery .market-hero {
+  position: relative;
+  margin: 0 0 24px;
+  padding: 24px 20px 18px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: var(--radius-hero, 24px);
+  background: var(--forest-900, #083725);
+  color: #fffdf8;
+  box-shadow: none;
+}
+
+html body #homeDiscovery .market-hero-accent {
+  position: absolute;
+  top: 0;
+  left: 20px;
+  width: 38px;
+  height: 3px;
+  border-radius: 0 0 999px 999px;
+  background: var(--gold-400, #edbd5d);
+}
+
+html body #homeDiscovery .market-hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 330px;
+}
+
+html body #homeDiscovery .market-hero-overline {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 12px;
+  color: rgba(255,253,248,.74);
+  font-size: 10.5px;
+  line-height: 1;
+  font-weight: 750;
+  letter-spacing: .095em;
+}
+
+html body #homeDiscovery .market-hero-dot {
+  width: 5px;
+  height: 5px;
+  flex: 0 0 5px;
+  border-radius: 50%;
+  background: var(--gold-400, #edbd5d);
+}
+
+html body #homeDiscovery .market-hero-divider {
+  width: 16px;
+  height: 1px;
+  background: rgba(255,253,248,.32);
+}
+
+html body #homeDiscovery .market-hero-title {
+  max-width: 315px;
+  margin: 0;
+  color: #fffdf8;
+  font-size: clamp(28px, 8.2vw, 34px);
+  line-height: 1.08;
+  font-weight: 800;
+  letter-spacing: -.045em;
+  text-wrap: balance;
+}
+
+html body #homeDiscovery .market-hero-title span {
+  color: var(--gold-300, #f4d38b);
+}
+
+html body #homeDiscovery .market-hero-description {
+  max-width: 290px;
+  margin: 13px 0 0;
+  color: rgba(255,253,248,.80);
+  font-size: 13px;
+  line-height: 1.58;
+  font-weight: 450;
+}
+
+html body #homeDiscovery .market-hero-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 18px;
+}
+
+html body #homeDiscovery .market-hero-primary,
+html body #homeDiscovery .market-hero-secondary {
+  min-height: 46px;
+  padding: 0 15px;
+  border-radius: var(--radius-control, 12px);
+  font-size: 12.5px;
+  line-height: 1;
+  font-weight: 750;
+  box-shadow: none;
+}
+
+html body #homeDiscovery .market-hero-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid #fffdf8;
+  background: #fffdf8;
+  color: var(--forest-900, #083725);
+}
+
+html body #homeDiscovery .market-hero-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid rgba(255,253,248,.28);
+  background: transparent;
+  color: #fffdf8;
+}
+
+html body #homeDiscovery .market-hero-primary:active,
+html body #homeDiscovery .market-hero-secondary:active {
+  transform: scale(.97);
+}
+
+html body #homeDiscovery .market-hero-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 17px;
+  color: rgba(255,253,248,.62);
+  font-size: 11px;
+  line-height: 1.3;
+  font-weight: 550;
+}
+
+html body #homeDiscovery .market-hero-foot-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--gold-400, #edbd5d);
+}
+
+/* Existing decorative watermark is intentionally removed. */
+html body #homeDiscovery .market-hero-mark {
+  display: none;
+}
+
+/* =========================================================
+   03. CATEGORY DISCOVERY
+   ========================================================= */
+
+html body #homeDiscovery .home-section-head {
+  min-height: 28px;
+  margin: 0 0 12px;
+  padding: 0 2px;
+}
+
+html body #homeDiscovery .home-section-head h2 {
+  margin: 0;
+  color: var(--text-primary, #111612);
+  font-size: 18px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -.03em;
+}
+
+html body #homeDiscovery .section-link {
+  min-height: 44px;
+  margin: -8px -8px -8px 0;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--forest-700, #12603f);
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+html body #homeDiscovery .quick-categories {
+  margin: 0 0 22px !important;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+/* Migration boundary: legacy category styles use !important. */
+html body #homeDiscovery .quick-category {
+  min-width: 0;
+  min-height: 78px;
+  margin: 0;
+  padding: 7px 2px 5px;
+  gap: 7px;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--text-primary, #111612);
+  box-shadow: none !important;
+}
+
+html body #homeDiscovery .quick-category::before,
+html body #homeDiscovery .quick-category::after {
+  content: none !important;
+  display: none !important;
+}
+
+html body #homeDiscovery .quick-category-icon,
+html body #homeDiscovery .quick-category:nth-child(n) .quick-category-icon {
+  width: 48px !important;
+  height: 48px !important;
+  flex: 0 0 48px;
+  border: 1px solid rgba(18,96,63,.09) !important;
+  border-radius: 14px !important;
+  background: var(--cream-100, #f4f1e8) !important;
+  color: var(--forest-700, #12603f) !important;
+  box-shadow: none !important;
+}
+
+html body #homeDiscovery .quick-category-icon i {
+  font-size: 21px !important;
+}
+
+html body #homeDiscovery .quick-category-label {
+  max-width: 100%;
+  color: var(--text-secondary, #414942) !important;
+  font-size: 11px !important;
+  line-height: 1.25;
+  font-weight: 650 !important;
+  letter-spacing: -.01em;
+}
+
+html body #homeDiscovery .quick-category:active .quick-category-icon {
+  transform: scale(.96);
+  background: #eee9dd !important;
+}
+
+/* =========================================================
+   04. FEED INTRO
+   ========================================================= */
+
+html body #feed {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 0 calc(14px + var(--bottom-nav-height, 72px));
+  background: var(--surface-page, #faf9f5);
+}
+
+html body #feed > .market-feed-head {
+  position: relative;
+  margin: 0;
+  padding: 22px var(--page-gutter, 16px) 12px;
+  display: block;
+  border: 0;
+  background: var(--surface-page, #faf9f5);
+}
+
+html body #feed .market-feed-eyebrow {
+  display: block;
+  margin: 0 0 7px;
+  color: var(--gold-800, #89630b);
+  font-size: 10.5px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: .10em;
+}
+
+html body #feed .market-feed-title {
+  margin: 0;
+  color: var(--text-primary, #111612);
+  font-size: 21px;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -.035em;
+}
+
+html body #feed .market-feed-description {
+  max-width: 330px;
+  margin: 6px 0 0;
+  color: var(--text-secondary, #414942);
+  font-size: 13px;
+  line-height: 1.48;
+  font-weight: 450;
+}
+
+html body #feed .market-feed-mark {
+  display: none;
+}
+
+/* =========================================================
+   05. FEED CARD SHELL
+   Full-bleed on phones, contained card on larger screens.
+   ========================================================= */
+
+/* Migration boundary: legacy feed card rules carry !important. */
+html body #feed > .post-card {
+  width: 100%;
+  margin: 0 0 2px !important;
+  overflow: hidden;
+  border: 0 !important;
+  border-top: 1px solid var(--border-subtle, rgba(24,29,25,.07)) !important;
+  border-bottom: 1px solid var(--border-subtle, rgba(24,29,25,.07)) !important;
+  border-radius: 0 !important;
+  background: var(--surface-primary, #fff) !important;
+  box-shadow: none !important;
+}
+
+html body #feed > .post-card::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* =========================================================
+   06. SELLER HEADER
+   ========================================================= */
+
+html body #feed > .post-card .post-header {
+  min-height: 66px;
+  padding: 11px var(--page-gutter, 16px);
+  gap: 10px;
+  background: var(--surface-primary, #fff);
+}
+
+html body #feed > .post-card .post-profile-link {
+  min-width: 0;
+  min-height: 44px;
+}
+
+html body #feed > .post-card .post-avatar {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border: 1px solid var(--border-soft, rgba(24,29,25,.11));
+  background: var(--cream-75, #f7f5ef);
+  box-shadow: none;
+}
+
+html body #feed > .post-card .post-author {
+  color: var(--text-primary, #111612);
+  font-size: 13.5px;
+  line-height: 1.25;
+  font-weight: 750;
+  letter-spacing: -.015em;
+}
+
+html body #feed > .post-card .verified-badge {
+  color: var(--forest-600, #17784d);
+  font-size: 15px;
+}
+
+html body #feed > .post-card .post-context {
+  margin-top: 3px;
+  color: var(--text-tertiary, #737b74);
+  font-size: 11.5px;
+  line-height: 1.3;
+  font-weight: 500;
+}
+
+html body #feed > .post-card .post-menu {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  flex: 0 0 44px;
+  border-radius: 50%;
+  color: var(--text-secondary, #414942);
+}
+
+html body #feed > .post-card .post-menu i {
+  font-size: 21px;
+}
+
+html body #feed > .post-card .post-menu:active {
+  background: var(--surface-soft, #f5f6f5);
+}
+
+/* =========================================================
+   07. MEDIA POLICY
+   One stable 4:5 frame. Product is never cropped.
+   ========================================================= */
+
+html body #feed > .post-card .post-media,
+html body #feed > .post-card .ig-product-media {
+  position: relative;
+  width: 100%;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  aspect-ratio: 4 / 5 !important;
+  overflow: hidden;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: #f3f1eb !important;
+  box-shadow: none !important;
+}
+
+html body #feed > .post-card .post-media:not(.video),
+html body #feed > .post-card .ig-product-media {
+  display: grid !important;
+  place-items: center;
+}
+
+html body #feed > .post-card .post-media:not(.video) img,
+html body #feed > .post-card .ig-product-media img {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 !important;
+  display: block;
+  object-fit: contain !important;
+  object-position: center !important;
+  border-radius: 0 !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+html body #feed > .post-card .post-media.video {
+  display: grid;
+  place-items: center;
+  background: #090b0a !important;
+}
+
+html body #feed > .post-card .post-media.video img,
+html body #feed > .post-card .post-media.video video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* =========================================================
+   08. SOCIAL ACTION BAR
+   ========================================================= */
+
+html body #feed > .post-card .post-actions {
+  min-height: 58px;
+  margin: 0;
+  padding: 7px 10px 3px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--surface-primary, #fff);
+}
+
+html body #feed > .post-card .actions-left {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+html body #feed > .post-card .action-btn {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  gap: 4px;
+  border: 0 !important;
+  border-radius: 12px;
+  background: transparent !important;
+  color: var(--text-primary, #111612);
+  box-shadow: none !important;
+}
+
+html body #feed > .post-card .action-btn-count {
+  width: auto;
+  min-width: 44px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+html body #feed > .post-card .action-btn i {
+  font-size: 23px;
+}
+
+html body #feed > .post-card .action-count {
+  color: var(--text-secondary, #414942);
+  font-size: 11.5px;
+  line-height: 1;
+  font-weight: 650;
+}
+
+html body #feed > .post-card .action-btn.liked {
+  color: #cc514b;
+}
+
+html body #feed > .post-card .action-btn.saved {
+  color: var(--forest-700, #12603f);
+}
+
+html body #feed > .post-card .action-btn:active {
+  transform: scale(.92);
+  background: var(--surface-soft, #f5f6f5) !important;
+}
+
+/* The action bar already exposes the like count. Avoid duplicate UI. */
+html body #feed > .post-card .post-stats {
+  display: none;
+}
+
+/* =========================================================
+   09. PRODUCT INFORMATION HIERARCHY
+   ========================================================= */
+
+html body #feed > .post-card .ig-product-info {
+  min-width: 0;
+  padding: 12px var(--page-gutter, 16px) 16px !important;
+  background: var(--surface-primary, #fff) !important;
+}
+
+html body #feed > .post-card .ig-product-meta {
+  margin: 0 0 7px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+html body #feed > .post-card .ig-product-category {
+  width: auto;
+  max-width: 62%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--gold-800, #89630b) !important;
+  font-size: 10.5px !important;
+  line-height: 1.2;
+  font-weight: 800 !important;
+  letter-spacing: .075em;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-shadow: none !important;
+}
+
+html body #feed > .post-card .ig-product-stock {
+  margin: 0;
+  color: var(--text-tertiary, #737b74) !important;
+  font-size: 11px !important;
+  line-height: 1.25;
+  font-weight: 550;
+  white-space: nowrap;
+}
+
+html body #feed > .post-card .ig-product-name {
+  margin: 0;
+  color: var(--text-primary, #111612) !important;
+  font-size: 15.5px !important;
+  line-height: 1.32;
+  font-weight: 750 !important;
+  letter-spacing: -.022em;
+}
+
+html body #feed > .post-card .ig-product-price {
+  margin-top: 6px;
+  color: var(--forest-800, #0d4b32) !important;
+  font-size: 19px !important;
+  line-height: 1.16;
+  font-weight: 800 !important;
+  letter-spacing: -.035em;
+}
+
+html body #feed > .post-card .ig-product-description {
+  max-width: 100%;
+  margin: 9px 0 0;
+  padding: 0;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--text-secondary, #414942);
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 450;
+}
+
+/* =========================================================
+   10. COMMERCE CTA
+   Both actions remain explicit. Icon-only cart was an a11y loss.
+   ========================================================= */
+
+html body #feed > .post-card .ig-product-buttons {
+  width: 100%;
+  margin: 14px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+  gap: 9px;
+  border: 0;
+}
+
+html body #feed > .post-card .ig-cart-button,
+html body #feed > .post-card .ig-buy-button {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: var(--radius-control, 12px);
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 750;
+  box-shadow: none !important;
+}
+
+html body #feed > .post-card .ig-cart-button {
+  height: auto;
+  border: 1px solid rgba(18,96,63,.20) !important;
+  background: var(--surface-brand-soft, #f1f8f4) !important;
+  color: var(--forest-800, #0d4b32) !important;
+}
+
+html body #feed > .post-card .ig-cart-button span {
+  display: inline;
+}
+
+html body #feed > .post-card .ig-buy-button {
+  border: 1px solid var(--forest-800, #0d4b32) !important;
+  background: var(--forest-800, #0d4b32) !important;
+  color: #fff !important;
+}
+
+html body #feed > .post-card .ig-cart-button i,
+html body #feed > .post-card .ig-buy-button i {
+  margin: 0;
+  font-size: 18px;
+}
+
+html body #feed > .post-card .ig-cart-button:active,
+html body #feed > .post-card .ig-buy-button:active {
+  transform: scale(.98);
+}
+
+/* =========================================================
+   11. SOCIAL CAPTION
+   ========================================================= */
+
+html body #feed > .post-card .post-caption {
+  margin: 0;
+  padding: 7px var(--page-gutter, 16px) 12px;
+  color: var(--text-secondary, #414942);
+  font-size: 13px;
+  line-height: 1.55;
+  font-weight: 450;
+  overflow-wrap: anywhere;
+}
+
+html body #feed > .post-card .post-caption .author {
+  margin-right: 4px;
+  color: var(--text-primary, #111612);
+  font-weight: 750;
+}
+
+/* Count is already present beside the comment icon. */
+html body #feed > .post-card .view-comments {
+  display: none;
+}
+
+/* =========================================================
+   12. SEARCH EXPERIENCE
+   ========================================================= */
+
+html body #searchOverlay {
+  background: var(--surface-page, #faf9f5);
+}
+
+html body #searchOverlay .search-head {
+  min-height: calc(68px + var(--safe-top, 0px));
+  padding: calc(10px + var(--safe-top, 0px)) var(--page-gutter, 16px) 10px;
+  gap: 8px;
+  background: rgba(255,255,255,.98);
+  border-bottom: 1px solid var(--border-subtle, rgba(24,29,25,.07));
+  box-shadow: none;
+}
+
+html body #searchOverlay .search-close {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 50%;
+}
+
+html body #searchOverlay .search-box {
+  min-height: 48px;
+  border: 1px solid var(--border-soft, rgba(24,29,25,.11));
+  border-radius: var(--radius-control, 12px);
+  background: var(--surface-soft, #f5f6f5);
+  box-shadow: none;
+}
+
+html body #searchOverlay .search-box input {
+  min-height: 46px;
+  color: var(--text-primary, #111612);
+  font-size: 16px;
+}
+
+html body #searchOverlay .search-results {
+  padding: 14px var(--page-gutter, 16px) calc(28px + var(--safe-bottom, 0px));
+}
+
+html body #searchOverlay .search-result-group-head > span {
+  color: var(--text-primary, #111612);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+html body #searchOverlay .search-result-group-head > small {
+  min-width: 24px;
+  height: 22px;
+  font-size: 10px;
+}
+
+html body #searchOverlay .search-product-result {
+  min-height: 72px;
+  padding: 7px 0;
+  grid-template-columns: 58px minmax(0,1fr) 24px;
+  border: 0;
+  border-bottom: 1px solid var(--border-subtle, rgba(24,29,25,.07));
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+html body #searchOverlay .search-product-name {
+  font-size: 13px;
+}
+
+html body #searchOverlay .search-product-store,
+html body #searchOverlay .search-product-price {
+  font-size: 11.5px;
+}
+
+/* =========================================================
+   13. COMPACT PHONES
+   ========================================================= */
+
+@media (max-width: 359px) {
+  html body #homeDiscovery .market-hero {
+    padding: 21px 16px 17px;
+    border-radius: 20px;
+  }
+
+  html body #homeDiscovery .market-hero-title {
+    font-size: 27px;
+  }
+
+  html body #homeDiscovery .market-hero-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  html body #homeDiscovery .market-hero-primary,
+  html body #homeDiscovery .market-hero-secondary {
+    width: 100%;
+  }
+
+  html body #homeDiscovery .quick-categories {
+    gap: 4px;
+  }
+
+  html body #homeDiscovery .quick-category-icon,
+  html body #homeDiscovery .quick-category:nth-child(n) .quick-category-icon {
+    width: 44px !important;
+    height: 44px !important;
+    flex-basis: 44px;
+  }
+
+  html body #homeDiscovery .quick-category-label {
+    font-size: 10.5px !important;
+  }
+
+  html body #feed > .post-card .ig-product-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  html body #feed > .post-card .ig-cart-button,
+  html body #feed > .post-card .ig-buy-button {
+    min-height: 46px;
+  }
+}
+
+/* =========================================================
+   14. LARGER SCREENS HANDOFF
+   Full desktop redesign belongs to UI-P5.
+   ========================================================= */
+
+@media (min-width: 600px) {
+  html body #feed {
+    gap: 14px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  html body #feed > .market-feed-head {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  html body #feed > .post-card {
+    margin: 0 !important;
+    border: 1px solid var(--border-subtle, rgba(24,29,25,.07)) !important;
+    border-radius: 20px !important;
+  }
+}
+
+/* =========================================================
+   15. MOTION DISCIPLINE
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  html body #homeDiscovery *,
+  html body #feed *,
+  html body #searchOverlay * {
+    animation: none !important;
+    transition-duration: .01ms !important;
+  }
+}
