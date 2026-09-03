@@ -3,6 +3,7 @@ name: UI P2 Commerce Validation
 on:
   pull_request:
     paths:
+      - 'index.html'
       - 'js/commerce-experience-v2.js'
       - 'css/commerce-experience-v2.css'
       - 'js/profile-saved.js'
@@ -86,6 +87,10 @@ jobs:
           for asset in ('commerce-experience-v2.css', 'commerce-experience-v2.js'):
               if asset in index:
                   errors.append(f'{asset} is referenced directly by index.html; commerce must remain lazy-loaded')
+
+          # The always-loaded carrier itself must be cache-busted when its bootstrap changes.
+          if 'js/profile-saved.js?v=2.0' not in index:
+              errors.append('index.html must reference profile-saved.js?v=2.0 for the P2 bootstrap cache boundary')
 
           loader_contracts = (
               'window.__PASAR_COMMERCE_V2__ = true',
