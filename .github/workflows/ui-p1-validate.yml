@@ -1,0 +1,85 @@
+name: UI P1 Validation
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'css/tokens.css'
+      - 'css/mobile-foundation-v2.css'
+      - 'css/home-feed-v3.css'
+      - '.github/workflows/ui-p1-validate.yml'
+  push:
+    branches:
+      - ui-p1-home-feed
+
+permissions:
+  contents: read
+
+jobs:
+  validate-home-feed:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate P0/P1 stylesheet wiring and budgets
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          import sys
+
+          index = Path('index.html').read_text(encoding='utf-8')
+          foundation_path = Path('css/mobile-foundation-v2.css')
+          home_path = Path('css/home-feed-v3.css')
+
+          errors = []
+
+          for ref in ('css/mobile-foundation-v2.css', 'css/home-feed-v3.css'):
+              if ref not in index:
+                  errors.append(f'{ref} is not referenced by index.html')
+
+          if not foundation_path.exists():
+              errors.append('mobile-foundation-v2.css is missing')
+          if not home_path.exists():
+              errors.append('home-feed-v3.css is missing')
+
+          if foundation_path.exists() and foundation_path.stat().st_size > 14_000:
+              errors.append(f'P0 foundation exceeds 14KB source budget: {foundation_path.stat().st_size} bytes')
+
+          if home_path.exists():
+              css = home_path.read_text(encoding='utf-8')
+              size = home_path.stat().st_size
+
+              if size > 22_000:
+                  errors.append(f'P1 home/feed exceeds 22KB source budget: {size} bytes')
+
+              tiny_fonts = [float(x) for x in re.findall(r'font-size\s*:\s*([0-9.]+)px', css) if float(x) < 10]
+              if tiny_fonts:
+                  errors.append(f'P1 contains font sizes below 10px: {tiny_fonts}')
+
+              important_count = css.count('!important')
+              if important_count > 60:
+                  errors.append(f'P1 !important migration debt exceeds budget: {important_count} > 60')
+
+              if 'linear-gradient(' in css or 'radial-gradient(' in css:
+                  errors.append('P1 contains decorative gradient; restrained design contract forbids it')
+
+              required_contracts = {
+                  '4:5 media policy': 'aspect-ratio: 4 / 5',
+                  '44px touch target': 'min-height: 44px',
+                  '48px commerce target': 'min-height: 48px',
+                  'visible cart label': '.ig-cart-button span',
+                  'reduced motion': 'prefers-reduced-motion: reduce',
+              }
+              for label, token in required_contracts.items():
+                  if token not in css:
+                      errors.append(f'Missing P1 contract: {label}')
+
+          if errors:
+              print('UI P1 validation failed:')
+              for error in errors:
+                  print(f'- {error}')
+              sys.exit(1)
+
+          print('UI P1 validation passed.')
