@@ -2,7 +2,7 @@
 
 (() => {
   /*
-   * P2 bootstrap accelerator.
+   * Bootstrap accelerator.
    * app.js masih memakai urutan bootstrap legacy. Daripada membedah controller
    * besar pada tahap ini, empat request publik dipanaskan paralel dan didedupe.
    * Cache hanya hidup singkat di memory tab dan tidak menyentuh endpoint privat.
@@ -116,11 +116,10 @@
 
   /*
    * Core yang memengaruhi beranda, like, shell, notifikasi, dan fungsi umum
-   * tetap dimuat segera. Modul yang hanya dibutuhkan fitur lanjutan ditunda
-   * agar bandwidth awal tidak diperebutkan puluhan file sekaligus.
+   * tetap dimuat segera. Presentation notifikasi dipindah ke Social V3 agar
+   * initial CSS tidak membayar layar yang belum dibuka.
    */
   loadStylesheet('link[data-social-core-style="true"]', 'css/social-core.css?v=1.0', 'socialCoreStyle');
-  loadStylesheet('link[data-notification-core-style="true"]', 'css/notification-core.css?v=1.0', 'notificationCoreStyle');
 
   loadScript('script[data-navigation-refresh-guard="true"]', 'js/navigation-refresh-guard.js?v=1.0', 'navigationRefreshGuard');
   loadScript('script[data-social-core-module="true"]', 'js/social-core.js?v=1.0', 'socialCoreModule');
@@ -136,9 +135,11 @@
     if (deferredEnhancementsStarted) return;
     deferredEnhancementsStarted = true;
 
-    loadStylesheet('link[data-profile-responsive="true"]', 'css/profile-responsive.css?v=1.0', 'profileResponsive');
+    /*
+     * profile-responsive.css dan profile-premium.css dihentikan di P3.
+     * Social Experience V3 sekarang menjadi presentation owner profil.
+     */
     loadStylesheet('link[data-profile-edit-style="true"]', 'css/profile-edit.css?v=3.0', 'profileEditStyle');
-    loadStylesheet('link[data-profile-premium-style="true"]', 'css/profile-premium.css?v=1.2', 'profilePremiumStyle');
     loadStylesheet('link[data-media-experience-style="true"]', 'css/media-experience.css?v=1.0', 'mediaExperienceStyle');
     loadStylesheet('link[data-mention-autocomplete-style="true"]', 'css/mention-autocomplete.css?v=1.0', 'mentionAutocompleteStyle');
     loadStylesheet('link[data-chat-experience-style="true"]', 'css/chat-experience.css?v=1.1', 'chatExperienceStyle');
@@ -181,7 +182,7 @@
   /* Mulai lebih awal bila pengguna memang menuju fitur berat. */
   document.addEventListener('pointerdown', event => {
     const target = event.target?.closest?.(
-      '[data-action="messages"], [data-action="account-edit"], [data-nav="reels"], [data-nav="sell"], [data-menu-action="store"], [data-menu-action="seller-products"], [data-menu-action="orders"], [data-menu-action="favorites"]'
+      '[data-action="messages"], [data-action="account-edit"], [data-nav="account"], [data-nav="reels"], [data-nav="sell"], [data-action="open-story"], [data-action="add-story"], [data-menu-action="store"], [data-menu-action="seller-products"], [data-menu-action="orders"], [data-menu-action="favorites"]'
     );
 
     if (target) {
@@ -191,6 +192,157 @@
 
   scheduleDeferredEnhancements();
 
+  /* =======================================================
+     UI-P3 SOCIAL PRESENTATION LAZY LOADER
+     CSS/JS tidak dicantumkan di index.html. P3 dimuat hanya
+     saat permukaan sosial benar-benar dibutuhkan.
+     ======================================================= */
+
+  let socialPresentationPromise = null;
+
+  function ensureSocialPresentationStyle() {
+    const existing = document.querySelector(
+      'link[data-social-experience-v3="true"]'
+    );
+
+    if (existing) {
+      /*
+       * Re-append agar stylesheet P3 selalu berada setelah
+       * presentation legacy yang mungkin baru diload.
+       */
+      document.head.appendChild(existing);
+      return Promise.resolve(existing);
+    }
+
+    return new Promise((resolve, reject) => {
+      const stylesheet = document.createElement('link');
+      stylesheet.rel = 'stylesheet';
+      stylesheet.href = 'css/social-experience-v3.css?v=3.0';
+      stylesheet.dataset.socialExperienceV3 = 'true';
+      stylesheet.onload = () => resolve(stylesheet);
+      stylesheet.onerror = () => reject(
+        new Error('Social Experience stylesheet gagal dimuat.')
+      );
+      document.head.appendChild(stylesheet);
+    });
+  }
+
+  function ensureSocialPresentationScript() {
+    if (window.PasarSocialExperience?.version === '3.0') {
+      window.PasarSocialExperience.upgrade?.();
+      return Promise.resolve(window.PasarSocialExperience);
+    }
+
+    const existing = document.querySelector(
+      'script[data-social-experience-v3="true"]'
+    );
+
+    if (existing) {
+      return new Promise((resolve, reject) => {
+        const startedAt = Date.now();
+        const timer = window.setInterval(() => {
+          if (window.PasarSocialExperience?.version === '3.0') {
+            window.clearInterval(timer);
+            window.PasarSocialExperience.upgrade?.();
+            resolve(window.PasarSocialExperience);
+            return;
+          }
+
+          if (Date.now() - startedAt > 5000) {
+            window.clearInterval(timer);
+            reject(new Error('Social Experience belum siap.'));
+          }
+        }, 30);
+      });
+    }
+
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'js/social-experience-v3.js?v=3.0';
+      script.async = true;
+      script.dataset.socialExperienceV3 = 'true';
+      script.onload = () => {
+        if (window.PasarSocialExperience?.version === '3.0') {
+          window.PasarSocialExperience.upgrade?.();
+          resolve(window.PasarSocialExperience);
+        } else {
+          reject(new Error('Social Experience tidak terinisialisasi.'));
+        }
+      };
+      script.onerror = () => reject(
+        new Error('Social Experience module gagal dimuat.')
+      );
+      document.body.appendChild(script);
+    });
+  }
+
+  function loadSocialPresentation() {
+    /*
+     * Style selalu di-ensure ulang untuk menjaga urutan cascade,
+     * sementara JS hanya diunduh satu kali.
+     */
+    const stylePromise = ensureSocialPresentationStyle();
+
+    if (!socialPresentationPromise) {
+      socialPresentationPromise = Promise.all([
+        stylePromise,
+        ensureSocialPresentationScript()
+      ])
+        .then(([, module]) => module)
+        .catch(error => {
+          socialPresentationPromise = null;
+          throw error;
+        });
+    } else {
+      stylePromise.catch(() => null);
+      socialPresentationPromise.then(module => {
+        module?.upgrade?.();
+      }).catch(() => null);
+    }
+
+    return socialPresentationPromise;
+  }
+
+  const socialIntentSelector = [
+    '[data-nav="account"]',
+    '[data-nav="reels"]',
+    '[data-action="notifications"]',
+    '[data-action="comments"]',
+    '[data-action="seller-profile"]',
+    '[data-action="open-story"]',
+    '[data-action="add-story"]',
+    '[data-social-action]',
+    '.social-follow-user',
+    '.post-comment-name',
+    '.post-comment-avatar'
+  ].join(',');
+
+  document.addEventListener(
+    'pointerdown',
+    event => {
+      if (!event.target?.closest?.(socialIntentSelector)) {
+        return;
+      }
+
+      loadSocialPresentation().catch(() => null);
+    },
+    { capture: true, passive: true }
+  );
+
+  document.addEventListener(
+    'click',
+    event => {
+      if (!event.target?.closest?.(socialIntentSelector)) {
+        return;
+      }
+
+      loadSocialPresentation().catch(error => {
+        console.error('[Pasar UMKM] Social presentation load error:', error);
+      });
+    },
+    true
+  );
+
   openAccount = async function resilientOpenAccount() {
     if (!STATE.user) {
       openLogin();
@@ -198,6 +350,7 @@
     }
 
     loadDeferredEnhancements();
+    loadSocialPresentation().catch(() => null);
     closeBottomSheet();
     closeSideMenu();
 
@@ -266,6 +419,7 @@
     window.refreshNotificationBadge?.();
     window.refreshRatingSummaries?.();
     window.cleanReelsFromPhotoProfileGrids?.();
+    window.PasarSocialExperience?.upgrade?.();
 
     window.scrollTo({ top: 0, behavior: 'auto' });
   };
