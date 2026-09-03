@@ -1,6 +1,10 @@
 'use strict';
 
 (() => {
+  if (window.__PASAR_COMMERCE_V2__) {
+    return;
+  }
+
   if (
     typeof STATE === 'undefined' ||
     typeof openBottomSheet !== 'function'
