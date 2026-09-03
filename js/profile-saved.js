@@ -313,3 +313,130 @@
     document.body.appendChild(script);
   }
 })();
+
+/* =========================================================
+   UI-P2 COMMERCE BOOTSTRAP
+   Tiny always-on intent router. Heavy commerce JS/CSS are
+   fetched only when a commerce route is actually requested.
+   ========================================================= */
+
+window.__PASAR_COMMERCE_V2__ = true;
+
+(() => {
+  const intentSelector = [
+    '[data-nav="cart"]',
+    '[data-nav="sell"]',
+    '[data-action="sell"]',
+    '[data-action="product-create"]',
+    '[data-action="product-edit"]',
+    '[data-action="product-detail"]',
+    '[data-action="buy-now"]',
+    '[data-menu-action="store"]',
+    '[data-menu-action="seller-products"]',
+    '[data-menu-action="orders"]',
+    '[data-function-action="checkout-open"]',
+    '[data-function-action="seller-orders-open"]',
+    '[data-function-action="seller-products-open"]',
+    '[data-function-action="seller-profile-edit"]',
+    '[data-store-manage-action="edit"]',
+    '[data-store-manage-action="orders"]',
+    '[data-store-manage-action="products"]'
+  ].join(',');
+
+  let commercePromise = null;
+
+  function commerceTarget(event) {
+    return event.target?.closest?.(intentSelector) || null;
+  }
+
+  function ensureStyle() {
+    const existing = document.querySelector('link[data-commerce-v2-style]');
+    if (existing) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve, reject) => {
+      const style = document.createElement('link');
+      style.rel = 'stylesheet';
+      style.href = 'css/commerce-experience-v2.css?v=2.0';
+      style.dataset.commerceV2Style = 'true';
+      style.onload = () => resolve();
+      style.onerror = () => reject(new Error('Commerce stylesheet gagal dimuat.'));
+      document.head.appendChild(style);
+    });
+  }
+
+  function ensureScript() {
+    if (window.PasarCommerce?.version === '2.0') {
+      return Promise.resolve(window.PasarCommerce);
+    }
+
+    const existing = document.querySelector('script[data-commerce-v2-script]');
+    if (existing) {
+      return new Promise((resolve, reject) => {
+        const started = Date.now();
+        const timer = window.setInterval(() => {
+          if (window.PasarCommerce?.version === '2.0') {
+            window.clearInterval(timer);
+            resolve(window.PasarCommerce);
+          } else if (Date.now() - started > 5000) {
+            window.clearInterval(timer);
+            reject(new Error('Commerce module belum siap.'));
+          }
+        }, 30);
+      });
+    }
+
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'js/commerce-experience-v2.js?v=2.0';
+      script.dataset.commerceV2Script = 'true';
+      script.onload = () => {
+        if (window.PasarCommerce?.version === '2.0') {
+          resolve(window.PasarCommerce);
+        } else {
+          reject(new Error('Commerce module tidak terinisialisasi.'));
+        }
+      };
+      script.onerror = () => reject(new Error('Commerce module gagal dimuat.'));
+      document.body.appendChild(script);
+    });
+  }
+
+  function loadCommerce() {
+    if (!commercePromise) {
+      commercePromise = Promise.all([
+        ensureStyle(),
+        ensureScript()
+      ]).then(([, module]) => module).catch(error => {
+        commercePromise = null;
+        throw error;
+      });
+    }
+
+    return commercePromise;
+  }
+
+  document.addEventListener('pointerdown', event => {
+    if (!commerceTarget(event)) return;
+    loadCommerce().catch(() => {});
+  }, { capture: true, passive: true });
+
+  document.addEventListener('click', async event => {
+    const target = commerceTarget(event);
+    if (!target) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+
+    try {
+      const commerce = await loadCommerce();
+      await commerce.handleIntent(target);
+    } catch (error) {
+      console.error('[Pasar UMKM] Commerce bootstrap error:', error);
+      if (typeof showToast === 'function') {
+        showToast('Fitur perdagangan belum dapat dibuka.');
+      }
+    }
+  }, true);
+})();
