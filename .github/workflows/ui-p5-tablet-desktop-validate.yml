@@ -1,0 +1,155 @@
+name: UI P5 Tablet Desktop Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'css/tablet-desktop-v1.css'
+      - 'css/tokens.css'
+      - 'index.html'
+      - '.github/workflows/ui-p5-tablet-desktop-validate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-responsive-system:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Enforce UI-P5 scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main --depth=1
+
+          allowed='^(css/tablet-desktop-v1\.css|css/tokens\.css|index\.html|\.github/workflows/ui-p5-tablet-desktop-validate\.yml)$'
+          changed="$(git diff --name-only origin/main...HEAD)"
+
+          printf '%s\n' "$changed"
+
+          bad="$(printf '%s\n' "$changed" | grep -Ev "$allowed" || true)"
+          if [ -n "$bad" ]; then
+            echo 'UI-P5 touched files outside responsive presentation scope:'
+            printf '%s\n' "$bad"
+            exit 1
+          fi
+
+      - name: Validate responsive architecture and budgets
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          import sys
+
+          css_path = Path('css/tablet-desktop-v1.css')
+          index_path = Path('index.html')
+          tokens_path = Path('css/tokens.css')
+
+          errors = []
+
+          for path in (css_path, index_path, tokens_path):
+              if not path.exists():
+                  errors.append(f'Missing required UI-P5 file: {path}')
+
+          if errors:
+              print('\n'.join(errors))
+              sys.exit(1)
+
+          css = css_path.read_text(encoding='utf-8')
+          index = index_path.read_text(encoding='utf-8')
+          tokens = tokens_path.read_text(encoding='utf-8')
+
+          size = css_path.stat().st_size
+          print(f'UI-P5 CSS: {size} / 28000 bytes')
+          if size > 28_000:
+              errors.append(f'UI-P5 CSS exceeds source budget: {size} > 28000')
+
+          important_count = css.count('!important')
+          print(f'UI-P5 migration !important debt: {important_count} / 36')
+          if important_count > 36:
+              errors.append(
+                  f'UI-P5 !important migration debt increased beyond budget: {important_count} > 36'
+              )
+
+          required_breakpoints = (
+              '@media (min-width: 768px)',
+              '@media (min-width: 1024px)',
+              '@media (min-width: 1280px)',
+          )
+          for marker in required_breakpoints:
+              if marker not in css:
+                  errors.append(f'Missing responsive breakpoint: {marker}')
+
+          required_contracts = (
+              '--p5-feed-max: 680px',
+              '--p5-work-max: 880px',
+              '--p5-rail: 92px',
+              '--p5-rail: 216px',
+              'grid-template-columns: repeat(8, minmax(0, 1fr))',
+              'body.p3-comments-open .bottom-sheet',
+              '.commerce-page:has(> .commerce-detail-media)',
+              'body.chat-v7-body .app-navigation',
+              '@media (hover: hover) and (pointer: fine)',
+              '@media (prefers-reduced-motion: reduce)',
+          )
+          for marker in required_contracts:
+              if marker not in css:
+                  errors.append(f'Missing UI-P5 contract: {marker}')
+
+          forbidden = {
+              'linear-gradient(': 'decorative gradient',
+              'radial-gradient(': 'decorative gradient',
+              'backdrop-filter:': 'glass effect',
+              '-webkit-backdrop-filter:': 'glass effect',
+          }
+          for marker, label in forbidden.items():
+              if marker in css:
+                  errors.append(f'UI-P5 contains forbidden {label}: {marker}')
+
+          tiny_fonts = [
+              float(value)
+              for value in re.findall(r'font-size\s*:\s*([0-9.]+)px', css)
+              if float(value) < 10
+          ]
+          if tiny_fonts:
+              errors.append(f'UI-P5 contains font sizes below 10px: {tiny_fonts}')
+
+          # Very small syntax guard without introducing another package/toolchain.
+          stripped = re.sub(r'/\*.*?\*/', '', css, flags=re.S)
+          if stripped.count('{') != stripped.count('}'):
+              errors.append('UI-P5 CSS braces are unbalanced')
+
+          p5_href = 'css/tablet-desktop-v1.css?v=1.0'
+          home_href = 'css/home-feed-v3.css?v=3.0'
+          if p5_href not in index:
+              errors.append('UI-P5 stylesheet is not wired in index.html')
+          if home_href not in index:
+              errors.append('Home Feed stylesheet marker missing from index.html')
+          if p5_href in index and home_href in index and index.index(p5_href) < index.index(home_href):
+              errors.append('UI-P5 stylesheet must load after Home Feed to own the desktop cascade')
+
+          media_pattern = re.compile(
+              r'<link\s+[^>]*href="css/tablet-desktop-v1\.css\?v=1\.0"[^>]*media="screen and \(min-width: 768px\)"[^>]*>',
+              re.S,
+          )
+          if not media_pattern.search(index):
+              errors.append('UI-P5 stylesheet must be media-qualified to >= 768px')
+
+          if 'tablet-desktop-v1.css' in tokens:
+              errors.append('UI-P5 must not be imported from tokens.css; cascade order would be wrong')
+
+          if errors:
+              print('UI P5 Tablet/Desktop validation failed:')
+              for error in errors:
+                  print(f'- {error}')
+              sys.exit(1)
+
+          print('UI P5 Tablet/Desktop validation passed.')
