@@ -55,9 +55,7 @@
 
     const promise = originalFetch(input, init)
       .then(response => {
-        if (!response.ok) {
-          publicResponseCache.delete(key);
-        }
+        if (!response.ok) publicResponseCache.delete(key);
         return response;
       })
       .catch(error => {
@@ -114,11 +112,7 @@
     document.head.appendChild(script);
   }
 
-  /*
-   * Core yang memengaruhi beranda, like, shell, notifikasi, dan fungsi umum
-   * tetap dimuat segera. Presentation notifikasi dipindah ke Social V3 agar
-   * initial CSS tidak membayar layar yang belum dibuka.
-   */
+  /* Core functional modules. Notification presentation is now route-loaded. */
   loadStylesheet('link[data-social-core-style="true"]', 'css/social-core.css?v=1.0', 'socialCoreStyle');
 
   loadScript('script[data-navigation-refresh-guard="true"]', 'js/navigation-refresh-guard.js?v=1.0', 'navigationRefreshGuard');
@@ -135,10 +129,7 @@
     if (deferredEnhancementsStarted) return;
     deferredEnhancementsStarted = true;
 
-    /*
-     * profile-responsive.css dan profile-premium.css dihentikan di P3.
-     * Social Experience V3 sekarang menjadi presentation owner profil.
-     */
+    /* profile-responsive + profile-premium retired by UI-P3. */
     loadStylesheet('link[data-profile-edit-style="true"]', 'css/profile-edit.css?v=3.0', 'profileEditStyle');
     loadStylesheet('link[data-media-experience-style="true"]', 'css/media-experience.css?v=1.0', 'mediaExperienceStyle');
     loadStylesheet('link[data-mention-autocomplete-style="true"]', 'css/mention-autocomplete.css?v=1.0', 'mentionAutocompleteStyle');
@@ -172,44 +163,48 @@
       }
     };
 
-    if (document.readyState === 'complete') {
-      start();
-    } else {
-      window.addEventListener('load', start, { once: true });
-    }
+    if (document.readyState === 'complete') start();
+    else window.addEventListener('load', start, { once: true });
   }
 
-  /* Mulai lebih awal bila pengguna memang menuju fitur berat. */
   document.addEventListener('pointerdown', event => {
     const target = event.target?.closest?.(
       '[data-action="messages"], [data-action="account-edit"], [data-nav="account"], [data-nav="reels"], [data-nav="sell"], [data-action="open-story"], [data-action="add-story"], [data-menu-action="store"], [data-menu-action="seller-products"], [data-menu-action="orders"], [data-menu-action="favorites"]'
     );
 
-    if (target) {
-      loadDeferredEnhancements();
-    }
+    if (target) loadDeferredEnhancements();
   }, { capture: true, passive: true });
 
   scheduleDeferredEnhancements();
 
   /* =======================================================
-     UI-P3 SOCIAL PRESENTATION LAZY LOADER
-     CSS/JS tidak dicantumkan di index.html. P3 dimuat hanya
-     saat permukaan sosial benar-benar dibutuhkan.
+     UI-P3 SOCIAL PRESENTATION ROUTE LOADER
+     Three CSS bundles instead of one 55KB social stylesheet.
      ======================================================= */
 
-  let socialPresentationPromise = null;
+  const socialStyleRoutes = Object.freeze({
+    profile: {
+      href: 'css/social-experience-v3.css?v=3.1',
+      selector: 'link[data-social-p3-style="profile"]'
+    },
+    engagement: {
+      href: 'css/social-engagement-v3.css?v=3.0',
+      selector: 'link[data-social-p3-style="engagement"]'
+    },
+    media: {
+      href: 'css/social-media-v3.css?v=3.0',
+      selector: 'link[data-social-p3-style="media"]'
+    }
+  });
 
-  function ensureSocialPresentationStyle() {
-    const existing = document.querySelector(
-      'link[data-social-experience-v3="true"]'
-    );
+  let socialScriptPromise = null;
+
+  function ensureSocialPresentationStyle(kind = 'profile') {
+    const route = socialStyleRoutes[kind] || socialStyleRoutes.profile;
+    const existing = document.querySelector(route.selector);
 
     if (existing) {
-      /*
-       * Re-append agar stylesheet P3 selalu berada setelah
-       * presentation legacy yang mungkin baru diload.
-       */
+      /* Keep P3 after any legacy CSS that was appended later. */
       document.head.appendChild(existing);
       return Promise.resolve(existing);
     }
@@ -217,11 +212,11 @@
     return new Promise((resolve, reject) => {
       const stylesheet = document.createElement('link');
       stylesheet.rel = 'stylesheet';
-      stylesheet.href = 'css/social-experience-v3.css?v=3.0';
-      stylesheet.dataset.socialExperienceV3 = 'true';
+      stylesheet.href = route.href;
+      stylesheet.dataset.socialP3Style = kind;
       stylesheet.onload = () => resolve(stylesheet);
       stylesheet.onerror = () => reject(
-        new Error('Social Experience stylesheet gagal dimuat.')
+        new Error(`Social ${kind} stylesheet gagal dimuat.`)
       );
       document.head.appendChild(stylesheet);
     });
@@ -233,17 +228,18 @@
       return Promise.resolve(window.PasarSocialExperience);
     }
 
+    if (socialScriptPromise) return socialScriptPromise;
+
     const existing = document.querySelector(
       'script[data-social-experience-v3="true"]'
     );
 
     if (existing) {
-      return new Promise((resolve, reject) => {
+      socialScriptPromise = new Promise((resolve, reject) => {
         const startedAt = Date.now();
         const timer = window.setInterval(() => {
           if (window.PasarSocialExperience?.version === '3.0') {
             window.clearInterval(timer);
-            window.PasarSocialExperience.upgrade?.();
             resolve(window.PasarSocialExperience);
             return;
           }
@@ -254,16 +250,17 @@
           }
         }, 30);
       });
+
+      return socialScriptPromise;
     }
 
-    return new Promise((resolve, reject) => {
+    socialScriptPromise = new Promise((resolve, reject) => {
       const script = document.createElement('script');
       script.src = 'js/social-experience-v3.js?v=3.0';
       script.async = true;
       script.dataset.socialExperienceV3 = 'true';
       script.onload = () => {
         if (window.PasarSocialExperience?.version === '3.0') {
-          window.PasarSocialExperience.upgrade?.();
           resolve(window.PasarSocialExperience);
         } else {
           reject(new Error('Social Experience tidak terinisialisasi.'));
@@ -273,34 +270,22 @@
         new Error('Social Experience module gagal dimuat.')
       );
       document.body.appendChild(script);
+    }).catch(error => {
+      socialScriptPromise = null;
+      throw error;
     });
+
+    return socialScriptPromise;
   }
 
-  function loadSocialPresentation() {
-    /*
-     * Style selalu di-ensure ulang untuk menjaga urutan cascade,
-     * sementara JS hanya diunduh satu kali.
-     */
-    const stylePromise = ensureSocialPresentationStyle();
-
-    if (!socialPresentationPromise) {
-      socialPresentationPromise = Promise.all([
-        stylePromise,
-        ensureSocialPresentationScript()
-      ])
-        .then(([, module]) => module)
-        .catch(error => {
-          socialPresentationPromise = null;
-          throw error;
-        });
-    } else {
-      stylePromise.catch(() => null);
-      socialPresentationPromise.then(module => {
-        module?.upgrade?.();
-      }).catch(() => null);
-    }
-
-    return socialPresentationPromise;
+  function loadSocialPresentation(kind = 'profile') {
+    return Promise.all([
+      ensureSocialPresentationStyle(kind),
+      ensureSocialPresentationScript()
+    ]).then(([, module]) => {
+      module?.upgrade?.();
+      return module;
+    });
   }
 
   const socialIntentSelector = [
@@ -314,29 +299,48 @@
     '[data-social-action]',
     '.social-follow-user',
     '.post-comment-name',
-    '.post-comment-avatar'
+    '.post-comment-avatar',
+    '.notification-row'
   ].join(',');
+
+  function socialIntentKind(target) {
+    if (!target) return 'profile';
+
+    if (
+      target.matches('[data-action="notifications"], [data-action="comments"]')
+    ) {
+      return 'engagement';
+    }
+
+    if (
+      target.matches('[data-nav="reels"], [data-action="open-story"], [data-action="add-story"]')
+    ) {
+      return 'media';
+    }
+
+    return 'profile';
+  }
+
+  function warmSocialIntent(event) {
+    const target = event.target?.closest?.(socialIntentSelector);
+    if (!target) return;
+
+    loadSocialPresentation(socialIntentKind(target)).catch(() => null);
+  }
 
   document.addEventListener(
     'pointerdown',
-    event => {
-      if (!event.target?.closest?.(socialIntentSelector)) {
-        return;
-      }
-
-      loadSocialPresentation().catch(() => null);
-    },
+    warmSocialIntent,
     { capture: true, passive: true }
   );
 
   document.addEventListener(
     'click',
     event => {
-      if (!event.target?.closest?.(socialIntentSelector)) {
-        return;
-      }
+      const target = event.target?.closest?.(socialIntentSelector);
+      if (!target) return;
 
-      loadSocialPresentation().catch(error => {
+      loadSocialPresentation(socialIntentKind(target)).catch(error => {
         console.error('[Pasar UMKM] Social presentation load error:', error);
       });
     },
@@ -350,7 +354,7 @@
     }
 
     loadDeferredEnhancements();
-    loadSocialPresentation().catch(() => null);
+    loadSocialPresentation('profile').catch(() => null);
     closeBottomSheet();
     closeSideMenu();
 
