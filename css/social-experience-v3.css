@@ -1,0 +1,542 @@
+/* =========================================================
+   PASAR UMKM - SOCIAL EXPERIENCE V3 / PROFILE
+   Own profile, public profile, follow lists, post viewers.
+   Loaded only for profile/social-identity intent.
+   ========================================================= */
+
+:root {
+  --p3-ink:#17201b;
+  --p3-muted:#667169;
+  --p3-soft:#f6f8f6;
+  --p3-line:rgba(23,32,27,.09);
+  --p3-brand:#0f573a;
+  --p3-brand-strong:#083725;
+  --p3-brand-soft:#eef6f1;
+  --p3-ivory:#fcfbf7;
+  --p3-page:min(100%,680px);
+}
+
+.social-account-page[data-p3-upgraded="true"],
+.social-universal-profile[data-p3-upgraded="true"],
+.post-viewer-page[data-p3-upgraded="true"] {
+  width:100%;
+  min-width:0;
+  max-width:var(--p3-page);
+  margin-inline:auto;
+  background:#fff;
+  color:var(--p3-ink);
+}
+
+.social-account-page[data-p3-upgraded="true"] *,
+.social-universal-profile[data-p3-upgraded="true"] *,
+.post-viewer-page[data-p3-upgraded="true"] * { box-sizing:border-box; }
+
+.social-account-page[data-p3-upgraded="true"] button,
+.social-universal-profile[data-p3-upgraded="true"] button { font-family:inherit; -webkit-tap-highlight-color:transparent; }
+
+/* ---------- shared top controls ---------- */
+.social-account-page[data-p3-upgraded="true"] .social-account-topbar,
+.social-universal-profile[data-p3-upgraded="true"] .social-account-topbar {
+  position:sticky;
+  top:0;
+  z-index:24;
+  min-height:58px;
+  border-bottom:1px solid var(--p3-line);
+  background:rgba(255,255,255,.98);
+}
+
+.social-account-page[data-p3-upgraded="true"] .social-account-top-button,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-top-button {
+  width:44px;
+  height:44px;
+  min-width:44px;
+  min-height:44px;
+  display:grid;
+  place-items:center;
+  padding:0;
+  border:0;
+  border-radius:12px;
+  background:transparent;
+  color:var(--p3-ink);
+}
+
+.social-account-page[data-p3-upgraded="true"] .social-account-top-button i,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-top-button i { font-size:23px; }
+
+/* ---------- own profile ---------- */
+.social-account-page[data-p3-upgraded="true"] {
+  padding-bottom:calc(82px + env(safe-area-inset-bottom));
+  overflow-x:clip;
+}
+
+.social-account-page[data-p3-upgraded="true"] .social-account-topbar {
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  padding:0 12px;
+}
+
+.social-account-page[data-p3-upgraded="true"] .social-account-username {
+  position:absolute !important;
+  left:50% !important;
+  top:50% !important;
+  width:min(54vw,300px) !important;
+  max-width:calc(100% - 136px) !important;
+  margin:0 !important;
+  transform:translate(-50%,-50%) !important;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  text-align:center;
+  pointer-events:none;
+}
+
+.social-account-page[data-p3-upgraded="true"] .social-account-username strong {
+  display:block;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  font-size:14px;
+  line-height:1.2;
+  font-weight:800;
+  letter-spacing:-.02em;
+}
+
+.social-account-page[data-p3-upgraded="true"] .social-account-top-actions { display:flex; align-items:center; gap:4px; }
+
+.social-account-page[data-p3-upgraded="true"] .social-account-header {
+  padding:20px 16px 18px;
+  border:0;
+  background:#fff;
+  box-shadow:none;
+}
+
+.social-account-page[data-p3-upgraded="true"] .social-account-main,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-overview {
+  display:grid;
+  grid-template-columns:88px minmax(0,1fr);
+  align-items:center;
+  gap:18px;
+}
+
+.social-account-page[data-p3-upgraded="true"] .social-account-avatar-wrap { position:relative; width:86px; height:86px; }
+
+.social-account-page[data-p3-upgraded="true"] .social-account-avatar,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-avatar {
+  width:86px;
+  height:86px;
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(15,87,58,.13);
+  border-radius:50%;
+  background:var(--p3-brand-soft);
+  box-shadow:none;
+}
+
+.social-account-page[data-p3-upgraded="true"] .social-account-avatar img,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-avatar img { width:100%; height:100%; display:block; object-fit:cover; }
+.social-account-page[data-p3-upgraded="true"] .social-account-avatar>i { color:var(--p3-brand); font-size:32px; }
+
+.social-account-page[data-p3-upgraded="true"] .social-account-avatar-add {
+  position:absolute;
+  right:-4px;
+  bottom:-4px;
+  width:40px;
+  height:40px;
+  display:grid;
+  place-items:center;
+  padding:0;
+  border:3px solid #fff;
+  border-radius:50%;
+  background:var(--p3-brand);
+  color:#fff;
+}
+.social-account-page[data-p3-upgraded="true"] .social-account-avatar-add::before { content:""; position:absolute; inset:-2px; }
+
+.social-account-page[data-p3-upgraded="true"] .social-account-stats,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-stats {
+  min-width:0;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+}
+
+.social-account-page[data-p3-upgraded="true"] .social-account-stat,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-stat {
+  min-width:0;
+  min-height:58px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  padding:4px 2px;
+  border:0;
+  background:transparent;
+  color:inherit;
+}
+
+.social-account-page[data-p3-upgraded="true"] .social-account-stat strong,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-stat strong {
+  font-size:17px;
+  line-height:1;
+  font-weight:800;
+  font-variant-numeric:tabular-nums;
+}
+
+.social-account-page[data-p3-upgraded="true"] .social-account-stat span,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-stat span {
+  max-width:100%;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  color:var(--p3-muted);
+  font-size:11px;
+  line-height:1.2;
+  font-weight:600;
+}
+
+.social-account-page[data-p3-upgraded="true"] .social-account-bio,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-copy { margin-top:14px; }
+
+.social-account-page[data-p3-upgraded="true"] .social-account-name,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-name {
+  margin:0;
+  color:var(--p3-ink);
+  font-size:18px;
+  line-height:1.25;
+  font-weight:800;
+  letter-spacing:-.025em;
+}
+
+.social-account-page[data-p3-upgraded="true"] .social-account-role,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-role {
+  margin-top:4px;
+  color:var(--p3-muted);
+  font-size:12px;
+  line-height:1.4;
+  font-weight:600;
+}
+
+.social-account-page[data-p3-upgraded="true"] .social-account-seller-badge,
+.social-account-page[data-p3-upgraded="true"] .social-account-status,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-badge {
+  min-height:30px;
+  width:fit-content;
+  max-width:100%;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin:9px 6px 0 0;
+  padding:5px 9px;
+  border:1px solid rgba(15,87,58,.11);
+  border-radius:999px;
+  background:var(--p3-brand-soft);
+  color:var(--p3-brand-strong);
+  font-size:11px;
+  line-height:1.2;
+  font-weight:700;
+}
+
+.social-account-page[data-p3-upgraded="true"] .social-account-description,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-description {
+  max-width:620px;
+  margin:10px 0 0;
+  white-space:pre-line;
+  overflow-wrap:anywhere;
+  color:#3f4b44;
+  font-size:13px;
+  line-height:1.55;
+}
+
+.social-account-page[data-p3-upgraded="true"] .social-account-link,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-location {
+  display:flex;
+  align-items:flex-start;
+  gap:7px;
+  margin-top:9px;
+  color:var(--p3-brand);
+  font-size:12px;
+  line-height:1.45;
+  font-weight:650;
+}
+
+.social-account-page[data-p3-upgraded="true"] .profile-public-links,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-links { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+
+.social-account-page[data-p3-upgraded="true"] .profile-public-link,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-link {
+  min-height:44px;
+  max-width:100%;
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:0 12px;
+  border:1px solid var(--p3-line);
+  border-radius:999px;
+  background:var(--p3-soft);
+  color:#304038;
+  text-decoration:none;
+  font-size:11px;
+  font-weight:700;
+}
+
+.social-account-page[data-p3-upgraded="true"] .social-account-actions,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-actions {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin-top:16px;
+}
+
+.social-account-page[data-p3-upgraded="true"] .social-account-action,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-action {
+  min-height:48px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  padding:0 12px;
+  border:1px solid var(--p3-line);
+  border-radius:12px;
+  background:var(--p3-soft);
+  color:#2b3931;
+  font-size:12px;
+  font-weight:750;
+  box-shadow:none;
+}
+
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-action.primary { border-color:var(--p3-brand); background:var(--p3-brand); color:#fff; }
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-action.primary.is-following { border-color:var(--p3-line); background:var(--p3-soft); color:#2b3931; }
+
+/* Seller gets one authoritative Seller Center entry. */
+.social-account-page[data-p3-upgraded="true"][data-p3-role="seller"] .social-account-highlights,
+.social-account-page[data-p3-upgraded="true"][data-p3-role="admin"] .social-account-highlights { display:none !important; }
+
+.social-account-page[data-p3-upgraded="true"] .social-account-commerce,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-store-card {
+  width:calc(100% - 32px);
+  min-height:76px;
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr) 24px;
+  align-items:center;
+  gap:12px;
+  margin:16px;
+  padding:12px;
+  border:1px solid rgba(15,87,58,.13);
+  border-radius:16px;
+  background:var(--p3-ivory);
+  color:var(--p3-ink);
+  text-align:left;
+  box-shadow:none;
+}
+
+.social-account-page[data-p3-upgraded="true"] .social-account-commerce-icon,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-store-icon {
+  width:48px;
+  height:48px;
+  display:grid;
+  place-items:center;
+  border-radius:14px;
+  background:var(--p3-brand-soft);
+  color:var(--p3-brand);
+}
+
+.social-account-page[data-p3-upgraded="true"] .social-account-commerce-copy strong,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-store-copy strong { display:block; color:var(--p3-brand-strong); font-size:14px; line-height:1.25; font-weight:800; }
+.social-account-page[data-p3-upgraded="true"] .social-account-commerce-copy span,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-store-copy span { display:block; margin-top:4px; color:var(--p3-muted); font-size:11px; line-height:1.35; font-weight:600; }
+
+/* buyer utilities */
+.social-account-page[data-p3-upgraded="true"][data-p3-role="buyer"] .social-account-highlights {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:0;
+  padding:4px 12px 16px;
+}
+.social-account-page[data-p3-upgraded="true"][data-p3-role="buyer"] .social-account-highlight {
+  min-height:70px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  padding:7px 4px;
+  border:0;
+  background:transparent;
+  box-shadow:none;
+}
+.social-account-page[data-p3-upgraded="true"] .social-account-highlight-ring { width:42px; height:42px; display:grid; place-items:center; border:1px solid var(--p3-line); border-radius:50%; background:var(--p3-soft); }
+.social-account-page[data-p3-upgraded="true"] .social-account-highlight-inner i { color:var(--p3-brand); font-size:19px; }
+.social-account-page[data-p3-upgraded="true"] .social-account-highlight-label { width:100%; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; text-align:center; color:#4c5851; font-size:11px; font-weight:650; }
+
+/* ---------- public profile shell ---------- */
+.social-universal-profile[data-p3-upgraded="true"] { min-height:calc(100dvh - 72px); padding-bottom:calc(82px + env(safe-area-inset-bottom)); }
+.social-universal-profile[data-p3-upgraded="true"] .social-account-topbar { display:grid; grid-template-columns:44px minmax(0,1fr) 44px; align-items:center; gap:8px; padding:0 12px; }
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-title {
+  position:static !important;
+  width:auto !important;
+  max-width:none !important;
+  margin:0 !important;
+  transform:none !important;
+  overflow:hidden;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  text-align:center;
+  font-size:14px;
+  font-weight:800;
+}
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-shell { padding:20px 16px 0; }
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-badges { display:flex; flex-wrap:wrap; gap:7px; margin-top:9px; }
+
+/* ---------- tabs + media grid ---------- */
+.social-account-page[data-p3-upgraded="true"] .social-account-tabs,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-tabs {
+  position:sticky;
+  top:58px;
+  z-index:18;
+  display:grid;
+  border-top:1px solid var(--p3-line);
+  border-bottom:1px solid var(--p3-line);
+  background:rgba(255,255,255,.98);
+}
+.social-account-page[data-p3-upgraded="true"] .social-account-tabs { grid-template-columns:repeat(4,minmax(0,1fr)); }
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-tabs { margin-top:16px; }
+
+.social-account-page[data-p3-upgraded="true"] .social-account-tab,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-tab {
+  position:relative;
+  min-height:50px;
+  display:grid;
+  place-items:center;
+  padding:0;
+  border:0;
+  background:transparent;
+  color:#89918c;
+}
+.social-account-page[data-p3-upgraded="true"] .social-account-tab i,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-tab i { font-size:21px; }
+.social-account-page[data-p3-upgraded="true"] .social-account-tab.active,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-tab.active { color:var(--p3-brand); }
+.social-account-page[data-p3-upgraded="true"] .social-account-tab.active::after,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-tab.active::after {
+  content:"";
+  position:absolute;
+  left:34%;
+  right:34%;
+  bottom:-1px;
+  height:2px;
+  background:var(--p3-brand);
+}
+
+.social-account-page[data-p3-upgraded="true"] .social-account-grid,
+.social-account-page[data-p3-upgraded="true"] .social-account-post-grid,
+.social-account-page[data-p3-upgraded="true"] .saved-profile-grid,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-grid {
+  width:100%;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:2px;
+  padding:0;
+  background:#fff;
+}
+
+.social-account-page[data-p3-upgraded="true"] .social-account-grid-item,
+.social-account-page[data-p3-upgraded="true"] .social-account-post-item,
+.social-account-page[data-p3-upgraded="true"] .saved-profile-item,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-grid-item {
+  position:relative;
+  min-width:0;
+  width:100%;
+  aspect-ratio:1/1;
+  overflow:hidden;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:#eef2ef;
+}
+.social-account-page[data-p3-upgraded="true"] .social-account-grid-item img,
+.social-account-page[data-p3-upgraded="true"] .social-account-post-item img,
+.social-account-page[data-p3-upgraded="true"] .saved-profile-item img,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-grid-item img { width:100%; height:100%; display:block; object-fit:cover; }
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-grid-type { position:absolute; top:7px; right:7px; width:26px; height:26px; display:grid; place-items:center; border-radius:8px; background:rgba(7,13,10,.54); color:#fff; }
+
+.social-account-page[data-p3-upgraded="true"] .social-account-empty,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-empty {
+  min-height:230px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:28px 22px;
+  color:var(--p3-muted);
+  text-align:center;
+}
+.social-account-page[data-p3-upgraded="true"] .social-account-empty strong,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-empty strong { color:var(--p3-ink); font-size:14px; font-weight:800; }
+.social-account-page[data-p3-upgraded="true"] .social-account-empty p,
+.social-universal-profile[data-p3-upgraded="true"] .social-profile-empty span { max-width:280px; margin:0; font-size:12px; line-height:1.5; }
+
+/* ---------- follow lists ---------- */
+.social-follow-sheet[data-p3-upgraded="true"] { padding-bottom:calc(8px + env(safe-area-inset-bottom)); }
+.social-follow-sheet[data-p3-upgraded="true"] .social-follow-head { min-height:52px; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:0 2px 8px; border-bottom:1px solid var(--p3-line); }
+.social-follow-sheet[data-p3-upgraded="true"] .social-follow-head h2 { margin:0; font-size:16px; font-weight:800; }
+.social-follow-sheet[data-p3-upgraded="true"] .profile-edit-close { width:44px; height:44px; min-width:44px; min-height:44px; }
+.social-follow-sheet[data-p3-upgraded="true"] .social-follow-list { max-height:min(66dvh,620px); overflow-y:auto; overscroll-behavior:contain; }
+.social-follow-sheet[data-p3-upgraded="true"] .social-follow-user { width:100%; min-height:68px; display:grid; grid-template-columns:46px minmax(0,1fr) 24px; align-items:center; gap:11px; padding:10px 2px; border:0; border-bottom:1px solid var(--p3-line); background:transparent; color:var(--p3-ink); text-align:left; }
+.social-follow-sheet[data-p3-upgraded="true"] .social-follow-avatar { width:46px; height:46px; }
+.social-follow-sheet[data-p3-upgraded="true"] .social-follow-copy strong { display:block; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:13px; font-weight:750; }
+.social-follow-sheet[data-p3-upgraded="true"] .social-follow-copy span { display:block; margin-top:3px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; color:var(--p3-muted); font-size:11px; }
+.social-follow-sheet[data-p3-upgraded="true"] .social-follow-unfollow { min-height:44px; padding:0 12px; border:1px solid var(--p3-line); border-radius:11px; background:var(--p3-soft); color:#344139; font-size:11px; font-weight:750; }
+
+/* ---------- post viewer ---------- */
+.post-viewer-page[data-p3-upgraded="true"] { padding-bottom:calc(80px + env(safe-area-inset-bottom)); }
+.post-viewer-page[data-p3-upgraded="true"] .post-viewer-header,
+.post-viewer-page[data-p3-upgraded="true"] .post-viewer-topbar { position:sticky; top:0; z-index:20; min-height:58px; display:grid; grid-template-columns:44px minmax(0,1fr) 44px; align-items:center; gap:8px; padding:0 12px; border-bottom:1px solid var(--p3-line); background:rgba(255,255,255,.98); }
+.post-viewer-page[data-p3-upgraded="true"] .post-viewer-back { width:44px; height:44px; min-width:44px; min-height:44px; display:grid; place-items:center; padding:0; border:0; border-radius:12px; background:transparent; color:var(--p3-ink); }
+.post-viewer-page[data-p3-upgraded="true"] .post-viewer-header-copy { min-width:0; text-align:center; }
+.post-viewer-page[data-p3-upgraded="true"] .post-viewer-header-copy strong,
+.post-viewer-page[data-p3-upgraded="true"] .post-viewer-topbar>strong { display:block; font-size:14px; font-weight:800; }
+.post-viewer-page[data-p3-upgraded="true"] .post-viewer-header-copy span { display:block; margin-top:2px; color:var(--p3-muted); font-size:11px; }
+
+/* ---------- accessibility ---------- */
+.social-account-page[data-p3-upgraded="true"] :focus-visible,
+.social-universal-profile[data-p3-upgraded="true"] :focus-visible,
+.social-follow-sheet[data-p3-upgraded="true"] :focus-visible,
+.post-viewer-page[data-p3-upgraded="true"] :focus-visible { outline:2px solid #2b7959; outline-offset:2px; }
+
+@media (max-width:430px) {
+  .social-account-page[data-p3-upgraded="true"] .social-account-header,
+  .social-universal-profile[data-p3-upgraded="true"] .social-profile-shell { padding-left:14px; padding-right:14px; }
+  .social-account-page[data-p3-upgraded="true"] .social-account-main,
+  .social-universal-profile[data-p3-upgraded="true"] .social-profile-overview { grid-template-columns:82px minmax(0,1fr); gap:14px; }
+  .social-account-page[data-p3-upgraded="true"] .social-account-avatar-wrap,
+  .social-account-page[data-p3-upgraded="true"] .social-account-avatar,
+  .social-universal-profile[data-p3-upgraded="true"] .social-profile-avatar { width:80px; height:80px; }
+}
+
+@media (max-width:360px) {
+  .social-account-page[data-p3-upgraded="true"] .social-account-main,
+  .social-universal-profile[data-p3-upgraded="true"] .social-profile-overview { grid-template-columns:74px minmax(0,1fr); gap:10px; }
+  .social-account-page[data-p3-upgraded="true"] .social-account-avatar-wrap,
+  .social-account-page[data-p3-upgraded="true"] .social-account-avatar,
+  .social-universal-profile[data-p3-upgraded="true"] .social-profile-avatar { width:72px; height:72px; }
+  .social-account-page[data-p3-upgraded="true"] .social-account-stat strong,
+  .social-universal-profile[data-p3-upgraded="true"] .social-profile-stat strong { font-size:16px; }
+  .social-account-page[data-p3-upgraded="true"] .social-account-stat span,
+  .social-universal-profile[data-p3-upgraded="true"] .social-profile-stat span { font-size:10px; }
+}
+
+@media (min-width:768px) {
+  .social-account-page[data-p3-upgraded="true"],
+  .social-universal-profile[data-p3-upgraded="true"],
+  .post-viewer-page[data-p3-upgraded="true"] { border-left:1px solid rgba(23,32,27,.07); border-right:1px solid rgba(23,32,27,.07); }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .social-account-page[data-p3-upgraded="true"] *,
+  .social-universal-profile[data-p3-upgraded="true"] *,
+  .social-follow-sheet[data-p3-upgraded="true"] *,
+  .post-viewer-page[data-p3-upgraded="true"] * { scroll-behavior:auto !important; transition-duration:.01ms !important; animation-duration:.01ms !important; animation-iteration-count:1 !important; }
+}
