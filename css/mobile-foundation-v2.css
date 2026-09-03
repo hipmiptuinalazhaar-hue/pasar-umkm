@@ -396,3 +396,112 @@ html body .empty-state {
     transition-duration: .01ms !important;
   }
 }
+
+/* ---------- Legacy migration boundary ----------
+   style.runtime.css still contains old FINAL FIX rules with !important.
+   Keep all compatibility escalation isolated here; remove this block when
+   the legacy shell is deleted. No feature component may add to this list. */
+@media (max-width: 767px) {
+  html body .app > .app-header {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    transform: none !important;
+    z-index: var(--z-header, 200) !important;
+    display: grid !important;
+    grid-template-columns: 44px minmax(0, 1fr) auto !important;
+    grid-template-areas:
+      "menu brand actions"
+      "search search search" !important;
+    grid-template-rows: 44px 44px !important;
+    gap: 6px 10px !important;
+    min-height: calc(var(--header-height, 104px) + var(--safe-top, 0px)) !important;
+    padding: calc(8px + var(--safe-top, 0px)) var(--page-gutter, 16px) 10px !important;
+  }
+
+  html body .app > .app-header .header-icon-button {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+
+  html body .app > .app-header .header-brand {
+    width: auto !important;
+    min-width: 0 !important;
+  }
+
+  html body .app > .app-header .header-logo {
+    width: 108px !important;
+    height: auto !important;
+    max-width: 100% !important;
+    max-height: 38px !important;
+  }
+
+  html body .app > .app-header .header-search {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 0 14px !important;
+  }
+
+  html body .app > .app-header .header-search span {
+    display: inline !important;
+    font-size: 13px !important;
+  }
+
+  html body .app > .app-header .header-actions {
+    gap: 4px !important;
+  }
+
+  html body .app > .app-main {
+    padding-top: calc(var(--header-height, 104px) + var(--safe-top, 0px)) !important;
+    padding-bottom: calc(var(--bottom-nav-height, 72px) + var(--safe-bottom, 0px) + 16px) !important;
+  }
+
+  html body .app > .app-navigation {
+    z-index: var(--z-nav, 220) !important;
+  }
+
+  html body .side-menu-overlay {
+    z-index: var(--z-side-menu, 500) !important;
+  }
+
+  html body .search-overlay {
+    z-index: var(--z-search, 700) !important;
+  }
+
+  html body .sheet-overlay {
+    z-index: var(--z-overlay, 800) !important;
+  }
+
+  html body .bottom-sheet {
+    z-index: var(--z-sheet, 900) !important;
+  }
+}
+
+@media (max-width: 359px) {
+  html body .app > .app-header {
+    grid-template-columns: 44px minmax(0, 1fr) auto !important;
+    gap: 6px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  html body .app > .app-header .header-brand {
+    width: auto !important;
+  }
+
+  html body .app > .app-header .header-logo {
+    width: 94px !important;
+    max-width: 94px !important;
+  }
+
+  html body .app > .app-header .header-search span {
+    display: inline !important;
+  }
+}
