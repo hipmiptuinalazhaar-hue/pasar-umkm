@@ -1,0 +1,207 @@
+name: UI P3 Social Validation
+
+on:
+  pull_request:
+    paths:
+      - 'css/social-experience-v3.css'
+      - 'css/social-engagement-v3.css'
+      - 'css/social-media-v3.css'
+      - 'js/social-experience-v3.js'
+      - 'js/account-resilience.js'
+      - 'index.html'
+      - '.github/workflows/ui-p3-social-validate.yml'
+  push:
+    branches:
+      - ui-p3-social
+
+permissions:
+  contents: read
+
+jobs:
+  validate-social:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Validate JavaScript syntax
+        run: |
+          node --check js/social-experience-v3.js
+          node --check js/account-resilience.js
+
+      - name: Validate social ownership, route loading, and design budgets
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          import sys
+
+          files = {
+              'profile': Path('css/social-experience-v3.css'),
+              'engagement': Path('css/social-engagement-v3.css'),
+              'media': Path('css/social-media-v3.css'),
+              'controller': Path('js/social-experience-v3.js'),
+              'loader': Path('js/account-resilience.js'),
+              'index': Path('index.html'),
+          }
+
+          errors = []
+
+          for name, path in files.items():
+              if not path.exists():
+                  errors.append(f'Missing P3 file ({name}): {path}')
+
+          if errors:
+              print('\n'.join(errors))
+              sys.exit(1)
+
+          profile = files['profile'].read_text(encoding='utf-8')
+          engagement = files['engagement'].read_text(encoding='utf-8')
+          media = files['media'].read_text(encoding='utf-8')
+          controller = files['controller'].read_text(encoding='utf-8')
+          loader = files['loader'].read_text(encoding='utf-8')
+          index = files['index'].read_text(encoding='utf-8')
+
+          budgets = {
+              'profile': (files['profile'].stat().st_size, 24_000),
+              'engagement': (files['engagement'].stat().st_size, 14_000),
+              'media': (files['media'].stat().st_size, 12_000),
+              'controller': (files['controller'].stat().st_size, 16_000),
+              'loader': (files['loader'].stat().st_size, 18_000),
+          }
+
+          for name, (size, limit) in budgets.items():
+              if size > limit:
+                  errors.append(f'{name} exceeds source budget: {size} > {limit} bytes')
+
+          # P3 CSS quality contract.
+          for name, css in (
+              ('profile', profile),
+              ('engagement', engagement),
+              ('media', media),
+          ):
+              tiny_fonts = [
+                  float(value)
+                  for value in re.findall(r'font-size\s*:\s*([0-9.]+)px', css)
+                  if float(value) < 10
+              ]
+
+              if tiny_fonts:
+                  errors.append(f'{name} contains font sizes below 10px: {tiny_fonts}')
+
+              if 'linear-gradient(' in css or 'radial-gradient(' in css:
+                  errors.append(f'{name} contains decorative gradient')
+
+              if 'backdrop-filter:' in css:
+                  errors.append(f'{name} adds backdrop-filter; P3 restrained design forbids it')
+
+              important_count = css.count('!important')
+              if important_count > 20:
+                  errors.append(f'{name} !important debt exceeds 20: {important_count}')
+
+              if 'prefers-reduced-motion:reduce' not in css.replace(' ', ''):
+                  errors.append(f'{name} is missing reduced-motion handling')
+
+          # Route CSS must stay out of initial HTML.
+          for asset in (
+              'social-experience-v3.css',
+              'social-engagement-v3.css',
+              'social-media-v3.css',
+              'social-experience-v3.js',
+          ):
+              if asset in index:
+                  errors.append(f'{asset} is referenced directly by index.html; P3 must remain route-loaded')
+
+          if 'js/account-resilience.js?v=3.0' not in index:
+              errors.append('index.html is missing P3 cache-busted account-resilience.js?v=3.0')
+
+          # Retired presentation CSS may remain in git, but loader must not request it.
+          for retired in (
+              'notification-core.css',
+              'profile-responsive.css',
+              'profile-premium.css',
+          ):
+              if retired in loader:
+                  errors.append(f'Retired P3 presentation asset is still loaded: {retired}')
+
+          route_contracts = (
+              "href: 'css/social-experience-v3.css?v=3.1'",
+              "href: 'css/social-engagement-v3.css?v=3.0'",
+              "href: 'css/social-media-v3.css?v=3.0'",
+              "script.src = 'js/social-experience-v3.js?v=3.0'",
+              "'.reel-author[data-media-action=\"reel-profile\"]'",
+              "loadSocialPresentation('profile')",
+          )
+
+          for contract in route_contracts:
+              if contract not in loader:
+                  errors.append(f'Missing P3 route-loader contract: {contract}')
+
+          controller_contracts = (
+              "version: '3.0'",
+              'new MutationObserver',
+              "sheet.querySelector('.post-comment-reactions')?.remove()",
+              "document.body.classList.add('p3-comments-open')",
+              "page.dataset.p3Upgraded = 'true'",
+          )
+
+          for contract in controller_contracts:
+              if contract not in controller:
+                  errors.append(f'Missing P3 controller contract: {contract}')
+
+          # MutationObserver must not watch attributes, which previously caused self loops in chat patches.
+          if re.search(r'observe\s*\([^)]*\{[^}]*attributes\s*:\s*true', controller, re.S):
+              errors.append('P3 MutationObserver watches attributes; this risks a presentation self-loop')
+
+          if 'openBottomSheet(' in controller:
+              errors.append('P3 presentation controller must not own bottom-sheet rendering')
+
+          css_contracts = {
+              'profile': (
+                  'min-height:48px',
+                  'min-height:44px',
+                  'data-p3-role="seller"',
+                  'social-account-commerce',
+                  'social-universal-profile',
+              ),
+              'engagement': (
+                  'font-size:16px',
+                  'min-height:82px',
+                  'post-comment-reactions',
+                  'social-notifications-page',
+              ),
+              'media': (
+                  'min-height:100dvh',
+                  'min-width:48px',
+                  'story-viewer-v2',
+                  'reels-page',
+              ),
+          }
+
+          css_lookup = {
+              'profile': profile,
+              'engagement': engagement,
+              'media': media,
+          }
+
+          for name, contracts in css_contracts.items():
+              compact = css_lookup[name].replace(' ', '')
+              for contract in contracts:
+                  if contract.replace(' ', '') not in compact:
+                      errors.append(f'Missing {name} CSS contract: {contract}')
+
+          for name, (size, limit) in budgets.items():
+              print(f'P3 {name}: {size} / {limit} bytes')
+
+          print('P3 profile !important:', profile.count('!important'))
+          print('P3 engagement !important:', engagement.count('!important'))
+          print('P3 media !important:', media.count('!important'))
+
+          if errors:
+              print('UI P3 Social validation failed:')
+              for error in errors:
+                  print(f'- {error}')
+              sys.exit(1)
+
+          print('UI P3 Social validation passed.')
