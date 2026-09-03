@@ -370,15 +370,16 @@
     padding-inline: 18px;
   }
 
-  /* Comments are a modal on larger screens, not a giant bottom drawer. */
+  /* Comments are a modal on larger screens, not a giant bottom drawer.
+     Only properties that P3 itself marks important stay important here. */
   html body.p3-comments-open .bottom-sheet {
-    left: 50% !important;
-    right: auto !important;
-    bottom: auto !important;
-    top: 50% !important;
-    width: min(640px, calc(100vw - 48px)) !important;
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    top: 50%;
+    width: min(640px, calc(100vw - 48px));
     max-height: min(78dvh, 760px) !important;
-    transform: translate(-50%, -50%) !important;
+    transform: translate(-50%, -50%);
     border-radius: 24px !important;
   }
 
@@ -596,7 +597,7 @@
 
   html body .app-navigation .nav-item > span:not(.nav-badge):not(.nav-create-icon) {
     font-size: 10.5px;
-    font-weight: 650;
+    font-weight: 600;
   }
 
   html body .app-navigation .nav-item.active {
@@ -916,7 +917,7 @@
 
   html body .app-navigation .nav-item > span:not(.nav-badge):not(.nav-create-icon) {
     font-size: 13px;
-    font-weight: 650;
+    font-weight: 600;
   }
 
   html body .app-navigation .nav-create-icon {
