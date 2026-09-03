@@ -1,5 +1,4 @@
 @import url("./mobile-foundation-v2.css?v=1.0");
-@import url("./tablet-desktop-v1.css?v=1.0") screen and (min-width:768px);
 
 /* PASAR UMKM — DESIGN TOKENS v7.0
    Mobile-first foundation. Compatibility aliases are kept while legacy UI is migrated. */
