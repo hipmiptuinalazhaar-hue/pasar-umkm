@@ -107,8 +107,8 @@
 .social-account-page[data-p3-upgraded="true"] .social-account-header {
   padding:20px 16px 18px;
   border:0;
-  background:#fff !important;
-  box-shadow:none !important;
+  background:#fff;
+  box-shadow:none;
 }
 
 .social-account-page[data-p3-upgraded="true"] .social-account-main,
@@ -128,10 +128,10 @@
   overflow:hidden;
   display:grid;
   place-items:center;
-  border:1px solid rgba(15,87,58,.13) !important;
+  border:1px solid rgba(15,87,58,.13);
   border-radius:50%;
   background:var(--p3-brand-soft);
-  box-shadow:none !important;
+  box-shadow:none;
 }
 
 .social-account-page[data-p3-upgraded="true"] .social-account-avatar img,
@@ -241,7 +241,7 @@
 .social-account-page[data-p3-upgraded="true"] .social-account-description,
 .social-universal-profile[data-p3-upgraded="true"] .social-profile-description {
   max-width:620px;
-  margin:10px 0 0 !important;
+  margin:10px 0 0;
   white-space:pre-line;
   overflow-wrap:anywhere;
   color:#3f4b44;
@@ -325,10 +325,10 @@
   padding:12px;
   border:1px solid rgba(15,87,58,.13);
   border-radius:16px;
-  background:var(--p3-ivory) !important;
+  background:var(--p3-ivory);
   color:var(--p3-ink);
   text-align:left;
-  box-shadow:none !important;
+  box-shadow:none;
 }
 
 .social-account-page[data-p3-upgraded="true"] .social-account-commerce-icon,
@@ -364,7 +364,7 @@
   padding:7px 4px;
   border:0;
   background:transparent;
-  box-shadow:none !important;
+  box-shadow:none;
 }
 .social-account-page[data-p3-upgraded="true"] .social-account-highlight-ring { width:42px; height:42px; display:grid; place-items:center; border:1px solid var(--p3-line); border-radius:50%; background:var(--p3-soft); }
 .social-account-page[data-p3-upgraded="true"] .social-account-highlight-inner i { color:var(--p3-brand); font-size:19px; }
@@ -452,7 +452,7 @@
   overflow:hidden;
   padding:0;
   border:0;
-  border-radius:0 !important;
+  border-radius:0;
   background:#eef2ef;
 }
 .social-account-page[data-p3-upgraded="true"] .social-account-grid-item img,
