@@ -1,623 +1,114 @@
-/* =========================================================
-   PASAR UMKM
-   DESIGN TOKENS v6.0
-   Marketplace UI System
-   ========================================================= */
+@import url("./mobile-foundation-v2.css?v=1.0");
 
+/* PASAR UMKM — DESIGN TOKENS v7.0
+   Mobile-first foundation. Compatibility aliases are kept while legacy UI is migrated. */
 :root {
-
-
-  /* =======================================================
-     01. BRAND — FOREST GREEN
-     ======================================================= */
-
-  --forest-950: #06291d;
-  --forest-900: #083725;
-  --forest-850: #0a402b;
-  --forest-800: #0d4b32;
-  --forest-700: #12603f;
-  --forest-600: #17784d;
-  --forest-500: #24915e;
-  --forest-400: #48aa78;
-  --forest-300: #7fc59d;
-  --forest-200: #b9e0c9;
-  --forest-100: #dff1e6;
-  --forest-50: #f1f8f4;
-
-
-  /* =======================================================
-     02. BRAND — GOLD
-     ======================================================= */
-
-  --gold-900: #6f4d05;
-  --gold-800: #89630b;
-  --gold-700: #a87910;
-  --gold-600: #c58f18;
-  --gold-500: #dfa72f;
-  --gold-400: #edbd5d;
-  --gold-300: #f4d38b;
-  --gold-200: #f8e4b8;
-  --gold-100: #fcf2dc;
-  --gold-50: #fff9ed;
-
-
-  /* =======================================================
-     03. COMMERCE ACCENT
-     ======================================================= */
-
-  --commerce-900: #7a3218;
-  --commerce-800: #933c1c;
-  --commerce-700: #ad4a22;
-  --commerce-600: #c85b2b;
-  --commerce-500: #df7040;
-  --commerce-400: #eb8f68;
-  --commerce-300: #f2af93;
-  --commerce-200: #f8cebd;
-  --commerce-100: #fbe8df;
-  --commerce-50: #fff6f1;
-
-
-  /* =======================================================
-     04. NEUTRALS
-     ======================================================= */
-
-  --white: #ffffff;
-
-  --neutral-950: #111612;
-  --neutral-900: #181d19;
-  --neutral-850: #202621;
-  --neutral-800: #2c332d;
-  --neutral-700: #414942;
-  --neutral-600: #59615a;
-  --neutral-500: #737b74;
-  --neutral-400: #929992;
-  --neutral-300: #b0b6b1;
-  --neutral-250: #c1c6c2;
-  --neutral-200: #d1d5d2;
-  --neutral-150: #e0e3e0;
-  --neutral-100: #e9ebe9;
-  --neutral-75: #f0f1f0;
-  --neutral-50: #f5f6f5;
-  --neutral-25: #fafbfa;
-
-
-  /* =======================================================
-     05. WARM MARKETPLACE BACKGROUND
-     ======================================================= */
-
-  --cream-100: #f4f1e8;
-  --cream-75: #f7f5ef;
-  --cream-50: #faf9f5;
-  --cream-25: #fdfcf9;
-
-
-  /* =======================================================
-     06. SEMANTIC SURFACES
-     ======================================================= */
-
-  --surface-page: var(--cream-50);
-  --surface-primary: var(--white);
-  --surface-secondary: var(--neutral-25);
-  --surface-soft: var(--neutral-50);
-  --surface-muted: var(--cream-75);
-
-  --surface-brand-soft: var(--forest-50);
-  --surface-brand-muted: var(--forest-100);
-
-  --surface-gold-soft: var(--gold-50);
-  --surface-commerce-soft: var(--commerce-50);
-
-  --surface-dark: var(--forest-950);
-
-  --surface-overlay:
-    rgba(8, 25, 17, 0.42);
-
-  --surface-overlay-heavy:
-    rgba(7, 18, 12, 0.66);
-
-
-  /* =======================================================
-     07. TEXT
-     ======================================================= */
-
-  --text-primary: var(--neutral-950);
-  --text-secondary: var(--neutral-700);
-  --text-tertiary: var(--neutral-500);
-  --text-muted: var(--neutral-400);
-
-  --text-brand: var(--forest-700);
-  --text-brand-strong: var(--forest-900);
-
-  --text-commerce: var(--commerce-700);
-  --text-gold: var(--gold-700);
-
-  --text-inverse: #ffffff;
-
-
-  /* =======================================================
-     08. BORDER
-     ======================================================= */
-
-  --border-subtle:
-    rgba(24, 29, 25, 0.07);
-
-  --border-soft:
-    rgba(24, 29, 25, 0.11);
-
-  --border-default:
-    rgba(24, 29, 25, 0.16);
-
-  --border-strong:
-    rgba(24, 29, 25, 0.23);
-
-  --border-brand-soft:
-    rgba(18, 96, 63, 0.13);
-
-  --border-brand:
-    rgba(18, 96, 63, 0.24);
-
-  --border-gold-soft:
-    rgba(168, 121, 16, 0.18);
-
-
-  /* =======================================================
-     09. STATUS COLORS
-     ======================================================= */
-
-  --success-700: #147247;
-  --success-100: #e4f4eb;
-
-  --warning-700: #956200;
-  --warning-100: #fff3d7;
-
-  --danger-700: #b43c30;
-  --danger-100: #fde9e6;
-
-  --info-700: #326581;
-  --info-100: #e8f1f6;
-
-
-  /* =======================================================
-     10. TYPOGRAPHY
-     Marketplace-style
-     ======================================================= */
-
-  --font-ui:
-    'Plus Jakarta Sans',
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
-
-  --font-display:
-    var(--font-ui);
-
-
-  /* Font sizes */
-
-  --text-2xs: 9px;
-  --text-xs: 10px;
-  --text-sm: 11px;
-  --text-base: 12px;
-  --text-md: 13px;
-  --text-lg: 14px;
-  --text-xl: 16px;
-  --text-2xl: 18px;
-  --text-3xl: 21px;
-  --text-4xl: 24px;
-  --text-5xl: 30px;
-
-
-  /* Font weights */
-
-  --weight-regular: 400;
-  --weight-medium: 500;
-  --weight-semibold: 600;
-  --weight-bold: 700;
-  --weight-extrabold: 800;
-
-
-  /* Line height */
-
-  --leading-tight: 1.18;
-  --leading-snug: 1.3;
-  --leading-normal: 1.45;
-  --leading-relaxed: 1.58;
-  --leading-loose: 1.72;
-
-
-  /* Letter spacing */
-
-  --tracking-tight: -0.018em;
-  --tracking-normal: 0;
-  --tracking-wide: 0.035em;
-  --tracking-wider: 0.075em;
-  --tracking-caps: 0.11em;
-
-
-  /* =======================================================
-     11. SPACING
-     ======================================================= */
-
-  --space-1: 4px;
-  --space-2: 6px;
-  --space-3: 8px;
-  --space-4: 10px;
-  --space-5: 12px;
-  --space-6: 14px;
-  --space-7: 16px;
-  --space-8: 18px;
-  --space-9: 20px;
-  --space-10: 24px;
-  --space-11: 28px;
-  --space-12: 32px;
-  --space-13: 36px;
-  --space-14: 40px;
-  --space-15: 48px;
-  --space-16: 56px;
-
-
-  /* =======================================================
-     12. RADII
-     Marketplace-friendly
-     ======================================================= */
-
-  --radius-2xs: 4px;
-  --radius-xs: 6px;
-  --radius-sm: 8px;
-  --radius-md: 10px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 20px;
-  --radius-3xl: 24px;
-
-  --radius-pill: 999px;
-  --radius-circle: 50%;
-
-
-  /* =======================================================
-     13. SHADOWS
-     restrained, practical
-     ======================================================= */
-
-  --shadow-xs:
-    0 1px 2px rgba(13, 31, 21, 0.04);
-
-  --shadow-sm:
-    0 2px 8px rgba(13, 31, 21, 0.06);
-
-  --shadow-md:
-    0 6px 20px rgba(13, 31, 21, 0.08);
-
-  --shadow-lg:
-    0 14px 36px rgba(13, 31, 21, 0.11);
-
-  --shadow-xl:
-    0 24px 64px rgba(7, 24, 15, 0.15);
-
-  --shadow-floating:
-    0 8px 28px rgba(8, 55, 37, 0.16);
-
-  --shadow-nav:
-    0 -6px 20px rgba(11, 40, 27, 0.06);
-
-  --shadow-sheet:
-    0 -16px 44px rgba(7, 22, 14, 0.15);
-
-
-  /* =======================================================
-     14. LAYOUT
-     ======================================================= */
-
-  --content-max-width: 430px;
-
-  --header-height: 60px;
-  --bottom-nav-height: 62px;
-
-  --page-gutter: 14px;
-  --page-gutter-small: 11px;
-
-  --side-menu-width:
-    min(84vw, 330px);
-
-  --sheet-max-width: 430px;
-
-  --story-size: 56px;
-  --story-avatar-size: 50px;
-
-  --safe-top:
-    env(safe-area-inset-top, 0px);
-
-  --safe-bottom:
-    env(safe-area-inset-bottom, 0px);
-
-
-  /* =======================================================
-     15. HEADER
-     ======================================================= */
-
-  --header-bg:
-    rgba(255, 255, 255, 0.97);
-
-  --header-border:
-    rgba(24, 29, 25, 0.07);
-
-  --header-search-bg:
-    var(--neutral-50);
-
-  --header-search-border:
-    rgba(24, 29, 25, 0.08);
-
-  --header-search-text:
-    var(--neutral-500);
-
-
-  /* =======================================================
-     16. NAVIGATION
-     ======================================================= */
-
-  --nav-bg:
-    rgba(255, 255, 255, 0.98);
-
-  --nav-active-bg:
-    var(--forest-50);
-
-  --nav-active-color:
-    var(--forest-700);
-
-  --nav-inactive-color:
-    var(--neutral-500);
-
-
-  /* =======================================================
-     17. DISCOVERY / HOME HERO
-     ======================================================= */
-
-  --discovery-bg:
-    var(--forest-900);
-
-  --discovery-text:
-    #ffffff;
-
-  --discovery-muted:
-    rgba(255, 255, 255, 0.74);
-
-  --discovery-eyebrow:
-    var(--gold-400);
-
-
-  /* =======================================================
-     18. BUTTONS
-     ======================================================= */
-
-  --button-primary-bg:
-    var(--forest-700);
-
-  --button-primary-hover:
-    var(--forest-800);
-
-  --button-primary-text:
-    #ffffff;
-
-  --button-secondary-bg:
-    var(--white);
-
-  --button-secondary-text:
-    var(--forest-800);
-
-  --button-secondary-border:
-    rgba(255, 255, 255, 0.18);
-
-
-  /* =======================================================
-     19. SHEETS
-     ======================================================= */
-
-  --sheet-bg:
-    var(--white);
-
-  --sheet-handle:
-    var(--neutral-200);
-
-
-  /* =======================================================
-     20. TOAST
-     ======================================================= */
-
-  --toast-bg:
-    var(--neutral-950);
-
-  --toast-text:
-    #ffffff;
-
-
-  /* =======================================================
-     21. MEDIA
-     ======================================================= */
-
-  --media-bg:
-    var(--neutral-100);
-
-  --media-overlay:
-    linear-gradient(
-      180deg,
-      rgba(7, 22, 14, 0) 58%,
-      rgba(7, 22, 14, 0.42) 100%
-    );
-
-
-  /* =======================================================
-     22. MOTION
-     ======================================================= */
-
-  --ease-standard:
-    cubic-bezier(0.2, 0.8, 0.2, 1);
-
-  --ease-enter:
-    cubic-bezier(0.16, 1, 0.3, 1);
-
-  --ease-exit:
-    cubic-bezier(0.4, 0, 1, 1);
-
-  --ease-soft:
-    cubic-bezier(0.22, 0.61, 0.36, 1);
-
-  --duration-fast: 140ms;
-  --duration-normal: 220ms;
-  --duration-medium: 320ms;
-  --duration-slow: 460ms;
-
-
-  /* =======================================================
-     23. SPLASH
-     ======================================================= */
-
-  --splash-bg:
-    var(--white);
-
-  --splash-logo-width:
-    clamp(180px, 58vw, 260px);
-
-  --splash-enter-duration:
-    650ms;
-
-  --splash-hold-duration:
-    360ms;
-
-  --splash-exit-duration:
-    380ms;
-
-
-  /* =======================================================
-     24. INTERACTION
-     ======================================================= */
-
-  --tap-scale: 0.97;
-
-  --focus-ring:
-    0 0 0 3px rgba(36, 145, 94, 0.18);
-
-  --focus-ring-strong:
-    0 0 0 3px rgba(36, 145, 94, 0.28);
-
-
-  /* =======================================================
-     25. Z-INDEX
-     ======================================================= */
-
-  --z-base: 1;
-  --z-sticky: 50;
-  --z-header: 100;
-  --z-nav: 110;
-  --z-side-menu: 500;
-  --z-search: 700;
-  --z-overlay: 800;
-  --z-sheet: 900;
-  --z-toast: 1200;
-  --z-loading: 1800;
-  --z-splash: 2500;
-
-
-  /* =======================================================
-     26. GRADIENTS
-     subtle and functional only
-     ======================================================= */
-
-  --gradient-brand:
-    linear-gradient(
-      135deg,
-      var(--forest-800) 0%,
-      var(--forest-600) 100%
-    );
-
-  --gradient-brand-soft:
-    linear-gradient(
-      180deg,
-      var(--forest-50) 0%,
-      var(--white) 100%
-    );
-
-  --gradient-gold:
-    linear-gradient(
-      135deg,
-      var(--gold-700) 0%,
-      var(--gold-400) 100%
-    );
-
-  --gradient-commerce:
-    linear-gradient(
-      135deg,
-      var(--commerce-700) 0%,
-      var(--commerce-500) 100%
-    );
-
-
-  /* =======================================================
-     27. COMPATIBILITY ALIASES
-     keeps previous CSS/JS from immediately breaking
-     ======================================================= */
-
-  --bg-primary:
-    var(--surface-primary);
-
-  --bg-secondary:
-    var(--surface-secondary);
-
-  --bg-tertiary:
-    var(--surface-soft);
-
-  --primary:
-    var(--forest-700);
-
-  --primary-dark:
-    var(--forest-900);
-
-  --accent:
-    var(--gold-600);
-
-  --danger:
-    var(--danger-700);
-
-  --success:
-    var(--success-700);
-
-  --shadow-card:
-    var(--shadow-sm);
-
-  --shadow-modal:
-    var(--shadow-lg);
-
-  --radius-card:
-    var(--radius-lg);
-
-  --radius-button:
-    var(--radius-md);
-
-  --radius-modal:
-    var(--radius-2xl);
-
+  /* Brand */
+  --forest-950:#06291d; --forest-900:#083725; --forest-850:#0a402b; --forest-800:#0d4b32;
+  --forest-700:#12603f; --forest-600:#17784d; --forest-500:#24915e; --forest-400:#48aa78;
+  --forest-300:#7fc59d; --forest-200:#b9e0c9; --forest-100:#dff1e6; --forest-50:#f1f8f4;
+  --gold-900:#6f4d05; --gold-800:#89630b; --gold-700:#a87910; --gold-600:#c58f18;
+  --gold-500:#dfa72f; --gold-400:#edbd5d; --gold-300:#f4d38b; --gold-200:#f8e4b8;
+  --gold-100:#fcf2dc; --gold-50:#fff9ed;
+  --commerce-900:#7a3218; --commerce-800:#933c1c; --commerce-700:#ad4a22; --commerce-600:#c85b2b;
+  --commerce-500:#df7040; --commerce-400:#eb8f68; --commerce-300:#f2af93; --commerce-200:#f8cebd;
+  --commerce-100:#fbe8df; --commerce-50:#fff6f1;
+
+  /* Neutral + warm surfaces */
+  --white:#fff; --neutral-950:#111612; --neutral-900:#181d19; --neutral-850:#202621; --neutral-800:#2c332d;
+  --neutral-700:#414942; --neutral-600:#59615a; --neutral-500:#737b74; --neutral-400:#929992;
+  --neutral-300:#b0b6b1; --neutral-250:#c1c6c2; --neutral-200:#d1d5d2; --neutral-150:#e0e3e0;
+  --neutral-100:#e9ebe9; --neutral-75:#f0f1f0; --neutral-50:#f5f6f5; --neutral-25:#fafbfa;
+  --cream-100:#f4f1e8; --cream-75:#f7f5ef; --cream-50:#faf9f5; --cream-25:#fdfcf9;
+  --surface-page:var(--cream-50); --surface-primary:var(--white); --surface-secondary:var(--neutral-25);
+  --surface-soft:var(--neutral-50); --surface-muted:var(--cream-75); --surface-brand-soft:var(--forest-50);
+  --surface-brand-muted:var(--forest-100); --surface-gold-soft:var(--gold-50); --surface-commerce-soft:var(--commerce-50);
+  --surface-dark:var(--forest-950); --surface-overlay:rgba(8,25,17,.42); --surface-overlay-heavy:rgba(7,18,12,.66);
+
+  /* Text + borders */
+  --text-primary:var(--neutral-950); --text-secondary:var(--neutral-700); --text-tertiary:var(--neutral-500);
+  --text-muted:var(--neutral-400); --text-brand:var(--forest-700); --text-brand-strong:var(--forest-900);
+  --text-commerce:var(--commerce-700); --text-gold:var(--gold-700); --text-inverse:#fff;
+  --border-subtle:rgba(24,29,25,.07); --border-soft:rgba(24,29,25,.11); --border-default:rgba(24,29,25,.16);
+  --border-strong:rgba(24,29,25,.23); --border-brand-soft:rgba(18,96,63,.13); --border-brand:rgba(18,96,63,.24);
+  --border-gold-soft:rgba(168,121,16,.18);
+
+  /* Status */
+  --success-700:#147247; --success-100:#e4f4eb; --warning-700:#956200; --warning-100:#fff3d7;
+  --danger-700:#b43c30; --danger-100:#fde9e6; --info-700:#326581; --info-100:#e8f1f6;
+
+  /* Typography: readable on phones, no 7–9px product UI */
+  --font-ui:'Plus Jakarta Sans',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --font-display:var(--font-ui);
+  --text-2xs:10px; --text-xs:11px; --text-sm:12px; --text-base:13px; --text-md:14px;
+  --text-lg:15px; --text-xl:16px; --text-2xl:18px; --text-3xl:21px; --text-4xl:24px; --text-5xl:30px;
+  --text-body:14px; --text-label:12px; --text-caption:11px;
+  --weight-regular:400; --weight-medium:500; --weight-semibold:600; --weight-bold:700; --weight-extrabold:800;
+  --leading-tight:1.18; --leading-snug:1.3; --leading-normal:1.5; --leading-relaxed:1.6; --leading-loose:1.72;
+  --tracking-tight:-.018em; --tracking-normal:0; --tracking-wide:.035em; --tracking-wider:.075em; --tracking-caps:.11em;
+
+  /* Spacing */
+  --space-1:4px; --space-2:6px; --space-3:8px; --space-4:10px; --space-5:12px; --space-6:14px;
+  --space-7:16px; --space-8:18px; --space-9:20px; --space-10:24px; --space-11:28px; --space-12:32px;
+  --space-13:36px; --space-14:40px; --space-15:48px; --space-16:56px;
+
+  /* Radius: deliberately limited */
+  --radius-2xs:4px; --radius-xs:6px; --radius-sm:8px; --radius-md:10px; --radius-lg:12px;
+  --radius-xl:16px; --radius-2xl:20px; --radius-3xl:24px; --radius-pill:999px; --radius-circle:50%;
+  --radius-compact:8px; --radius-control:12px; --radius-card:16px; --radius-sheet:24px;
+
+  /* Elevation */
+  --shadow-xs:0 1px 2px rgba(13,31,21,.04); --shadow-sm:0 2px 8px rgba(13,31,21,.06);
+  --shadow-md:0 6px 20px rgba(13,31,21,.08); --shadow-lg:0 14px 36px rgba(13,31,21,.11);
+  --shadow-xl:0 24px 64px rgba(7,24,15,.15); --shadow-floating:0 8px 28px rgba(8,55,37,.16);
+  --shadow-nav:0 -6px 20px rgba(11,40,27,.06); --shadow-sheet:0 -16px 44px rgba(7,22,14,.15);
+  --elevation-0:none; --elevation-1:0 4px 18px rgba(13,31,21,.06); --elevation-2:0 8px 28px rgba(8,55,37,.12);
+  --elevation-3:0 -16px 44px rgba(7,22,14,.15); --elevation-nav:0 -4px 18px rgba(13,31,21,.05);
+
+  /* Layout */
+  --content-max-width:430px; --header-height:104px; --bottom-nav-height:72px;
+  --page-gutter:16px; --page-gutter-small:12px; --side-menu-width:min(86vw,340px); --sheet-max-width:430px;
+  --story-size:56px; --story-avatar-size:50px; --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
+
+  /* Header + nav */
+  --header-bg:rgba(255,255,255,.97); --header-border:rgba(24,29,25,.07); --header-search-bg:var(--neutral-50);
+  --header-search-border:rgba(24,29,25,.11); --header-search-text:var(--neutral-600);
+  --nav-bg:rgba(255,255,255,.98); --nav-active-bg:transparent; --nav-active-color:var(--forest-700); --nav-inactive-color:var(--neutral-600);
+
+  /* Discovery + controls */
+  --discovery-bg:var(--forest-900); --discovery-text:#fff; --discovery-muted:rgba(255,255,255,.78); --discovery-eyebrow:var(--gold-400);
+  --button-primary-bg:var(--forest-700); --button-primary-hover:var(--forest-800); --button-primary-text:#fff;
+  --button-secondary-bg:#fff; --button-secondary-text:var(--forest-800); --button-secondary-border:rgba(255,255,255,.18);
+  --sheet-bg:#fff; --sheet-handle:var(--neutral-200); --toast-bg:var(--neutral-950); --toast-text:#fff;
+  --media-bg:var(--neutral-100); --media-overlay:linear-gradient(180deg,rgba(7,22,14,0) 58%,rgba(7,22,14,.42) 100%);
+
+  /* Motion */
+  --ease-standard:cubic-bezier(.2,.8,.2,1); --ease-enter:cubic-bezier(.16,1,.3,1); --ease-exit:cubic-bezier(.4,0,1,1);
+  --ease-soft:cubic-bezier(.22,.61,.36,1); --duration-fast:140ms; --duration-normal:220ms; --duration-medium:320ms; --duration-slow:460ms;
+  --tap-scale:.97; --focus-ring:0 0 0 3px rgba(36,145,94,.18); --focus-ring-strong:0 0 0 3px rgba(36,145,94,.28);
+
+  /* Splash */
+  --splash-bg:#fff; --splash-logo-width:clamp(180px,58vw,260px); --splash-enter-duration:650ms;
+  --splash-hold-duration:360ms; --splash-exit-duration:380ms;
+
+  /* Layer map */
+  --z-base:1; --z-sticky:50; --z-header:200; --z-nav:220; --z-side-menu:500; --z-search:700;
+  --z-overlay:800; --z-sheet:900; --z-toast:1200; --z-loading:1800; --z-splash:2500;
+
+  /* Restrained gradients kept for legacy compatibility */
+  --gradient-brand:linear-gradient(135deg,var(--forest-800),var(--forest-600));
+  --gradient-brand-soft:linear-gradient(180deg,var(--forest-50),#fff);
+  --gradient-gold:linear-gradient(135deg,var(--gold-700),var(--gold-400));
+  --gradient-commerce:linear-gradient(135deg,var(--commerce-700),var(--commerce-500));
+
+  /* Compatibility aliases */
+  --bg-primary:var(--surface-primary); --bg-secondary:var(--surface-secondary); --bg-tertiary:var(--surface-soft);
+  --primary:var(--forest-700); --primary-dark:var(--forest-900); --accent:var(--gold-600); --danger:var(--danger-700); --success:var(--success-700);
+  --shadow-card:var(--shadow-sm); --shadow-modal:var(--shadow-lg); --radius-button:var(--radius-control); --radius-modal:var(--radius-sheet);
 }
 
-
-/* =========================================================
-   ACCESSIBILITY
-   ========================================================= */
-
-@media
-(prefers-reduced-motion: reduce) {
-
-  :root {
-
-    --duration-fast: 1ms;
-    --duration-normal: 1ms;
-    --duration-medium: 1ms;
-    --duration-slow: 1ms;
-
-    --splash-enter-duration: 1ms;
-    --splash-hold-duration: 1ms;
-    --splash-exit-duration: 1ms;
-
-  }
-
+@media (max-width:359px) { :root { --page-gutter:12px; } }
+@media (min-width:768px) { :root { --header-height:68px; } }
+@media (prefers-reduced-motion:reduce) {
+  :root { --duration-fast:1ms; --duration-normal:1ms; --duration-medium:1ms; --duration-slow:1ms; --splash-enter-duration:1ms; --splash-hold-duration:1ms; --splash-exit-duration:1ms; }
 }

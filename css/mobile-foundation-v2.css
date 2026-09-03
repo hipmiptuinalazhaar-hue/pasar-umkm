@@ -1,0 +1,507 @@
+/* Pasar UMKM — Mobile Foundation v2
+   UI-P0. Deliberately restrained: no decorative AI-slop, no feature redesign. */
+
+/* ---------- Base ---------- */
+html {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+html body {
+  font-size: var(--text-body, 14px);
+  line-height: var(--leading-normal, 1.5);
+  background: var(--surface-page, #faf9f5);
+}
+
+html body button,
+html body a,
+html body input,
+html body textarea,
+html body select {
+  touch-action: manipulation;
+}
+
+html body :focus-visible {
+  outline: 2px solid var(--forest-600, #17784d);
+  outline-offset: 3px;
+}
+
+/* ---------- App shell ---------- */
+html body .app {
+  width: 100%;
+  min-height: 100dvh;
+  background: var(--surface-primary, #fff);
+}
+
+html body .app > .app-main {
+  min-height: 100dvh;
+  padding-top: calc(var(--header-height, 104px) + var(--safe-top, 0px));
+  padding-bottom: calc(var(--bottom-nav-height, 72px) + var(--safe-bottom, 0px) + 16px);
+}
+
+/* ---------- Mobile header: utility row + dedicated search row ---------- */
+html body .app > .app-header {
+  min-height: calc(var(--header-height, 104px) + var(--safe-top, 0px));
+  padding: calc(8px + var(--safe-top, 0px)) var(--page-gutter, 16px) 10px;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  grid-template-areas:
+    "menu brand actions"
+    "search search search";
+  grid-template-rows: 44px 44px;
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 6px;
+  background: rgba(255, 255, 255, 0.97);
+  border-bottom: 1px solid var(--border-subtle, rgba(24,29,25,.07));
+  box-shadow: none;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: var(--z-header, 200);
+}
+
+html body .app > .app-header.scrolled {
+  box-shadow: var(--elevation-1, 0 4px 18px rgba(13,31,21,.06));
+}
+
+html body .app > .app-header #menuButton {
+  grid-area: menu;
+}
+
+html body .app > .app-header .header-brand {
+  grid-area: brand;
+  min-width: 0;
+  justify-content: flex-start;
+}
+
+html body .app > .app-header .header-actions {
+  grid-area: actions;
+  gap: 4px;
+}
+
+html body .app > .app-header .header-search {
+  grid-area: search;
+  width: 100%;
+  height: 44px;
+  min-height: 44px;
+  padding: 0 14px;
+  gap: 9px;
+  border: 1px solid var(--border-soft, rgba(24,29,25,.11));
+  border-radius: var(--radius-control, 12px);
+  background: var(--surface-soft, #f5f6f5);
+  color: var(--text-secondary, #414942);
+  box-shadow: none;
+}
+
+html body .app > .app-header .header-search span {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+html body .app > .app-header .header-search i {
+  font-size: 19px;
+  color: var(--text-tertiary, #737b74);
+}
+
+html body .app > .app-header .header-logo {
+  width: 108px;
+  max-width: 100%;
+  max-height: 38px;
+}
+
+html body .app > .app-header .header-icon-button {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--radius-control, 12px);
+  background: transparent;
+}
+
+html body .app > .app-header .header-icon-button i {
+  font-size: 23px;
+}
+
+html body .app > .app-header .header-icon-button:active,
+html body .app-navigation .nav-item:active,
+html body .btn-primary:active,
+html body .menu-sheet-btn:active {
+  transform: scale(.97);
+}
+
+/* ---------- Global mobile rhythm ---------- */
+html body .home-discovery,
+html body .stories,
+html body .market-feed-head,
+html body .search-results {
+  --local-gutter: var(--page-gutter, 16px);
+}
+
+html body .home-discovery {
+  padding-left: var(--page-gutter, 16px);
+  padding-right: var(--page-gutter, 16px);
+}
+
+html body .stories {
+  padding-left: var(--page-gutter, 16px);
+  padding-right: var(--page-gutter, 16px);
+}
+
+/* ---------- Readable typography ---------- */
+html body .home-section-head h2,
+html body .market-feed-title,
+html body .product-name,
+html body .empty-state-title {
+  letter-spacing: -.015em;
+}
+
+html body .home-section-head h2 {
+  font-size: 17px;
+}
+
+html body .section-link,
+html body .home-section-head button,
+html body .story-name,
+html body .quick-category-label {
+  font-size: 11px;
+}
+
+html body .product-meta,
+html body .empty-state-text,
+html body .side-account-guest-text,
+html body .side-menu-footer-label,
+html body .auth-field-hint {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+html body .auth-label,
+html body .auth-field > label {
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 700;
+}
+
+html body .toast {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* ---------- Touch targets ---------- */
+html body .btn-primary,
+html body .btn-secondary,
+html body .auth-submit,
+html body .menu-sheet-btn {
+  min-height: 48px;
+}
+
+html body .btn-icon,
+html body .side-menu-close,
+html body .search-close,
+html body .search-clear,
+html body .social-account-top-button,
+html body .post-viewer-back {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+html body .quick-category {
+  min-height: 76px;
+}
+
+html body .quick-category-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-control, 12px);
+}
+
+html body .quick-category-icon i {
+  font-size: 21px;
+}
+
+/* Prevent iOS zoom while making forms easier to use. */
+@media (max-width: 767px) {
+  html body .auth-input,
+  html body .search-box input,
+  html body .post-comment-input,
+  html body .story-comment-input {
+    font-size: 16px;
+  }
+}
+
+/* ---------- Bottom navigation ---------- */
+html body .app > .app-navigation {
+  min-height: calc(var(--bottom-nav-height, 72px) + var(--safe-bottom, 0px));
+  padding: 7px 8px calc(7px + var(--safe-bottom, 0px));
+  background: rgba(255, 255, 255, .98);
+  border-top: 1px solid var(--border-subtle, rgba(24,29,25,.07));
+  box-shadow: var(--elevation-nav, 0 -4px 18px rgba(13,31,21,.05));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: var(--z-nav, 220);
+}
+
+html body .app-navigation .nav-item {
+  position: relative;
+  min-width: 0;
+  min-height: 52px;
+  padding: 4px 2px;
+  gap: 3px;
+  border-radius: 12px;
+  color: var(--nav-inactive-color, #59615a);
+}
+
+html body .app-navigation .nav-item > i {
+  font-size: 23px;
+}
+
+html body .app-navigation .nav-item > span:not(.nav-badge):not(.nav-create-icon) {
+  font-size: 10.5px;
+  line-height: 1.15;
+  font-weight: 650;
+}
+
+html body .app-navigation .nav-item.active {
+  background: transparent;
+  color: var(--nav-active-color, #12603f);
+}
+
+html body .app-navigation .nav-item.active::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  transform: translateX(-50%);
+  background: currentColor;
+}
+
+html body .app-navigation .nav-item-create::before {
+  display: none;
+}
+
+html body .app-navigation .nav-create-icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  margin-top: -12px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: var(--forest-800, #0d4b32);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(8,55,37,.16);
+}
+
+html body .app-navigation .nav-create-icon i {
+  font-size: 24px;
+}
+
+html body .app-navigation .nav-create-label {
+  display: block;
+  margin-top: -2px;
+  font-size: 10.5px;
+}
+
+/* ---------- Sheets / forms foundation ---------- */
+html body .bottom-sheet {
+  max-height: min(88dvh, 760px);
+  border-radius: var(--radius-sheet, 24px) var(--radius-sheet, 24px) 0 0;
+  background: var(--surface-primary, #fff);
+  box-shadow: var(--elevation-3, 0 -16px 44px rgba(7,22,14,.15));
+  z-index: var(--z-sheet, 900);
+}
+
+html body .sheet-overlay {
+  background: rgba(8, 25, 17, .48);
+  z-index: var(--z-overlay, 800);
+}
+
+html body .sheet-content {
+  padding-left: var(--page-gutter, 16px);
+  padding-right: var(--page-gutter, 16px);
+  padding-bottom: calc(20px + var(--safe-bottom, 0px));
+}
+
+html body .auth-input {
+  min-height: 48px;
+  border-radius: var(--radius-control, 12px);
+}
+
+html body textarea.auth-input {
+  min-height: 104px;
+}
+
+/* ---------- Consistent elevation / radius ---------- */
+html body .product-card,
+html body .side-account,
+html body .empty-state {
+  border-radius: var(--radius-card, 16px);
+  box-shadow: none;
+}
+
+/* ---------- Compact phones ---------- */
+@media (max-width: 359px) {
+  :root {
+    --page-gutter: 12px;
+  }
+
+  html body .app > .app-header {
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    column-gap: 6px;
+  }
+
+  html body .app > .app-header .header-logo {
+    width: 94px;
+  }
+
+  html body .app-navigation .nav-item > span:not(.nav-badge):not(.nav-create-icon) {
+    font-size: 10px;
+  }
+}
+
+/* ---------- Large phone / tablet handoff ---------- */
+@media (min-width: 768px) {
+  :root {
+    --header-height: 68px;
+  }
+
+  html body .app > .app-main {
+    padding-top: calc(var(--header-height) + var(--safe-top));
+  }
+
+  html body .app > .app-header {
+    min-height: calc(var(--header-height) + var(--safe-top));
+    grid-template-columns: 44px auto minmax(220px, 1fr) auto;
+    grid-template-areas: "menu brand search actions";
+    grid-template-rows: 44px;
+    gap: 10px;
+  }
+
+  html body .app > .app-header .header-search {
+    max-width: 420px;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html body *,
+  html body *::before,
+  html body *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+/* ---------- Legacy migration boundary ----------
+   style.runtime.css still contains old FINAL FIX rules with !important.
+   Keep all compatibility escalation isolated here; remove this block when
+   the legacy shell is deleted. No feature component may add to this list. */
+@media (max-width: 767px) {
+  html body .app > .app-header {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    transform: none !important;
+    z-index: var(--z-header, 200) !important;
+    display: grid !important;
+    grid-template-columns: 44px minmax(0, 1fr) auto !important;
+    grid-template-areas:
+      "menu brand actions"
+      "search search search" !important;
+    grid-template-rows: 44px 44px !important;
+    gap: 6px 10px !important;
+    min-height: calc(var(--header-height, 104px) + var(--safe-top, 0px)) !important;
+    padding: calc(8px + var(--safe-top, 0px)) var(--page-gutter, 16px) 10px !important;
+  }
+
+  html body .app > .app-header .header-icon-button {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+
+  html body .app > .app-header .header-brand {
+    width: auto !important;
+    min-width: 0 !important;
+  }
+
+  html body .app > .app-header .header-logo {
+    width: 108px !important;
+    height: auto !important;
+    max-width: 100% !important;
+    max-height: 38px !important;
+  }
+
+  html body .app > .app-header .header-search {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    padding: 0 14px !important;
+  }
+
+  html body .app > .app-header .header-search span {
+    display: inline !important;
+    font-size: 13px !important;
+  }
+
+  html body .app > .app-header .header-actions {
+    gap: 4px !important;
+  }
+
+  html body .app > .app-main {
+    padding-top: calc(var(--header-height, 104px) + var(--safe-top, 0px)) !important;
+    padding-bottom: calc(var(--bottom-nav-height, 72px) + var(--safe-bottom, 0px) + 16px) !important;
+  }
+
+  html body .app > .app-navigation {
+    z-index: var(--z-nav, 220) !important;
+  }
+
+  html body .side-menu-overlay {
+    z-index: var(--z-side-menu, 500) !important;
+  }
+
+  html body .search-overlay {
+    z-index: var(--z-search, 700) !important;
+  }
+
+  html body .sheet-overlay {
+    z-index: var(--z-overlay, 800) !important;
+  }
+
+  html body .bottom-sheet {
+    z-index: var(--z-sheet, 900) !important;
+  }
+}
+
+@media (max-width: 359px) {
+  html body .app > .app-header {
+    grid-template-columns: 44px minmax(0, 1fr) auto !important;
+    gap: 6px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  html body .app > .app-header .header-brand {
+    width: auto !important;
+  }
+
+  html body .app > .app-header .header-logo {
+    width: 94px !important;
+    max-width: 94px !important;
+  }
+
+  html body .app > .app-header .header-search span {
+    display: inline !important;
+  }
+}
