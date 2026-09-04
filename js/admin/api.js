@@ -21,23 +21,15 @@ async function request(path, options = {}) {
   });
 
   let payload = null;
-  try {
-    payload = await response.json();
-  } catch {
-    payload = null;
-  }
+  try { payload = await response.json(); } catch { payload = null; }
 
   if (!response.ok) {
-    throw new AdminApiError(
-      payload?.error || payload?.message || "Permintaan admin gagal.",
-      {
-        status: response.status,
-        code: payload?.code || `HTTP_${response.status}`,
-        payload
-      }
-    );
+    throw new AdminApiError(payload?.error || payload?.message || "Permintaan admin gagal.", {
+      status: response.status,
+      code: payload?.code || `HTTP_${response.status}`,
+      payload
+    });
   }
-
   return payload || { ok: true };
 }
 
@@ -52,39 +44,52 @@ function queryString(params = {}) {
 }
 
 export const adminApi = Object.freeze({
-  session() {
-    return request("/api/admin/auth/me");
-  },
+  session() { return request("/api/admin/auth/me"); },
 
   login(email, password) {
-    return request("/api/admin/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ email, password })
-    });
+    return request("/api/admin/auth/login", { method: "POST", body: JSON.stringify({ email, password }) });
   },
 
   rotatePassword(email, currentPassword, newPassword) {
     return request("/api/admin/auth/rotate-password", {
       method: "POST",
-      body: JSON.stringify({
-        email,
-        current_password: currentPassword,
-        new_password: newPassword
-      })
+      body: JSON.stringify({ email, current_password: currentPassword, new_password: newPassword })
     });
   },
 
-  logout() {
-    return request("/api/admin/auth/logout", { method: "POST", body: "{}" });
+  mfaEnrollStart() {
+    return request("/api/admin/auth/mfa/enroll/start", { method: "POST", body: "{}" });
   },
 
-  revokeAll() {
-    return request("/api/admin/auth/revoke-all", { method: "POST", body: "{}" });
+  mfaEnrollVerify(code) {
+    return request("/api/admin/auth/mfa/enroll/verify", { method: "POST", body: JSON.stringify({ code }) });
   },
 
-  access() {
-    return request("/api/admin/access/me");
+  mfaVerify(code, method = "totp") {
+    return request("/api/admin/auth/mfa/verify", { method: "POST", body: JSON.stringify({ code, method }) });
   },
+
+  stepUp(code, method = "totp") {
+    return request("/api/admin/auth/step-up", { method: "POST", body: JSON.stringify({ code, method }) });
+  },
+
+  mfaStatus() { return request("/api/admin/auth/mfa/status"); },
+
+  regenerateRecoveryCodes() {
+    return request("/api/admin/auth/mfa/recovery/regenerate", { method: "POST", body: "{}" });
+  },
+
+  securitySessions() { return request("/api/admin/security/sessions"); },
+
+  revokeSecuritySession(id) {
+    return request(`/api/admin/security/sessions/${encodeURIComponent(id)}/revoke`, { method: "POST", body: "{}" });
+  },
+
+  securityEvents() { return request("/api/admin/security/events"); },
+
+  logout() { return request("/api/admin/auth/logout", { method: "POST", body: "{}" }); },
+  revokeAll() { return request("/api/admin/auth/revoke-all", { method: "POST", body: "{}" }); },
+  access() { return request("/api/admin/access/me"); },
 
   control(resource, params = {}, { signal } = {}) {
     return request(`/api/admin/control/${resource}${queryString(params)}`, { signal });
