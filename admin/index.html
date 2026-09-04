@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1220">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>Pasar UMKM Control Center</title>
+  <link rel="icon" href="/assets/logo.webp" type="image/webp">
+  <link rel="preload" href="/assets/logo.webp" as="image" type="image/webp">
+  <link rel="stylesheet" href="/css/admin-control.css?v=5.0.0">
+  <link rel="stylesheet" href="/css/admin-control-feedback.css?v=5.0.0">
+</head>
+<body>
+  <div id="adminRoot" class="admin-root" aria-live="polite">
+    <main class="gate-layout" id="gateView">
+      <section class="gate-brand" aria-label="Pasar UMKM Control Center">
+        <img class="gate-logo" src="/assets/logo.webp" width="64" height="64" alt="Pasar UMKM">
+        <div>
+          <p class="eyebrow">Internal Administration</p>
+          <h1>Control Center</h1>
+          <p class="gate-brand-copy">Ruang kerja internal untuk mengelola marketplace dan social-commerce Pasar UMKM.</p>
+        </div>
+      </section>
+
+      <section class="gate-panel" aria-labelledby="gateTitle">
+        <div id="gateContent">
+          <div class="skeleton skeleton-title"></div>
+          <div class="skeleton skeleton-line"></div>
+          <div class="skeleton skeleton-field"></div>
+          <div class="skeleton skeleton-field"></div>
+        </div>
+      </section>
+    </main>
+
+    <div id="controlView" class="control-layout" hidden></div>
+  </div>
+
+  <dialog id="actionDialog" class="action-dialog" aria-labelledby="actionDialogTitle">
+    <form method="dialog" class="action-dialog-frame" id="actionDialogForm">
+      <div class="action-dialog-head">
+        <div>
+          <p class="eyebrow">Konfirmasi tindakan</p>
+          <h2 id="actionDialogTitle">Konfirmasi</h2>
+        </div>
+        <button class="icon-button" value="cancel" aria-label="Tutup dialog" type="submit">×</button>
+      </div>
+      <p class="action-dialog-copy" id="actionDialogCopy"></p>
+      <label class="field-label" for="actionReason">Alasan</label>
+      <textarea id="actionReason" class="field-input field-textarea" minlength="8" maxlength="300" rows="4" placeholder="Jelaskan alasan tindakan ini" required></textarea>
+      <p class="field-hint">Alasan dicatat ke audit log dan tidak ditampilkan ke publik.</p>
+      <div class="action-dialog-actions">
+        <button class="button button-secondary" value="cancel" type="submit">Batal</button>
+        <button class="button button-danger" id="actionConfirmButton" value="confirm" type="submit">Konfirmasi</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="/js/admin/app.js?v=5.0.0"></script>
+</body>
+</html>
