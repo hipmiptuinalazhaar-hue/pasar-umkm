@@ -19,6 +19,7 @@ import { handleChatMediaApiV2 } from "./chat-media-api-v2.js";
 import { handleChatMessageActionApi } from "./chat-message-action-api.js";
 import { handleCommentApi } from "./comment-api.js";
 import { handlePublicCatalogApi } from "./public-catalog-api.js";
+import { handleAdminAuthApi } from "./admin-auth-api.js";
 import { enforceRateLimit } from "./rate-limit.js";
 import { ensureNotificationInfrastructure } from "./notification-store.js";
 import { ensureFullFunctionalityInfrastructure } from "./functionality-bootstrap.js";
@@ -163,6 +164,13 @@ export default {
     const rateLimitResponse = await enforceRateLimit(request);
     if (rateLimitResponse) {
       return rateLimitResponse;
+    }
+
+    // Privileged administration auth is an isolated security domain and must
+    // remain available independently from public social-commerce feature bootstraps.
+    const adminAuthResponse = await handleAdminAuthApi(request, env);
+    if (adminAuthResponse) {
+      return adminAuthResponse;
     }
 
     try {
