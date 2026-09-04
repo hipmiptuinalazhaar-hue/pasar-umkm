@@ -7,6 +7,7 @@ import { handleSocialApi } from "./social-api.js";
 import { handleNotificationApi } from "./notification-api.js";
 import { handleEngagementApi } from "./engagement-api.js";
 import { handleFunctionalityApi } from "./functionality-api.js";
+import { handleOrdersApiV2 } from "./orders-api-v2.js";
 import { handleStoreManagementApi } from "./store-management-api.js";
 import { handleRatingApi } from "./rating-api.js";
 import { handleRatingSummaryV2 } from "./rating-summary-v2.js";
@@ -230,6 +231,13 @@ export default {
 
     if (storeManagementResponse) {
       return storeManagementResponse;
+    }
+
+    const ordersResponse =
+      await handleOrdersApiV2(request, env);
+
+    if (ordersResponse) {
+      return ordersResponse;
     }
 
     const functionalityResponse =
