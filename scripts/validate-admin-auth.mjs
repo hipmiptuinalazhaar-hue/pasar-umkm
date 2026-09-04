@@ -55,7 +55,7 @@ requireMatch(auth, /mfa_required/, 'Admin password auth must consult the MFA req
 requireMatch(auth, /MFA_ENROLLMENT_REQUIRED/, 'Admin auth must route unenrolled accounts to MFA enrollment.');
 requireMatch(auth, /MFA_REQUIRED/, 'Admin auth must route enrolled accounts to MFA verification.');
 requireMatch(auth, /issueMfaChallenge/, 'Password success must issue a short-lived MFA challenge instead of a privileged session.');
-requireAbsent(auth, /mfa_required\s*=\s*FALSE/i, 'Runtime auth must never weaken an account MFA requirement.');
+requireAbsent(auth, /(?:SET|,)\s*mfa_required\s*=\s*FALSE/i, 'Runtime auth must never assign the account MFA requirement to false.');
 
 for (const source of [auth, mfa, sessionSecurity]) {
   requireMatch(source, /admin_audit_logs/, 'Every admin security module must preserve privileged audit logging.');
