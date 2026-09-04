@@ -104,9 +104,12 @@
     if (profileJob) return profileJob;
     profileJob = (async () => {
       await ensureCoreEnhancements();
-      await loadStyle('link[data-profile-edit-style="true"]','css/profile-edit.css?v=3.0','profileEditStyle');
+      await Promise.all([
+        loadStyle('link[data-profile-edit-style="true"]','css/profile-edit.css?v=4.0','profileEditStyle'),
+        loadStyle('link[data-rating-form-v3-style="true"]','css/rating-form-v3.css?v=3.0','ratingFormV3Style')
+      ]);
       const modules = [
-        ['script[data-profile-edit-module="true"]','js/profile-edit.js?v=3.0','profileEditModule'],
+        ['script[data-profile-edit-module="true"]','js/profile-edit.js?v=4.0','profileEditModule'],
         ['script[data-profile-identity-module="true"]','js/profile-identity.js?v=2.0','profileIdentityModule'],
         ['script[data-profile-title-center-module="true"]','js/profile-title-center.js?v=1.1','profileTitleCenterModule'],
         ['script[data-saved-remove-core="true"]','js/saved-remove-core.js?v=1.0','savedRemoveCore'],

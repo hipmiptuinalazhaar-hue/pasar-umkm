@@ -8,6 +8,9 @@ on:
       - 'index.html'
       - 'js/account-resilience.js'
       - 'js/profile-saved.js'
+      - 'js/profile-edit.js'
+      - 'css/profile-edit.css'
+      - 'css/rating-form-v3.css'
       - '.github/workflows/p2-validate.yml'
       - '.github/workflows/ui-p2-commerce-validate.yml'
       - '.github/workflows/ui-p3-social-validate.yml'
@@ -28,17 +31,17 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Enforce UI-P6 scope
+      - name: Enforce final-delivery maintenance scope
         shell: bash
         run: |
           set -euo pipefail
           git fetch origin main --depth=1
-          allowed='^(index\.html|js/account-resilience\.js|js/profile-saved\.js|\.github/workflows/p2-validate\.yml|\.github/workflows/ui-p2-commerce-validate\.yml|\.github/workflows/ui-p3-social-validate\.yml|\.github/workflows/ui-p5-tablet-desktop-validate\.yml|\.github/workflows/ui-p6-polish-performance-validate\.yml)$'
+          allowed='^(index\.html|js/account-resilience\.js|js/profile-saved\.js|js/profile-edit\.js|css/profile-edit\.css|css/rating-form-v3\.css|\.github/workflows/p2-validate\.yml|\.github/workflows/ui-p2-commerce-validate\.yml|\.github/workflows/ui-p3-social-validate\.yml|\.github/workflows/ui-p5-tablet-desktop-validate\.yml|\.github/workflows/ui-p6-polish-performance-validate\.yml)$'
           changed="$(git diff --name-only origin/main...HEAD)"
           printf '%s\n' "$changed"
           bad="$(printf '%s\n' "$changed" | grep -Ev "$allowed" || true)"
           if [ -n "$bad" ]; then
-            echo 'UI-P6 touched files outside final delivery scope:'
+            echo 'Final-delivery maintenance touched files outside guarded scope:'
             printf '%s\n' "$bad"
             exit 1
           fi
@@ -47,6 +50,7 @@ jobs:
         run: |
           node --check js/account-resilience.js
           node --check js/profile-saved.js
+          node --check js/profile-edit.js
 
       - name: Validate performance delivery contracts
         shell: python
@@ -58,15 +62,23 @@ jobs:
           index_path = Path('index.html')
           loader_path = Path('js/account-resilience.js')
           carrier_path = Path('js/profile-saved.js')
+          profile_path = Path('js/profile-edit.js')
+          profile_css_path = Path('css/profile-edit.css')
+          rating_css_path = Path('css/rating-form-v3.css')
           index = index_path.read_text(encoding='utf-8')
           loader = loader_path.read_text(encoding='utf-8')
           carrier = carrier_path.read_text(encoding='utf-8')
+          profile = profile_path.read_text(encoding='utf-8')
+          profile_css = profile_css_path.read_text(encoding='utf-8')
+          rating_css = rating_css_path.read_text(encoding='utf-8')
           errors = []
 
           budgets = {
               'critical HTML': (index_path.stat().st_size, 16_000),
               'P6 loader': (loader_path.stat().st_size, 18_000),
               'Commerce carrier': (carrier_path.stat().st_size, 11_000),
+              'Profile editor': (profile_path.stat().st_size, 26_000),
+              'Rating form CSS': (rating_css_path.stat().st_size, 4_000),
           }
           for name, (size, limit) in budgets.items():
               print(f'{name}: {size} / {limit} bytes')
@@ -80,7 +92,6 @@ jobs:
               if asset not in index:
                   errors.append(f'Missing selective Phosphor asset: {asset}')
 
-          # The active HTML/JS must not request icon weights we intentionally stopped shipping.
           unsupported = ('ph-thin','ph-light','ph-bold','ph-duotone')
           active_icon_sources = [index]
           active_icon_sources.extend(path.read_text(encoding='utf-8', errors='ignore') for path in Path('js').glob('*.js'))
@@ -94,7 +105,7 @@ jobs:
               'chat-whatsapp-v5.css','chat-whatsapp-v5.js',
               'commerce-experience-v2.css','commerce-experience-v2.js',
               'social-experience-v3.css','social-engagement-v3.css','social-media-v3.css','social-experience-v3.js',
-              'chat-experience-v7.css','chat-experience-v7.js',
+              'chat-experience-v7.css','chat-experience-v7.js','rating-form-v3.css',
           )
           for marker in forbidden_index:
               if marker in index:
@@ -104,8 +115,8 @@ jobs:
               errors.append('Google font must use display=optional to avoid late layout swaps')
           if 'rel="preload" href="assets/logo.webp?v=2.0"' not in index:
               errors.append('Brand image preload contract missing')
-          if 'js/account-resilience.js?v=4.0' not in index:
-              errors.append('P6 account loader cache boundary missing')
+          if 'js/account-resilience.js?v=4.1' not in index:
+              errors.append('Current account loader cache boundary missing')
           if 'js/profile-saved.js?v=2.1' not in index:
               errors.append('P6 Commerce carrier cache boundary missing')
 
@@ -121,10 +132,11 @@ jobs:
           for contract in (
               'warmPublicBootstrap()','ensureCoreEnhancements','ensureProfileEnhancements','ensureMediaEnhancements',
               'ensureBusinessEnhancements','schedulePostRenderWarmup','requestIdleCallback',"version: '1.0'",
-              "loadSocialPresentation('profile')",
+              "loadSocialPresentation('profile')",'css/profile-edit.css?v=4.0','js/profile-edit.js?v=4.0',
+              'css/rating-form-v3.css?v=3.0',
           ):
               if contract not in loader:
-                  errors.append(f'Missing P6 loader contract: {contract}')
+                  errors.append(f'Missing loader contract: {contract}')
 
           for marker in (
               'loadDeferredEnhancements','chat-experience.css','chat-layout-v2.css','chat-whatsapp-v3.css',
@@ -132,6 +144,30 @@ jobs:
           ):
               if marker in loader:
                   errors.append(f'Retired/eager legacy asset remains in P6 loader: {marker}')
+
+          for contract in (
+              'collectOptionalContacts','profile-edit-error','validateWhatsapp','validateSocial',
+              'Profil tersimpan.',
+          ):
+              if contract not in profile:
+                  errors.append(f'Missing profile save resilience contract: {contract}')
+
+          if 'linear-gradient' in profile_css or 'linear-gradient' in rating_css:
+              errors.append('Profile/rating maintenance CSS must not add decorative gradients')
+
+          font_sizes = [float(value) for value in re.findall(r'font-size:\s*([0-9.]+)px', profile_css + '\n' + rating_css)]
+          if font_sizes and min(font_sizes) < 10:
+              errors.append(f'Profile/rating CSS contains font below 10px: {min(font_sizes)}px')
+
+          for contract in (
+              '#orderRatingForm .product-card[data-rating-product-id]',
+              '#orderRatingForm .product-card[data-rating-product-id] > .product-info',
+              '#orderRatingForm select.auth-input',
+              '#orderRatingForm textarea.auth-input',
+              'min-height: 48px',
+          ):
+              if contract not in rating_css:
+                  errors.append(f'Missing rating mobile isolation contract: {contract}')
 
           if 'chat-whatsapp-v5' in carrier:
               errors.append('Commerce carrier still requests retired WhatsApp V5 chat assets')

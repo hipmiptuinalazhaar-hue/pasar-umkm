@@ -111,8 +111,8 @@ jobs:
               if asset in index:
                   errors.append(f'{asset} is referenced directly by index.html; P3 must remain route-loaded')
 
-          if 'js/account-resilience.js?v=4.0' not in index:
-              errors.append('index.html is missing P6 cache-busted account-resilience.js?v=4.0')
+          if 'js/account-resilience.js?v=4.1' not in index:
+              errors.append('index.html is missing current cache-busted account-resilience.js?v=4.1')
 
           for retired in (
               'notification-core.css',
