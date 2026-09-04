@@ -1,4 +1,4 @@
-import { adminApi, AdminApiError } from "./api.js?v=6.0.0";
+import { adminApi, AdminApiError, setAdminStepUpHandler } from "./api.js?v=6.0.0";
 
 const NAV_ITEMS = Object.freeze([
   { key: "overview", label: "Overview", permission: "dashboard.view", view: "overview" },
@@ -16,12 +16,7 @@ const NAV_ITEMS = Object.freeze([
 let routeAbort = null;
 
 function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+  return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
 }
 
 function currentRoute() {
@@ -29,9 +24,7 @@ function currentRoute() {
   return value || "overview";
 }
 
-function roleLabel(access) {
-  return access.roles?.map(role => role.name).join(", ") || "Administrator";
-}
+function roleLabel(access) { return access.roles?.map(role => role.name).join(", ") || "Administrator"; }
 
 function sessionLabel(access) {
   const expiry = access.session?.idle_expires_at ? new Date(access.session.idle_expires_at) : null;
@@ -40,11 +33,7 @@ function sessionLabel(access) {
 }
 
 function navMarkup(items, current, className) {
-  return items.map(item => `
-    <a class="nav-link ${className || ""}" href="#/${item.key}" data-route="${item.key}" ${item.key === current ? 'aria-current="page"' : ""}>
-      ${escapeHtml(item.label)}
-    </a>
-  `).join("");
+  return items.map(item => `<a class="nav-link ${className || ""}" href="#/${item.key}" data-route="${item.key}" ${item.key === current ? 'aria-current="page"' : ""}>${escapeHtml(item.label)}</a>`).join("");
 }
 
 function buildShell(root, access, items, current) {
@@ -55,21 +44,14 @@ function buildShell(root, access, items, current) {
       <div class="sidebar-account"><strong>${escapeHtml(access.admin.name)}</strong><span>${escapeHtml(roleLabel(access))}</span><button class="button sidebar-logout" id="desktopLogout" type="button">Keluar</button></div>
     </aside>
     <main class="control-main">
-      <header class="control-topbar">
-        <div class="topbar-brand"><img class="topbar-logo" src="/assets/logo.webp" width="36" height="36" alt=""><div class="topbar-title"><strong>${escapeHtml(access.admin.name)}</strong><span>${escapeHtml(sessionLabel(access))}</span></div></div>
-        <button class="button button-secondary" id="mobileLogout" type="button">Keluar</button>
-      </header>
+      <header class="control-topbar"><div class="topbar-brand"><img class="topbar-logo" src="/assets/logo.webp" width="36" height="36" alt=""><div class="topbar-title"><strong>${escapeHtml(access.admin.name)}</strong><span>${escapeHtml(sessionLabel(access))}</span></div></div><button class="button button-secondary" id="mobileLogout" type="button">Keluar</button></header>
       <nav class="mobile-nav" aria-label="Navigasi admin mobile">${navMarkup(items, current)}</nav>
       <div class="control-content" id="viewHost"></div>
-    </main>
-  `;
+    </main>`;
 }
 
 function syncNav(route) {
-  document.querySelectorAll("[data-route]").forEach(link => {
-    if (link.dataset.route === route) link.setAttribute("aria-current", "page");
-    else link.removeAttribute("aria-current");
-  });
+  document.querySelectorAll("[data-route]").forEach(link => route === link.dataset.route ? link.setAttribute("aria-current", "page") : link.removeAttribute("aria-current"));
 }
 
 function loadingView(host) {
@@ -138,7 +120,6 @@ async function renderRoute({ access, items, host, confirmAction, onSessionExpire
     history.replaceState(null, "", `#/${item.key}`);
     route = item.key;
   }
-
   syncNav(route);
   loadingView(host);
   routeAbort?.abort();
@@ -184,6 +165,7 @@ async function renderRoute({ access, items, host, confirmAction, onSessionExpire
 }
 
 export async function mountControlCenter({ root, onSessionExpired, requestStepUp }) {
+  setAdminStepUpHandler(requestStepUp);
   const access = await adminApi.access();
   const permissionSet = new Set(access.permissions.map(permission => permission.key));
   const items = NAV_ITEMS.filter(item => !item.permission || permissionSet.has(item.permission));
@@ -197,6 +179,7 @@ export async function mountControlCenter({ root, onSessionExpired, requestStepUp
     routeAbort?.abort();
     routeAbort = null;
     window.onhashchange = null;
+    setAdminStepUpHandler(null);
     onSessionExpired();
   };
 
