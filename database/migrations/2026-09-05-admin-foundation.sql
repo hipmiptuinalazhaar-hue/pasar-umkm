@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS admin_accounts (
   name VARCHAR(100) NOT NULL,
   email VARCHAR(255) NOT NULL,
   password_hash TEXT NOT NULL,
-  status VARCHAR(24) NOT NULL DEFAULT 'active',
+  status VARCHAR(24) NOT NULL DEFAULT 'pending_activation',
   mfa_required BOOLEAN NOT NULL DEFAULT TRUE,
   mfa_enrolled_at TIMESTAMPTZ,
   security_version INTEGER NOT NULL DEFAULT 1,
