@@ -227,6 +227,12 @@ export async function mountControlCenter({ root, onSessionExpired }) {
   buildShell(root, access, items, initial);
   const host = document.getElementById("viewHost");
   const confirmAction = createActionConfirmer();
+  const expireSession = () => {
+    routeAbort?.abort();
+    routeAbort = null;
+    window.onhashchange = null;
+    onSessionExpired();
+  };
 
   const logout = async button => {
     button.disabled = true;
@@ -236,14 +242,14 @@ export async function mountControlCenter({ root, onSessionExpired }) {
       await adminApi.logout();
     } finally {
       button.textContent = original;
-      onSessionExpired();
+      expireSession();
     }
   };
 
   document.getElementById("desktopLogout")?.addEventListener("click", event => logout(event.currentTarget));
   document.getElementById("mobileLogout")?.addEventListener("click", event => logout(event.currentTarget));
 
-  const routeHandler = () => renderRoute({ access, items, host, confirmAction, onSessionExpired });
-  window.addEventListener("hashchange", routeHandler);
+  const routeHandler = () => renderRoute({ access, items, host, confirmAction, onSessionExpired: expireSession });
+  window.onhashchange = routeHandler;
   await routeHandler();
 }
