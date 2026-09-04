@@ -26,6 +26,50 @@
   <link rel="stylesheet" href="css/mobile-foundation-v2.css?v=2.1">
   <link rel="stylesheet" href="css/home-feed-v3.css?v=3.0">
   <link rel="stylesheet" href="css/tablet-desktop-v1.css?v=1.0" media="screen and (min-width: 768px)">
+
+  <!--
+    POST-P6 MOBILE SHELL HOTFIX
+    Kept inline intentionally: no extra critical request, and these shell
+    invariants must win even when route CSS is lazy-loaded afterwards.
+  -->
+  <style id="postP6MobileShellHotfix">
+    html body .app.account-profile-active > .app-header,
+    html body:has(.social-account-page[data-p3-upgraded="true"]) .app > .app-header {
+      display: none !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+
+    html body .app.account-profile-active > .app-main,
+    html body:has(.social-account-page[data-p3-upgraded="true"]) .app > .app-main {
+      padding-top: 0 !important;
+    }
+
+    html body.chat-v7-body .app > .app-header,
+    html body.chat-v7-body .app > .app-navigation,
+    html body:has(.chat-v7-page) .app > .app-header,
+    html body:has(.chat-v7-page) .app > .app-navigation {
+      display: none !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+
+    html body.chat-v7-body .app > .app-main,
+    html body:has(.chat-v7-page) .app > .app-main {
+      padding: 0 !important;
+    }
+
+    html body .chat-v7-search input:focus-visible {
+      outline: none !important;
+      outline-offset: 0 !important;
+    }
+
+    html body .chat-v7-search:focus-within {
+      border-color: rgba(15, 87, 58, .42) !important;
+      box-shadow: 0 0 0 3px rgba(15, 87, 58, .09) !important;
+      background: #fff !important;
+    }
+  </style>
 </head>
 
 <body>
