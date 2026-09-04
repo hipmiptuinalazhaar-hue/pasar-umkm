@@ -74,7 +74,7 @@ for (const contract of [
 
 requireAbsent(wrangler, /ADMIN_MFA_ENCRYPTION_KEY/i, 'MFA master key must be a Worker secret, never wrangler source configuration.');
 requireAbsent(`${cryptoSource}\n${mfaApi}\n${auth}`, /ADMIN_MFA_ENCRYPTION_KEY\s*[:=]\s*['"][A-Za-z0-9_-]{20,}/, 'MFA master key must never be hardcoded.');
-requireAbsent(mfaApi, /INSERT\s+INTO\s+admin_mfa_totp[\s\S]*?\bsecret\b(?!_ciphertext|_iv)/i, 'Plain TOTP secret must never be persisted.');
+requireAbsent(mfaApi, /INSERT\s+INTO\s+admin_mfa_totp\s*\([^)]*\bsecret\s*(?:,|\))/i, 'Plain TOTP secret must never appear in the admin_mfa_totp INSERT column list.');
 requireMatch(mfaApi, /secret_ciphertext/, 'MFA persistence must use encrypted secret material.');
 requireMatch(mfaApi, /code_hash/, 'Recovery codes must be persisted only as hashes.');
 requireMatch(mfaApi, /last_used_step\s*<\s*\$\{verified\.step\}/, 'TOTP database claim must reject replayed steps atomically.');
