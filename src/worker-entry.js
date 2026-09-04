@@ -21,6 +21,7 @@ import { handleCommentApi } from "./comment-api.js";
 import { handlePublicCatalogApi } from "./public-catalog-api.js";
 import { handleAdminAuthApi } from "./admin-auth-api.js";
 import { handleAdminAccessApi } from "./admin-access-api.js";
+import { handleAdminControlApi } from "./admin-control-api.js";
 import { enforceRateLimit } from "./rate-limit.js";
 import { ensureNotificationInfrastructure } from "./notification-store.js";
 import { ensureFullFunctionalityInfrastructure } from "./functionality-bootstrap.js";
@@ -179,6 +180,13 @@ export default {
     const adminAccessResponse = await handleAdminAccessApi(request, env);
     if (adminAccessResponse) {
       return adminAccessResponse;
+    }
+
+    // Operational control-center APIs remain inside the same privileged boundary.
+    // They must never depend on unrelated public social-commerce bootstraps.
+    const adminControlResponse = await handleAdminControlApi(request, env);
+    if (adminControlResponse) {
+      return adminControlResponse;
     }
 
     try {
