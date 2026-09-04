@@ -27,11 +27,7 @@
   <link rel="stylesheet" href="css/home-feed-v3.css?v=3.0">
   <link rel="stylesheet" href="css/tablet-desktop-v1.css?v=1.0" media="screen and (min-width: 768px)">
 
-  <!--
-    POST-P6 MOBILE SHELL HOTFIX
-    Kept inline intentionally: no extra critical request, and these shell
-    invariants must win even when route CSS is lazy-loaded afterwards.
-  -->
+  <!-- POST-P6 mobile shell invariants. Inline means no extra critical request. -->
   <style id="postP6MobileShellHotfix">
     html body .app.account-profile-active > .app-header,
     html body:has(.social-account-page[data-p3-upgraded="true"]) .app > .app-header {
@@ -59,12 +55,28 @@
       padding: 0 !important;
     }
 
-    html body .chat-v7-search input:focus-visible {
-      outline: none !important;
-      outline-offset: 0 !important;
+    html body.chat-v7-body .chat-v7-page {
+      position: fixed !important;
+      top: var(--chat7-offset-top, 0px) !important;
+      left: 50% !important;
+      right: auto !important;
+      width: min(100%, 720px) !important;
+      height: var(--chat7-height, 100dvh) !important;
+      margin: 0 !important;
+      transform: translateX(-50%) !important;
+      z-index: 940 !important;
     }
 
-    html body .chat-v7-search:focus-within {
+    html body .chat-v7-search input:focus-visible,
+    html body .chat-v7-input:focus,
+    html body .chat-v7-input:focus-visible {
+      outline: none !important;
+      outline-offset: 0 !important;
+      box-shadow: none !important;
+    }
+
+    html body .chat-v7-search:focus-within,
+    html body .chat-v7-input-shell:focus-within {
       border-color: rgba(15, 87, 58, .42) !important;
       box-shadow: 0 0 0 3px rgba(15, 87, 58, .09) !important;
       background: #fff !important;
@@ -363,5 +375,37 @@
   <script src="js/chat-single-render-v6.js?v=7.0" defer></script>
   <script src="js/account-resilience.js?v=4.0" defer></script>
   <script src="js/profile-saved.js?v=2.1" defer></script>
+  <script id="chatV7ViewportAdapter">
+    (() => {
+      const root = document.documentElement;
+      let frame = 0;
+      const apply = () => {
+        frame = 0;
+        const active = document.body.classList.contains('chat-v7-body') || document.querySelector('.chat-v7-page');
+        const viewport = window.visualViewport;
+        const offsetTop = active && viewport ? Math.max(0, Math.round(viewport.offsetTop || 0)) : 0;
+        root.style.setProperty('--chat7-offset-top', `${offsetTop}px`);
+      };
+      const schedule = () => {
+        if (frame) cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(apply);
+      };
+      window.addEventListener('resize', schedule, { passive: true });
+      window.visualViewport?.addEventListener('resize', schedule, { passive: true });
+      window.visualViewport?.addEventListener('scroll', schedule, { passive: true });
+      document.addEventListener('focusin', event => {
+        if (!['chatV7Input', 'chatV7Search'].includes(event.target?.id)) return;
+        schedule();
+        setTimeout(schedule, 100);
+        setTimeout(schedule, 280);
+      }, true);
+      document.addEventListener('focusout', event => {
+        if (!['chatV7Input', 'chatV7Search'].includes(event.target?.id)) return;
+        setTimeout(schedule, 80);
+        setTimeout(schedule, 260);
+      }, true);
+      schedule();
+    })();
+  </script>
 </body>
 </html>
