@@ -27,6 +27,12 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   Content-Security-Policy: default-src 'self'; img-src 'self' data: https:; style-src 'self'; script-src 'self'; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'
 
+/js/admin/*
+  Cache-Control: no-store, max-age=0
+
+/css/admin-*
+  Cache-Control: no-store, max-age=0
+
 /css/*
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
