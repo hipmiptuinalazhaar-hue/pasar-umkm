@@ -1,0 +1,131 @@
+/* Pasar UMKM - Rating Form V3
+   Scoped mobile form surface. Never inherit feed/commerce product-card geometry. */
+
+#orderRatingForm,
+#orderRatingForm * {
+  box-sizing: border-box;
+}
+
+#orderRatingForm {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  gap: 14px;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom));
+}
+
+#orderRatingForm > .auth-field,
+#orderRatingForm [data-rating-product-id] .auth-field {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 7px;
+  margin: 0;
+}
+
+#orderRatingForm .auth-field + .auth-field {
+  margin-top: 12px;
+}
+
+#orderRatingForm .auth-field > label {
+  width: 100%;
+  min-width: 0;
+  display: block;
+  margin: 0;
+  color: #26332b;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 700;
+  white-space: normal;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+#orderRatingForm select.auth-input,
+#orderRatingForm textarea.auth-input {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  border: 1px solid rgba(23, 32, 27, .14);
+  border-radius: 12px;
+  background: #fff;
+  color: #17201b;
+  font-size: 16px;
+  line-height: 1.45;
+  box-shadow: none;
+}
+
+#orderRatingForm select.auth-input {
+  min-height: 48px;
+  padding: 0 40px 0 13px;
+}
+
+#orderRatingForm textarea.auth-input {
+  min-height: 100px;
+  resize: vertical;
+  padding: 12px 13px;
+}
+
+#orderRatingForm select.auth-input:focus,
+#orderRatingForm textarea.auth-input:focus,
+#orderRatingForm select.auth-input:focus-visible,
+#orderRatingForm textarea.auth-input:focus-visible {
+  outline: none;
+  border-color: rgba(15, 87, 58, .46);
+  box-shadow: 0 0 0 3px rgba(15, 87, 58, .09);
+}
+
+#orderRatingForm .product-card[data-rating-product-id] {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  display: block;
+  margin: 2px 0 0;
+  padding: 14px;
+  border: 1px solid rgba(23, 32, 27, .10);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: none;
+  overflow: visible;
+}
+
+#orderRatingForm .product-card[data-rating-product-id] > .product-info {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  display: block;
+  padding: 0;
+  margin: 0;
+}
+
+#orderRatingForm .product-card[data-rating-product-id] .product-name {
+  width: 100%;
+  min-width: 0;
+  display: block;
+  margin: 0 0 13px;
+  color: #17201b;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 800;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+}
+
+#orderRatingForm > button[type="submit"] {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 2px !important;
+  border-radius: 13px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+@media (max-width: 380px) {
+  #orderRatingForm .product-card[data-rating-product-id] {
+    padding: 12px;
+  }
+}
