@@ -4,6 +4,7 @@ const SECRET_BYTES = 20;
 const TOTP_DIGITS = 6;
 const TOTP_PERIOD = 30;
 const TOTP_ALGORITHM = "SHA1";
+const TOTP_CRYPTO_HASH = "SHA-1";
 const RECOVERY_COUNT = 10;
 const RECOVERY_SYMBOLS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
@@ -135,7 +136,7 @@ export async function decryptTotpSecret(env, adminId, ciphertext, iv) {
 
 async function totpAtStep(secretBase32, step) {
   const secret = fromBase32(secretBase32);
-  const key = await crypto.subtle.importKey("raw", secret, { name: "HMAC", hash: TOTP_ALGORITHM }, false, ["sign"]);
+  const key = await crypto.subtle.importKey("raw", secret, { name: "HMAC", hash: TOTP_CRYPTO_HASH }, false, ["sign"]);
   const counter = new Uint8Array(8);
   let value = BigInt(step);
   for (let i = 7; i >= 0; i -= 1) {
@@ -204,6 +205,7 @@ export async function assertMfaConfig(env) {
 export const adminMfaCryptoPolicy = Object.freeze({
   secret_bytes: SECRET_BYTES,
   algorithm: TOTP_ALGORITHM,
+  crypto_hash: TOTP_CRYPTO_HASH,
   digits: TOTP_DIGITS,
   period_seconds: TOTP_PERIOD,
   recovery_codes: RECOVERY_COUNT,
