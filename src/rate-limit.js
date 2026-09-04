@@ -3,6 +3,30 @@ let lastSweepAt = 0;
 
 const RULES = [
   {
+    name: "admin-auth-login",
+    match: (request, url) => request.method === "POST" && url.pathname === "/api/admin/auth/login",
+    limit: 5,
+    windowMs: 15 * 60 * 1000,
+    includeAccount: true
+  },
+  {
+    name: "admin-auth-rotate-password",
+    match: (request, url) => request.method === "POST" && url.pathname === "/api/admin/auth/rotate-password",
+    limit: 5,
+    windowMs: 30 * 60 * 1000,
+    includeAccount: true
+  },
+  {
+    name: "admin-auth-session-write",
+    match: (request, url) => request.method === "POST" && (
+      url.pathname === "/api/admin/auth/logout" ||
+      url.pathname === "/api/admin/auth/revoke-all"
+    ),
+    limit: 30,
+    windowMs: 10 * 60 * 1000,
+    includeAdminSession: true
+  },
+  {
     name: "auth-login",
     match: (request, url) => request.method === "POST" && url.pathname === "/api/auth/login",
     limit: 10,
@@ -107,9 +131,10 @@ async function accountHint(request) {
   }
 }
 
-async function sessionHint(request) {
+async function cookieSessionHint(request, cookieName) {
   const cookie = request.headers.get("Cookie") || "";
-  const match = cookie.match(/(?:^|;\s*)__Host-pasar_umkm_session=([^;]+)/);
+  const escaped = cookieName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = cookie.match(new RegExp(`(?:^|;\\s*)${escaped}=([^;]+)`));
   return match?.[1] ? digestKey(match[1]) : null;
 }
 
@@ -179,8 +204,13 @@ export async function enforceRateLimit(request) {
   }
 
   if (rule.includeSession) {
-    const session = await sessionHint(request);
+    const session = await cookieSessionHint(request, "__Host-pasar_umkm_session");
     if (session) keys.push(`${rule.name}:session:${session}`);
+  }
+
+  if (rule.includeAdminSession) {
+    const adminSession = await cookieSessionHint(request, "__Host-pasar_umkm_admin");
+    if (adminSession) keys.push(`${rule.name}:admin-session:${adminSession}`);
   }
 
   for (const key of keys) {
