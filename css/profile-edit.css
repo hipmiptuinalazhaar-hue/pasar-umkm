@@ -31,14 +31,14 @@
 .profile-edit-subtitle {
   margin: 5px 0 0;
   color: rgba(23, 32, 27, 0.52);
-  font-size: 10.5px;
+  font-size: 11px;
   line-height: 1.45;
 }
 
 .profile-edit-close {
-  flex: 0 0 38px;
-  width: 38px;
-  height: 38px;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
   border-radius: 12px;
@@ -60,7 +60,7 @@
   margin-bottom: 14px;
   border: 1px solid rgba(15, 25, 30, 0.06);
   border-radius: 18px;
-  background: linear-gradient(145deg, #ffffff, #f8fbf9);
+  background: #fff;
 }
 
 .profile-edit-avatar-picker {
@@ -142,15 +142,15 @@
   display: block;
   margin-top: 4px;
   color: rgba(23, 32, 27, 0.56);
-  font-size: 9.5px;
+  font-size: 10.5px;
   line-height: 1.45;
 }
 
 .profile-edit-avatar-copy small {
   display: block;
   margin-top: 6px;
-  color: rgba(23, 32, 27, 0.42);
-  font-size: 8.5px;
+  color: rgba(23, 32, 27, 0.46);
+  font-size: 10px;
   line-height: 1.4;
 }
 
@@ -173,8 +173,8 @@
 
 .profile-edit-section-note {
   margin: -4px 0 12px;
-  color: rgba(23, 32, 27, 0.48);
-  font-size: 9.5px;
+  color: rgba(23, 32, 27, 0.50);
+  font-size: 10.5px;
   line-height: 1.5;
 }
 
@@ -186,7 +186,7 @@
   display: block;
   margin-bottom: 6px;
   color: #344039;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
 }
 
@@ -198,6 +198,7 @@
   background: #fafcfb;
   color: #17201b;
   outline: 0;
+  font-size: 16px;
   transition:
     border-color 140ms ease,
     box-shadow 140ms ease,
@@ -205,7 +206,7 @@
 }
 
 .profile-edit-input {
-  min-height: 44px;
+  min-height: 48px;
   padding: 0 12px;
 }
 
@@ -242,10 +243,26 @@
   box-shadow: 0 0 0 3px rgba(18, 96, 63, 0.07);
 }
 
+.profile-edit-field.has-error .profile-edit-input,
+.profile-edit-field.has-error .profile-edit-textarea,
+.profile-edit-input[aria-invalid="true"] {
+  border-color: rgba(179, 38, 30, 0.58);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(179, 38, 30, 0.07);
+}
+
+.profile-edit-error {
+  margin: 7px 0 0;
+  color: #9f221c;
+  font-size: 10.5px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
 .profile-edit-help {
   margin: 6px 0 0;
-  color: rgba(23, 32, 27, 0.45);
-  font-size: 9px;
+  color: rgba(23, 32, 27, 0.47);
+  font-size: 10px;
   line-height: 1.45;
 }
 
@@ -268,13 +285,13 @@
   gap: 9px;
   margin-top: 16px;
   padding: 12px 0 calc(2px + env(safe-area-inset-bottom));
-  background: linear-gradient(180deg, rgba(255,255,255,0), #fff 28%);
+  background: #fff;
 }
 
 .profile-edit-button {
-  min-height: 44px;
+  min-height: 48px;
   border-radius: 13px;
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 800;
 }
 
