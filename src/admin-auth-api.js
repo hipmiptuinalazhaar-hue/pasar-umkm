@@ -204,7 +204,7 @@ async function recordFailedPassword(sql, adminId) {
       failed_login_count = ns.next_count,
       locked_until = CASE
         WHEN ns.next_count >= ${FAILED_LOGIN_LIMIT}
-          THEN NOW() + (${ACCOUNT_LOCK_MINUTES} || ' minutes')::interval
+          THEN NOW() + (${ACCOUNT_LOCK_MINUTES} * INTERVAL '1 minute')
         ELSE NULL
       END
     FROM next_state ns
@@ -232,6 +232,22 @@ function publicAdmin(admin) {
     mfa_enrolled: Boolean(admin.mfa_enrolled_at),
     must_rotate_password: admin.must_rotate_password === true
   };
+}
+
+async function auditLockedAttempt(sql, admin, passwordOk, requestId, ipHash, userAgentHash) {
+  await writeAudit(sql, {
+    adminId: admin.id,
+    actorName: admin.name,
+    actorEmail: admin.email,
+    action: "admin.login",
+    resourceId: admin.id,
+    outcome: "denied",
+    reasonCode: passwordOk ? "account_temporarily_locked" : "invalid_credentials",
+    requestId,
+    ipHash,
+    userAgentHash,
+    metadata: { account_temporarily_locked: true }
+  });
 }
 
 async function login(request, env) {
@@ -271,6 +287,21 @@ async function login(request, env) {
   const lockedUntil = admin.locked_until ? new Date(admin.locked_until).getTime() : 0;
   const currentlyLocked = lockedUntil > Date.now();
 
+  if (currentlyLocked) {
+    await auditLockedAttempt(sql, admin, admin.password_ok === true, requestId, ipHash, userAgentHash);
+
+    if (admin.password_ok !== true) {
+      return json({ ok: false, error: "Email atau password tidak valid.", code: "AUTH_FAILED" }, 401);
+    }
+
+    const retryAfter = Math.max(1, Math.ceil((lockedUntil - Date.now()) / 1000));
+    return json({
+      ok: false,
+      error: "Akun admin dikunci sementara karena terlalu banyak percobaan login.",
+      code: "ADMIN_TEMPORARILY_LOCKED"
+    }, 423, { "Retry-After": String(retryAfter) });
+  }
+
   if (admin.password_ok !== true) {
     const failedRows = await recordFailedPassword(sql, admin.id);
     const state = failedRows[0] || {};
@@ -291,26 +322,6 @@ async function login(request, env) {
       }
     });
     return json({ ok: false, error: "Email atau password tidak valid.", code: "AUTH_FAILED" }, 401);
-  }
-
-  if (currentlyLocked) {
-    await writeAudit(sql, {
-      adminId: admin.id,
-      actorName: admin.name,
-      actorEmail: admin.email,
-      action: "admin.login",
-      resourceId: admin.id,
-      outcome: "denied",
-      reasonCode: "account_temporarily_locked",
-      requestId,
-      ipHash,
-      userAgentHash
-    });
-    return json({
-      ok: false,
-      error: "Akun admin dikunci sementara karena terlalu banyak percobaan login.",
-      code: "ADMIN_TEMPORARILY_LOCKED"
-    }, 423);
   }
 
   await resetFailedPasswordState(sql, admin.id);
@@ -431,8 +442,8 @@ async function login(request, env) {
       NULL,
       ${ipHash},
       ${userAgentHash},
-      NOW() + (${SESSION_IDLE_MINUTES} || ' minutes')::interval,
-      NOW() + (${SESSION_ABSOLUTE_HOURS} || ' hours')::interval
+      NOW() + (${SESSION_IDLE_MINUTES} * INTERVAL '1 minute'),
+      NOW() + (${SESSION_ABSOLUTE_HOURS} * INTERVAL '1 hour')
     )
   `;
 
@@ -496,6 +507,34 @@ async function rotatePassword(request, env) {
   const rows = await findAdminForPassword(sql, email, currentPassword);
   const admin = rows[0] || null;
 
+  if (admin) {
+    const lockedUntil = admin.locked_until ? new Date(admin.locked_until).getTime() : 0;
+    if (lockedUntil > Date.now()) {
+      await writeAudit(sql, {
+        adminId: admin.id,
+        actorName: admin.name,
+        actorEmail: admin.email,
+        action: "admin.password.rotate",
+        resourceId: admin.id,
+        outcome: "denied",
+        reasonCode: admin.password_ok === true ? "account_temporarily_locked" : "invalid_credentials",
+        requestId,
+        ipHash,
+        userAgentHash,
+        metadata: { account_temporarily_locked: true }
+      });
+
+      if (admin.password_ok !== true) {
+        return json({ ok: false, error: "Kredensial tidak valid.", code: "AUTH_FAILED" }, 401);
+      }
+
+      const retryAfter = Math.max(1, Math.ceil((lockedUntil - Date.now()) / 1000));
+      return json({ ok: false, code: "ADMIN_TEMPORARILY_LOCKED" }, 423, {
+        "Retry-After": String(retryAfter)
+      });
+    }
+  }
+
   if (!admin || admin.password_ok !== true) {
     if (admin) await recordFailedPassword(sql, admin.id);
     await writeAudit(sql, {
@@ -511,11 +550,6 @@ async function rotatePassword(request, env) {
       userAgentHash
     });
     return json({ ok: false, error: "Kredensial tidak valid.", code: "AUTH_FAILED" }, 401);
-  }
-
-  const lockedUntil = admin.locked_until ? new Date(admin.locked_until).getTime() : 0;
-  if (lockedUntil > Date.now()) {
-    return json({ ok: false, code: "ADMIN_TEMPORARILY_LOCKED" }, 423);
   }
 
   if (["disabled", "suspended", "locked"].includes(admin.status)) {
@@ -636,10 +670,10 @@ async function loadSession(request, sql, { touch = true } = {}) {
         last_used_at = NOW(),
         idle_expires_at = LEAST(
           expires_at,
-          NOW() + (${SESSION_IDLE_MINUTES} || ' minutes')::interval
+          NOW() + (${SESSION_IDLE_MINUTES} * INTERVAL '1 minute')
         )
       WHERE id = ${session.session_id}
-        AND last_used_at <= NOW() - (${TOUCH_INTERVAL_MINUTES} || ' minutes')::interval
+        AND last_used_at <= NOW() - (${TOUCH_INTERVAL_MINUTES} * INTERVAL '1 minute')
         AND revoked_at IS NULL
     `;
   }
@@ -785,27 +819,36 @@ export async function handleAdminAuthApi(request, env) {
 
   if (!url.pathname.startsWith("/api/admin/auth/")) return null;
 
-  if (request.method === "POST" && url.pathname === "/api/admin/auth/login") {
-    return login(request, env);
-  }
+  try {
+    if (request.method === "POST" && url.pathname === "/api/admin/auth/login") {
+      return login(request, env);
+    }
 
-  if (request.method === "POST" && url.pathname === "/api/admin/auth/rotate-password") {
-    return rotatePassword(request, env);
-  }
+    if (request.method === "POST" && url.pathname === "/api/admin/auth/rotate-password") {
+      return rotatePassword(request, env);
+    }
 
-  if (request.method === "GET" && url.pathname === "/api/admin/auth/me") {
-    return me(request, env);
-  }
+    if (request.method === "GET" && url.pathname === "/api/admin/auth/me") {
+      return me(request, env);
+    }
 
-  if (request.method === "POST" && url.pathname === "/api/admin/auth/logout") {
-    return logout(request, env);
-  }
+    if (request.method === "POST" && url.pathname === "/api/admin/auth/logout") {
+      return logout(request, env);
+    }
 
-  if (request.method === "POST" && url.pathname === "/api/admin/auth/revoke-all") {
-    return revokeAll(request, env);
-  }
+    if (request.method === "POST" && url.pathname === "/api/admin/auth/revoke-all") {
+      return revokeAll(request, env);
+    }
 
-  return json({ ok: false, error: "Admin auth route tidak ditemukan.", code: "NOT_FOUND" }, 404);
+    return json({ ok: false, error: "Admin auth route tidak ditemukan.", code: "NOT_FOUND" }, 404);
+  } catch (error) {
+    console.error("Admin auth error:", error);
+    return json({
+      ok: false,
+      error: "Layanan autentikasi admin sementara tidak tersedia.",
+      code: "ADMIN_AUTH_ERROR"
+    }, 500);
+  }
 }
 
 export const adminAuthPolicy = Object.freeze({
