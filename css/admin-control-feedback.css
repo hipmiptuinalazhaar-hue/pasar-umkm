@@ -1,0 +1,22 @@
+.view-notice {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--admin-line);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-surface);
+  color: var(--admin-ink-soft);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.view-notice-success {
+  border-color: #a9dbc5;
+  background: var(--admin-success-soft);
+  color: var(--admin-success);
+}
+
+.view-notice-error {
+  border-color: #f3b7b2;
+  background: var(--admin-danger-soft);
+  color: var(--admin-danger);
+}
