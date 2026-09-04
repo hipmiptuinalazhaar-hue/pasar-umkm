@@ -27,6 +27,13 @@ const RULES = [
     includeAdminSession: true
   },
   {
+    name: "admin-access-read",
+    match: (request, url) => request.method === "GET" && url.pathname === "/api/admin/access/me",
+    limit: 120,
+    windowMs: 60 * 1000,
+    includeAdminSession: true
+  },
+  {
     name: "auth-login",
     match: (request, url) => request.method === "POST" && url.pathname === "/api/auth/login",
     limit: 10,
