@@ -75,7 +75,7 @@ async function writeAudit(sql, request, admin, action, outcome, reasonCode, meta
 }
 
 export async function issueMfaChallenge(sql, request, admin, purpose) {
-  if (!['mfa_enroll', 'mfa_verify'].includes(purpose)) throw new TypeError("Invalid MFA challenge purpose");
+  if (!["mfa_enroll", "mfa_verify"].includes(purpose)) throw new TypeError("Invalid MFA challenge purpose");
   const { ipHash, userAgentHash } = await requestRiskHashes(request);
   const rawToken = createOpaqueToken(32);
   const tokenHash = await sha256Hex(rawToken);
@@ -121,12 +121,17 @@ async function loadChallenge(sql, request, purpose) {
   `;
   const challenge = rows[0] || null;
   if (!challenge) return { error: "invalid" };
+
+  // Mobile carrier IPs can legitimately change during a five-minute challenge.
+  // The opaque HttpOnly cookie + same-site policy + UA binding are authoritative;
+  // IP drift remains a risk/audit signal rather than a hard lockout condition.
+  const ipDrifted = challenge.ip_hash !== ipHash;
   const invalid = challenge.consumed_at ||
     new Date(challenge.expires_at).getTime() <= Date.now() ||
     Number(challenge.attempts) >= Number(challenge.max_attempts) ||
-    challenge.ip_hash !== ipHash || challenge.user_agent_hash !== userAgentHash;
-  if (invalid) return { error: "invalid", challenge };
-  return { challenge, tokenHash };
+    challenge.user_agent_hash !== userAgentHash;
+  if (invalid) return { error: "invalid", challenge, ipDrifted };
+  return { challenge, tokenHash, ipDrifted };
 }
 
 async function failChallenge(sql, challengeId) {
@@ -190,7 +195,10 @@ async function enrollStart(request, env) {
       updated_at = NOW()
   `;
 
-  await writeAudit(sql, request, admin, "admin.mfa.enroll.start", "success", "totp_secret_issued", { secret_exposed_once: true });
+  await writeAudit(sql, request, admin, "admin.mfa.enroll.start", "success", "totp_secret_issued", {
+    secret_exposed_once: true,
+    challenge_ip_drift: loaded.ipDrifted
+  });
   return json({
     ok: true,
     method: "totp",
@@ -219,7 +227,7 @@ async function enrollVerify(request, env) {
   const verified = await verifyTotp(secret, parsed.body.code, { lastUsedStep: totp.last_used_step });
   if (!verified.ok) {
     await failChallenge(sql, admin.challenge_id);
-    await writeAudit(sql, request, admin, "admin.mfa.enroll.verify", "denied", "invalid_totp");
+    await writeAudit(sql, request, admin, "admin.mfa.enroll.verify", "denied", "invalid_totp", { challenge_ip_drift: loaded.ipDrifted });
     return json({ ok: false, code: "MFA_CODE_INVALID" }, 401);
   }
 
@@ -244,9 +252,9 @@ async function enrollVerify(request, env) {
       DELETE FROM admin_recovery_codes WHERE admin_account_id IN (SELECT id FROM activated)
     ), inserted_codes AS (
       INSERT INTO admin_recovery_codes (admin_account_id, code_hash)
-      SELECT a.id, value::text
-      FROM activated a,
-           jsonb_array_elements_text(CAST(${JSON.stringify(recoveryHashes)} AS jsonb)) value
+      SELECT a.id, rc.code_hash
+      FROM activated a
+      CROSS JOIN jsonb_array_elements_text(CAST(${JSON.stringify(recoveryHashes)} AS jsonb)) AS rc(code_hash)
       RETURNING id
     )
     SELECT id, security_version FROM activated
@@ -257,7 +265,10 @@ async function enrollVerify(request, env) {
   await consumeChallenge(sql, admin.challenge_id);
   const sessionResult = await createAdminSession(sql, request, { ...admin, security_version: activated.security_version }, { mfaMethod: "totp" });
   await sql`UPDATE admin_accounts SET last_login_at = NOW() WHERE id = ${admin.id}`;
-  await writeAudit(sql, request, admin, "admin.mfa.enroll.verify", "success", "mfa_enrolled", { recovery_codes_issued: recoveryCodes.length });
+  await writeAudit(sql, request, admin, "admin.mfa.enroll.verify", "success", "mfa_enrolled", {
+    recovery_codes_issued: recoveryCodes.length,
+    challenge_ip_drift: loaded.ipDrifted
+  });
 
   return json({
     ok: true,
@@ -315,19 +326,22 @@ async function verifyLoginMfa(request, env) {
   }
 
   const method = parsed.body.method === "recovery" ? "recovery" : "totp";
-  let verified = false;
-  if (method === "recovery") verified = await verifyRecoveryCode(sql, env, admin.id, parsed.body.code);
-  else verified = (await verifyActiveTotp(sql, env, admin.id, parsed.body.code)).ok;
+  const verified = method === "recovery"
+    ? await verifyRecoveryCode(sql, env, admin.id, parsed.body.code)
+    : (await verifyActiveTotp(sql, env, admin.id, parsed.body.code)).ok;
   if (!verified) {
     await failChallenge(sql, admin.challenge_id);
-    await writeAudit(sql, request, admin, "admin.mfa.verify", "denied", method === "recovery" ? "invalid_recovery_code" : "invalid_totp");
+    await writeAudit(sql, request, admin, "admin.mfa.verify", "denied", method === "recovery" ? "invalid_recovery_code" : "invalid_totp", { challenge_ip_drift: loaded.ipDrifted });
     return json({ ok: false, code: "MFA_CODE_INVALID" }, 401);
   }
 
   await consumeChallenge(sql, admin.challenge_id);
   const sessionResult = await createAdminSession(sql, request, admin, { mfaMethod: method });
   await sql`UPDATE admin_accounts SET last_login_at = NOW(), failed_login_count = 0, locked_until = NULL WHERE id = ${admin.id}`;
-  await writeAudit(sql, request, admin, "admin.login", "success", "mfa_authenticated", { mfa_method: method });
+  await writeAudit(sql, request, admin, "admin.login", "success", "mfa_authenticated", {
+    mfa_method: method,
+    challenge_ip_drift: loaded.ipDrifted
+  });
   return json({ ok: true, authenticated: true, mfa_method: method }, 200, [adminCookie(sessionResult.rawToken), clearChallengeCookie()]);
 }
 
@@ -372,8 +386,8 @@ async function regenerateRecovery(request, env) {
       DELETE FROM admin_recovery_codes WHERE admin_account_id = ${admin.id}
     )
     INSERT INTO admin_recovery_codes (admin_account_id, code_hash)
-    SELECT ${admin.id}, value::text
-    FROM jsonb_array_elements_text(CAST(${JSON.stringify(hashes)} AS jsonb)) value
+    SELECT ${admin.id}, rc.code_hash
+    FROM jsonb_array_elements_text(CAST(${JSON.stringify(hashes)} AS jsonb)) AS rc(code_hash)
   `;
   await writeAudit(sql, request, admin, "admin.recovery.regenerate", "success", "recovery_codes_rotated", { recovery_codes_issued: codes.length });
   return json({ ok: true, recovery_codes: codes, recovery_codes_display_once: true });
@@ -389,7 +403,12 @@ async function mfaStatus(request, env) {
       EXISTS(SELECT 1 FROM admin_mfa_totp WHERE admin_account_id = ${admin.id} AND status = 'active') AS totp_active,
       (SELECT COUNT(*)::int FROM admin_recovery_codes WHERE admin_account_id = ${admin.id} AND used_at IS NULL) AS recovery_codes_remaining
   `;
-  return json({ ok: true, totp_active: rows[0]?.totp_active === true, recovery_codes_remaining: Number(rows[0]?.recovery_codes_remaining || 0), step_up_fresh: isStepUpFresh(admin) });
+  return json({
+    ok: true,
+    totp_active: rows[0]?.totp_active === true,
+    recovery_codes_remaining: Number(rows[0]?.recovery_codes_remaining || 0),
+    step_up_fresh: isStepUpFresh(admin)
+  });
 }
 
 export async function handleAdminMfaApi(request, env) {
@@ -406,7 +425,11 @@ export async function handleAdminMfaApi(request, env) {
   } catch (error) {
     console.error("Admin MFA error:", error);
     const code = error?.code === "ADMIN_MFA_CONFIG_REQUIRED" || error?.code === "ADMIN_MFA_CONFIG_INVALID" ? error.code : "ADMIN_MFA_ERROR";
-    return json({ ok: false, code, error: code.startsWith("ADMIN_MFA_CONFIG") ? "Konfigurasi keamanan MFA server belum siap." : "Layanan MFA admin sementara tidak tersedia." }, code.startsWith("ADMIN_MFA_CONFIG") ? 503 : 500);
+    return json({
+      ok: false,
+      code,
+      error: code.startsWith("ADMIN_MFA_CONFIG") ? "Konfigurasi keamanan MFA server belum siap." : "Layanan MFA admin sementara tidak tersedia."
+    }, code.startsWith("ADMIN_MFA_CONFIG") ? 503 : 500);
   }
 }
 
