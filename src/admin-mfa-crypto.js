@@ -20,6 +20,11 @@ function fromBase64Url(value) {
   return Uint8Array.from(binary, char => char.charCodeAt(0));
 }
 
+function keepLowBits(value, bits) {
+  if (bits <= 0) return 0;
+  return value & ((1 << bits) - 1);
+}
+
 function toBase32(bytes) {
   let bits = 0;
   let value = 0;
@@ -30,6 +35,7 @@ function toBase32(bytes) {
     while (bits >= 5) {
       output += BASE32[(value >>> (bits - 5)) & 31];
       bits -= 5;
+      value = keepLowBits(value, bits);
     }
   }
   if (bits > 0) output += BASE32[(value << (5 - bits)) & 31];
@@ -46,9 +52,10 @@ function fromBase32(input) {
     if (index < 0) throw new Error("INVALID_BASE32");
     value = (value << 5) | index;
     bits += 5;
-    if (bits >= 8) {
+    while (bits >= 8) {
       bytes.push((value >>> (bits - 8)) & 255);
       bits -= 8;
+      value = keepLowBits(value, bits);
     }
   }
   return new Uint8Array(bytes);
