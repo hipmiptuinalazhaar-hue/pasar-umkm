@@ -20,6 +20,7 @@ import { handleChatMessageActionApi } from "./chat-message-action-api.js";
 import { handleCommentApi } from "./comment-api.js";
 import { handlePublicCatalogApi } from "./public-catalog-api.js";
 import { handleAdminAuthApi } from "./admin-auth-api.js";
+import { handleAdminAccessApi } from "./admin-access-api.js";
 import { enforceRateLimit } from "./rate-limit.js";
 import { ensureNotificationInfrastructure } from "./notification-store.js";
 import { ensureFullFunctionalityInfrastructure } from "./functionality-bootstrap.js";
@@ -171,6 +172,13 @@ export default {
     const adminAuthResponse = await handleAdminAuthApi(request, env);
     if (adminAuthResponse) {
       return adminAuthResponse;
+    }
+
+    // RBAC/capability resolution shares the isolated admin runtime boundary.
+    // Future privileged APIs must authorize server-side before public bootstraps.
+    const adminAccessResponse = await handleAdminAccessApi(request, env);
+    if (adminAccessResponse) {
+      return adminAccessResponse;
     }
 
     try {
