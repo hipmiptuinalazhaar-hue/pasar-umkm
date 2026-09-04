@@ -130,6 +130,14 @@ export async function renderSecurity(context) {
   `;
 
   context.host.querySelector("#regenerateRecovery")?.addEventListener("click", async event => {
+    const confirmed = await context.confirmAction({
+      title: "Buat ulang recovery codes?",
+      copy: "Semua recovery code lama akan langsung tidak berlaku. Kode baru hanya akan ditampilkan sekali.",
+      confirmLabel: "Regenerate codes",
+      tone: "danger",
+      requireReason: false
+    });
+    if (confirmed === null) return;
     const button = event.currentTarget;
     button.disabled = true;
     const original = button.textContent;
@@ -146,8 +154,14 @@ export async function renderSecurity(context) {
   });
 
   context.host.querySelector("#revokeAllSessions")?.addEventListener("click", async event => {
-    const reason = await context.confirmAction({ title: "Cabut semua session?", copy: "Semua session admin termasuk session ini akan langsung tidak berlaku.", confirmLabel: "Cabut semua", tone: "danger" });
-    if (!reason) return;
+    const confirmed = await context.confirmAction({
+      title: "Cabut semua session?",
+      copy: "Semua session admin termasuk session ini akan langsung tidak berlaku.",
+      confirmLabel: "Cabut semua",
+      tone: "danger",
+      requireReason: false
+    });
+    if (confirmed === null) return;
     const button = event.currentTarget;
     button.disabled = true;
     try {
@@ -161,8 +175,14 @@ export async function renderSecurity(context) {
 
   context.host.querySelectorAll("[data-revoke-session]").forEach(button => button.addEventListener("click", async () => {
     const isCurrent = button.dataset.current === "true";
-    const reason = await context.confirmAction({ title: isCurrent ? "Akhiri session ini?" : "Cabut session?", copy: isCurrent ? "Kamu akan kembali ke halaman login." : "Session lain akan langsung kehilangan akses.", confirmLabel: "Cabut session", tone: "danger" });
-    if (!reason) return;
+    const confirmed = await context.confirmAction({
+      title: isCurrent ? "Akhiri session ini?" : "Cabut session?",
+      copy: isCurrent ? "Kamu akan kembali ke halaman login." : "Session lain akan langsung kehilangan akses.",
+      confirmLabel: "Cabut session",
+      tone: "danger",
+      requireReason: false
+    });
+    if (confirmed === null) return;
     button.disabled = true;
     try {
       const result = await withStepUp(context, () => adminApi.revokeSecuritySession(button.dataset.revokeSession));
