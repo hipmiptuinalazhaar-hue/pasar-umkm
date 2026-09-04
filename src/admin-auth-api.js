@@ -12,7 +12,8 @@ import {
   sameOrigin,
   sha256Hex
 } from "./admin-security-core.js";
-import { issueMfaChallenge } from "./admin-mfa-api.js";
+import { handleAdminMfaApi, issueMfaChallenge } from "./admin-mfa-api.js";
+import { handleAdminSessionSecurityApi } from "./admin-session-security-api.js";
 
 const FAILED_LOGIN_LIMIT = 10;
 const ACCOUNT_LOCK_MINUTES = 15;
@@ -337,9 +338,13 @@ async function revokeAll(request, env) {
 }
 
 export async function handleAdminAuthApi(request, env) {
+  const mfaResponse = await handleAdminMfaApi(request, env);
+  if (mfaResponse) return mfaResponse;
+  const securityResponse = await handleAdminSessionSecurityApi(request, env);
+  if (securityResponse) return securityResponse;
+
   const url = new URL(request.url);
   if (!url.pathname.startsWith("/api/admin/auth/")) return null;
-  if (url.pathname.startsWith("/api/admin/auth/mfa/") || url.pathname === "/api/admin/auth/step-up") return null;
   try {
     if (request.method === "POST" && url.pathname === "/api/admin/auth/login") return login(request, env);
     if (request.method === "POST" && url.pathname === "/api/admin/auth/rotate-password") return rotatePassword(request, env);
