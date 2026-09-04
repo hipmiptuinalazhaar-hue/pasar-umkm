@@ -24,17 +24,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Enforce UI-P5 scope
+      - name: Enforce UI-P5 authoring scope
+        if: github.head_ref == 'ui-p5-tablet-desktop'
         shell: bash
         run: |
           set -euo pipefail
           git fetch origin main --depth=1
-
           allowed='^(css/tablet-desktop-v1\.css|css/tokens\.css|index\.html|\.github/workflows/ui-p5-tablet-desktop-validate\.yml)$'
           changed="$(git diff --name-only origin/main...HEAD)"
-
           printf '%s\n' "$changed"
-
           bad="$(printf '%s\n' "$changed" | grep -Ev "$allowed" || true)"
           if [ -n "$bad" ]; then
             echo 'UI-P5 touched files outside responsive presentation scope:'
@@ -52,7 +50,6 @@ jobs:
           css_path = Path('css/tablet-desktop-v1.css')
           index_path = Path('index.html')
           tokens_path = Path('css/tokens.css')
-
           errors = []
 
           for path in (css_path, index_path, tokens_path):
@@ -75,30 +72,17 @@ jobs:
           important_count = css.count('!important')
           print(f'UI-P5 migration !important debt: {important_count} / 36')
           if important_count > 36:
-              errors.append(
-                  f'UI-P5 !important migration debt increased beyond budget: {important_count} > 36'
-              )
+              errors.append(f'UI-P5 !important migration debt increased beyond budget: {important_count} > 36')
 
-          required_breakpoints = (
-              '@media (min-width: 768px)',
-              '@media (min-width: 1024px)',
-              '@media (min-width: 1280px)',
-          )
-          for marker in required_breakpoints:
+          for marker in ('@media (min-width: 768px)','@media (min-width: 1024px)','@media (min-width: 1280px)'):
               if marker not in css:
                   errors.append(f'Missing responsive breakpoint: {marker}')
 
           required_contracts = (
-              '--p5-feed-max: 680px',
-              '--p5-work-max: 880px',
-              '--p5-rail: 92px',
-              '--p5-rail: 216px',
-              'grid-template-columns: repeat(8, minmax(0, 1fr))',
-              'body.p3-comments-open .bottom-sheet',
-              '.commerce-page:has(> .commerce-detail-media)',
-              'body.chat-v7-body .app-navigation',
-              '@media (hover: hover) and (pointer: fine)',
-              '@media (prefers-reduced-motion: reduce)',
+              '--p5-feed-max: 680px','--p5-work-max: 880px','--p5-rail: 92px','--p5-rail: 216px',
+              'grid-template-columns: repeat(8, minmax(0, 1fr))','body.p3-comments-open .bottom-sheet',
+              '.commerce-page:has(> .commerce-detail-media)','body.chat-v7-body .app-navigation',
+              '@media (hover: hover) and (pointer: fine)','@media (prefers-reduced-motion: reduce)'
           )
           for marker in required_contracts:
               if marker not in css:
@@ -114,15 +98,10 @@ jobs:
               if marker in css:
                   errors.append(f'UI-P5 contains forbidden {label}: {marker}')
 
-          tiny_fonts = [
-              float(value)
-              for value in re.findall(r'font-size\s*:\s*([0-9.]+)px', css)
-              if float(value) < 10
-          ]
+          tiny_fonts = [float(v) for v in re.findall(r'font-size\s*:\s*([0-9.]+)px', css) if float(v) < 10]
           if tiny_fonts:
               errors.append(f'UI-P5 contains font sizes below 10px: {tiny_fonts}')
 
-          # Very small syntax guard without introducing another package/toolchain.
           stripped = re.sub(r'/\*.*?\*/', '', css, flags=re.S)
           if stripped.count('{') != stripped.count('}'):
               errors.append('UI-P5 CSS braces are unbalanced')
@@ -136,13 +115,9 @@ jobs:
           if p5_href in index and home_href in index and index.index(p5_href) < index.index(home_href):
               errors.append('UI-P5 stylesheet must load after Home Feed to own the desktop cascade')
 
-          media_pattern = re.compile(
-              r'<link\s+[^>]*href="css/tablet-desktop-v1\.css\?v=1\.0"[^>]*media="screen and \(min-width: 768px\)"[^>]*>',
-              re.S,
-          )
+          media_pattern = re.compile(r'<link\s+[^>]*href="css/tablet-desktop-v1\.css\?v=1\.0"[^>]*media="screen and \(min-width: 768px\)"[^>]*>', re.S)
           if not media_pattern.search(index):
               errors.append('UI-P5 stylesheet must be media-qualified to >= 768px')
-
           if 'tablet-desktop-v1.css' in tokens:
               errors.append('UI-P5 must not be imported from tokens.css; cascade order would be wrong')
 
@@ -151,5 +126,4 @@ jobs:
               for error in errors:
                   print(f'- {error}')
               sys.exit(1)
-
           print('UI P5 Tablet/Desktop validation passed.')

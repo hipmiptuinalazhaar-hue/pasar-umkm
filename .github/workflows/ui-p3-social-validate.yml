@@ -75,7 +75,6 @@ jobs:
               if size > limit:
                   errors.append(f'{name} exceeds source budget: {size} > {limit} bytes')
 
-          # P3 CSS quality contract.
           for name, css in (
               ('profile', profile),
               ('engagement', engagement),
@@ -103,7 +102,6 @@ jobs:
               if 'prefers-reduced-motion:reduce' not in css.replace(' ', ''):
                   errors.append(f'{name} is missing reduced-motion handling')
 
-          # Route CSS must stay out of initial HTML.
           for asset in (
               'social-experience-v3.css',
               'social-engagement-v3.css',
@@ -113,10 +111,9 @@ jobs:
               if asset in index:
                   errors.append(f'{asset} is referenced directly by index.html; P3 must remain route-loaded')
 
-          if 'js/account-resilience.js?v=3.0' not in index:
-              errors.append('index.html is missing P3 cache-busted account-resilience.js?v=3.0')
+          if 'js/account-resilience.js?v=4.0' not in index:
+              errors.append('index.html is missing P6 cache-busted account-resilience.js?v=4.0')
 
-          # Retired presentation CSS may remain in git, but loader must not request it.
           for retired in (
               'notification-core.css',
               'profile-responsive.css',
@@ -150,7 +147,6 @@ jobs:
               if contract not in controller:
                   errors.append(f'Missing P3 controller contract: {contract}')
 
-          # MutationObserver must not watch attributes, which previously caused self loops in chat patches.
           if re.search(r'observe\s*\([^)]*\{[^}]*attributes\s*:\s*true', controller, re.S):
               errors.append('P3 MutationObserver watches attributes; this risks a presentation self-loop')
 

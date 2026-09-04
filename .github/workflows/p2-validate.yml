@@ -46,32 +46,40 @@ jobs:
           grep -q '/api/products' "$file"
           grep -q '/api/posts' "$file"
           grep -q 'requestIdleCallback' "$file"
-          grep -q 'loadDeferredEnhancements' "$file"
+          grep -q 'ensureCoreEnhancements' "$file"
+          grep -q 'ensureProfileEnhancements' "$file"
+          grep -q 'ensureMediaEnhancements' "$file"
+          grep -q 'ensureBusinessEnhancements' "$file"
+          grep -q 'schedulePostRenderWarmup' "$file"
+          ! grep -q 'loadDeferredEnhancements' "$file"
 
-      - name: Verify secondary modules are deferred
+      - name: Verify secondary modules are intent loaded
         shell: bash
         run: |
           set -euo pipefail
           node <<'NODE'
           const fs = require('fs');
           const text = fs.readFileSync('js/account-resilience.js', 'utf8');
-          const marker = text.indexOf('function loadDeferredEnhancements()');
-          if (marker < 0) throw new Error('deferred loader marker missing');
-
-          const secondary = [
-            'js/profile-edit.js',
-            'js/chat-media-experience.js',
-            'js/rating-core.js',
-            'js/business-agency.js',
-            'js/store-management-core.js',
-            'js/media-experience.js'
+          const markers = {
+            profile: text.indexOf('function ensureProfileEnhancements()'),
+            media: text.indexOf('function ensureMediaEnhancements()'),
+            business: text.indexOf('function ensureBusinessEnhancements()')
+          };
+          for (const [name, pos] of Object.entries(markers)) {
+            if (pos < 0) throw new Error(`${name} intent loader missing`);
+          }
+          const owned = [
+            ['js/profile-edit.js', markers.profile],
+            ['js/rating-core.js', markers.profile],
+            ['js/media-experience.js', markers.media],
+            ['js/business-agency.js', markers.business]
           ];
-
-          for (const asset of secondary) {
-            const position = text.indexOf(asset);
-            if (position < marker) {
-              throw new Error(`${asset} is no longer deferred`);
-            }
+          for (const [asset, owner] of owned) {
+            const pos = text.indexOf(asset);
+            if (pos < owner) throw new Error(`${asset} escaped its intent owner`);
+          }
+          for (const retired of ['js/chat-media-experience.js','js/store-management-core.js']) {
+            if (text.includes(retired)) throw new Error(`${retired} returned to enhancement loader`);
           }
           NODE
 
@@ -93,19 +101,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
           app_js=$(wc -c < js/app.js)
           resilience_js=$(wc -c < js/account-resilience.js)
           saved_js=$(wc -c < js/profile-saved.js)
           base_css=$(wc -c < css/style.css)
           tokens_css=$(wc -c < css/tokens.css)
-
           initial_js=$((app_js + resilience_js + saved_js))
           initial_css=$((base_css + tokens_css))
-
           echo "Initial JS bytes: $initial_js"
           echo "Initial CSS bytes: $initial_css"
-
           test "$app_js" -le 300000
           test "$initial_js" -le 290000
           test "$initial_css" -le 330000
