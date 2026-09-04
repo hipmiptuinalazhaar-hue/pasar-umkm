@@ -3,8 +3,8 @@
 -- 2026-09-05
 --
 -- Phase 5 scope:
--- Support keyset pagination used by the internal control center.
--- No business data or authorization policy is changed here.
+-- Support keyset pagination and bounded prefix search used by the internal
+-- control center. No business data or authorization policy is changed here.
 -- =========================================================
 
 DO $$
@@ -45,9 +45,23 @@ CREATE INDEX IF NOT EXISTS idx_admin_audit_logs_created_id
 CREATE INDEX IF NOT EXISTS idx_admin_accounts_created_id
   ON admin_accounts (created_at DESC, id DESC);
 
+-- Prefix/exact search support for bounded internal lookup fields. These do not
+-- introduce unrestricted full-text search or index sensitive profile fields.
+CREATE INDEX IF NOT EXISTS idx_users_name_lower_prefix
+  ON users (lower(name) text_pattern_ops);
+
+CREATE INDEX IF NOT EXISTS idx_users_email_lower
+  ON users (lower(email));
+
+CREATE INDEX IF NOT EXISTS idx_stores_name_lower_prefix
+  ON stores (lower(name) text_pattern_ops);
+
+CREATE INDEX IF NOT EXISTS idx_products_name_lower_prefix
+  ON products (lower(name) text_pattern_ops);
+
 INSERT INTO schema_migrations(version, description)
 VALUES (
   '2026-09-05-admin-control-center-indexes',
-  'Add created_at/id keyset pagination indexes for Admin Control Center data sources.'
+  'Add keyset pagination and bounded prefix-search indexes for Admin Control Center data sources.'
 )
 ON CONFLICT (version) DO UPDATE SET description = EXCLUDED.description;
