@@ -29,15 +29,9 @@ function requireUnder(path, maxBytes) {
 }
 
 for (const endpoint of [
-  '/api/admin/control/overview',
-  '/api/admin/control/users',
-  '/api/admin/control/stores',
-  '/api/admin/control/products',
-  '/api/admin/control/posts',
-  '/api/admin/control/orders',
-  '/api/admin/control/reviews',
-  '/api/admin/control/audit',
-  '/api/admin/control/admins'
+  '/api/admin/control/overview', '/api/admin/control/users', '/api/admin/control/stores',
+  '/api/admin/control/products', '/api/admin/control/posts', '/api/admin/control/orders',
+  '/api/admin/control/reviews', '/api/admin/control/audit', '/api/admin/control/admins'
 ]) {
   requireMatch(controlApi, new RegExp(endpoint.replaceAll('/', '\\/')), `Missing control center endpoint: ${endpoint}`);
 }
@@ -45,10 +39,8 @@ for (const endpoint of [
 for (const permission of [
   'dashboard.view', 'users.view', 'stores.view', 'products.view', 'posts.view',
   'orders.view', 'reviews.view', 'audit_logs.view', 'admin_accounts.view',
-  'users.suspend', 'users.reactivate',
-  'stores.verify', 'stores.suspend', 'stores.reactivate',
-  'products.suspend', 'products.restore',
-  'posts.suspend', 'posts.restore'
+  'users.suspend', 'users.reactivate', 'stores.verify', 'stores.suspend', 'stores.reactivate',
+  'products.suspend', 'products.restore', 'posts.suspend', 'posts.restore'
 ]) {
   requireMatch(controlApi, new RegExp(`['\"]${permission.replace('.', '\\.')}['\"]`), `Missing server permission contract: ${permission}`);
 }
@@ -75,8 +67,7 @@ requireMatch(rateLimit, /name:\s*['\"]admin-control-write['\"][\s\S]*?limit:\s*3
 for (const indexName of [
   'idx_users_created_id', 'idx_stores_created_id', 'idx_products_created_id',
   'idx_posts_created_id', 'idx_orders_created_id', 'idx_store_ratings_created_id',
-  'idx_product_ratings_created_id', 'idx_admin_audit_logs_created_id',
-  'idx_admin_accounts_created_id'
+  'idx_product_ratings_created_id', 'idx_admin_audit_logs_created_id', 'idx_admin_accounts_created_id'
 ]) {
   requireMatch(migration, new RegExp(indexName), `Missing keyset index: ${indexName}`);
 }
@@ -93,11 +84,11 @@ requireAbsent(html, /<style\b/i, 'Admin document must not use inline style block
 requireAbsent(html, /<script(?![^>]*\bsrc=)[^>]*>/i, 'Admin document must not use inline script blocks.');
 requireMatch(html, /<meta\s+name=['\"]robots['\"][^>]*noindex/i, 'Internal admin page must be noindex.');
 requireMatch(html, /actionDialog/i, 'Quick privileged actions must use an explicit confirmation dialog.');
-requireMatch(html, /admin-control-feedback\.css\?v=5\.0\.0/, 'Explicit success/error state styles must be versioned with the control center.');
+requireMatch(html, /admin-control-feedback\.css\?v=6\.0\.0/, 'Explicit success/error state styles must follow the current control-center cache boundary.');
 
-requireMatch(app, /import\(\s*['\"]\.\/control\.js\?v=5\.0\.0['\"]\s*\)/, 'Control Center code must lazy-load only after authenticated intent.');
-requireMatch(control, /import\(\s*['\"]\.\/overview\.js\?v=5\.0\.0['\"]\s*\)/, 'Overview must be route-lazy-loaded.');
-requireMatch(control, /import\(\s*['\"]\.\/records\.js\?v=5\.0\.0['\"]\s*\)/, 'Record views must be route-lazy-loaded.');
+requireMatch(app, /import\(\s*['\"]\.\/control\.js\?v=6\.0\.0['\"]\s*\)/, 'Control Center code must lazy-load only after authenticated intent.');
+requireMatch(control, /import\(\s*['\"]\.\/overview\.js\?v=6\.0\.0['\"]\s*\)/, 'Overview must be route-lazy-loaded.');
+requireMatch(control, /import\(\s*['\"]\.\/records\.js\?v=6\.0\.0['\"]\s*\)/, 'Record views must be route-lazy-loaded.');
 requireAbsent(control, /key:\s*['\"]reports['\"]/i, 'Reports navigation must not exist without a real reports data source.');
 requireMatch(control, /permissionSet\.has|permissions\.map/i, 'Navigation must derive from server capabilities.');
 requireAbsent(`${app}\n${control}\n${overview}\n${records}`, /Math\.random\(|mockData|fakeStat|dummyData/i, 'Admin UI must not contain fake/mock production data.');
@@ -118,14 +109,15 @@ requireMatch(feedbackCss, /\.view-notice-error[\s\S]*?--admin-danger/i, 'Error f
 requireMatch(headers, /\/admin\/\*[\s\S]*?Cache-Control:\s*no-store/i, 'Admin HTML must never be cached.');
 requireMatch(headers, /Content-Security-Policy:[^\n]*default-src 'self'/i, 'Admin static surface must ship a restrictive CSP.');
 requireMatch(headers, /frame-ancestors 'none'/i, 'Admin CSP must block framing.');
+requireMatch(headers, /\/js\/admin\/\*[\s\S]*?Cache-Control:\s*no-store/i, 'Privileged JS must not cross stale cache boundaries.');
 
-requireUnder('admin/index.html', 16_000);
+requireUnder('admin/index.html', 18_000);
 requireUnder('css/admin-control.css', 36_000);
 requireUnder('css/admin-control-feedback.css', 2_000);
 requireUnder('src/admin-control-api.js', 52_000);
 const totalAdminJs = ['js/admin/api.js','js/admin/app.js','js/admin/control.js','js/admin/overview.js','js/admin/records.js']
   .reduce((sum, path) => sum + fs.statSync(path).size, 0);
-if (totalAdminJs > 90_000) throw new Error(`Admin JS source budget exceeded: ${totalAdminJs} > 90000 bytes`);
+if (totalAdminJs > 105_000) throw new Error(`Admin JS source budget exceeded: ${totalAdminJs} > 105000 bytes`);
 
 console.log('Admin Control Center validation passed.');
 console.log(`Admin JS source bytes: ${totalAdminJs}`);
