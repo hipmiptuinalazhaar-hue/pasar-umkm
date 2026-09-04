@@ -7,6 +7,7 @@ const rateLimit = read('src/rate-limit.js');
 const migration = read('database/migrations/2026-09-05-admin-control-center-indexes.sql');
 const html = read('admin/index.html');
 const css = read('css/admin-control.css');
+const feedbackCss = read('css/admin-control-feedback.css');
 const app = read('js/admin/app.js');
 const api = read('js/admin/api.js');
 const control = read('js/admin/control.js');
@@ -79,12 +80,20 @@ for (const indexName of [
 ]) {
   requireMatch(migration, new RegExp(indexName), `Missing keyset index: ${indexName}`);
 }
+for (const indexName of [
+  'idx_users_name_lower_prefix', 'idx_users_email_lower',
+  'idx_stores_name_lower_prefix', 'idx_products_name_lower_prefix'
+]) {
+  requireMatch(migration, new RegExp(indexName), `Missing bounded admin-search index: ${indexName}`);
+}
+requireMatch(migration, /text_pattern_ops/i, 'Prefix searches should use pattern-operator indexes where appropriate.');
 requireMatch(migration, /2026-09-05-admin-control-center-indexes/, 'Control Center migration version must be recorded.');
 
 requireAbsent(html, /<style\b/i, 'Admin document must not use inline style blocks.');
 requireAbsent(html, /<script(?![^>]*\bsrc=)[^>]*>/i, 'Admin document must not use inline script blocks.');
 requireMatch(html, /<meta\s+name=['\"]robots['\"][^>]*noindex/i, 'Internal admin page must be noindex.');
 requireMatch(html, /actionDialog/i, 'Quick privileged actions must use an explicit confirmation dialog.');
+requireMatch(html, /admin-control-feedback\.css\?v=5\.0\.0/, 'Explicit success/error state styles must be versioned with the control center.');
 
 requireMatch(app, /import\(\s*['\"]\.\/control\.js\?v=5\.0\.0['\"]\s*\)/, 'Control Center code must lazy-load only after authenticated intent.');
 requireMatch(control, /import\(\s*['\"]\.\/overview\.js\?v=5\.0\.0['\"]\s*\)/, 'Overview must be route-lazy-loaded.');
@@ -92,6 +101,8 @@ requireMatch(control, /import\(\s*['\"]\.\/records\.js\?v=5\.0\.0['\"]\s*\)/, 'R
 requireAbsent(control, /key:\s*['\"]reports['\"]/i, 'Reports navigation must not exist without a real reports data source.');
 requireMatch(control, /permissionSet\.has|permissions\.map/i, 'Navigation must derive from server capabilities.');
 requireAbsent(`${app}\n${control}\n${overview}\n${records}`, /Math\.random\(|mockData|fakeStat|dummyData/i, 'Admin UI must not contain fake/mock production data.');
+requireAbsent(records, /window\.alert\s*\(/i, 'Privileged workflows must use in-product feedback instead of browser alerts.');
+requireMatch(records, /view-notice/i, 'Mutation success/error must expose an explicit in-product state.');
 requireMatch(overview, /adminApi\.control\(['\"]overview['\"]/, 'Overview metrics must come from the real control API.');
 
 requireMatch(css, /button,\s*\n?a[\s\S]*?min-height:\s*44px/i, 'Touch targets must preserve the 44px minimum.');
@@ -101,6 +112,8 @@ for (const breakpoint of ['600px', '900px', '1240px']) {
 }
 requireMatch(css, /\.action-dialog[\s\S]*?margin:\s*auto\s+0\s+0/i, 'Mobile quick-action confirmation should render as a bottom sheet.');
 requireMatch(css, /@media\s*\(min-width:\s*900px\)[\s\S]*?\.action-dialog[\s\S]*?margin:\s*auto/i, 'Desktop confirmation must promote to centered dialog.');
+requireMatch(feedbackCss, /\.view-notice-success[\s\S]*?--admin-success/i, 'Success feedback must reuse the admin design system.');
+requireMatch(feedbackCss, /\.view-notice-error[\s\S]*?--admin-danger/i, 'Error feedback must reuse the admin design system.');
 
 requireMatch(headers, /\/admin\/\*[\s\S]*?Cache-Control:\s*no-store/i, 'Admin HTML must never be cached.');
 requireMatch(headers, /Content-Security-Policy:[^\n]*default-src 'self'/i, 'Admin static surface must ship a restrictive CSP.');
@@ -108,6 +121,7 @@ requireMatch(headers, /frame-ancestors 'none'/i, 'Admin CSP must block framing.'
 
 requireUnder('admin/index.html', 16_000);
 requireUnder('css/admin-control.css', 36_000);
+requireUnder('css/admin-control-feedback.css', 2_000);
 requireUnder('src/admin-control-api.js', 52_000);
 const totalAdminJs = ['js/admin/api.js','js/admin/app.js','js/admin/control.js','js/admin/overview.js','js/admin/records.js']
   .reduce((sum, path) => sum + fs.statSync(path).size, 0);
