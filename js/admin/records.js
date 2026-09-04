@@ -1,4 +1,4 @@
-import { adminApi, AdminApiError } from "./api.js?v=5.0.0";
+import { adminApi, AdminApiError } from "./api.js?v=6.0.0";
 
 const number = new Intl.NumberFormat("id-ID");
 const currency = new Intl.NumberFormat("id-ID", {
