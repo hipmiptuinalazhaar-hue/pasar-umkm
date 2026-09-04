@@ -86,11 +86,17 @@ jobs:
           requireText(orders, 'changed: true', 'changed response');
           requireText(orders, 'FOR UPDATE OF o', 'order status row lock');
 
-          // Cancellation restock must be aggregated, not one UPDATE per item.
-          requireText(orders, 'WITH restock AS', 'aggregated cancellation restock');
-          requireText(orders, 'SUM(quantity)::int AS quantity', 'aggregated restock quantity');
-          if (/for\s*\([^)]*item[^)]*\)[\s\S]{0,400}UPDATE products/.test(orders)) {
-            throw new Error('Cancellation restock kembali menjadi per-item UPDATE loop.');
+          // Cancellation restock must be aggregated inside its own helper.
+          const restockStart = orders.indexOf('async function restockCancelledOrder');
+          const updateStart = orders.indexOf('async function updateOrderStatus', restockStart);
+          if (restockStart < 0 || updateStart < 0) {
+            throw new Error('Cancellation restock helper tidak ditemukan.');
+          }
+          const restockSource = orders.slice(restockStart, updateStart);
+          requireText(restockSource, 'WITH restock AS', 'aggregated cancellation restock');
+          requireText(restockSource, 'SUM(quantity)::int AS quantity', 'aggregated restock quantity');
+          if (/for\s*\(/.test(restockSource)) {
+            throw new Error('Cancellation restock tidak boleh memakai per-item loop.');
           }
 
           // Runtime schema mutation is forbidden.
