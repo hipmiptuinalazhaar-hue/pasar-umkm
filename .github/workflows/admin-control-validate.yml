@@ -35,9 +35,13 @@ jobs:
           node --check js/admin/control.js
           node --check js/admin/overview.js
           node --check js/admin/records.js
+          node --check scripts/validate-admin-store-stepup-retry.mjs
 
       - name: Validate Admin Control Center contracts
         run: node scripts/validate-admin-control.mjs
+
+      - name: Validate store verify step-up retry
+        run: node scripts/validate-admin-store-stepup-retry.mjs
 
       - name: Bundle Worker with locked toolchain
         run: |
