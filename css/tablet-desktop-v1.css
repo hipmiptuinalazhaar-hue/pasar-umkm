@@ -1,0 +1,989 @@
+/* =========================================================
+   PASAR UMKM — TABLET + DESKTOP v1
+   UI-P5. One responsive ownership layer for >= 768px.
+   Mobile remains owned by P0-P4 feature layers.
+
+   Breakpoints
+   - 768px  : tablet canvas
+   - 1024px : desktop navigation rail
+   - 1280px : expanded desktop rail + wide discovery
+
+   Design contract
+   - No decorative gradients, glass, neon, or arbitrary glow.
+   - Social reading width stays intentionally constrained.
+   - Commerce may use wider work surfaces.
+   - Existing feature controllers remain untouched.
+   ========================================================= */
+
+@media (min-width: 768px) {
+  :root {
+    --p5-header-height: 72px;
+    --p5-tablet-max: 960px;
+    --p5-discovery-max: 1040px;
+    --p5-feed-max: 680px;
+    --p5-work-max: 880px;
+    --p5-gutter: 24px;
+    --p5-rail: 0px;
+    --header-height: var(--p5-header-height);
+    --page-gutter: var(--p5-gutter);
+  }
+
+  html,
+  body {
+    min-width: 0;
+    background: var(--surface-page, #faf9f5);
+  }
+
+  html body .app {
+    width: 100%;
+    max-width: none;
+    min-height: 100dvh;
+    margin: 0;
+    background: var(--surface-page, #faf9f5);
+  }
+
+  html body .app > .app-header {
+    position: fixed;
+    inset: 0 0 auto 0;
+    width: 100%;
+    min-height: var(--p5-header-height);
+    padding: 10px max(var(--p5-gutter), calc((100vw - var(--p5-discovery-max)) / 2));
+    display: grid;
+    grid-template-columns: 44px 128px minmax(240px, 1fr) auto;
+    grid-template-areas: "menu brand search actions";
+    grid-template-rows: 52px;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border-subtle, rgba(24,29,25,.07));
+    background: #fff;
+    box-shadow: none;
+    z-index: var(--z-header, 200);
+  }
+
+  html body .app > .app-header #menuButton { grid-area: menu; }
+  html body .app > .app-header .header-brand { grid-area: brand; }
+  html body .app > .app-header .header-search { grid-area: search; }
+  html body .app > .app-header .header-actions { grid-area: actions; }
+
+  html body .app > .app-header .header-logo {
+    width: 116px;
+    max-height: 40px;
+  }
+
+  html body .app > .app-header .header-search {
+    width: min(100%, 560px);
+    max-width: 560px;
+    min-height: 46px;
+    margin-inline: auto;
+    border-radius: 13px;
+    background: var(--surface-soft, #f5f6f5);
+  }
+
+  html body .app > .app-header .header-search span {
+    display: inline;
+    font-size: 13px;
+  }
+
+  html body .app > .app-header .header-icon-button {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  html body .app > .app-main {
+    width: 100%;
+    min-height: 100dvh;
+    padding-top: var(--p5-header-height);
+    padding-bottom: 96px;
+    background: var(--surface-page, #faf9f5);
+  }
+
+  /* Tablet keeps thumb-friendly bottom navigation, but it no longer spans
+     a whole laptop-sized surface. */
+  html body .app > .app-navigation {
+    left: 50%;
+    right: auto;
+    width: min(640px, calc(100vw - 32px));
+    min-height: 72px;
+    padding: 7px 12px calc(7px + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    border: 1px solid var(--border-subtle, rgba(24,29,25,.07));
+    border-bottom: 0;
+    border-radius: 20px 20px 0 0;
+    background: #fff;
+    box-shadow: 0 -4px 18px rgba(13,31,21,.05);
+  }
+
+  html body .app-navigation .nav-item {
+    min-height: 54px;
+  }
+
+  html body .app-navigation .nav-item > span:not(.nav-badge):not(.nav-create-icon) {
+    font-size: 11px;
+  }
+
+  /* ---------- Home / discovery ---------- */
+  html body #storiesSection,
+  html body #homeDiscovery {
+    width: min(100%, var(--p5-tablet-max));
+    margin-inline: auto;
+  }
+
+  html body #homeDiscovery {
+    padding: 24px var(--p5-gutter) 0;
+  }
+
+  html body #homeDiscovery .market-hero {
+    min-height: 330px;
+    margin-bottom: 32px;
+    padding: 38px 40px 30px;
+    display: flex;
+    align-items: center;
+    border-radius: 24px;
+  }
+
+  html body #homeDiscovery .market-hero-accent {
+    left: 40px;
+    width: 52px;
+  }
+
+  html body #homeDiscovery .market-hero-content {
+    max-width: 620px;
+  }
+
+  html body #homeDiscovery .market-hero-overline {
+    margin-bottom: 16px;
+    font-size: 11px;
+  }
+
+  html body #homeDiscovery .market-hero-title {
+    max-width: 590px;
+    font-size: clamp(38px, 5.4vw, 48px);
+    line-height: 1.06;
+    letter-spacing: -.045em;
+  }
+
+  html body #homeDiscovery .market-hero-description {
+    max-width: 520px;
+    margin-top: 16px;
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  html body #homeDiscovery .market-hero-actions {
+    margin-top: 22px;
+  }
+
+  html body #homeDiscovery .market-hero-primary,
+  html body #homeDiscovery .market-hero-secondary {
+    min-height: 48px;
+    padding-inline: 18px;
+    font-size: 13px;
+  }
+
+  html body #homeDiscovery .market-hero-foot {
+    margin-top: 20px;
+    font-size: 11.5px;
+  }
+
+  html body #homeDiscovery .home-section-head {
+    margin-bottom: 14px;
+  }
+
+  html body #homeDiscovery .home-section-head h2 {
+    font-size: 20px;
+  }
+
+  html body #homeDiscovery .quick-categories {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 10px 12px;
+    margin-bottom: 30px !important;
+  }
+
+  html body #homeDiscovery .quick-category {
+    min-height: 88px;
+  }
+
+  html body #homeDiscovery .quick-category-icon,
+  html body #homeDiscovery .quick-category:nth-child(n) .quick-category-icon {
+    width: 52px !important;
+    height: 52px !important;
+    flex-basis: 52px;
+  }
+
+  html body #homeDiscovery .quick-category-label {
+    font-size: 11.5px !important;
+  }
+
+  html body .stories-section[data-p3-upgraded="true"] .stories,
+  html body #storiesSection .stories {
+    width: min(100%, var(--p5-tablet-max));
+    margin-inline: auto;
+    padding-inline: var(--p5-gutter);
+  }
+
+  /* Feed remains a reading surface, not a banner. */
+  html body #feed {
+    width: min(100%, var(--p5-feed-max));
+    margin-inline: auto;
+    padding: 0 0 96px;
+    gap: 18px;
+    background: transparent;
+  }
+
+  html body #feed > .market-feed-head {
+    padding: 28px 0 14px;
+  }
+
+  html body #feed .market-feed-title {
+    font-size: 24px;
+  }
+
+  html body #feed .market-feed-description {
+    max-width: 520px;
+    font-size: 13.5px;
+  }
+
+  html body #feed > .post-card {
+    border: 1px solid var(--border-subtle, rgba(24,29,25,.07)) !important;
+    border-radius: 20px !important;
+    background: #fff !important;
+  }
+
+  html body #feed > .post-card .post-header {
+    padding-inline: 18px;
+  }
+
+  html body #feed > .post-card .post-actions,
+  html body #feed > .post-card .ig-product-info,
+  html body #feed > .post-card .post-caption {
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+
+  html body #feed > .post-card .ig-product-name {
+    font-size: 16px !important;
+  }
+
+  html body #feed > .post-card .ig-product-price {
+    font-size: 20px !important;
+  }
+
+  /* ---------- Search ---------- */
+  html body #searchOverlay {
+    padding: 72px 24px 40px;
+    background: rgba(6,41,29,.20);
+  }
+
+  html body #searchOverlay .search-head,
+  html body #searchOverlay .search-results {
+    width: min(760px, 100%);
+    margin-inline: auto;
+    background: #fff;
+  }
+
+  html body #searchOverlay .search-head {
+    min-height: 72px;
+    padding: 12px 14px;
+    border: 1px solid var(--border-subtle, rgba(24,29,25,.08));
+    border-bottom: 0;
+    border-radius: 22px 22px 0 0;
+  }
+
+  html body #searchOverlay .search-results {
+    max-height: min(72dvh, 760px);
+    overflow-y: auto;
+    padding: 10px 22px 26px;
+    border: 1px solid var(--border-subtle, rgba(24,29,25,.08));
+    border-top: 0;
+    border-radius: 0 0 22px 22px;
+  }
+
+  /* ---------- Side menu ---------- */
+  html body .side-menu-panel {
+    width: min(390px, 42vw);
+    max-width: 390px;
+  }
+
+  /* ---------- Social profile ---------- */
+  html body .social-account-page[data-p3-upgraded="true"],
+  html body .social-universal-profile[data-p3-upgraded="true"],
+  html body .post-viewer-page[data-p3-upgraded="true"] {
+    max-width: 820px;
+    border-left: 1px solid var(--border-subtle, rgba(24,29,25,.07));
+    border-right: 1px solid var(--border-subtle, rgba(24,29,25,.07));
+  }
+
+  html body .social-account-page[data-p3-upgraded="true"] .social-account-header,
+  html body .social-universal-profile[data-p3-upgraded="true"] .social-profile-shell {
+    padding: 28px 32px 24px;
+  }
+
+  html body .social-account-page[data-p3-upgraded="true"] .social-account-main,
+  html body .social-universal-profile[data-p3-upgraded="true"] .social-profile-overview {
+    grid-template-columns: 112px minmax(0, 1fr);
+    gap: 28px;
+  }
+
+  html body .social-account-page[data-p3-upgraded="true"] .social-account-avatar-wrap,
+  html body .social-account-page[data-p3-upgraded="true"] .social-account-avatar,
+  html body .social-universal-profile[data-p3-upgraded="true"] .social-profile-avatar {
+    width: 108px;
+    height: 108px;
+  }
+
+  html body .social-account-page[data-p3-upgraded="true"] .social-account-stats,
+  html body .social-universal-profile[data-p3-upgraded="true"] .social-profile-stats {
+    max-width: 430px;
+  }
+
+  html body .social-account-page[data-p3-upgraded="true"] .social-account-stat strong,
+  html body .social-universal-profile[data-p3-upgraded="true"] .social-profile-stat strong {
+    font-size: 19px;
+  }
+
+  html body .social-account-page[data-p3-upgraded="true"] .social-account-name,
+  html body .social-universal-profile[data-p3-upgraded="true"] .social-profile-name {
+    font-size: 21px;
+  }
+
+  html body .social-account-page[data-p3-upgraded="true"] .social-account-description,
+  html body .social-universal-profile[data-p3-upgraded="true"] .social-profile-description {
+    font-size: 13.5px;
+  }
+
+  html body .social-account-page[data-p3-upgraded="true"] .social-account-commerce,
+  html body .social-universal-profile[data-p3-upgraded="true"] .social-profile-store-card {
+    width: calc(100% - 64px);
+    margin: 18px 32px;
+  }
+
+  /* Notifications become a contained desktop work surface. */
+  html body .social-notifications-page[data-p3-upgraded="true"] {
+    max-width: 760px;
+    min-height: calc(100dvh - var(--p5-header-height));
+    border-inline: 1px solid var(--border-subtle, rgba(24,29,25,.07));
+  }
+
+  html body .social-notifications-page[data-p3-upgraded="true"] .notification-row {
+    padding-inline: 18px;
+  }
+
+  /* Comments are a modal on larger screens, not a giant bottom drawer.
+     Only properties that P3 itself marks important stay important here. */
+  html body.p3-comments-open .bottom-sheet {
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    top: 50%;
+    width: min(640px, calc(100vw - 48px));
+    max-height: min(78dvh, 760px) !important;
+    transform: translate(-50%, -50%);
+    border-radius: 24px !important;
+  }
+
+  html body .post-comments-sheet[data-p3-upgraded="true"] {
+    min-height: min(62dvh, 540px);
+    max-height: min(76dvh, 720px);
+  }
+
+  /* Profile editor may remain a quick-edit surface, but its information
+     density becomes desktop-appropriate and text is never microscopic. */
+  html body .profile-edit-sheet {
+    max-width: 680px;
+    margin-inline: auto;
+  }
+
+  html body .profile-edit-avatar-copy span,
+  html body .profile-edit-section-note,
+  html body .profile-edit-help {
+    font-size: 11px;
+  }
+
+  html body .profile-edit-avatar-copy small,
+  html body .profile-edit-label,
+  html body .profile-edit-button {
+    font-size: 11.5px;
+  }
+
+  html body .profile-edit-section-title {
+    font-size: 12px;
+  }
+
+  /* ---------- Story + Reels ---------- */
+  html body .story-viewer-v2[data-p3-upgraded="true"] .story-viewer-progress,
+  html body .story-viewer-v2[data-p3-upgraded="true"] .story-viewer-head,
+  html body .story-viewer-v2[data-p3-upgraded="true"] .story-viewer-media,
+  html body .story-viewer-v2[data-p3-upgraded="true"] .story-viewer-actions {
+    width: min(540px, 100%);
+    margin-inline: auto;
+  }
+
+  html body .story-viewer-v2[data-p3-upgraded="true"] .story-viewer-media img {
+    max-width: 540px;
+  }
+
+  html body .story-viewer-v2[data-p3-upgraded="true"] .story-viewer-caption {
+    left: 50%;
+    width: min(510px, calc(100% - 28px));
+    right: auto;
+    transform: translateX(-50%);
+  }
+
+  html body .reels-page[data-p3-upgraded="true"] {
+    min-height: calc(100dvh - var(--p5-header-height));
+    padding-bottom: 88px;
+  }
+
+  html body .reels-page[data-p3-upgraded="true"] .reels-stack {
+    width: min(560px, 100%);
+    margin-inline: auto;
+  }
+
+  html body .reels-page[data-p3-upgraded="true"] .reel-card {
+    min-height: calc(100dvh - var(--p5-header-height) - 88px);
+    max-height: 900px;
+  }
+
+  html body .reels-page[data-p3-upgraded="true"] .reels-page-head {
+    left: 50%;
+    right: auto;
+    width: min(560px, 100%);
+    transform: translateX(-50%);
+  }
+
+  /* ---------- Commerce tablet ---------- */
+  html body .commerce-page {
+    max-width: var(--p5-work-max);
+  }
+
+  html body .commerce-page-header {
+    padding-inline: 20px;
+  }
+
+  html body .commerce-content {
+    padding: 22px 28px 36px;
+  }
+
+  html body .commerce-section {
+    padding: 20px;
+  }
+
+  html body .commerce-metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  html body .commerce-order-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  html body .commerce-product-row {
+    grid-template-columns: 76px minmax(0, 1fr) 36px;
+    min-height: 104px;
+    padding: 14px;
+  }
+
+  html body .commerce-product-thumb {
+    width: 76px;
+    height: 76px;
+  }
+
+  html body .commerce-sticky {
+    width: min(var(--p5-work-max), calc(100vw - 48px));
+    bottom: 84px;
+    border: 1px solid var(--commerce-border, rgba(17,22,18,.09));
+    border-radius: 16px;
+    box-shadow: 0 8px 28px rgba(13,31,21,.08);
+  }
+
+  html body .commerce-hide-nav .commerce-sticky {
+    bottom: 18px;
+  }
+
+  html body .commerce-detail-media {
+    max-height: 720px;
+  }
+
+  /* ---------- Chat tablet ---------- */
+  html body.chat-v7-body {
+    background: var(--surface-page, #faf9f5);
+  }
+
+  html body.chat-v7-body .chat-v7-page {
+    max-width: 820px;
+    border-inline: 1px solid var(--border-subtle, rgba(24,29,25,.08));
+  }
+
+  html body.chat-v7-body .chat-v7-thread-messages {
+    padding-inline: 28px;
+  }
+
+  html body.chat-v7-body .chat-v7-bubble {
+    max-width: min(72%, 560px);
+  }
+}
+
+/* =========================================================
+   DESKTOP — persistent navigation rail
+   ========================================================= */
+@media (min-width: 1024px) {
+  :root {
+    --p5-rail: 92px;
+    --p5-discovery-max: 1080px;
+    --p5-feed-max: 680px;
+    --p5-work-max: 980px;
+    --p5-gutter: 28px;
+  }
+
+  html body .app > .app-header {
+    left: var(--p5-rail) !important;
+    width: calc(100% - var(--p5-rail)) !important;
+    padding-inline: max(var(--p5-gutter), calc((100vw - var(--p5-rail) - var(--p5-discovery-max)) / 2));
+    grid-template-columns: 44px 128px minmax(280px, 1fr) auto;
+  }
+
+  html body .app > .app-header .header-search {
+    max-width: 620px;
+  }
+
+  html body .app > .app-main {
+    width: calc(100% - var(--p5-rail));
+    margin-left: var(--p5-rail);
+    padding-bottom: 32px;
+  }
+
+  html body .app > .app-navigation {
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: auto !important;
+    width: var(--p5-rail) !important;
+    height: 100dvh !important;
+    min-height: 0 !important;
+    padding: 88px 10px 18px !important;
+    transform: none !important;
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 8px;
+    border: 0;
+    border-right: 1px solid var(--border-subtle, rgba(24,29,25,.07));
+    border-radius: 0;
+    background: #fff;
+    box-shadow: none;
+  }
+
+  html body .app-navigation .nav-item {
+    width: 100%;
+    min-height: 64px;
+    flex: 0 0 64px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 6px 4px;
+    border-radius: 14px;
+  }
+
+  html body .app-navigation .nav-item > i {
+    font-size: 24px;
+  }
+
+  html body .app-navigation .nav-item > span:not(.nav-badge):not(.nav-create-icon) {
+    font-size: 10.5px;
+    font-weight: 600;
+  }
+
+  html body .app-navigation .nav-item.active {
+    background: var(--surface-brand-soft, #f1f8f4);
+  }
+
+  html body .app-navigation .nav-item.active::before {
+    top: 50%;
+    left: -10px;
+    width: 3px;
+    height: 28px;
+    transform: translateY(-50%);
+    border-radius: 0 999px 999px 0;
+  }
+
+  html body .app-navigation .nav-create-icon {
+    width: 42px;
+    height: 42px;
+    margin: 0;
+    border: 0;
+    border-radius: 13px;
+    box-shadow: none;
+  }
+
+  html body .app-navigation .nav-create-label {
+    margin: 0;
+  }
+
+  /* Main social discovery surfaces use the available desktop canvas. */
+  html body #storiesSection,
+  html body #homeDiscovery {
+    width: min(100%, var(--p5-discovery-max));
+  }
+
+  html body #homeDiscovery {
+    padding-top: 30px;
+  }
+
+  html body #homeDiscovery .market-hero {
+    min-height: 350px;
+    padding: 46px 50px 38px;
+  }
+
+  html body #homeDiscovery .market-hero-accent {
+    left: 50px;
+  }
+
+  html body #homeDiscovery .market-hero-title {
+    max-width: 650px;
+    font-size: 50px;
+  }
+
+  html body #homeDiscovery .market-hero-description {
+    font-size: 14.5px;
+  }
+
+  html body #homeDiscovery .quick-categories {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  html body #feed {
+    padding-bottom: 40px;
+  }
+
+  html body #feed > .post-card {
+    border-radius: 22px !important;
+  }
+
+  /* Hover feedback exists only for devices that actually have hover. */
+  @media (hover: hover) and (pointer: fine) {
+    html body .app-navigation .nav-item,
+    html body #homeDiscovery .quick-category-icon,
+    html body #feed > .post-card .action-btn,
+    html body .commerce-menu-row,
+    html body .commerce-product-row,
+    html body .social-notifications-page[data-p3-upgraded="true"] .notification-row,
+    html body.chat-v7-body .chat-v7-conversation-wrap {
+      transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+    }
+
+    html body .app-navigation .nav-item:hover {
+      background: var(--surface-soft, #f5f6f5);
+    }
+
+    html body #homeDiscovery .quick-category:hover .quick-category-icon {
+      border-color: rgba(18,96,63,.18) !important;
+      background: #f0eee7 !important;
+      transform: translateY(-1px);
+    }
+
+    html body #feed > .post-card .action-btn:hover {
+      background: var(--surface-soft, #f5f6f5) !important;
+    }
+
+    html body .commerce-menu-row:hover,
+    html body .commerce-product-row:hover,
+    html body .social-notifications-page[data-p3-upgraded="true"] .notification-row:hover,
+    html body.chat-v7-body .chat-v7-conversation-wrap:hover {
+      background: #f8faf8;
+    }
+  }
+
+  /* ---------- Commerce desktop ---------- */
+  html body .app.commerce-view-active:not(.commerce-hide-nav) > .app-main {
+    width: calc(100% - var(--p5-rail));
+    margin-left: var(--p5-rail);
+  }
+
+  html body .app.commerce-view-active.commerce-hide-nav > .app-main {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  html body .commerce-page {
+    max-width: var(--p5-work-max);
+    min-height: 100dvh;
+    border-inline: 1px solid var(--border-subtle, rgba(24,29,25,.07));
+  }
+
+  html body .commerce-content {
+    padding: 28px 36px 44px;
+  }
+
+  html body .commerce-page-header {
+    min-height: 72px;
+    padding-inline: 28px;
+  }
+
+  html body .commerce-store-identity {
+    padding: 22px;
+  }
+
+  html body .commerce-metric {
+    min-height: 112px;
+    padding: 18px;
+  }
+
+  html body .commerce-metric strong {
+    font-size: 21px;
+  }
+
+  html body .commerce-menu-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  html body .commerce-menu-row {
+    min-height: 106px;
+    grid-template-columns: 44px minmax(0, 1fr) 18px;
+    border: 1px solid var(--commerce-border, rgba(17,22,18,.09));
+    border-radius: 16px;
+    background: #fff;
+  }
+
+  html body .commerce-menu-row + .commerce-menu-row {
+    border-top: 1px solid var(--commerce-border, rgba(17,22,18,.09));
+  }
+
+  html body .commerce-order-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  html body .commerce-sticky {
+    left: calc(50% + (var(--p5-rail) / 2));
+    bottom: 20px;
+    width: min(900px, calc(100vw - var(--p5-rail) - 56px));
+  }
+
+  html body .commerce-hide-nav .commerce-sticky {
+    left: 50%;
+    width: min(900px, calc(100vw - 56px));
+  }
+
+  /* Product detail earns a true two-column desktop layout without changing
+     the commerce controller or API contract. */
+  html body .commerce-page:has(> .commerce-detail-media) {
+    max-width: 1080px;
+    display: grid;
+    grid-template-columns: minmax(360px, .92fr) minmax(420px, 1.08fr);
+    grid-template-rows: auto 1fr;
+    align-items: stretch;
+  }
+
+  html body .commerce-page:has(> .commerce-detail-media) > .commerce-page-header {
+    grid-column: 1 / -1;
+  }
+
+  html body .commerce-page:has(> .commerce-detail-media) > .commerce-detail-media {
+    align-self: start;
+    min-height: 620px;
+    max-height: calc(100dvh - 72px);
+    aspect-ratio: auto;
+    border-right: 1px solid var(--commerce-border, rgba(17,22,18,.09));
+  }
+
+  html body .commerce-page:has(> .commerce-detail-media) > .commerce-detail-body {
+    padding: 42px 40px 140px;
+  }
+
+  html body .commerce-page:has(> .commerce-detail-media) .commerce-detail-name {
+    font-size: 27px;
+  }
+
+  html body .commerce-page:has(> .commerce-detail-media) .commerce-detail-price {
+    font-size: 27px;
+  }
+
+  /* ---------- Social desktop ---------- */
+  html body .social-account-page[data-p3-upgraded="true"],
+  html body .social-universal-profile[data-p3-upgraded="true"] {
+    max-width: 880px;
+  }
+
+  html body .social-account-page[data-p3-upgraded="true"] .social-account-actions,
+  html body .social-universal-profile[data-p3-upgraded="true"] .social-profile-actions {
+    max-width: 520px;
+  }
+
+  html body .social-notifications-page[data-p3-upgraded="true"] {
+    max-width: 780px;
+  }
+
+  /* ---------- Reels desktop ---------- */
+  html body .reels-page[data-p3-upgraded="true"] {
+    min-height: calc(100dvh - var(--p5-header-height));
+    padding-bottom: 0;
+  }
+
+  html body .reels-page[data-p3-upgraded="true"] .reel-card {
+    min-height: calc(100dvh - var(--p5-header-height));
+    max-height: none;
+  }
+
+  /* ---------- Chat desktop ----------
+     Chat V7 remains the only renderer. We restore only the P5 navigation
+     rail so users can leave messaging without relying on browser history. */
+  html body.chat-v7-body .app-navigation {
+    display: flex !important;
+  }
+
+  html body.chat-v7-body .app-main {
+    width: calc(100% - var(--p5-rail));
+    margin-left: var(--p5-rail);
+    padding: 0 !important;
+  }
+
+  html body.chat-v7-body .feed {
+    width: 100%;
+    max-width: none;
+  }
+
+  html body.chat-v7-body .chat-v7-page {
+    max-width: 880px;
+    height: 100dvh;
+    margin-inline: auto;
+    border-inline: 1px solid var(--border-subtle, rgba(24,29,25,.08));
+  }
+
+  html body.chat-v7-body .chat-v7-list-page {
+    max-width: 760px;
+  }
+
+  html body.chat-v7-body .chat-v7-search-wrap {
+    padding: 16px 22px 12px;
+  }
+
+  html body.chat-v7-body .chat-v7-conversation {
+    min-height: 82px;
+    padding-inline: 22px 14px;
+  }
+
+  html body.chat-v7-body .chat-v7-thread-messages {
+    padding: 24px 38px 18px;
+  }
+
+  html body.chat-v7-body .chat-v7-bubble {
+    max-width: min(68%, 600px);
+  }
+}
+
+/* =========================================================
+   WIDE DESKTOP — expanded rail, not stretched content
+   ========================================================= */
+@media (min-width: 1280px) {
+  :root {
+    --p5-rail: 216px;
+    --p5-discovery-max: 1120px;
+    --p5-feed-max: 700px;
+    --p5-work-max: 1040px;
+    --p5-gutter: 32px;
+  }
+
+  html body .app > .app-navigation {
+    padding: 92px 16px 22px !important;
+    gap: 6px;
+  }
+
+  html body .app-navigation .nav-item {
+    min-height: 54px;
+    flex-basis: 54px;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 13px;
+    padding: 0 14px;
+    border-radius: 13px;
+  }
+
+  html body .app-navigation .nav-item > i {
+    width: 28px;
+    text-align: center;
+  }
+
+  html body .app-navigation .nav-item > span:not(.nav-badge):not(.nav-create-icon) {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  html body .app-navigation .nav-create-icon {
+    width: 36px;
+    height: 36px;
+    flex: 0 0 36px;
+  }
+
+  html body .app-navigation .nav-item.active::before {
+    left: -16px;
+  }
+
+  html body #homeDiscovery .market-hero {
+    min-height: 370px;
+    padding: 52px 58px 44px;
+  }
+
+  html body #homeDiscovery .market-hero-accent {
+    left: 58px;
+    width: 58px;
+  }
+
+  html body #homeDiscovery .market-hero-title {
+    max-width: 700px;
+    font-size: 54px;
+  }
+
+  html body #homeDiscovery .market-hero-description {
+    max-width: 560px;
+    font-size: 15px;
+  }
+
+  html body .commerce-page {
+    max-width: var(--p5-work-max);
+  }
+
+  html body .commerce-sticky {
+    width: min(940px, calc(100vw - var(--p5-rail) - 64px));
+  }
+
+  html body.chat-v7-body .chat-v7-page {
+    max-width: 920px;
+  }
+}
+
+/* =========================================================
+   ULTRAWIDE GUARDRAIL
+   Content stops growing; whitespace becomes intentional.
+   ========================================================= */
+@media (min-width: 1600px) {
+  :root {
+    --p5-discovery-max: 1180px;
+    --p5-work-max: 1080px;
+  }
+
+  html body #homeDiscovery .market-hero {
+    min-height: 380px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .app-navigation .nav-item,
+  html body #homeDiscovery .quick-category-icon,
+  html body .commerce-menu-row,
+  html body .commerce-product-row,
+  html body.chat-v7-body .chat-v7-conversation-wrap {
+    transition-duration: .01ms !important;
+  }
+}
