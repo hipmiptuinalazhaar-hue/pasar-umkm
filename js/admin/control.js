@@ -1,4 +1,4 @@
-import { adminApi, AdminApiError } from "./api.js?v=5.0.0";
+import { adminApi, AdminApiError } from "./api.js?v=6.0.0";
 
 const NAV_ITEMS = Object.freeze([
   { key: "overview", label: "Overview", permission: "dashboard.view", view: "overview" },
@@ -9,7 +9,8 @@ const NAV_ITEMS = Object.freeze([
   { key: "orders", label: "Orders", permission: "orders.view", view: "records" },
   { key: "reviews", label: "Reviews", permission: "reviews.view", view: "records" },
   { key: "audit", label: "Audit", permission: "audit_logs.view", view: "records" },
-  { key: "access", label: "Access", permission: "admin_accounts.view", view: "records" }
+  { key: "access", label: "Access", permission: "admin_accounts.view", view: "records" },
+  { key: "security", label: "Security", permission: null, view: "security" }
 ]);
 
 let routeAbort = null;
@@ -49,37 +50,16 @@ function navMarkup(items, current, className) {
 function buildShell(root, access, items, current) {
   root.innerHTML = `
     <aside class="control-sidebar">
-      <div class="sidebar-brand">
-        <img src="/assets/logo.webp" width="42" height="42" alt="">
-        <div>
-          <strong>Pasar UMKM</strong>
-          <span>Control Center</span>
-        </div>
-      </div>
-      <nav class="sidebar-nav" aria-label="Navigasi admin">
-        ${navMarkup(items, current)}
-      </nav>
-      <div class="sidebar-account">
-        <strong>${escapeHtml(access.admin.name)}</strong>
-        <span>${escapeHtml(roleLabel(access))}</span>
-        <button class="button sidebar-logout" id="desktopLogout" type="button">Keluar</button>
-      </div>
+      <div class="sidebar-brand"><img src="/assets/logo.webp" width="42" height="42" alt=""><div><strong>Pasar UMKM</strong><span>Control Center</span></div></div>
+      <nav class="sidebar-nav" aria-label="Navigasi admin">${navMarkup(items, current)}</nav>
+      <div class="sidebar-account"><strong>${escapeHtml(access.admin.name)}</strong><span>${escapeHtml(roleLabel(access))}</span><button class="button sidebar-logout" id="desktopLogout" type="button">Keluar</button></div>
     </aside>
-
     <main class="control-main">
       <header class="control-topbar">
-        <div class="topbar-brand">
-          <img class="topbar-logo" src="/assets/logo.webp" width="36" height="36" alt="">
-          <div class="topbar-title">
-            <strong>${escapeHtml(access.admin.name)}</strong>
-            <span>${escapeHtml(sessionLabel(access))}</span>
-          </div>
-        </div>
+        <div class="topbar-brand"><img class="topbar-logo" src="/assets/logo.webp" width="36" height="36" alt=""><div class="topbar-title"><strong>${escapeHtml(access.admin.name)}</strong><span>${escapeHtml(sessionLabel(access))}</span></div></div>
         <button class="button button-secondary" id="mobileLogout" type="button">Keluar</button>
       </header>
-      <nav class="mobile-nav" aria-label="Navigasi admin mobile">
-        ${navMarkup(items, current)}
-      </nav>
+      <nav class="mobile-nav" aria-label="Navigasi admin mobile">${navMarkup(items, current)}</nav>
       <div class="control-content" id="viewHost"></div>
     </main>
   `;
@@ -93,19 +73,7 @@ function syncNav(route) {
 }
 
 function loadingView(host) {
-  host.innerHTML = `
-    <div class="view-header">
-      <div>
-        <div class="skeleton skeleton-title"></div>
-        <div class="skeleton skeleton-line"></div>
-      </div>
-    </div>
-    <div class="data-shell">
-      <div class="skeleton skeleton-field"></div>
-      <div class="skeleton skeleton-field"></div>
-      <div class="skeleton skeleton-field"></div>
-    </div>
-  `;
+  host.innerHTML = `<div class="view-header"><div><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-line"></div></div></div><div class="data-shell"><div class="skeleton skeleton-field"></div><div class="skeleton skeleton-field"></div><div class="skeleton skeleton-field"></div></div>`;
 }
 
 function createActionConfirmer() {
@@ -124,7 +92,6 @@ function createActionConfirmer() {
       pending = null;
       return;
     }
-
     event.preventDefault();
     const value = reason.value.trim();
     if (value.length < 8) {
@@ -156,20 +123,17 @@ function createActionConfirmer() {
     confirmButton.className = `button ${tone === "positive" ? "button-primary" : "button-danger"}`;
     dialog.showModal();
     queueMicrotask(() => reason.focus());
-    return new Promise(resolve => {
-      pending = { resolve };
-    });
+    return new Promise(resolve => { pending = { resolve }; });
   };
 }
 
-async function renderRoute({ access, items, host, confirmAction, onSessionExpired }) {
+async function renderRoute({ access, items, host, confirmAction, onSessionExpired, requestStepUp, allowStepUpRetry = true }) {
   let route = currentRoute();
   const item = items.find(entry => entry.key === route) || items[0];
   if (!item) {
     host.innerHTML = `<div class="empty-state"><strong>Tidak ada capability admin.</strong><p>Akun ini belum memiliki permission aktif.</p></div>`;
     return;
   }
-
   if (route !== item.key) {
     history.replaceState(null, "", `#/${item.key}`);
     route = item.key;
@@ -179,24 +143,27 @@ async function renderRoute({ access, items, host, confirmAction, onSessionExpire
   loadingView(host);
   routeAbort?.abort();
   routeAbort = new AbortController();
-
   const context = {
     host,
     route,
     access,
-    permissionSet: new Set(access.permissions.map(item => item.key)),
+    permissionSet: new Set(access.permissions.map(permission => permission.key)),
     signal: routeAbort.signal,
     confirmAction,
+    requestStepUp,
     onSessionExpired,
-    refresh: () => renderRoute({ access, items, host, confirmAction, onSessionExpired })
+    refresh: () => renderRoute({ access, items, host, confirmAction, onSessionExpired, requestStepUp })
   };
 
   try {
     if (item.view === "overview") {
-      const module = await import("./overview.js?v=5.0.0");
+      const module = await import("./overview.js?v=6.0.0");
       await module.renderOverview(context);
+    } else if (item.view === "security") {
+      const module = await import("./security.js?v=6.0.0");
+      await module.renderSecurity(context);
     } else {
-      const module = await import("./records.js?v=5.0.0");
+      const module = await import("./records.js?v=6.0.0");
       await module.renderRecords(context);
     }
   } catch (error) {
@@ -205,24 +172,23 @@ async function renderRoute({ access, items, host, confirmAction, onSessionExpire
       onSessionExpired();
       return;
     }
-    host.innerHTML = `
-      <div class="error-state">
-        <strong>Data admin tidak dapat dimuat.</strong>
-        <p>${escapeHtml(error?.message || "Terjadi kesalahan saat memuat Control Center.")}</p>
-      </div>
-    `;
+    if (allowStepUpRetry && error instanceof AdminApiError && error.code === "ADMIN_STEP_UP_REQUIRED") {
+      const verified = await requestStepUp();
+      if (verified) {
+        await renderRoute({ access, items, host, confirmAction, onSessionExpired, requestStepUp, allowStepUpRetry: false });
+        return;
+      }
+    }
+    host.innerHTML = `<div class="error-state"><strong>Data admin tidak dapat dimuat.</strong><p>${escapeHtml(error?.message || "Terjadi kesalahan saat memuat Control Center.")}</p></div>`;
   }
 }
 
-export async function mountControlCenter({ root, onSessionExpired }) {
+export async function mountControlCenter({ root, onSessionExpired, requestStepUp }) {
   const access = await adminApi.access();
   const permissionSet = new Set(access.permissions.map(permission => permission.key));
-  const items = NAV_ITEMS.filter(item => permissionSet.has(item.permission));
-  const initial = items.find(item => item.key === currentRoute())?.key || items[0]?.key || "overview";
-
-  if (!location.hash || !items.some(item => item.key === currentRoute())) {
-    history.replaceState(null, "", `#/${initial}`);
-  }
+  const items = NAV_ITEMS.filter(item => !item.permission || permissionSet.has(item.permission));
+  const initial = items.find(item => item.key === currentRoute())?.key || items[0]?.key || "security";
+  if (!location.hash || !items.some(item => item.key === currentRoute())) history.replaceState(null, "", `#/${initial}`);
 
   buildShell(root, access, items, initial);
   const host = document.getElementById("viewHost");
@@ -238,9 +204,7 @@ export async function mountControlCenter({ root, onSessionExpired }) {
     button.disabled = true;
     const original = button.textContent;
     button.textContent = "Keluar…";
-    try {
-      await adminApi.logout();
-    } finally {
+    try { await adminApi.logout(); } finally {
       button.textContent = original;
       expireSession();
     }
@@ -248,8 +212,7 @@ export async function mountControlCenter({ root, onSessionExpired }) {
 
   document.getElementById("desktopLogout")?.addEventListener("click", event => logout(event.currentTarget));
   document.getElementById("mobileLogout")?.addEventListener("click", event => logout(event.currentTarget));
-
-  const routeHandler = () => renderRoute({ access, items, host, confirmAction, onSessionExpired: expireSession });
+  const routeHandler = () => renderRoute({ access, items, host, confirmAction, onSessionExpired: expireSession, requestStepUp });
   window.onhashchange = routeHandler;
   await routeHandler();
 }
