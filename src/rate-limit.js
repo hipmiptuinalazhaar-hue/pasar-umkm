@@ -34,6 +34,20 @@ const RULES = [
     includeAdminSession: true
   },
   {
+    name: "admin-control-read",
+    match: (request, url) => request.method === "GET" && url.pathname.startsWith("/api/admin/control/"),
+    limit: 180,
+    windowMs: 60 * 1000,
+    includeAdminSession: true
+  },
+  {
+    name: "admin-control-write",
+    match: (request, url) => ["POST", "PUT", "PATCH", "DELETE"].includes(request.method) && url.pathname.startsWith("/api/admin/control/"),
+    limit: 30,
+    windowMs: 10 * 60 * 1000,
+    includeAdminSession: true
+  },
+  {
     name: "auth-login",
     match: (request, url) => request.method === "POST" && url.pathname === "/api/auth/login",
     limit: 10,
