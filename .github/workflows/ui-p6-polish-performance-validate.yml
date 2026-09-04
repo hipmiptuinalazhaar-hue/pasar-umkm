@@ -8,8 +8,10 @@ on:
       - 'index.html'
       - 'js/account-resilience.js'
       - 'js/profile-saved.js'
+      - '.github/workflows/p2-validate.yml'
       - '.github/workflows/ui-p2-commerce-validate.yml'
       - '.github/workflows/ui-p3-social-validate.yml'
+      - '.github/workflows/ui-p5-tablet-desktop-validate.yml'
       - '.github/workflows/ui-p6-polish-performance-validate.yml'
   workflow_dispatch:
 
@@ -31,11 +33,9 @@ jobs:
         run: |
           set -euo pipefail
           git fetch origin main --depth=1
-
-          allowed='^(index\.html|js/account-resilience\.js|js/profile-saved\.js|\.github/workflows/ui-p2-commerce-validate\.yml|\.github/workflows/ui-p3-social-validate\.yml|\.github/workflows/ui-p6-polish-performance-validate\.yml)$'
+          allowed='^(index\.html|js/account-resilience\.js|js/profile-saved\.js|\.github/workflows/p2-validate\.yml|\.github/workflows/ui-p2-commerce-validate\.yml|\.github/workflows/ui-p3-social-validate\.yml|\.github/workflows/ui-p5-tablet-desktop-validate\.yml|\.github/workflows/ui-p6-polish-performance-validate\.yml)$'
           changed="$(git diff --name-only origin/main...HEAD)"
           printf '%s\n' "$changed"
-
           bad="$(printf '%s\n' "$changed" | grep -Ev "$allowed" || true)"
           if [ -n "$bad" ]; then
             echo 'UI-P6 touched files outside final delivery scope:'
@@ -58,7 +58,6 @@ jobs:
           index_path = Path('index.html')
           loader_path = Path('js/account-resilience.js')
           carrier_path = Path('js/profile-saved.js')
-
           index = index_path.read_text(encoding='utf-8')
           loader = loader_path.read_text(encoding='utf-8')
           carrier = carrier_path.read_text(encoding='utf-8')
@@ -69,36 +68,33 @@ jobs:
               'P6 loader': (loader_path.stat().st_size, 18_000),
               'Commerce carrier': (carrier_path.stat().st_size, 11_000),
           }
-
           for name, (size, limit) in budgets.items():
               print(f'{name}: {size} / {limit} bytes')
               if size > limit:
                   errors.append(f'{name} exceeds budget: {size} > {limit}')
 
-          # Use only icon weights that the application actually renders.
-          required_icon_assets = (
+          for asset in (
               '@phosphor-icons/web@2.1.2/src/regular/style.css',
               '@phosphor-icons/web@2.1.2/src/fill/style.css',
-          )
-          for asset in required_icon_assets:
+          ):
               if asset not in index:
                   errors.append(f'Missing selective Phosphor asset: {asset}')
 
+          # The active HTML/JS must not request icon weights we intentionally stopped shipping.
+          unsupported = ('ph-thin','ph-light','ph-bold','ph-duotone')
+          active_icon_sources = [index]
+          active_icon_sources.extend(path.read_text(encoding='utf-8', errors='ignore') for path in Path('js').glob('*.js'))
+          for weight in unsupported:
+              if any(weight in text for text in active_icon_sources):
+                  errors.append(f'Unsupported Phosphor weight is still rendered by active code: {weight}')
+
           forbidden_index = (
               '<script src="https://unpkg.com/@phosphor-icons/web"',
-              'chat-stability-v4.css',
-              'chat-single-render-v6.css',
-              'chat-stability-v4.js',
-              'chat-whatsapp-v5.css',
-              'chat-whatsapp-v5.js',
-              'commerce-experience-v2.css',
-              'commerce-experience-v2.js',
-              'social-experience-v3.css',
-              'social-engagement-v3.css',
-              'social-media-v3.css',
-              'social-experience-v3.js',
-              'chat-experience-v7.css',
-              'chat-experience-v7.js',
+              'chat-stability-v4.css','chat-single-render-v6.css','chat-stability-v4.js',
+              'chat-whatsapp-v5.css','chat-whatsapp-v5.js',
+              'commerce-experience-v2.css','commerce-experience-v2.js',
+              'social-experience-v3.css','social-engagement-v3.css','social-media-v3.css','social-experience-v3.js',
+              'chat-experience-v7.css','chat-experience-v7.js',
           )
           for marker in forbidden_index:
               if marker in index:
@@ -106,69 +102,43 @@ jobs:
 
           if 'display=optional' not in index:
               errors.append('Google font must use display=optional to avoid late layout swaps')
-
           if 'rel="preload" href="assets/logo.webp?v=2.0"' not in index:
               errors.append('Brand image preload contract missing')
-
           if 'js/account-resilience.js?v=4.0' not in index:
               errors.append('P6 account loader cache boundary missing')
-
           if 'js/profile-saved.js?v=2.1' not in index:
               errors.append('P6 Commerce carrier cache boundary missing')
 
-          # Four first-party scripts are the maximum critical JS request set:
-          # app runtime, Chat V7 bootstrap, P6 loader, Commerce carrier.
           first_party_scripts = re.findall(r'<script[^>]+src="js/[^\"]+"', index)
+          first_party_styles = re.findall(r'<link[^>]+href="css/[^\"]+"', index)
           print(f'Initial first-party script requests: {len(first_party_scripts)} / 4')
+          print(f'Initial first-party stylesheet requests: {len(first_party_styles)} / 5')
           if len(first_party_scripts) > 4:
               errors.append(f'Initial JS request budget exceeded: {len(first_party_scripts)} > 4')
-
-          first_party_styles = re.findall(r'<link[^>]+href="css/[^\"]+"', index)
-          print(f'Initial first-party stylesheet requests: {len(first_party_styles)} / 5')
           if len(first_party_styles) > 5:
               errors.append(f'Initial CSS request budget exceeded: {len(first_party_styles)} > 5')
 
-          required_loader = (
-              'warmPublicBootstrap()',
-              'ensureCoreEnhancements',
-              'ensureProfileEnhancements',
-              'ensureMediaEnhancements',
-              'ensureBusinessEnhancements',
-              'schedulePostRenderWarmup',
-              'requestIdleCallback',
-              "version: '1.0'",
+          for contract in (
+              'warmPublicBootstrap()','ensureCoreEnhancements','ensureProfileEnhancements','ensureMediaEnhancements',
+              'ensureBusinessEnhancements','schedulePostRenderWarmup','requestIdleCallback',"version: '1.0'",
               "loadSocialPresentation('profile')",
-          )
-          for contract in required_loader:
+          ):
               if contract not in loader:
                   errors.append(f'Missing P6 loader contract: {contract}')
 
-          forbidden_loader = (
-              'loadDeferredEnhancements',
-              'chat-experience.css',
-              'chat-layout-v2.css',
-              'chat-whatsapp-v3.css',
-              'chat-bubble-final.css',
-              'chat-experience.js',
-              'chat-media-experience.js',
-              'chat-mark-read.js',
-              'store-management-core.js',
-          )
-          for marker in forbidden_loader:
+          for marker in (
+              'loadDeferredEnhancements','chat-experience.css','chat-layout-v2.css','chat-whatsapp-v3.css',
+              'chat-bubble-final.css','chat-experience.js','chat-media-experience.js','chat-mark-read.js','store-management-core.js',
+          ):
               if marker in loader:
                   errors.append(f'Retired/eager legacy asset remains in P6 loader: {marker}')
 
           if 'chat-whatsapp-v5' in carrier:
               errors.append('Commerce carrier still requests retired WhatsApp V5 chat assets')
-
-          required_carrier = (
-              'window.__PASAR_COMMERCE_V2__ = true',
-              'css/commerce-experience-v2.css?v=2.0',
-              'js/commerce-experience-v2.js?v=2.0',
-              "document.addEventListener('pointerdown'",
-              "document.addEventListener('click'",
-          )
-          for contract in required_carrier:
+          for contract in (
+              'window.__PASAR_COMMERCE_V2__ = true','css/commerce-experience-v2.css?v=2.0',
+              'js/commerce-experience-v2.js?v=2.0',"document.addEventListener('pointerdown'", "document.addEventListener('click'",
+          ):
               if contract not in carrier:
                   errors.append(f'Commerce lazy contract lost during P6: {contract}')
 
@@ -177,5 +147,4 @@ jobs:
               for error in errors:
                   print(f'- {error}')
               sys.exit(1)
-
           print('UI P6 Polish/Performance validation passed.')
