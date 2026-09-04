@@ -1,0 +1,45 @@
+name: Admin Auth Validation
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate-admin-auth:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Syntax check admin auth modules
+        run: |
+          node --check src/admin-auth-api.js
+          node --check src/rate-limit.js
+          node --check src/worker-entry.js
+
+      - name: Validate admin auth security contracts
+        run: node scripts/validate-admin-auth.mjs
+
+      - name: Bundle Worker with locked toolchain
+        run: |
+          ./node_modules/.bin/esbuild src/worker-entry.js \
+            --bundle \
+            --format=esm \
+            --platform=browser \
+            --target=es2022 \
+            --outfile=/tmp/worker-entry.js
+          test -s /tmp/worker-entry.js
