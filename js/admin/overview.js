@@ -41,6 +41,9 @@ export async function renderOverview({ host, access, signal }) {
   const payload = await adminApi.control("overview", {}, { signal });
   const data = payload.overview || {};
   const sensitiveCount = access.permissions.filter(permission => permission.sensitive).length;
+  const sessionSecurity = access.session?.mfa_verified
+    ? { label: "MFA verified", className: "status-success" }
+    : { label: "Session active", className: "status-info" };
 
   host.innerHTML = `
     <header class="view-header">
@@ -50,7 +53,7 @@ export async function renderOverview({ host, access, signal }) {
         <p class="view-description">Ringkasan real-time dari data marketplace yang tersedia. Tidak ada statistik placeholder atau estimasi buatan.</p>
       </div>
       <div class="view-actions">
-        <span class="status status-success">Session MFA verified</span>
+        <span class="status ${sessionSecurity.className}">${sessionSecurity.label}</span>
       </div>
     </header>
 
