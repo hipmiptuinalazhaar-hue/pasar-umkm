@@ -8,10 +8,10 @@ export class AdminApiError extends Error {
   }
 }
 
-let stepUpHandler = null;
+const STEP_UP_HANDLER_KEY = "__PASAR_UMKM_ADMIN_STEP_UP_HANDLER__";
 
 export function setAdminStepUpHandler(handler) {
-  stepUpHandler = typeof handler === "function" ? handler : null;
+  globalThis[STEP_UP_HANDLER_KEY] = typeof handler === "function" ? handler : null;
 }
 
 async function request(path, options = {}, allowStepUpRetry = true) {
@@ -31,7 +31,8 @@ async function request(path, options = {}, allowStepUpRetry = true) {
 
   if (!response.ok) {
     const code = payload?.code || `HTTP_${response.status}`;
-    if (allowStepUpRetry && code === "ADMIN_STEP_UP_REQUIRED" && stepUpHandler && path !== "/api/admin/auth/step-up") {
+    const stepUpHandler = globalThis[STEP_UP_HANDLER_KEY];
+    if (allowStepUpRetry && code === "ADMIN_STEP_UP_REQUIRED" && typeof stepUpHandler === "function" && path !== "/api/admin/auth/step-up") {
       const verified = await stepUpHandler(payload);
       if (verified) return request(path, options, false);
     }
@@ -57,9 +58,7 @@ function queryString(params = {}) {
 export const adminApi = Object.freeze({
   session() { return request("/api/admin/auth/me"); },
   login(email, password) { return request("/api/admin/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }); },
-  rotatePassword(email, currentPassword, newPassword) {
-    return request("/api/admin/auth/rotate-password", { method: "POST", body: JSON.stringify({ email, current_password: currentPassword, new_password: newPassword }) });
-  },
+  rotatePassword(email, currentPassword, newPassword) { return request("/api/admin/auth/rotate-password", { method: "POST", body: JSON.stringify({ email, current_password: currentPassword, new_password: newPassword }) }); },
   mfaEnrollStart() { return request("/api/admin/auth/mfa/enroll/start", { method: "POST", body: "{}" }); },
   mfaEnrollVerify(code) { return request("/api/admin/auth/mfa/enroll/verify", { method: "POST", body: JSON.stringify({ code }) }); },
   mfaVerify(code, method = "totp") { return request("/api/admin/auth/mfa/verify", { method: "POST", body: JSON.stringify({ code, method }) }); },
