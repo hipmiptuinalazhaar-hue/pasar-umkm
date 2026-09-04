@@ -65,6 +65,157 @@
     }
   }
 
+  function clearFieldError(inputOrId) {
+    const input = typeof inputOrId === 'string'
+      ? document.getElementById(inputOrId)
+      : inputOrId;
+    const field = input?.closest('.profile-edit-field');
+
+    if (!input || !field) return;
+
+    input.removeAttribute('aria-invalid');
+    input.removeAttribute('aria-describedby');
+    field.classList.remove('has-error');
+    field.querySelector('.profile-edit-error')?.remove();
+  }
+
+  function setFieldError(inputOrId, message) {
+    const input = typeof inputOrId === 'string'
+      ? document.getElementById(inputOrId)
+      : inputOrId;
+    const field = input?.closest('.profile-edit-field');
+
+    if (!input || !field) return;
+
+    clearFieldError(input);
+    const errorId = `${input.id}Error`;
+    const error = document.createElement('p');
+    error.id = errorId;
+    error.className = 'profile-edit-error';
+    error.textContent = message;
+    field.appendChild(error);
+    field.classList.add('has-error');
+    input.setAttribute('aria-invalid', 'true');
+    input.setAttribute('aria-describedby', errorId);
+  }
+
+  function validateWhatsapp(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+
+    let digits = raw.replace(/\D/g, '');
+    if (digits.startsWith('0')) digits = `62${digits.slice(1)}`;
+    else if (digits.startsWith('8')) digits = `62${digits}`;
+
+    if (!digits.startsWith('62') || digits.length < 10 || digits.length > 15) {
+      return 'Nomor WhatsApp belum valid. Gunakan nomor Indonesia aktif.';
+    }
+
+    return '';
+  }
+
+  function validateSocial(value, platform) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+
+    const config = platform === 'instagram'
+      ? { host: 'instagram.com', label: 'Instagram' }
+      : { host: 'tiktok.com', label: 'TikTok' };
+
+    if (/^https?:\/\//i.test(raw)) {
+      try {
+        const parsed = new URL(raw);
+        const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+        if (host !== config.host && !host.endsWith(`.${config.host}`)) {
+          return `Link harus berasal dari ${config.host}.`;
+        }
+        return '';
+      } catch {
+        return `Link ${config.label} belum valid.`;
+      }
+    }
+
+    let handle = raw.replace(/^@+/, '');
+    if (platform === 'instagram') {
+      handle = handle.replace(/^(?:www\.)?instagram\.com\//i, '');
+    } else {
+      handle = handle
+        .replace(/^(?:www\.)?tiktok\.com\//i, '')
+        .replace(/^@/, '');
+    }
+    handle = handle.split(/[/?#]/)[0].replace(/^\/+|\/+$/g, '');
+
+    if (!/^[A-Za-z0-9._]{1,64}$/.test(handle)) {
+      return `Gunakan username ${config.label} tanpa spasi atau emoji, atau tempel link profil lengkap.`;
+    }
+
+    return '';
+  }
+
+  function collectOptionalContacts() {
+    const fields = [
+      {
+        id: 'profileEditWhatsapp',
+        key: 'whatsapp',
+        label: 'WhatsApp',
+        validate: validateWhatsapp
+      },
+      {
+        id: 'profileEditInstagram',
+        key: 'instagram_url',
+        label: 'Instagram',
+        validate: value => validateSocial(value, 'instagram')
+      },
+      {
+        id: 'profileEditTiktok',
+        key: 'tiktok_url',
+        label: 'TikTok',
+        validate: value => validateSocial(value, 'tiktok')
+      }
+    ];
+
+    const values = {};
+    const issues = [];
+
+    for (const field of fields) {
+      const input = document.getElementById(field.id);
+      if (!input) continue;
+
+      const value = String(input.value || '').trim();
+      clearFieldError(input);
+      const error = field.validate(value);
+
+      if (error) {
+        setFieldError(input, error);
+        issues.push(field.label);
+        continue;
+      }
+
+      values[field.key] = value;
+    }
+
+    return { values, issues };
+  }
+
+  function mapServerErrorToField(message) {
+    const text = String(message || '').toLowerCase();
+    const mapping = [
+      ['whatsapp', 'profileEditWhatsapp'],
+      ['instagram', 'profileEditInstagram'],
+      ['tiktok', 'profileEditTiktok']
+    ];
+
+    for (const [needle, id] of mapping) {
+      if (!text.includes(needle)) continue;
+      const input = document.getElementById(id);
+      if (!input) return;
+      setFieldError(input, message);
+      input.focus({ preventScroll: true });
+      input.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      return;
+    }
+  }
+
   function loadImageFromFile(file) {
     return new Promise((resolve, reject) => {
       const objectUrl = URL.createObjectURL(file);
@@ -401,7 +552,7 @@
         </h3>
 
         <p class="profile-edit-section-note">
-          Pengunjung dapat mengetuk kontak ini langsung dari profil Anda.
+          Gunakan username akun atau link profil lengkap. Kolom ini opsional.
         </p>
 
         <div class="profile-edit-field">
@@ -439,6 +590,8 @@
               class="profile-edit-input profile-edit-input-with-icon"
               type="text"
               maxlength="240"
+              autocapitalize="none"
+              spellcheck="false"
               value="${escapeHTML(store.instagram_url || '')}"
               placeholder="@username atau instagram.com/username"
             >
@@ -459,6 +612,8 @@
               class="profile-edit-input profile-edit-input-with-icon"
               type="text"
               maxlength="240"
+              autocapitalize="none"
+              spellcheck="false"
               value="${escapeHTML(store.tiktok_url || '')}"
               placeholder="@username atau tiktok.com/@username"
             >
@@ -614,6 +769,18 @@
     fileInput.click();
   });
 
+  document.addEventListener('input', event => {
+    if (![
+      'profileEditWhatsapp',
+      'profileEditInstagram',
+      'profileEditTiktok'
+    ].includes(event.target?.id)) {
+      return;
+    }
+
+    clearFieldError(event.target);
+  }, true);
+
   document.addEventListener('change', async event => {
     if (event.target?.id !== 'profileEditAvatarFile') {
       return;
@@ -700,8 +867,12 @@
     }
 
     const payload = { name };
+    let contactIssues = [];
 
     if (isSellerAccount() && STATE.currentStore) {
+      const contacts = collectOptionalContacts();
+      contactIssues = contacts.issues;
+
       payload.store = {
         description:
           document.getElementById(
@@ -719,18 +890,7 @@
           document.getElementById(
             'profileEditProvince'
           )?.value || '',
-        whatsapp:
-          document.getElementById(
-            'profileEditWhatsapp'
-          )?.value || '',
-        instagram_url:
-          document.getElementById(
-            'profileEditInstagram'
-          )?.value || '',
-        tiktok_url:
-          document.getElementById(
-            'profileEditTiktok'
-          )?.value || ''
+        ...contacts.values
       };
     }
 
@@ -800,6 +960,14 @@
       }
 
       clearPendingAvatar();
+
+      if (contactIssues.length) {
+        showToast(
+          `Profil tersimpan. ${contactIssues.join(', ')} belum diperbarui karena formatnya tidak valid.`
+        );
+        return;
+      }
+
       closeBottomSheet();
       showToast('Profil berhasil diperbarui.');
       await openAccount();
@@ -808,6 +976,7 @@
         '[Pasar UMKM] Profile update error:',
         error
       );
+      mapServerErrorToField(error?.message);
       showToast(
         error?.message || 'Profil belum dapat diperbarui.'
       );
