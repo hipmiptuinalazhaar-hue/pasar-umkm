@@ -64,8 +64,11 @@ function createActionConfirmer() {
   const title = document.getElementById("actionDialogTitle");
   const copy = document.getElementById("actionDialogCopy");
   const reason = document.getElementById("actionReason");
+  const reasonLabel = form.querySelector('label[for="actionReason"]');
+  const reasonHint = form.querySelector(".field-hint");
   const confirmButton = document.getElementById("actionConfirmButton");
   let pending = null;
+  let reasonRequired = true;
 
   form.addEventListener("submit", event => {
     const submitter = event.submitter;
@@ -76,7 +79,7 @@ function createActionConfirmer() {
     }
     event.preventDefault();
     const value = reason.value.trim();
-    if (value.length < 8) {
+    if (reasonRequired && value.length < 8) {
       reason.setCustomValidity("Tuliskan alasan minimal 8 karakter.");
       reason.reportValidity();
       return;
@@ -85,7 +88,7 @@ function createActionConfirmer() {
     const resolve = pending.resolve;
     pending = null;
     dialog.close("confirm");
-    resolve(value);
+    resolve(reasonRequired ? value : "");
   });
 
   dialog.addEventListener("cancel", event => {
@@ -95,16 +98,21 @@ function createActionConfirmer() {
     dialog.close("cancel");
   });
 
-  return ({ title: nextTitle, copy: nextCopy, confirmLabel = "Konfirmasi", tone = "danger" }) => {
+  return ({ title: nextTitle, copy: nextCopy, confirmLabel = "Konfirmasi", tone = "danger", requireReason = true }) => {
     if (pending) pending.resolve(null);
+    reasonRequired = requireReason;
     title.textContent = nextTitle;
     copy.textContent = nextCopy;
     reason.value = "";
+    reason.required = requireReason;
+    reason.hidden = !requireReason;
+    if (reasonLabel) reasonLabel.hidden = !requireReason;
+    if (reasonHint) reasonHint.hidden = !requireReason;
     reason.setCustomValidity("");
     confirmButton.textContent = confirmLabel;
     confirmButton.className = `button ${tone === "positive" ? "button-primary" : "button-danger"}`;
     dialog.showModal();
-    queueMicrotask(() => reason.focus());
+    queueMicrotask(() => (requireReason ? reason : confirmButton).focus());
     return new Promise(resolve => { pending = { resolve }; });
   };
 }
