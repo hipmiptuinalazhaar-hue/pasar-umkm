@@ -17,7 +17,7 @@ src/worker-entry.js
    ▼
 observeRequest(...)
    │
-   ├─ generate internal request_id
+   ├─ derive trusted request_id from CF-Ray, UUID fallback
    ├─ classify safe route family
    ├─ measure server duration
    ├─ dispatch existing API owners
@@ -38,7 +38,7 @@ Event server berbentuk satu JSON object per log line dengan field stabil:
 | `event` | jenis event terstandar |
 | `level` | `info`, `warn`, atau `error` |
 | `service` | selalu `pasar-umkm` |
-| `request_id` | UUID internal per invocation |
+| `request_id` | CF-Ray terpercaya bila tersedia, UUID server fallback |
 | `cf_ray` | Cloudflare Ray ID bila tersedia |
 | `colo` | Cloudflare data-center code bila tersedia |
 | `method` | HTTP method |
@@ -100,13 +100,15 @@ Jangan menaikkan sampling ke 100% secara permanen hanya karena dashboard terliha
 Setiap response Worker membawa:
 
 ```text
-X-Request-Id: <internal UUID>
+X-Request-Id: <trusted CF-Ray or server UUID>
 Server-Timing: app;dur=<milliseconds>
 ```
 
-Saat bug dilaporkan, `X-Request-Id` adalah correlation key utama untuk mencari event server terkait. `CF-Ray` menjadi correlation key kedua untuk Cloudflare infrastructure.
+Jika request berjalan di Cloudflare, `request_id` menggunakan `CF-Ray`. Ini sengaja disamakan dengan pola request identifier pada admin security/audit sehingga event Worker dan `admin_audit_logs` dapat dikorelasikan tanpa identity layer tambahan. Jika CF-Ray tidak tersedia, server membuat UUID baru.
 
-Request ID selalu dibuat server-side. Nilai `X-Request-Id` dari client tidak dipercaya sebagai correlation identity.
+Nilai `X-Request-Id` yang dikirim client tidak pernah dipercaya sebagai correlation identity. Dengan begitu pengguna tidak dapat memilih sendiri ID log dan menciptakan collision/impersonation pada tracing.
+
+Saat bug dilaporkan, `X-Request-Id` adalah correlation key utama. `cf_ray` tetap tersedia sebagai field eksplisit untuk investigasi infrastructure.
 
 ## Failure coverage
 
@@ -154,7 +156,7 @@ Saat insiden:
 2. Jika ada laporan pengguna, filter `request_id` terlebih dahulu.
 3. Jika tidak ada request ID, filter `event` + `route` + rentang waktu sempit.
 4. Periksa `status`, `error_code`, `duration_ms`, `cf_ray`.
-5. Untuk aksi admin, korelasikan waktu/request dengan `admin_audit_logs` tanpa menyalin secret/token ke log.
+5. Untuk aksi admin, korelasikan `request_id` dengan `admin_audit_logs.request_id` bila event tersebut memiliki audit persistence.
 6. Perbaiki owner sebenarnya. Jangan menambal observability agar error terlihat hilang.
 
 ## Recommended production alert thresholds
