@@ -89,13 +89,13 @@ jobs:
                   errors.append(f'{asset} is referenced directly by index.html; commerce must remain lazy-loaded')
 
           # The always-loaded carrier itself must be cache-busted when its bootstrap changes.
-          if 'js/profile-saved.js?v=2.1' not in index:
-              errors.append('index.html must reference profile-saved.js?v=2.1 for the P2 bootstrap cache boundary')
+          if 'js/profile-saved.js?v=2.2' not in index:
+              errors.append('index.html must reference profile-saved.js?v=2.2 for the current commerce bootstrap cache boundary')
 
           loader_contracts = (
               'window.__PASAR_COMMERCE_V2__ = true',
               'css/commerce-experience-v2.css?v=2.0',
-              'js/commerce-experience-v2.js?v=2.0',
+              'js/commerce-experience-v2.js?v=2.1',
               "document.addEventListener('pointerdown'",
               "document.addEventListener('click'",
           )
