@@ -1,0 +1,54 @@
+name: Final Security D Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/request-security.js'
+      - 'src/worker-entry.js'
+      - 'src/comment-api.js'
+      - 'src/store-management-api.js'
+      - 'src/functionality-api.js'
+      - 'src/admin-auth-api.js'
+      - 'src/admin-authorization.js'
+      - 'src/admin-security-core.js'
+      - 'src/admin-mfa-api.js'
+      - 'src/chat-media-api-v2.js'
+      - 'src/chat-message-action-api.js'
+      - 'src/profile-media-api.js'
+      - 'src/observability.js'
+      - 'database/migrations/2026-09-05-final-security-hardening.sql'
+      - 'scripts/validate-final-security-d.mjs'
+      - 'docs/FINAL_SECURITY_AUDIT_D.md'
+      - '.github/workflows/final-security-d-validate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-final-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Validate syntax
+        run: |
+          node --check src/request-security.js
+          node --check src/worker-entry.js
+          node --check src/comment-api.js
+          node --check src/store-management-api.js
+          node --check scripts/validate-final-security-d.mjs
+
+      - name: Validate security contracts
+        run: node scripts/validate-final-security-d.mjs
+
+      - name: Validate runtime build remains reproducible
+        run: |
+          npm ci --ignore-scripts
+          npm run build:runtime
+          git diff --exit-code -- js/app.runtime.js index.html
