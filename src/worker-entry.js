@@ -26,7 +26,7 @@ import { enforceRateLimit } from "./rate-limit.js";
 import { ensureNotificationInfrastructure } from "./notification-store.js";
 import { ensureFullFunctionalityInfrastructure } from "./functionality-bootstrap.js";
 import { observeRequest } from "./observability.js";
-import { enforceApiWriteOrigin } from "./request-security.js";
+import { enforceRequestSecurity } from "./request-security.js";
 
 const P0_MIGRATION = "2026-09-02-p0-runtime-schema-hardening";
 const P1_MIGRATION = "2026-09-02-p1-security-performance";
@@ -166,9 +166,9 @@ async function routeRequest(request, env, ctx) {
       return handleHealth(env);
     }
 
-    const originResponse = enforceApiWriteOrigin(request);
-    if (originResponse) {
-      return originResponse;
+    const securityResponse = enforceRequestSecurity(request);
+    if (securityResponse) {
+      return securityResponse;
     }
 
     const rateLimitResponse = await enforceRateLimit(request);
