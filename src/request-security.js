@@ -1,13 +1,10 @@
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 const TRUSTED_FETCH_SITES = new Set(["same-origin", "none"]);
+const LEGACY_PUBLIC_ADMIN_PREFIX = "/api/commerce/admin";
 
-function denied() {
+function jsonDenied(error, code) {
   return Response.json(
-    {
-      ok: false,
-      error: "Permintaan lintas-origin tidak diizinkan.",
-      code: "ORIGIN_REJECTED"
-    },
+    { ok: false, error, code },
     {
       status: 403,
       headers: {
@@ -20,6 +17,20 @@ function denied() {
   );
 }
 
+function originDenied() {
+  return jsonDenied(
+    "Permintaan lintas-origin tidak diizinkan.",
+    "ORIGIN_REJECTED"
+  );
+}
+
+function legacyAdminDenied() {
+  return jsonDenied(
+    "Endpoint admin publik lama sudah dinonaktifkan.",
+    "PUBLIC_ADMIN_ROUTE_DISABLED"
+  );
+}
+
 function normalizeOrigin(value) {
   if (!value) return null;
   try {
@@ -29,8 +40,12 @@ function normalizeOrigin(value) {
   }
 }
 
-export function enforceApiWriteOrigin(request) {
+export function enforceRequestSecurity(request) {
   const url = new URL(request.url);
+
+  if (url.pathname.startsWith(LEGACY_PUBLIC_ADMIN_PREFIX)) {
+    return legacyAdminDenied();
+  }
 
   if (!url.pathname.startsWith("/api/") || SAFE_METHODS.has(request.method)) {
     return null;
@@ -38,7 +53,7 @@ export function enforceApiWriteOrigin(request) {
 
   const requestOrigin = normalizeOrigin(request.headers.get("Origin"));
   if (requestOrigin && requestOrigin !== url.origin) {
-    return denied();
+    return originDenied();
   }
 
   const fetchSite = String(request.headers.get("Sec-Fetch-Site") || "")
@@ -46,7 +61,7 @@ export function enforceApiWriteOrigin(request) {
     .toLowerCase();
 
   if (fetchSite && !TRUSTED_FETCH_SITES.has(fetchSite)) {
-    return denied();
+    return originDenied();
   }
 
   return null;
@@ -56,6 +71,8 @@ export const requestSecurityPolicy = Object.freeze({
   protected_prefix: "/api/",
   protected_methods: ["POST", "PUT", "PATCH", "DELETE"],
   trusted_fetch_sites: [...TRUSTED_FETCH_SITES],
+  legacy_public_admin_prefix: LEGACY_PUBLIC_ADMIN_PREFIX,
   missing_browser_metadata_allowed: true,
-  client_origin_must_match_request_origin: true
+  client_origin_must_match_request_origin: true,
+  public_admin_routes_disabled: true
 });
