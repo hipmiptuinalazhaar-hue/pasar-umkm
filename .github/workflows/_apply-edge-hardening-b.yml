@@ -20,21 +20,20 @@ jobs:
           ref: hardening/error-edge-cases-b
           fetch-depth: 0
 
-      - name: Apply exact scoped patch
+      - name: Apply recoverable error-state patch
         run: |
-          python scripts/_apply_edge_hardening_b2.py
-          rm scripts/_apply_edge_hardening_b.py scripts/_apply_edge_hardening_b2.py
+          python scripts/_apply_edge_hardening_b3.py
+          rm scripts/_apply_edge_hardening_b3.py
 
-      - name: Validate patch syntax and budgets
+      - name: Validate patch syntax and budget
         run: |
           node --check js/commerce-experience-v2.js
-          node --check src/functionality-api.js
           test "$(wc -c < js/commerce-experience-v2.js)" -le 80000
 
       - name: Commit scoped source patch
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add js/commerce-experience-v2.js src/functionality-api.js js/profile-saved.js index.html scripts/_apply_edge_hardening_b.py scripts/_apply_edge_hardening_b2.py
-          git commit -m 'Harden commerce error and edge cases'
+          git add js/commerce-experience-v2.js scripts/_apply_edge_hardening_b3.py
+          git commit -m 'Add recoverable commerce error states'
           git push origin HEAD:hardening/error-edge-cases-b
