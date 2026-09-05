@@ -1,109 +1,62 @@
-# P4 Final Audit Checklist
+# P4 Final Audit — Historical Snapshot
 
-Tanggal audit: 2 September 2026
+> **Status: HISTORICAL / ARCHIVED.**
+>
+> Dokumen ini merekam keadaan audit P4 pada **2 September 2026** dan tidak lagi menjadi sumber kebenaran untuk status production saat ini. Production rollout, observability, security, dan smoke-test setelah tanggal tersebut dilanjutkan melalui fase Production Hardening A–D.
 
-Branch integrasi: `p4-9-10-chat-profile-hardening`
+Branch integrasi historis: `p4-9-10-chat-profile-hardening`
 
-Dokumen ini membedakan **code-complete** dari **production rollout**. Kotak P4.1–P4.10 di bawah berarti implementasi sudah hadir pada branch integrasi dan diperiksa oleh CI. Ini tidak berarti stack sudah di-merge ke `main` atau migration production sudah dijalankan.
+## Apa yang diselesaikan P4
 
-## Checklist Implementasi P4
+P4 menyelesaikan fondasi reliability dan scalability berikut:
 
-- [x] **P4.1 Atomic order transactions**
-  - Checkout memakai transaksi interaktif `BEGIN/COMMIT/ROLLBACK`.
-  - Cart, product, dan order memakai row locking yang terkontrol.
-  - Stock decrement memakai guard `stock >= quantity`.
-  - Cancellation, restock, status, dan notification berada dalam transaksi yang sama.
-  - Manual compensation dan manual order UUID tidak digunakan.
+- [x] **P4.1 Atomic order transactions** — checkout/order menggunakan transaksi, row lock, stock guard, rollback, dan cancellation/restock terkontrol.
+- [x] **P4.2 Zero runtime schema DDL** — perubahan schema dimiliki migration; runtime hanya memverifikasi schema yang diperlukan.
+- [x] **P4.3 Comment reply integrity** — reply hanya menempel pada root valid dan delete memakai soft-delete/tombstone yang konsisten.
+- [x] **P4.4 Chat media ownership and cleanup** — media terikat conversation/user dan cleanup provider tersedia pada failure/delete path.
+- [x] **P4.5 Deterministic runtime pipeline** — runtime JS/CSS dibangun reproducibly dan drift diperiksa CI.
+- [x] **P4.6 Reproducible supply chain** — dependency exact, lockfile, `npm ci`, dan external Actions dipin ke commit SHA.
+- [x] **P4.7 Incremental catalog loading** — katalog dimuat bertahap dengan cursor per resource.
+- [x] **P4.8 Cursor/keyset pagination** — deep offset dihapus dari katalog utama.
+- [x] **P4.9 Deterministic latest chat window** — 200 pesan terbaru dipilih deterministically lalu dikembalikan kronologis.
+- [x] **P4.10 External profile media storage** — avatar baru disimpan sebagai owned external media, bukan BYTEA baru di database.
 
-- [x] **P4.2 Zero runtime schema DDL**
-  - Runtime `src/*.js` tidak menjalankan `CREATE/ALTER/DROP` schema object.
-  - Chat/profile menggunakan verifier infrastructure terpusat.
-  - Perubahan schema dimiliki migration, bukan request handler.
+## Cross-check historis
 
-- [x] **P4.3 Comment reply integrity**
-  - Reply hanya boleh menempel pada root comment aktif yang valid.
-  - Candidate/root dikunci untuk mencegah race saat reply/delete.
-  - Soft-delete parent menghasilkan tombstone yang konsisten.
-  - Tidak ada hard-delete komentar pada request path normal.
+Pada akhir P4:
 
-- [x] **P4.4 Chat media ownership and cleanup**
-  - Media path terikat ke conversation + user + random asset UUID.
-  - Cloudinary URL diverifikasi terhadap cloud/folder/ownership yang dikonfigurasi.
-  - Delete-for-everyone dibatasi pada pengirim.
-  - Cleanup asset provider tersedia untuk failure/delete path.
+- syntax source lolos validation;
+- runtime frontend dapat dibangun ulang tanpa drift;
+- Worker dapat dibundle dari locked toolchain;
+- chat/profile ownership memiliki negative/adversarial checks;
+- temporary bootstrap tooling P4 sudah dibuang.
 
-- [x] **P4.5 Reusable deterministic runtime pipeline**
-  - Runtime JS/CSS/logo dibangun melalui workflow reusable.
-  - Workflow tidak hard-code branch P3.
-  - Drift check memastikan generated assets cocok dengan source.
-  - Workflow bootstrap lama yang hanya berlaku sekali sudah dibuang.
+## Status rollout setelah snapshot ini
 
-- [x] **P4.6 Reproducible supply chain**
-  - Dependency runtime dan build dipin ke versi exact.
-  - `package-lock.json` dipakai melalui `npm ci`.
-  - GitHub Actions eksternal dipin ke full commit SHA.
-  - Dependabot dan npm save-exact policy aktif.
+Checklist rollout lama pada dokumen versi awal **sengaja tidak dipertahankan sebagai checklist aktif**, karena beberapa itemnya sudah berubah status dan konteksnya telah disupersede.
 
-- [x] **P4.7 Incremental catalog loading**
-  - Initial public catalog memakai batch kecil 24 item.
-  - Frontend menyimpan cursor terpisah untuk products dan stores.
-  - Home melakukan incremental load mendekati akhir feed.
-  - Category/store directory memiliki manual load-more fallback.
-  - Deduplikasi ID mencegah duplikasi item antar-page.
+Status yang sudah diketahui setelah P4:
 
-- [x] **P4.8 Cursor/keyset catalog pagination**
-  - Products memakai keyset `(created_at, id)`.
-  - Stores memakai stable rank/name/id keyset.
-  - Default limit 24, maksimum 50.
-  - `LIMIT + 1` menggantikan full `COUNT(*)` untuk `has_next`.
-  - Deep `OFFSET` dihapus dan malformed/legacy cursor ditolak sebelum query database.
+- P0 dan P1 migration sudah diterapkan ke Neon production;
+- stack P4 sudah berada di `main` dan production Cloudflare;
+- Production Hardening A menambahkan production-safe smoke guardrail;
+- Production Hardening B menambahkan error/edge-case resilience;
+- Production Hardening C menambahkan observability dan request correlation;
+- Production Hardening D menambahkan final security hardening dan public/admin identity isolation;
+- migration `2026-09-05-final-security-hardening` sudah diterapkan ke production.
 
-- [x] **P4.9 Deterministic latest chat window**
-  - Message list, metadata, dan rich metadata mengambil **200 pesan terbaru**, bukan 200 tertua.
-  - Window memakai `(created_at DESC, id DESC)` sebagai deterministic selector.
-  - Hasil dikembalikan `(created_at ASC, id ASC)` agar UI tetap kronologis.
-  - Tie pada timestamp tidak lagi membuat row biasa dan rich metadata bergeser pasangan.
+Authenticated stateful end-to-end smoke tetap dikelola sebagai pekerjaan release-readiness terpisah dan tidak boleh dianggap selesai hanya karena snapshot P4 ini berstatus archived.
 
-- [x] **P4.10 External profile media storage**
-  - Upload avatar baru tidak lagi menulis BYTEA ke `user_profile_media`.
-  - Avatar baru disimpan pada owned Cloudinary folder `pasar-umkm/profile/<user-id>/<asset-uuid>`.
-  - Provider `public_id` dan returned URL diverifikasi sebelum database menunjuk ke asset.
-  - Jika database update gagal, asset baru dibersihkan.
-  - Setelah database berhasil menunjuk ke asset baru, failure path tidak boleh menghapus asset committed tersebut.
-  - Asset avatar Cloudinary lama milik user dibersihkan setelah replacement sukses.
-  - Endpoint BYTEA lama tetap tersedia sebagai fallback untuk avatar legacy yang sudah ada.
+## Dokumen penerus
 
-## Cross-check Integrasi
+Untuk keadaan produk setelah P4, gunakan dokumen berikut sebagai referensi yang lebih baru:
 
-- [x] Semua `src/*.js` dan frontend JS lolos syntax check.
-- [x] P4.1–P4.10 diperiksa bersama pada final integration branch, bukan hanya pada PR masing-masing.
-- [x] Runtime frontend dapat dibangun ulang tanpa drift.
-- [x] Final Worker dapat dibundle dari locked toolchain.
-- [x] Parser ownership chat/profile mendapat negative/adversarial tests.
-- [x] Temporary mutation/bootstrap tooling P4 dibuang dari branch final.
-- [x] P4.9 dan P4.10 tidak memerlukan migration database baru.
+- `docs/PRODUCTION_SMOKE_TEST_A.md`
+- dokumentasi Error & Edge Case Hardening B
+- `docs/OBSERVABILITY_MONITORING_C.md`
+- `docs/FINAL_SECURITY_AUDIT_D.md`
+- `docs/TECHNICAL_DEBT_E.md` setelah fase E selesai
 
-## Production Rollout Gates
+## Catatan
 
-Bagian ini **belum boleh dicentang hanya karena code CI hijau**.
-
-- [ ] P0 migration diuji pada temporary Neon migration branch dan mendapat approval sebelum production apply.
-- [ ] P0 migration diterapkan ke production dengan migration protocol yang sah.
-- [ ] P1 migration diuji dan diterapkan setelah P0.
-- [ ] Target database yang benar untuk Cloudflare `DATABASE_URL` diverifikasi.
-- [ ] Stack PR di-merge berurutan dari P0 sampai P4.10 tanpa melewati dependency.
-- [ ] Cloudflare production deployment setelah merge diverifikasi.
-- [ ] Smoke test auth/session, catalog, cart, checkout, cancel, comments, chat, dan avatar dilakukan di production.
-- [ ] Satu avatar baru diuji end-to-end terhadap konfigurasi Cloudinary production.
-- [ ] Cleanup/replacement avatar Cloudinary diuji dengan mengganti avatar dua kali.
-- [ ] Monitoring error/log production dilakukan setelah rollout.
-
-## Known External Blocker
-
-Pada audit terakhir, connector Neon `run_sql` gagal pada lapisan wrapper sebelum query database karena mismatch nama parameter (`projectId` vs `project_id`). Karena itu, status database production tidak boleh dianggap terverifikasi hanya dari audit kode ini. Tidak ada write ke Neon production yang dilakukan oleh P4.9/P4.10.
-
-## Merge Order
-
-`P0 → P1 → P2 → P3 → P4.1/2 → P4.3/4 → P4.5/6 → P4.7/8 → P4.9/10`
-
-Jangan merge P4 langsung ke `main` sambil melewati migration dependency P0/P1. CI boleh percaya diri, database tetap tidak membaca motivasi manusia.
+Dokumen ini dipertahankan untuk histori engineering dan alasan arsitektural. Ia **bukan** runbook deployment, bukan status board production, dan bukan bukti bahwa seluruh authenticated user journey sudah diuji end-to-end.
