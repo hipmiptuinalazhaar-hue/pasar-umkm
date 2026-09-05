@@ -1,0 +1,39 @@
+name: Technical Debt E Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'js/chat-*.js'
+      - 'css/chat-*.css'
+      - 'src/functionality-store.js'
+      - 'docs/P4_FINAL_AUDIT.md'
+      - 'docs/TECHNICAL_DEBT_E.md'
+      - 'scripts/validate-technical-debt-e.mjs'
+      - '.github/workflows/technical-debt-e-validate.yml'
+      - 'index.html'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-technical-debt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Validate cleanup contracts
+        run: |
+          node --check scripts/validate-technical-debt-e.mjs
+          node scripts/validate-technical-debt-e.mjs
+
+      - name: Validate runtime build remains reproducible
+        run: |
+          npm ci --ignore-scripts
+          npm run build:runtime
+          git diff --exit-code -- js/app.runtime.js css/style.runtime.css index.html .assetsignore

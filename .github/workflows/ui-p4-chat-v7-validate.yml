@@ -38,11 +38,6 @@ jobs:
         run: |
           node --check js/chat-experience-v7.js
           node --check js/chat-single-render-v6.js
-          node --check js/chat-stability-v4.js
-          node --check js/chat-experience.js
-          node --check js/chat-media-experience.js
-          node --check js/chat-mark-read.js
-          node --check js/chat-whatsapp-v5.js
 
       - name: Validate single ownership and design budgets
         shell: python
@@ -152,22 +147,12 @@ jobs:
               if contract.replace(' ', '') not in compact_css:
                   errors.append(f'Missing Chat V7 CSS contract: {contract}')
 
-          retired_js = (
+          retired = (
               'js/chat-stability-v4.js',
               'js/chat-experience.js',
               'js/chat-media-experience.js',
               'js/chat-mark-read.js',
               'js/chat-whatsapp-v5.js',
-          )
-
-          for filename in retired_js:
-              path = Path(filename)
-              size = path.stat().st_size
-              print(f'Retired JS {filename}: {size} bytes')
-              if size > 600:
-                  errors.append(f'Retired chat controller regrew: {filename} = {size} bytes')
-
-          retired_css = (
               'css/chat-single-render-v6.css',
               'css/chat-stability-v4.css',
               'css/chat-experience.css',
@@ -177,18 +162,9 @@ jobs:
               'css/chat-bubble-final.css',
           )
 
-          total_retired_css = 0
-          for filename in retired_css:
-              path = Path(filename)
-              size = path.stat().st_size
-              total_retired_css += size
-              print(f'Retired CSS {filename}: {size} bytes')
-              if size > 256:
-                  errors.append(f'Retired chat CSS regrew: {filename} = {size} bytes')
-
-          print(f'Total retired chat CSS compatibility payload: {total_retired_css} bytes')
-          if total_retired_css > 1_500:
-              errors.append(f'Retired chat CSS compatibility payload too large: {total_retired_css}')
+          for filename in retired:
+              if Path(filename).exists():
+                  errors.append(f'Retired chat artifact returned: {filename}')
 
           if errors:
               print('UI P4 Chat V7 validation failed:')
@@ -196,4 +172,4 @@ jobs:
                   print(f'- {error}')
               sys.exit(1)
 
-          print('UI P4 Chat V7 validation passed.')
+          print('UI P4 Chat V7 validation passed with retired shims absent.')
