@@ -12,13 +12,9 @@ function schemaError(missing) {
 
 /**
  * P0 hardening:
- * semua DDL functionality dipindahkan ke migration.
- * Runtime hanya mengecek objek yang diwajibkan API.
- *
- * Guard ini juga mencakup object/column yang masih disentuh oleh beberapa
- * legacy handler dengan CREATE/ALTER IF NOT EXISTS. Handler tersebut hanya
- * dapat dicapai jika semuanya SUDAH ada, sehingga trafik production tidak
- * dapat melakukan schema mutation aktual.
+ * semua DDL functionality dimiliki migration.
+ * Runtime hanya memverifikasi objek dan kolom yang diwajibkan API.
+ * Tidak ada schema mutation pada request path production.
  */
 export async function ensureFunctionalityInfrastructure(sql) {
   if (functionalityReady) return;
