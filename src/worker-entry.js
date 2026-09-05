@@ -26,9 +26,11 @@ import { enforceRateLimit } from "./rate-limit.js";
 import { ensureNotificationInfrastructure } from "./notification-store.js";
 import { ensureFullFunctionalityInfrastructure } from "./functionality-bootstrap.js";
 import { observeRequest } from "./observability.js";
+import { enforceApiWriteOrigin } from "./request-security.js";
 
 const P0_MIGRATION = "2026-09-02-p0-runtime-schema-hardening";
 const P1_MIGRATION = "2026-09-02-p1-security-performance";
+const FINAL_SECURITY_MIGRATION = "2026-09-05-final-security-hardening";
 
 function schemaUnavailable() {
   return Response.json(
@@ -85,6 +87,7 @@ async function handleHealth(env) {
     const missingCore = required.filter(name => !state[name]);
     let p0Applied = false;
     let p1Applied = false;
+    let finalSecurityApplied = false;
     let latestMigration = null;
 
     if (state.schema_migrations) {
@@ -100,12 +103,13 @@ async function handleHealth(env) {
       const appliedRows = await sql`
         SELECT version
         FROM schema_migrations
-        WHERE version = ANY(${[P0_MIGRATION, P1_MIGRATION]}::text[])
+        WHERE version = ANY(${[P0_MIGRATION, P1_MIGRATION, FINAL_SECURITY_MIGRATION]}::text[])
       `;
 
       const applied = new Set(appliedRows.map(row => row.version));
       p0Applied = applied.has(P0_MIGRATION);
       p1Applied = applied.has(P1_MIGRATION);
+      finalSecurityApplied = applied.has(FINAL_SECURITY_MIGRATION);
     }
 
     return Response.json(
@@ -125,6 +129,8 @@ async function handleHealth(env) {
           p0_applied: p0Applied,
           p1_migration: P1_MIGRATION,
           p1_applied: p1Applied,
+          final_security_migration: FINAL_SECURITY_MIGRATION,
+          final_security_applied: finalSecurityApplied,
           latest_migration: latestMigration
         }
       },
@@ -158,6 +164,11 @@ async function routeRequest(request, env, ctx) {
 
     if (url.pathname === "/api/health") {
       return handleHealth(env);
+    }
+
+    const originResponse = enforceApiWriteOrigin(request);
+    if (originResponse) {
+      return originResponse;
     }
 
     const rateLimitResponse = await enforceRateLimit(request);
