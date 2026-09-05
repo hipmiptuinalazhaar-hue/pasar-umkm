@@ -6,6 +6,45 @@ Target production:
 
 `https://pasar-umkm.hipmiptuinalazhaar.workers.dev`
 
+## Hasil Eksekusi
+
+Automated production-safe smoke dijalankan melalui GitHub Actions pada branch `qa/production-smoke-a`.
+
+- Workflow: `Production Smoke A`
+- Run: `33959016026`
+- Commit yang diuji: `a416362e6be64eb46f731a30fb3fbb088275a2aa`
+- Total probe: **27**
+- PASS: **27**
+- FAIL: **0**
+- Automated production-safe result: **PASS**
+
+Evidence utama dari production:
+
+- public shell: HTTP 200
+- admin shell: HTTP 200
+- `/api/health`: production DB `pasar_umkm_app`, **48 public tables**, core schema ready, P0/P1 applied
+- categories: **12**
+- active public stores returned: **4**
+- active products returned by first catalog page: **3**
+- real social profile resolution: PASS
+- anonymous auth/commerce/social/chat/admin boundaries: seluruh probe yang diuji mengembalikan HTTP 401 sesuai kontrak
+- malformed/legacy pagination: ditolak sesuai kontrak
+
+Independent Neon row-count guard dilakukan sebelum dan sesudah run. Nilainya identik:
+
+| Table / state | Before | After |
+| --- | ---: | ---: |
+| users | 7 | 7 |
+| stores | 4 | 4 |
+| products | 5 | 5 |
+| orders | 7 | 7 |
+| posts | 3 | 3 |
+| direct_conversations | 4 | 4 |
+| direct_messages | 26 | 26 |
+| admin_audit_logs | 14 | 14 |
+
+Dengan demikian automated smoke tidak menambah account, store, product, order, post, conversation, message, maupun admin audit event.
+
 ## Tujuan
 
 Bagian A memverifikasi bahwa surface produksi utama Pasar UMKM benar-benar dapat dijangkau, kontrak API publik tetap sehat, schema production siap, pagination bekerja sesuai arsitektur, dan boundary autentikasi/ownership gagal tertutup saat request anonim mencoba memasuki surface privat.
@@ -49,11 +88,13 @@ Ini mengikuti aturan project: jangan membuat data palsu di production hanya demi
 | A-26 | Ownership | anonymous product creation | 401 before mutation |
 | A-27 | Chat | anonymous conversation creation | 401 before mutation |
 
+Semua A-01 sampai A-27: **PASS** pada run pertama.
+
 ## Stateful Authenticated Matrix
 
-Status awal: **not automated on production**.
+Status: **belum dieksekusi otomatis terhadap production**, karena memerlukan authenticated identity dan menghasilkan mutation nyata.
 
-Flow ini tetap bagian dari Bagian A, tetapi memerlukan identity/session nyata atau disposable test identity dengan cleanup yang disetujui:
+Flow ini tetap bagian dari Bagian A:
 
 - register valid account
 - login success
@@ -76,7 +117,7 @@ Flow ini tetap bagian dari Bagian A, tetapi memerlukan identity/session nyata at
 - conversation creation/message/media/mark-read
 - admin moderation and privileged session/security actions
 
-Stateful flow tidak akan dianggap PASS hanya karena route-nya ada di source. Ia harus dibuktikan dengan request production dan, untuk flow transaksi, cross-check database state.
+Stateful flow tidak dianggap PASS hanya karena route-nya ada di source. Ia harus dibuktikan dengan request production dan, untuk flow transaksi, cross-check database state.
 
 ## Safety Contract
 
@@ -89,8 +130,6 @@ Automated harness:
 - tidak mengubah store/product/order/social/chat state;
 - menggunakan timeout per request;
 - gagal CI jika satu kontrak production-safe tidak terpenuhi.
-
-Sebelum dan sesudah automated smoke, production database row counts dapat dibandingkan sebagai independent guard bahwa probe tidak menambah user/store/product/order/post/chat state.
 
 ## Release Rule
 
