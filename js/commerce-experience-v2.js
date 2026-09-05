@@ -7,7 +7,7 @@
    ========================================================= */
 
 (() => {
-  if (window.PasarCommerce?.version === '2.0') {
+  if (window.PasarCommerce?.version === '2.1') {
     return;
   }
 
@@ -44,7 +44,8 @@
     currentStore: null,
     sellerSummary: null,
     onboardingDraft: {},
-    productSearch: ''
+    productSearch: '',
+    pending: new Set()
   };
 
   function esc(value) {
@@ -84,12 +85,18 @@
       Accept: 'application/json',
       ...(options.headers || {})
     };
+    const controller = new AbortController();
+    const timeoutMs = Number(
+      options.timeoutMs || (options.formData ? 45000 : 15000)
+    );
+    const timeout = window.setTimeout(() => controller.abort(), timeoutMs);
 
     const config = {
       method: options.method || 'GET',
       credentials: 'include',
       cache: 'no-store',
-      headers
+      headers,
+      signal: controller.signal
     };
 
     if (options.formData) {
@@ -99,18 +106,62 @@
       config.body = JSON.stringify(options.body);
     }
 
-    const response = await fetch(path, config);
+    let response;
+    try {
+      response = await fetch(path, config);
+    } catch (cause) {
+      const timedOut = cause?.name === 'AbortError';
+      const error = new Error(
+        timedOut
+          ? 'Koneksi terlalu lama. Coba kembali.'
+          : 'Koneksi terputus. Periksa internet lalu coba lagi.'
+      );
+      error.code = timedOut ? 'REQUEST_TIMEOUT' : 'NETWORK_ERROR';
+      error.cause = cause;
+      throw error;
+    } finally {
+      window.clearTimeout(timeout);
+    }
+
     const data = await response.json().catch(() => ({}));
+
+    if (response.status === 401) {
+      if (typeof restoreAuthSession === 'function') {
+        await restoreAuthSession().catch(() => null);
+      } else if (typeof STATE !== 'undefined') {
+        STATE.user = null;
+      }
+      if (typeof renderSidebar === 'function') renderSidebar();
+      if (typeof updateNavigation === 'function') updateNavigation();
+      const error = new Error('Sesi berakhir. Silakan masuk kembali.');
+      error.status = 401;
+      error.code = 'SESSION_EXPIRED';
+      window.setTimeout(() => {
+        if (typeof openLogin === 'function') openLogin();
+      }, 0);
+      throw error;
+    }
 
     if (!response.ok || data.ok !== true) {
       const error = new Error(
         data.error || data.message || 'Permintaan belum dapat diproses.'
       );
       error.status = response.status;
+      error.code = data.code || 'REQUEST_FAILED';
       throw error;
     }
 
     return data;
+  }
+
+  async function withActionLock(key, task) {
+    if (COMMERCE.pending.has(key)) return false;
+    COMMERCE.pending.add(key);
+    try {
+      return await task();
+    } finally {
+      COMMERCE.pending.delete(key);
+    }
   }
 
   function user() {
@@ -541,36 +592,47 @@
   }
 
   async function updateCartQuantity(productId, quantity) {
-    try {
-      let data;
-      if (quantity <= 0) {
-        data = await request(
-          `/api/commerce/cart/items/${encodeURIComponent(productId)}`,
-          { method: 'DELETE' }
-        );
-      } else {
-        data = await request(
-          `/api/commerce/cart/items/${encodeURIComponent(productId)}`,
-          { method: 'PATCH', body: { quantity } }
-        );
-      }
+    return withActionLock(`cart:${productId}`, async () => {
+      try {
+        let data;
+        if (quantity <= 0) {
+          data = await request(
+            `/api/commerce/cart/items/${encodeURIComponent(productId)}`,
+            { method: 'DELETE' }
+          );
+        } else {
+          data = await request(
+            `/api/commerce/cart/items/${encodeURIComponent(productId)}`,
+            { method: 'PATCH', body: { quantity } }
+          );
+        }
 
-      syncCart(data.cart);
-      await renderCartPage();
-    } catch (error) {
-      toast(error.message || 'Keranjang belum dapat diperbarui.');
-    }
+        syncCart(data.cart);
+        await renderCartPage();
+        return true;
+      } catch (error) {
+        if (error.status === 409) {
+          await loadCart().then(() => renderCartPage()).catch(() => null);
+        }
+        toast(error.message || 'Keranjang belum dapat diperbarui.');
+        return false;
+      }
+    });
   }
 
   async function clearCart() {
-    try {
-      const data = await request('/api/commerce/cart', { method: 'DELETE' });
-      syncCart(data.cart);
-      toast('Keranjang dikosongkan.');
-      await renderCartPage();
-    } catch (error) {
-      toast(error.message || 'Keranjang belum dapat dikosongkan.');
-    }
+    return withActionLock('cart-clear', async () => {
+      try {
+        const data = await request('/api/commerce/cart', { method: 'DELETE' });
+        syncCart(data.cart);
+        toast('Keranjang dikosongkan.');
+        await renderCartPage();
+        return true;
+      } catch (error) {
+        toast(error.message || 'Keranjang belum dapat dikosongkan.');
+        return false;
+      }
+    });
   }
 
   function checkoutItemsTemplate(cart) {
@@ -599,7 +661,7 @@
     loadingPage('Checkout', { nav: 'cart', hideNav: true, eyebrow: 'Konfirmasi pesanan' });
 
     try {
-      const cart = COMMERCE.cart?.items?.length ? COMMERCE.cart : await loadCart();
+      const cart = await loadCart();
 
       if (!(cart.items || []).length) {
         toast('Keranjang masih kosong.');
@@ -705,42 +767,59 @@
   async function submitCheckout(form) {
     if (!form.checkValidity()) {
       form.reportValidity();
-      return;
+      return false;
     }
 
-    const submit = document.querySelector('[form="commerceCheckoutForm"]');
-    if (submit) {
-      submit.disabled = true;
-      submit.textContent = 'Memproses...';
-    }
-
-    const values = new FormData(form);
-
-    try {
-      const data = await request('/api/commerce/checkout', {
-        method: 'POST',
-        body: {
-          customer_name: values.get('customer_name'),
-          customer_phone: values.get('customer_phone'),
-          delivery_address: values.get('delivery_address'),
-          notes: values.get('notes')
-        }
-      });
-
-      syncCart({ items: [], item_count: 0, total: 0 });
-      window.refreshNotificationBadge?.();
-
-      await go('checkout-success', {
-        count: Number(data.orders?.length || 1),
-        orders: data.orders || []
-      }, { replace: true });
-    } catch (error) {
-      toast(error.message || 'Checkout belum dapat diproses.');
+    return withActionLock('checkout-submit', async () => {
+      const submit = document.querySelector('[form="commerceCheckoutForm"]');
       if (submit) {
-        submit.disabled = false;
-        submit.textContent = 'Buat Pesanan';
+        submit.disabled = true;
+        submit.setAttribute('aria-busy', 'true');
+        submit.textContent = 'Memproses...';
       }
-    }
+
+      const values = new FormData(form);
+
+      try {
+        const data = await request('/api/commerce/checkout', {
+          method: 'POST',
+          body: {
+            customer_name: values.get('customer_name'),
+            customer_phone: values.get('customer_phone'),
+            delivery_address: values.get('delivery_address'),
+            notes: values.get('notes')
+          }
+        });
+
+        syncCart({ items: [], item_count: 0, total: 0 });
+        window.refreshNotificationBadge?.();
+
+        await go('checkout-success', {
+          count: Number(data.orders?.length || 1),
+          orders: data.orders || []
+        }, { replace: true });
+        return true;
+      } catch (error) {
+        if (['REQUEST_TIMEOUT', 'NETWORK_ERROR'].includes(error.code)) {
+          try {
+            const latest = await loadCart();
+            if (!(latest.items || []).length) {
+              toast('Koneksi terputus setelah checkout. Periksa Pesanan Saya sebelum mencoba lagi.');
+              await go('buyer-orders', {}, { replace: true });
+              return false;
+            }
+          } catch {}
+        }
+
+        toast(error.message || 'Checkout belum dapat diproses.');
+        if (submit) {
+          submit.disabled = false;
+          submit.removeAttribute('aria-busy');
+          submit.textContent = 'Buat Pesanan';
+        }
+        return false;
+      }
+    });
   }
 
   function renderCheckoutSuccess(params = {}) {
@@ -975,23 +1054,36 @@
   }
 
   async function updateOrderStatus(orderId, status, scope) {
-    try {
-      await request(`/api/commerce/orders/${encodeURIComponent(orderId)}/status`, {
-        method: 'PATCH',
-        body: { status }
-      });
-      toast('Status pesanan diperbarui.');
-      window.refreshNotificationBadge?.();
+    return withActionLock(`order:${orderId}`, async () => {
+      try {
+        await request(`/api/commerce/orders/${encodeURIComponent(orderId)}/status`, {
+          method: 'PATCH',
+          body: { status }
+        });
+        toast('Status pesanan diperbarui.');
+        window.refreshNotificationBadge?.();
 
-      const data = await request(`/api/commerce/orders?scope=${scope}`);
-      const orders = Array.isArray(data.orders) ? data.orders : [];
-      if (scope === 'seller') COMMERCE.sellerOrders = orders;
-      else COMMERCE.buyerOrders = orders;
+        const data = await request(`/api/commerce/orders?scope=${scope}`);
+        const orders = Array.isArray(data.orders) ? data.orders : [];
+        if (scope === 'seller') COMMERCE.sellerOrders = orders;
+        else COMMERCE.buyerOrders = orders;
 
-      await renderOrderDetail({ orderId, scope });
-    } catch (error) {
-      toast(error.message || 'Status pesanan belum dapat diubah.');
-    }
+        await renderOrderDetail({ orderId, scope });
+        return true;
+      } catch (error) {
+        if ([403, 409].includes(error.status)) {
+          await request(`/api/commerce/orders?scope=${scope}`)
+            .then(data => {
+              const orders = Array.isArray(data.orders) ? data.orders : [];
+              if (scope === 'seller') COMMERCE.sellerOrders = orders;
+              else COMMERCE.buyerOrders = orders;
+            })
+            .catch(() => null);
+        }
+        toast(error.message || 'Status pesanan belum dapat diubah.');
+        return false;
+      }
+    });
   }
 
   async function renderSellerCenter() {
@@ -1629,32 +1721,38 @@
   }
 
   async function deleteProduct(productId) {
-    try {
-      await request(`/api/products/${encodeURIComponent(productId)}`, { method: 'DELETE' });
-      if (typeof closeBottomSheet === 'function') closeBottomSheet();
-      toast('Produk berhasil dihapus.');
-      await loadProducts();
-      await go('products', {}, { replace: true });
-    } catch (error) {
-      toast(error.message || 'Produk belum dapat dihapus.');
-    }
+    return withActionLock(`delete-product:${productId}`, async () => {
+      try {
+        await request(`/api/products/${encodeURIComponent(productId)}`, { method: 'DELETE' });
+        if (typeof closeBottomSheet === 'function') closeBottomSheet();
+        toast('Produk berhasil dihapus.');
+        await loadProducts();
+        await go('products', {}, { replace: true });
+        return true;
+      } catch (error) {
+        toast(error.message || 'Produk belum dapat dihapus.');
+        return false;
+      }
+    });
   }
 
   async function addCart(productId, silent = false) {
     if (!requireLogin('Masuk untuk menambahkan produk ke keranjang.')) return false;
 
-    try {
-      const data = await request('/api/commerce/cart/items', {
-        method: 'POST',
-        body: { product_id: productId, quantity: 1 }
-      });
-      syncCart(data.cart);
-      if (!silent) toast('Ditambahkan ke keranjang.');
-      return true;
-    } catch (error) {
-      toast(error.message || 'Produk belum dapat dimasukkan ke keranjang.');
-      return false;
-    }
+    return withActionLock(`add-cart:${productId}`, async () => {
+      try {
+        const data = await request('/api/commerce/cart/items', {
+          method: 'POST',
+          body: { product_id: productId, quantity: 1 }
+        });
+        syncCart(data.cart);
+        if (!silent) toast('Ditambahkan ke keranjang.');
+        return true;
+      } catch (error) {
+        toast(error.message || 'Produk belum dapat dimasukkan ke keranjang.');
+        return false;
+      }
+    });
   }
 
   function onboardingProgress(step) {
@@ -2087,7 +2185,7 @@
   document.addEventListener('submit', handleSubmit, true);
 
   window.PasarCommerce = Object.freeze({
-    version: '2.0',
+    version: '2.1',
     handleIntent,
     openCart: () => go('cart'),
     openSellerCenter: () => go('seller-center'),

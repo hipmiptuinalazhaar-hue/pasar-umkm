@@ -250,7 +250,7 @@ window.__PASAR_COMMERCE_V2__ = true;
   }
 
   function ensureScript() {
-    if (window.PasarCommerce?.version === '2.0') {
+    if (window.PasarCommerce?.version === '2.1') {
       return Promise.resolve(window.PasarCommerce);
     }
 
@@ -259,7 +259,7 @@ window.__PASAR_COMMERCE_V2__ = true;
       return new Promise((resolve, reject) => {
         const started = Date.now();
         const timer = window.setInterval(() => {
-          if (window.PasarCommerce?.version === '2.0') {
+          if (window.PasarCommerce?.version === '2.1') {
             window.clearInterval(timer);
             resolve(window.PasarCommerce);
           } else if (Date.now() - started > 5000) {
@@ -272,10 +272,10 @@ window.__PASAR_COMMERCE_V2__ = true;
 
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = 'js/commerce-experience-v2.js?v=2.0';
+      script.src = 'js/commerce-experience-v2.js?v=2.1';
       script.dataset.commerceV2Script = 'true';
       script.onload = () => {
-        if (window.PasarCommerce?.version === '2.0') {
+        if (window.PasarCommerce?.version === '2.1') {
           resolve(window.PasarCommerce);
         } else {
           reject(new Error('Commerce module tidak terinisialisasi.'));
