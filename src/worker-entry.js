@@ -25,13 +25,12 @@ import { handleAdminControlApi } from "./admin-control-api.js";
 import { enforceRateLimit } from "./rate-limit.js";
 import { ensureNotificationInfrastructure } from "./notification-store.js";
 import { ensureFullFunctionalityInfrastructure } from "./functionality-bootstrap.js";
+import { observeRequest } from "./observability.js";
 
 const P0_MIGRATION = "2026-09-02-p0-runtime-schema-hardening";
 const P1_MIGRATION = "2026-09-02-p1-security-performance";
 
-function schemaUnavailable(error) {
-  console.error("Production schema verification failed:", error);
-
+function schemaUnavailable() {
   return Response.json(
     {
       ok: false,
@@ -136,14 +135,13 @@ async function handleHealth(env) {
         }
       }
     );
-  } catch (error) {
-    console.error("Health diagnostic error:", error);
-
+  } catch {
     return Response.json(
       {
         ok: false,
         app: "Pasar UMKM",
-        error: "Database connection failed"
+        error: "Database connection failed",
+        code: "HEALTH_DATABASE_ERROR"
       },
       {
         status: 500,
@@ -155,8 +153,7 @@ async function handleHealth(env) {
   }
 }
 
-export default {
-  async fetch(request, env, ctx) {
+async function routeRequest(request, env, ctx) {
     const url = new URL(request.url);
 
     if (url.pathname === "/api/health") {
@@ -192,12 +189,10 @@ export default {
     try {
       await ensureNotificationInfrastructure(env);
       await ensureFullFunctionalityInfrastructure(env);
-    } catch (error) {
+    } catch {
       if (url.pathname.startsWith("/api/")) {
-        return schemaUnavailable(error);
+        return schemaUnavailable();
       }
-
-      console.error("Non-API schema verification warning:", error);
     }
 
     const publicCatalogResponse =
@@ -334,5 +329,10 @@ export default {
     }
 
     return legacyWorker.fetch(request, env, ctx);
+}
+
+export default {
+  async fetch(request, env, ctx) {
+    return observeRequest(request, env, ctx, routeRequest);
   }
 };
