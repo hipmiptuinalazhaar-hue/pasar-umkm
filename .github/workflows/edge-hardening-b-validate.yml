@@ -1,0 +1,45 @@
+name: Edge Hardening B Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'index.html'
+      - 'js/commerce-experience-v2.js'
+      - 'js/profile-saved.js'
+      - 'src/functionality-api.js'
+      - 'scripts/validate-edge-hardening-b.mjs'
+      - '.github/workflows/edge-hardening-b-validate.yml'
+      - '.github/workflows/ui-p2-commerce-validate.yml'
+      - '.github/workflows/ui-p6-polish-performance-validate.yml'
+      - 'docs/ERROR_EDGE_HARDENING_B.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-edge-hardening:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Validate syntax
+        run: |
+          node --check js/commerce-experience-v2.js
+          node --check js/profile-saved.js
+          node --check src/functionality-api.js
+          node --check scripts/validate-edge-hardening-b.mjs
+
+      - name: Validate hardening contracts
+        run: node scripts/validate-edge-hardening-b.mjs
+
+      - name: Validate runtime build remains reproducible
+        run: |
+          npm ci --ignore-scripts
+          npm run build:runtime
+          git diff --exit-code -- js/app.runtime.js index.html

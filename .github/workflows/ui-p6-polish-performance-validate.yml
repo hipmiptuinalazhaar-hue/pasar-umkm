@@ -36,7 +36,7 @@ jobs:
         run: |
           set -euo pipefail
           git fetch origin main --depth=1
-          allowed='^(index\.html|js/account-resilience\.js|js/profile-saved\.js|js/profile-edit\.js|css/profile-edit\.css|css/rating-form-v3\.css|\.github/workflows/p2-validate\.yml|\.github/workflows/ui-p2-commerce-validate\.yml|\.github/workflows/ui-p3-social-validate\.yml|\.github/workflows/ui-p5-tablet-desktop-validate\.yml|\.github/workflows/ui-p6-polish-performance-validate\.yml)$'
+          allowed='^(index\.html|js/account-resilience\.js|js/profile-saved\.js|js/commerce-experience-v2\.js|js/profile-edit\.js|src/functionality-api\.js|scripts/validate-edge-hardening-b\.mjs|docs/ERROR_EDGE_HARDENING_B\.md|css/profile-edit\.css|css/rating-form-v3\.css|\.github/workflows/edge-hardening-b-validate\.yml|\.github/workflows/p2-validate\.yml|\.github/workflows/ui-p2-commerce-validate\.yml|\.github/workflows/ui-p3-social-validate\.yml|\.github/workflows/ui-p5-tablet-desktop-validate\.yml|\.github/workflows/ui-p6-polish-performance-validate\.yml)$'
           changed="$(git diff --name-only origin/main...HEAD)"
           printf '%s\n' "$changed"
           bad="$(printf '%s\n' "$changed" | grep -Ev "$allowed" || true)"
@@ -117,7 +117,7 @@ jobs:
               errors.append('Brand image preload contract missing')
           if 'js/account-resilience.js?v=4.1' not in index:
               errors.append('Current account loader cache boundary missing')
-          if 'js/profile-saved.js?v=2.1' not in index:
+          if 'js/profile-saved.js?v=2.2' not in index:
               errors.append('P6 Commerce carrier cache boundary missing')
 
           first_party_scripts = re.findall(r'<script[^>]+src="js/[^\"]+"', index)
@@ -173,7 +173,7 @@ jobs:
               errors.append('Commerce carrier still requests retired WhatsApp V5 chat assets')
           for contract in (
               'window.__PASAR_COMMERCE_V2__ = true','css/commerce-experience-v2.css?v=2.0',
-              'js/commerce-experience-v2.js?v=2.0',"document.addEventListener('pointerdown'", "document.addEventListener('click'",
+              'js/commerce-experience-v2.js?v=2.1',"document.addEventListener('pointerdown'", "document.addEventListener('click'",
           ):
               if contract not in carrier:
                   errors.append(f'Commerce lazy contract lost during P6: {contract}')

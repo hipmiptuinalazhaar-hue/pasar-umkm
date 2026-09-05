@@ -303,11 +303,13 @@ async function handleCart(sql, request, url) {
     }
 
     const products = await sql`
-      SELECT stock
-      FROM products
+      SELECT p.stock
+      FROM products p
+      JOIN stores s ON s.id = p.store_id
       WHERE
-        id = ${productId}::uuid
-        AND is_active = TRUE
+        p.id = ${productId}::uuid
+        AND p.is_active = TRUE
+        AND s.is_active = TRUE
       LIMIT 1
     `;
 
