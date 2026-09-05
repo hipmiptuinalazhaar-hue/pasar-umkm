@@ -137,7 +137,7 @@ export async function handleStoreManagementApi(request, env) {
       return jsonError("Silakan masuk terlebih dahulu.", 401);
     }
 
-    if (user.role !== "seller" && user.role !== "admin") {
+    if (user.role !== "seller") {
       return jsonError("Akun bukan pemilik UMKM.", 403);
     }
 
