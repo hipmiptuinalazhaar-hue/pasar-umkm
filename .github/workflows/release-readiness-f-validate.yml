@@ -1,0 +1,48 @@
+name: Final Release Readiness F
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'index.html'
+      - 'css/mobile-foundation-v2.css'
+      - 'css/tablet-desktop-v1.css'
+      - 'css/tablet-desktop-v2.css'
+      - 'css/home-feed-v3.css'
+      - 'css/chat-experience-v7.css'
+      - 'js/chat-experience-v7.js'
+      - 'js/chat-single-render-v6.js'
+      - 'scripts/validate-release-readiness-f.mjs'
+      - 'docs/FINAL_RELEASE_READINESS_F.md'
+      - '.github/workflows/release-readiness-f-validate.yml'
+      - '.github/workflows/ui-p5-tablet-desktop-validate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Validate release contracts
+        run: |
+          node --check scripts/validate-release-readiness-f.mjs
+          node scripts/validate-release-readiness-f.mjs
+
+      - name: Validate active JavaScript owners
+        run: |
+          node --check js/chat-single-render-v6.js
+          node --check js/chat-experience-v7.js
+
+      - name: Validate reproducible runtime build
+        run: |
+          npm ci --ignore-scripts
+          npm run build:runtime
+          git diff --exit-code -- js/app.runtime.js css/style.runtime.css index.html .assetsignore
