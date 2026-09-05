@@ -1,0 +1,43 @@
+name: Production Smoke A
+
+on:
+  push:
+    branches:
+      - qa/production-smoke-a
+    paths:
+      - 'scripts/production-smoke-a.mjs'
+      - 'docs/PRODUCTION_SMOKE_TEST_A.md'
+      - '.github/workflows/production-smoke-a.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'scripts/production-smoke-a.mjs'
+      - 'docs/PRODUCTION_SMOKE_TEST_A.md'
+      - '.github/workflows/production-smoke-a.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-smoke-a-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  production-safe-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Validate smoke harness syntax
+        run: node --check scripts/production-smoke-a.mjs
+
+      - name: Run production-safe smoke matrix
+        env:
+          PRODUCTION_BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+          SMOKE_TIMEOUT_MS: '15000'
+        run: node scripts/production-smoke-a.mjs
