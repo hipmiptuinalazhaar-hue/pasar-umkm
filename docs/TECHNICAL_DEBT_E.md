@@ -83,6 +83,8 @@ E **tidak menutup, merge, rebase, atau menghapus** PR tersebut. PR #31 membawa `
 - schema guard tidak kembali mendokumentasikan runtime DDL yang sudah dipensiunkan;
 - runtime build tetap reproducible.
 
+`UI P4 Chat V7 Validation` juga diperbarui secara substantif. Validator lama sebelumnya mengharuskan retired shim tetap ada dan hanya membatasi ukurannya. Setelah E, expectation diubah menjadi **retired artifacts harus absent**, sementara budget dan contract owner V7 tetap diperiksa. Ini memperbaiki guardrail lama, bukan mengendurkannya demi membuat CI hijau.
+
 ## Database dan API
 
 Bagian E tidak memerlukan migration database dan tidak mengubah data production. Tidak ada endpoint publik baru, tidak ada perubahan contract commerce/social/chat, dan tidak ada perubahan privileged admin authority.
