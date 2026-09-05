@@ -444,7 +444,7 @@ async function changeUserStatus(request, env, userId) {
         'admin.user.status.change', 'user', u.id::text, 'success',
         ${parsed.body.active ? "user_reactivated" : "user_suspended"},
         ${signals.requestId}, ${signals.ipHash}, ${signals.userAgentHash},
-        jsonb_build_object('reason', ${reason}, 'active', u.is_active)
+        jsonb_build_object('reason', ${reason}::text, 'active', u.is_active)
       FROM updated u
       RETURNING id
     )
@@ -501,7 +501,7 @@ async function changeStore(request, env, storeId) {
         ${authz.session.id}, ${authz.session.name}, ${authz.session.email},
         'admin.store.action', 'store', s.id::text, 'success', ${`store_${action}`},
         ${signals.requestId}, ${signals.ipHash}, ${signals.userAgentHash},
-        jsonb_build_object('reason', ${reason}, 'action', ${action})
+        jsonb_build_object('reason', ${reason}::text, 'action', ${action}::text)
       FROM updated s
       RETURNING id
     )
@@ -535,7 +535,7 @@ async function changeContentStatus(request, env, { table, resource, id, active, 
           'admin.product.status.change', ${resource}, p.id::text, 'success',
           ${active ? "product_restored" : "product_suspended"},
           ${signals.requestId}, ${signals.ipHash}, ${signals.userAgentHash},
-          jsonb_build_object('reason', ${reason}, 'active', p.is_active)
+          jsonb_build_object('reason', ${reason}::text, 'active', p.is_active)
         FROM updated p RETURNING id
       )
       SELECT * FROM updated
@@ -560,7 +560,7 @@ async function changeContentStatus(request, env, { table, resource, id, active, 
         'admin.post.status.change', ${resource}, p.id::text, 'success',
         ${active ? "post_restored" : "post_suspended"},
         ${signals.requestId}, ${signals.ipHash}, ${signals.userAgentHash},
-        jsonb_build_object('reason', ${reason}, 'active', p.is_active)
+        jsonb_build_object('reason', ${reason}::text, 'active', p.is_active)
       FROM updated p RETURNING id
     )
     SELECT * FROM updated
