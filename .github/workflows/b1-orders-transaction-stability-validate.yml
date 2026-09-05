@@ -1,0 +1,117 @@
+name: B1 Orders Transaction Stability
+
+on:
+  pull_request:
+    paths:
+      - 'src/orders-api-v2.js'
+      - 'src/worker-entry.js'
+      - '.github/workflows/b1-orders-transaction-stability-validate.yml'
+  push:
+    branches:
+      - b1-orders-transaction-stability
+    paths:
+      - 'src/orders-api-v2.js'
+      - 'src/worker-entry.js'
+      - '.github/workflows/b1-orders-transaction-stability-validate.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-b1-orders:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+
+      - name: Syntax validation
+        run: |
+          node --check src/orders-api-v2.js
+          node --check src/worker-entry.js
+
+      - name: Validate Orders V2 contracts
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+
+          const orders = fs.readFileSync('src/orders-api-v2.js', 'utf8');
+          const worker = fs.readFileSync('src/worker-entry.js', 'utf8');
+          const bytes = Buffer.byteLength(orders);
+
+          const requireText = (source, text, label) => {
+            if (!source.includes(text)) throw new Error(`Missing ${label}: ${text}`);
+          };
+
+          if (bytes > 30000) {
+            throw new Error(`Orders V2 terlalu besar: ${bytes} / 30000 bytes`);
+          }
+
+          requireText(orders, '/api/commerce/checkout', 'checkout route');
+          requireText(orders, '/api/commerce/orders', 'order list route');
+          requireText(orders, '/status$/i', 'status route');
+
+          // N+1 regression guard: order items must be loaded in one batched query.
+          requireText(orders, 'order_id = ANY(${orderIds}::uuid[])', 'batched order-items query');
+          if (orders.includes('items: await getOrderItems')) {
+            throw new Error('N+1 order-item enrichment kembali muncul.');
+          }
+          if (orders.includes('for (const order of orders)')) {
+            throw new Error('Serial per-order enrichment loop kembali muncul.');
+          }
+
+          // Checkout must keep row locks and stock mutation inside one transaction.
+          requireText(orders, 'FOR UPDATE', 'checkout row locking');
+          requireText(orders, 'FOR UPDATE OF p', 'product row locking');
+          requireText(orders, 'DELETE FROM cart_items WHERE cart_id = $1::uuid', 'atomic cart clear');
+          requireText(orders, "'Pesanan baru'", 'seller checkout notification');
+
+          // Status update must be idempotent after authorization and row locking.
+          const sameStatus = orders.indexOf('if (order.status === nextStatus)');
+          const statusUpdate = orders.indexOf('UPDATE orders', sameStatus);
+          const notification = orders.indexOf('Status pesanan diperbarui', sameStatus);
+          if (sameStatus < 0 || statusUpdate < 0 || notification < 0) {
+            throw new Error('Idempotent status-update contract tidak lengkap.');
+          }
+          if (!(sameStatus < statusUpdate && statusUpdate < notification)) {
+            throw new Error('Same-status guard harus terjadi sebelum UPDATE dan notifikasi.');
+          }
+          requireText(orders, 'changed: false', 'idempotent unchanged response');
+          requireText(orders, 'changed: true', 'changed response');
+          requireText(orders, 'FOR UPDATE OF o', 'order status row lock');
+
+          // Cancellation restock must be aggregated inside its own helper.
+          const restockStart = orders.indexOf('async function restockCancelledOrder');
+          const updateStart = orders.indexOf('async function updateOrderStatus', restockStart);
+          if (restockStart < 0 || updateStart < 0) {
+            throw new Error('Cancellation restock helper tidak ditemukan.');
+          }
+          const restockSource = orders.slice(restockStart, updateStart);
+          requireText(restockSource, 'WITH restock AS', 'aggregated cancellation restock');
+          requireText(restockSource, 'SUM(quantity)::int AS quantity', 'aggregated restock quantity');
+          if (/for\s*\(/.test(restockSource)) {
+            throw new Error('Cancellation restock tidak boleh memakai per-item loop.');
+          }
+
+          // Runtime schema mutation is forbidden.
+          if (/\b(CREATE|ALTER|DROP)\s+(TABLE|INDEX|TRIGGER|TYPE)\b/i.test(orders)) {
+            throw new Error('Orders V2 tidak boleh melakukan runtime DDL.');
+          }
+
+          // Effective route ownership: Orders V2 must run before legacy functionality.
+          requireText(worker, 'import { handleOrdersApiV2 } from "./orders-api-v2.js";', 'Orders V2 import');
+          const ownerCall = worker.indexOf('await handleOrdersApiV2(request, env)');
+          const legacyCall = worker.indexOf('await handleFunctionalityApi(request, env)');
+          if (ownerCall < 0 || legacyCall < 0 || ownerCall > legacyCall) {
+            throw new Error('Orders V2 harus menjadi effective owner sebelum functionality-api.');
+          }
+
+          console.log(`Orders V2 bytes: ${bytes} / 30000`);
+          console.log('B1 order batching, idempotency, restock, notification, and ownership contracts OK.');
+          NODE
