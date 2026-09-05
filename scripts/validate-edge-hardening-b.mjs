@@ -40,10 +40,18 @@ for (const [marker, label] of [
   ["withActionLock(`order:${orderId}`", 'order transition lock'],
   ["withActionLock(`delete-product:${productId}`", 'product delete lock'],
   ["withActionLock(`add-cart:${productId}`", 'add-cart lock'],
+  ["withActionLock('store-submit'", 'store submit lock'],
+  ["withActionLock('product-submit'", 'product submit lock'],
+  ["withActionLock(`onboarding:${step}`", 'onboarding lock'],
   ['submit.setAttribute(\'aria-busy\', \'true\')', 'checkout loading accessibility state'],
   ["['REQUEST_TIMEOUT', 'NETWORK_ERROR'].includes(error.code)", 'ambiguous checkout reconciliation'],
   ["Periksa Pesanan Saya sebelum mencoba lagi.", 'ambiguous checkout user guidance'],
   ["await go('buyer-orders', {}, { replace: true })", 'ambiguous checkout safe destination'],
+  ["'Keranjang belum dapat dimuat'", 'recoverable cart error state'],
+  ["data-commerce-route=\"cart\">Coba Lagi", 'cart retry action'],
+  ["'Checkout belum dapat dimuat'", 'recoverable checkout error state'],
+  ["data-commerce-route=\"checkout\">Coba Lagi", 'checkout retry action'],
+  ["'Pesanan belum dapat dimuat'", 'recoverable orders error state'],
 ]) {
   requireText(commerce, marker, label);
 }
@@ -79,6 +87,7 @@ requireText(p6, 'js/profile-saved.js?v=2.2', 'P6 carrier cache assertion');
 requireText(p6, 'js/commerce-experience-v2.js?v=2.1', 'P6 Commerce cache assertion');
 requireText(p6, 'scripts/validate-edge-hardening-b\\.mjs', 'P6 hardening scope guard');
 requireText(p6, 'src/functionality-api\\.js', 'P6 backend hardening scope guard');
+requireText(p6, '\\.github/workflows/edge-hardening-b-validate\\.yml', 'P6 edge workflow scope guard');
 
 const commerceBytes = fs.statSync(commercePath).size;
 if (commerceBytes > 80_000) {
