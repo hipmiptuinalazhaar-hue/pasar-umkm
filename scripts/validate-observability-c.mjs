@@ -26,7 +26,7 @@ for (const [marker, label] of [
   ['DEFAULT_SUCCESS_SAMPLE_RATE = 0.10', 'success sampling default'],
   ['DEFAULT_CLIENT_ERROR_SAMPLE_RATE = 0.25', 'client-error sampling default'],
   ['DEFAULT_SLOW_REQUEST_MS = 1500', 'slow request threshold'],
-  ['crypto.randomUUID()', 'server-side request id'],
+  ['return safeCfRay(request) || crypto.randomUUID();', 'trusted Cloudflare/UUID request correlation'],
   ['"X-Request-Id"', 'request correlation header'],
   ['"Server-Timing"', 'server timing header'],
   ['"api.request.failed"', '5xx event'],
@@ -37,7 +37,7 @@ for (const [marker, label] of [
   ['status >= 500 || status === 429', 'always-log critical status policy'],
   ['durationMs >= slowMs', 'always-log slow request policy'],
   ['error_class: safeErrorClass(error)', 'sanitized exception class'],
-  ['route: route', 'sanitized route field'],
+  ['method: request.method,\n        route,', 'sanitized route field'],
   ['return path.startsWith("/api/") ? "/api/other" : "worker/other"', 'redacted unknown route fallback'],
   ['raw_path_logged: false', 'privacy policy raw path'],
   ['query_string_logged: false', 'privacy policy query'],
@@ -57,6 +57,7 @@ for (const [marker, label] of [
   ['"User-Agent"', 'user-agent access in observability owner'],
   ['"CF-Connecting-IP"', 'raw IP access in observability owner'],
   ['"X-Forwarded-For"', 'forwarded IP access in observability owner'],
+  ['request.headers.get("X-Request-Id")', 'client-controlled request id trust'],
   ['url.search', 'query-string access in observability owner'],
   ['request.json(', 'request body parsing in observability owner'],
   ['request.text(', 'request body parsing in observability owner'],
@@ -94,6 +95,7 @@ for (const marker of [
   'api.auth.denied',
   'Privacy boundary',
   'Recommended production alert thresholds',
+  'admin_audit_logs.request_id',
 ]) {
   requireText(docs, marker, `runbook ${marker}`);
 }
