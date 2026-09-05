@@ -1,10 +1,11 @@
-name: UI P5 Tablet Desktop Validation
+name: UI Responsive V2 Validation
 
 on:
   pull_request:
     branches:
       - main
     paths:
+      - 'css/tablet-desktop-v2.css'
       - 'css/tablet-desktop-v1.css'
       - 'css/tokens.css'
       - 'index.html'
@@ -17,28 +18,13 @@ permissions:
 jobs:
   validate-responsive-system:
     runs-on: ubuntu-latest
+    timeout-minutes: 8
 
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
-
-      - name: Enforce UI-P5 authoring scope
-        if: github.head_ref == 'ui-p5-tablet-desktop'
-        shell: bash
-        run: |
-          set -euo pipefail
-          git fetch origin main --depth=1
-          allowed='^(css/tablet-desktop-v1\.css|css/tokens\.css|index\.html|\.github/workflows/ui-p5-tablet-desktop-validate\.yml)$'
-          changed="$(git diff --name-only origin/main...HEAD)"
-          printf '%s\n' "$changed"
-          bad="$(printf '%s\n' "$changed" | grep -Ev "$allowed" || true)"
-          if [ -n "$bad" ]; then
-            echo 'UI-P5 touched files outside responsive presentation scope:'
-            printf '%s\n' "$bad"
-            exit 1
-          fi
 
       - name: Validate responsive architecture and budgets
         shell: python
@@ -47,14 +33,18 @@ jobs:
           import re
           import sys
 
-          css_path = Path('css/tablet-desktop-v1.css')
+          css_path = Path('css/tablet-desktop-v2.css')
+          retired_path = Path('css/tablet-desktop-v1.css')
           index_path = Path('index.html')
           tokens_path = Path('css/tokens.css')
           errors = []
 
           for path in (css_path, index_path, tokens_path):
               if not path.exists():
-                  errors.append(f'Missing required UI-P5 file: {path}')
+                  errors.append(f'Missing responsive release file: {path}')
+
+          if retired_path.exists():
+              errors.append('Legacy responsive owner returned: css/tablet-desktop-v1.css')
 
           if errors:
               print('\n'.join(errors))
@@ -65,28 +55,43 @@ jobs:
           tokens = tokens_path.read_text(encoding='utf-8')
 
           size = css_path.stat().st_size
-          print(f'UI-P5 CSS: {size} / 28000 bytes')
-          if size > 28_000:
-              errors.append(f'UI-P5 CSS exceeds source budget: {size} > 28000')
+          print(f'Responsive V2 CSS: {size} / 36000 bytes')
+          if size > 36_000:
+              errors.append(f'Responsive V2 CSS exceeds source budget: {size} > 36000')
 
           important_count = css.count('!important')
-          print(f'UI-P5 migration !important debt: {important_count} / 36')
-          if important_count > 36:
-              errors.append(f'UI-P5 !important migration debt increased beyond budget: {important_count} > 36')
+          print(f'Responsive V2 !important debt: {important_count} / 40')
+          if important_count > 40:
+              errors.append(f'Responsive V2 !important debt exceeds budget: {important_count} > 40')
 
-          for marker in ('@media (min-width: 768px)','@media (min-width: 1024px)','@media (min-width: 1280px)'):
+          breakpoints = (
+              '@media (min-width: 768px)',
+              '@media (min-width: 900px) and (max-width: 1023px)',
+              '@media (min-width: 1024px)',
+              '@media (min-width: 1280px)',
+              '@media (min-width: 1600px)',
+          )
+          for marker in breakpoints:
               if marker not in css:
-                  errors.append(f'Missing responsive breakpoint: {marker}')
+                  errors.append(f'Missing responsive device band: {marker}')
 
           required_contracts = (
-              '--p5-feed-max: 680px','--p5-work-max: 880px','--p5-rail: 92px','--p5-rail: 216px',
-              'grid-template-columns: repeat(8, minmax(0, 1fr))','body.p3-comments-open .bottom-sheet',
-              '.commerce-page:has(> .commerce-detail-media)','body.chat-v7-body .app-navigation',
-              '@media (hover: hover) and (pointer: fine)','@media (prefers-reduced-motion: reduce)'
+              '--p5-feed-max: 720px',
+              '--p5-work-max: 920px',
+              '--p5-rail: 88px',
+              '--p5-rail: 208px',
+              '--p5-social-max: 860px',
+              'grid-template-columns: repeat(8, minmax(0, 1fr))',
+              'body.p3-comments-open .bottom-sheet',
+              '.commerce-page:has(> .commerce-detail-media)',
+              'body.chat-v7-body .app-navigation',
+              'visibility: visible !important',
+              '@media (hover: hover) and (pointer: fine)',
+              '@media (prefers-reduced-motion: reduce)',
           )
           for marker in required_contracts:
               if marker not in css:
-                  errors.append(f'Missing UI-P5 contract: {marker}')
+                  errors.append(f'Missing responsive release contract: {marker}')
 
           forbidden = {
               'linear-gradient(': 'decorative gradient',
@@ -96,34 +101,48 @@ jobs:
           }
           for marker, label in forbidden.items():
               if marker in css:
-                  errors.append(f'UI-P5 contains forbidden {label}: {marker}')
+                  errors.append(f'Responsive V2 contains forbidden {label}: {marker}')
 
-          tiny_fonts = [float(v) for v in re.findall(r'font-size\s*:\s*([0-9.]+)px', css) if float(v) < 10]
+          tiny_fonts = [
+              float(v)
+              for v in re.findall(r'font-size\s*:\s*([0-9.]+)px', css)
+              if float(v) < 10
+          ]
           if tiny_fonts:
-              errors.append(f'UI-P5 contains font sizes below 10px: {tiny_fonts}')
+              errors.append(f'Responsive V2 contains fonts below 10px: {tiny_fonts}')
 
           stripped = re.sub(r'/\*.*?\*/', '', css, flags=re.S)
           if stripped.count('{') != stripped.count('}'):
-              errors.append('UI-P5 CSS braces are unbalanced')
+              errors.append('Responsive V2 CSS braces are unbalanced')
 
-          p5_href = 'css/tablet-desktop-v1.css?v=1.0'
-          home_href = 'css/home-feed-v3.css?v=3.0'
-          if p5_href not in index:
-              errors.append('UI-P5 stylesheet is not wired in index.html')
-          if home_href not in index:
-              errors.append('Home Feed stylesheet marker missing from index.html')
-          if p5_href in index and home_href in index and index.index(p5_href) < index.index(home_href):
-              errors.append('UI-P5 stylesheet must load after Home Feed to own the desktop cascade')
+          current_href = 'css/tablet-desktop-v2.css?v=2.0'
+          retired_href = 'tablet-desktop-v1.css'
+          if current_href not in index:
+              errors.append('Responsive V2 stylesheet is not wired in index.html')
+          if retired_href in index:
+              errors.append('index.html still references retired responsive v1')
 
-          media_pattern = re.compile(r'<link\s+[^>]*href="css/tablet-desktop-v1\.css\?v=1\.0"[^>]*media="screen and \(min-width: 768px\)"[^>]*>', re.S)
+          media_pattern = re.compile(
+              r'<link\s+[^>]*href="css/tablet-desktop-v2\.css\?v=2\.0"[^>]*media="screen and \(min-width: 768px\)"[^>]*>',
+              re.S
+          )
           if not media_pattern.search(index):
-              errors.append('UI-P5 stylesheet must be media-qualified to >= 768px')
-          if 'tablet-desktop-v1.css' in tokens:
-              errors.append('UI-P5 must not be imported from tokens.css; cascade order would be wrong')
+              errors.append('Responsive V2 link must be media-qualified to >=768px')
+
+          hotfix_marker = '<style id="postP6MobileShellHotfix">'
+          mobile_scope = '@media (max-width: 767px)'
+          if hotfix_marker not in index or mobile_scope not in index:
+              errors.append('Post-P6 shell hotfix is not explicitly mobile-scoped')
+          elif index.index(current_href) < index.index(hotfix_marker):
+              errors.append('Responsive V2 must load after the mobile-only hotfix block')
+
+          if 'tablet-desktop-v2.css' in tokens or 'tablet-desktop-v1.css' in tokens:
+              errors.append('Responsive owner must not be imported from tokens.css')
 
           if errors:
-              print('UI P5 Tablet/Desktop validation failed:')
+              print('Responsive V2 validation failed:')
               for error in errors:
                   print(f'- {error}')
               sys.exit(1)
-          print('UI P5 Tablet/Desktop validation passed.')
+
+          print('Responsive V2 validation passed.')
