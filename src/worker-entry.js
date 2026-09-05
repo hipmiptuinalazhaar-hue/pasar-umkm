@@ -154,105 +154,181 @@ async function handleHealth(env) {
 }
 
 async function routeRequest(request, env, ctx) {
-  const url = new URL(request.url);
+    const url = new URL(request.url);
 
-  if (url.pathname === "/api/health") {
-    return handleHealth(env);
-  }
-
-  const rateLimitResponse = await enforceRateLimit(request);
-  if (rateLimitResponse) {
-    return rateLimitResponse;
-  }
-
-  // Privileged administration auth is an isolated security domain and must
-  // remain available independently from public social-commerce feature bootstraps.
-  const adminAuthResponse = await handleAdminAuthApi(request, env);
-  if (adminAuthResponse) {
-    return adminAuthResponse;
-  }
-
-  // RBAC/capability resolution shares the isolated admin runtime boundary.
-  // Future privileged APIs must authorize server-side before public bootstraps.
-  const adminAccessResponse = await handleAdminAccessApi(request, env);
-  if (adminAccessResponse) {
-    return adminAccessResponse;
-  }
-
-  // Operational control-center APIs remain inside the same privileged boundary.
-  // They must never depend on unrelated public social-commerce bootstraps.
-  const adminControlResponse = await handleAdminControlApi(request, env);
-  if (adminControlResponse) {
-    return adminControlResponse;
-  }
-
-  try {
-    await ensureNotificationInfrastructure(env);
-    await ensureFullFunctionalityInfrastructure(env);
-  } catch {
-    if (url.pathname.startsWith("/api/")) {
-      return schemaUnavailable();
+    if (url.pathname === "/api/health") {
+      return handleHealth(env);
     }
-  }
 
-  const publicCatalogResponse = await handlePublicCatalogApi(request, env);
-  if (publicCatalogResponse) return publicCatalogResponse;
+    const rateLimitResponse = await enforceRateLimit(request);
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
 
-  const notificationResponse = await handleNotificationApi(request, env);
-  if (notificationResponse) return notificationResponse;
+    // Privileged administration auth is an isolated security domain and must
+    // remain available independently from public social-commerce feature bootstraps.
+    const adminAuthResponse = await handleAdminAuthApi(request, env);
+    if (adminAuthResponse) {
+      return adminAuthResponse;
+    }
 
-  const ratingSummaryResponse = await handleRatingSummaryV2(request, env);
-  if (ratingSummaryResponse) return ratingSummaryResponse;
+    // RBAC/capability resolution shares the isolated admin runtime boundary.
+    // Future privileged APIs must authorize server-side before public bootstraps.
+    const adminAccessResponse = await handleAdminAccessApi(request, env);
+    if (adminAccessResponse) {
+      return adminAccessResponse;
+    }
 
-  const ratingResponse = await handleRatingApi(request, env);
-  if (ratingResponse) return ratingResponse;
+    // Operational control-center APIs remain inside the same privileged boundary.
+    // They must never depend on unrelated public social-commerce bootstraps.
+    const adminControlResponse = await handleAdminControlApi(request, env);
+    if (adminControlResponse) {
+      return adminControlResponse;
+    }
 
-  const storyUploadResponse = await handleStoryUploadApi(request, env);
-  if (storyUploadResponse) return storyUploadResponse;
+    try {
+      await ensureNotificationInfrastructure(env);
+      await ensureFullFunctionalityInfrastructure(env);
+    } catch {
+      if (url.pathname.startsWith("/api/")) {
+        return schemaUnavailable();
+      }
+    }
 
-  const mediaSocialResponse = await handleMediaSocialApi(request, env);
-  if (mediaSocialResponse) return mediaSocialResponse;
+    const publicCatalogResponse =
+      await handlePublicCatalogApi(request, env);
 
-  const businessAgencyResponse = await handleBusinessAgencyApi(request, env);
-  if (businessAgencyResponse) return businessAgencyResponse;
+    if (publicCatalogResponse) {
+      return publicCatalogResponse;
+    }
 
-  const storeManagementResponse = await handleStoreManagementApi(request, env);
-  if (storeManagementResponse) return storeManagementResponse;
+    const notificationResponse =
+      await handleNotificationApi(request, env);
 
-  const functionalityResponse = await handleFunctionalityApi(request, env);
-  if (functionalityResponse) return functionalityResponse;
+    if (notificationResponse) {
+      return notificationResponse;
+    }
 
-  const engagementResponse = await handleEngagementApi(request, env);
-  if (engagementResponse) return engagementResponse;
+    const ratingSummaryResponse =
+      await handleRatingSummaryV2(request, env);
 
-  const commentResponse = await handleCommentApi(request, env);
-  if (commentResponse) return commentResponse;
+    if (ratingSummaryResponse) {
+      return ratingSummaryResponse;
+    }
 
-  const chatMediaResponse = await handleChatMediaApiV2(request, env);
-  if (chatMediaResponse) return chatMediaResponse;
+    const ratingResponse =
+      await handleRatingApi(request, env);
 
-  const chatMessageActionResponse = await handleChatMessageActionApi(request, env);
-  if (chatMessageActionResponse) return chatMessageActionResponse;
+    if (ratingResponse) {
+      return ratingResponse;
+    }
 
-  const chatMarkReadResponse = await handleChatMarkReadApi(request, env);
-  if (chatMarkReadResponse) return chatMarkReadResponse;
+    const storyUploadResponse =
+      await handleStoryUploadApi(request, env);
 
-  const chatManagementResponse = await handleChatManagementApi(request, env);
-  if (chatManagementResponse) return chatManagementResponse;
+    if (storyUploadResponse) {
+      return storyUploadResponse;
+    }
 
-  const socialResponse = await handleSocialApi(request, env);
-  if (socialResponse) return socialResponse;
+    const mediaSocialResponse =
+      await handleMediaSocialApi(request, env);
 
-  const publicProfileResponse = await handlePublicProfileApi(request, env);
-  if (publicProfileResponse) return publicProfileResponse;
+    if (mediaSocialResponse) {
+      return mediaSocialResponse;
+    }
 
-  const profileMediaResponse = await handleProfileMediaApi(request, env);
-  if (profileMediaResponse) return profileMediaResponse;
+    const businessAgencyResponse =
+      await handleBusinessAgencyApi(request, env);
 
-  const profileResponse = await handleProfileApi(request, env);
-  if (profileResponse) return profileResponse;
+    if (businessAgencyResponse) {
+      return businessAgencyResponse;
+    }
 
-  return legacyWorker.fetch(request, env, ctx);
+    const storeManagementResponse =
+      await handleStoreManagementApi(request, env);
+
+    if (storeManagementResponse) {
+      return storeManagementResponse;
+    }
+
+    const functionalityResponse =
+      await handleFunctionalityApi(request, env);
+
+    if (functionalityResponse) {
+      return functionalityResponse;
+    }
+
+    const engagementResponse =
+      await handleEngagementApi(request, env);
+
+    if (engagementResponse) {
+      return engagementResponse;
+    }
+
+    const commentResponse =
+      await handleCommentApi(request, env);
+
+    if (commentResponse) {
+      return commentResponse;
+    }
+
+    const chatMediaResponse =
+      await handleChatMediaApiV2(request, env);
+
+    if (chatMediaResponse) {
+      return chatMediaResponse;
+    }
+
+    const chatMessageActionResponse =
+      await handleChatMessageActionApi(request, env);
+
+    if (chatMessageActionResponse) {
+      return chatMessageActionResponse;
+    }
+
+    const chatMarkReadResponse =
+      await handleChatMarkReadApi(request, env);
+
+    if (chatMarkReadResponse) {
+      return chatMarkReadResponse;
+    }
+
+    const chatManagementResponse =
+      await handleChatManagementApi(request, env);
+
+    if (chatManagementResponse) {
+      return chatManagementResponse;
+    }
+
+    const socialResponse =
+      await handleSocialApi(request, env);
+
+    if (socialResponse) {
+      return socialResponse;
+    }
+
+    const publicProfileResponse =
+      await handlePublicProfileApi(request, env);
+
+    if (publicProfileResponse) {
+      return publicProfileResponse;
+    }
+
+    const profileMediaResponse =
+      await handleProfileMediaApi(request, env);
+
+    if (profileMediaResponse) {
+      return profileMediaResponse;
+    }
+
+    const profileResponse =
+      await handleProfileApi(request, env);
+
+    if (profileResponse) {
+      return profileResponse;
+    }
+
+    return legacyWorker.fetch(request, env, ctx);
 }
 
 export default {
