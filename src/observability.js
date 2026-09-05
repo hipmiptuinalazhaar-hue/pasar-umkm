@@ -65,13 +65,13 @@ async function responseErrorCode(response) {
   }
 }
 
-function requestId() {
-  return crypto.randomUUID();
-}
-
 function safeCfRay(request) {
   const value = String(request.headers.get("CF-Ray") || "").trim();
   return /^[A-Za-z0-9-]{4,128}$/.test(value) ? value : null;
+}
+
+function requestId(request) {
+  return safeCfRay(request) || crypto.randomUUID();
 }
 
 function safeColo(request) {
@@ -134,7 +134,7 @@ function withDiagnosticHeaders(response, id, durationMs) {
 
 export async function observeRequest(request, env, ctx, handler) {
   const startedAt = performance.now();
-  const id = requestId();
+  const id = requestId(request);
   const url = new URL(request.url);
   const route = routeKey(url.pathname);
   const cfRay = safeCfRay(request);
