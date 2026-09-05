@@ -395,8 +395,7 @@ async function deleteComment(env, request, kind, commentId) {
       }
 
       const owner = String(comment.user_id) === String(user.id);
-      const admin = user.role === "admin";
-      if (!owner && !admin) {
+      if (!owner) {
         throw new HttpError(
           "Anda tidak memiliki izin menghapus komentar ini.",
           403
