@@ -25,46 +25,47 @@
   <link rel="stylesheet" href="css/style.runtime.css?v=f12e2890f267">
   <link rel="stylesheet" href="css/mobile-foundation-v2.css?v=2.1">
   <link rel="stylesheet" href="css/home-feed-v3.css?v=3.0">
-  <link rel="stylesheet" href="css/tablet-desktop-v1.css?v=1.0" media="screen and (min-width: 768px)">
 
-  <!-- POST-P6 mobile shell invariants. Inline means no extra critical request. -->
+  <!-- POST-P6 mobile shell invariants. Kept mobile-only so tablet/desktop owns its own shell. -->
   <style id="postP6MobileShellHotfix">
-    html body .app.account-profile-active > .app-header,
-    html body:has(.social-account-page[data-p3-upgraded="true"]) .app > .app-header {
-      display: none !important;
-      visibility: hidden !important;
-      pointer-events: none !important;
-    }
+    @media (max-width: 767px) {
+      html body .app.account-profile-active > .app-header,
+      html body:has(.social-account-page[data-p3-upgraded="true"]) .app > .app-header {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
 
-    html body .app.account-profile-active > .app-main,
-    html body:has(.social-account-page[data-p3-upgraded="true"]) .app > .app-main {
-      padding-top: 0 !important;
-    }
+      html body .app.account-profile-active > .app-main,
+      html body:has(.social-account-page[data-p3-upgraded="true"]) .app > .app-main {
+        padding-top: 0 !important;
+      }
 
-    html body.chat-v7-body .app > .app-header,
-    html body.chat-v7-body .app > .app-navigation,
-    html body:has(.chat-v7-page) .app > .app-header,
-    html body:has(.chat-v7-page) .app > .app-navigation {
-      display: none !important;
-      visibility: hidden !important;
-      pointer-events: none !important;
-    }
+      html body.chat-v7-body .app > .app-header,
+      html body.chat-v7-body .app > .app-navigation,
+      html body:has(.chat-v7-page) .app > .app-header,
+      html body:has(.chat-v7-page) .app > .app-navigation {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
 
-    html body.chat-v7-body .app > .app-main,
-    html body:has(.chat-v7-page) .app > .app-main {
-      padding: 0 !important;
-    }
+      html body.chat-v7-body .app > .app-main,
+      html body:has(.chat-v7-page) .app > .app-main {
+        padding: 0 !important;
+      }
 
-    html body.chat-v7-body .chat-v7-page {
-      position: fixed !important;
-      top: var(--chat7-offset-top, 0px) !important;
-      left: 50% !important;
-      right: auto !important;
-      width: min(100%, 720px) !important;
-      height: var(--chat7-height, 100dvh) !important;
-      margin: 0 !important;
-      transform: translateX(-50%) !important;
-      z-index: 940 !important;
+      html body.chat-v7-body .chat-v7-page {
+        position: fixed !important;
+        top: var(--chat7-offset-top, 0px) !important;
+        left: 50% !important;
+        right: auto !important;
+        width: min(100%, 720px) !important;
+        height: var(--chat7-height, 100dvh) !important;
+        margin: 0 !important;
+        transform: translateX(-50%) !important;
+        z-index: 940 !important;
+      }
     }
 
     html body .chat-v7-search input:focus-visible,
@@ -82,6 +83,9 @@
       background: #fff !important;
     }
   </style>
+
+  <!-- Final responsive owner for tablet, laptop, and desktop. -->
+  <link rel="stylesheet" href="css/tablet-desktop-v2.css?v=2.0" media="screen and (min-width: 768px)">
 </head>
 
 <body>

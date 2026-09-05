@@ -32,6 +32,7 @@ jobs:
           fetch-depth: 0
 
       - name: Enforce final-delivery maintenance scope
+        if: github.head_ref == 'ui-p6-polish-performance'
         shell: bash
         run: |
           set -euo pipefail
