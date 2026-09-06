@@ -13,6 +13,7 @@ const required = [
   'src/worker-entry.js',
   'src/rate-limit.js',
   'src/request-security.js',
+  'css/tokens.css',
   'css/mobile-foundation-v2.css',
   'css/tablet-desktop-v2.css',
   'css/admin-control.css',
@@ -84,6 +85,14 @@ for (const file of collectFiles('js', path => /\.js$/.test(path))) {
   if (/javascript\s*:/i.test(source)) fail(`${file}: javascript: URL found`);
 }
 
+if (existsSync('css/tokens.css')) {
+  const tokens = read('css/tokens.css');
+  for (const marker of [
+    '--safe-top:env(safe-area-inset-top,0px)',
+    '--safe-bottom:env(safe-area-inset-bottom,0px)'
+  ]) if (!tokens.includes(marker)) fail(`design token owner missing safe-area contract: ${marker}`);
+}
+
 if (existsSync('css/mobile-foundation-v2.css')) {
   const css = read('css/mobile-foundation-v2.css');
   for (const marker of [
@@ -92,8 +101,8 @@ if (existsSync('css/mobile-foundation-v2.css')) {
     'min-width: 44px',
     'min-height: 44px',
     'min-height: 48px',
-    'env(safe-area-inset-top)',
-    'env(safe-area-inset-bottom)',
+    'var(--safe-top',
+    'var(--safe-bottom',
     '@media (prefers-reduced-motion: reduce)'
   ]) if (!css.includes(marker)) fail(`mobile foundation missing contract: ${marker}`);
 }
