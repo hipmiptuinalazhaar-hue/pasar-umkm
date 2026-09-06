@@ -3,15 +3,10 @@ import legacyWorker from "./worker.js";
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const EXACT_ROUTES = new Set([
-  "GET /api/categories",
   "GET /api/stores/me",
   "POST /api/stores",
   "GET /api/products/me",
   "POST /api/products",
-  "POST /api/auth/register",
-  "POST /api/auth/login",
-  "GET /api/auth/me",
-  "POST /api/auth/logout",
   "GET /api/posts",
   "POST /api/posts",
   "POST /api/uploads/product-image",
