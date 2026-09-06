@@ -21,6 +21,7 @@ const seed = fs.readFileSync("database/staging/seed-smoke.sql", "utf8");
 const authWorkflow = fs.readFileSync(".github/workflows/authenticated-smoke-v2.yml", "utf8");
 const bootstrapWorkflow = fs.readFileSync(".github/workflows/staging-e2e-bootstrap-v2.yml", "utf8");
 const gateWorkflow = fs.readFileSync(".github/workflows/p2-staging-release-gate-validate.yml", "utf8");
+const docs = fs.readFileSync("docs/P2_STAGING_RELEASE_GATE.md", "utf8");
 const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8"));
 
 function requireText(text, fragment, label) {
@@ -84,12 +85,14 @@ for (const forbidden of [
 for (const [name, workflow] of [["authenticated", authWorkflow], ["bootstrap", bootstrapWorkflow]]) {
   requireText(workflow, "environment: staging", `${name} workflow staging environment`);
   requireText(workflow, "secrets.", `${name} workflow secret usage`);
-  if (/pasar-umkm\.hipmiptuinalazhaar\.workers\.dev/.test(workflow)) {
-    throw new Error(`${name} workflow must not target production hostname`);
-  }
 }
+requireText(authWorkflow, "Production target rejected for stateful authenticated E2E.", "authenticated production rejection");
+requireText(bootstrapWorkflow, "Refusing bootstrap: target database is", "bootstrap database identity guard");
+requireText(bootstrapWorkflow, "--schema-only", "schema-only staging bootstrap");
+requireText(bootstrapWorkflow, "Schema-only safety assertion failed", "data-copy refusal");
 
 for (const secretName of [
+  "STAGING_SCHEMA_SOURCE_URL",
   "STAGING_DATABASE_URL",
   "SMOKE_BUYER_EMAIL",
   "SMOKE_BUYER_PASSWORD",
@@ -99,13 +102,24 @@ for (const secretName of [
   "SMOKE_ADMIN_PASSWORD"
 ]) requireText(authWorkflow + bootstrapWorkflow, `secrets.${secretName}`, `required secret ${secretName}`);
 
+// Auth runner must not receive direct DB credentials: least privilege.
+if (authWorkflow.includes("STAGING_DATABASE_URL")) {
+  throw new Error("Authenticated HTTP runner must not receive STAGING_DATABASE_URL");
+}
+
 requireText(gateWorkflow, "validate-staging-release-gate-v2.mjs", "P2 validation workflow");
+requireText(docs, "revert the bad merge", "rollback code contract");
+requireText(docs, "Database changes are **not** automatically rolled backward", "rollback database contract");
+requireText(docs, "Post Deploy Smoke", "rollback health verification");
 
 if (packageJson.scripts?.["smoke:authenticated"] !== "node scripts/authenticated-smoke-v2.mjs") {
   throw new Error("smoke:authenticated must point to authenticated-smoke-v2.mjs");
 }
 if (packageJson.scripts?.["validate:staging-release"] !== "node scripts/validate-staging-release-gate-v2.mjs") {
   throw new Error("validate:staging-release script missing or incorrect");
+}
+if (!String(packageJson.scripts?.validate || "").includes("validate:staging-release")) {
+  throw new Error("canonical npm validate must include P2 staging release validation");
 }
 
 console.log("P2 staging release gate V2 contract: PASS");
