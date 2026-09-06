@@ -1,0 +1,42 @@
+name: Feature request
+description: Usulkan peningkatan produk dengan problem statement yang jelas.
+title: "Feature: "
+labels: []
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Masalah pengguna
+      description: Masalah apa yang ingin diselesaikan? Jangan mulai dari solusi UI.
+    validations:
+      required: true
+  - type: textarea
+    id: users
+    attributes:
+      label: Pengguna yang terdampak
+      description: Pembeli, seller UMKM, admin, atau kombinasi.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Hasil yang diharapkan
+      description: Jelaskan outcome dan cara mengetahui fitur ini berhasil.
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Batasan / risiko
+      description: Keamanan, data, performa, biaya, regulasi, atau kompatibilitas perangkat.
+  - type: checkboxes
+    id: principles
+    attributes:
+      label: Prinsip produk
+      options:
+        - label: Tidak membutuhkan data/statistik palsu.
+          required: true
+        - label: Tidak meminta bypass auth, ownership, atau audit.
+          required: true
+        - label: Harus tetap mobile-first dan adaptif ke tablet/desktop.
+          required: true
