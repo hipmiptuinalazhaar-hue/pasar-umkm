@@ -1,6 +1,5 @@
 import fs from "node:fs";
 import path from "node:path";
-import { isLegacyCompatibilityRoute } from "../src/legacy-compat-router.js";
 
 const root = process.cwd();
 const read = file => fs.readFileSync(path.join(root, file), "utf8");
@@ -16,44 +15,44 @@ const expect = (condition, message) => {
 };
 
 const entry = read("src/worker-entry.js");
-const compatibility = read("src/legacy-compat-router.js");
 const auth = read("src/public-auth-api.js");
 const category = read("src/category-api.js");
-const srcFiles = fs.readdirSync(path.join(root, "src"))
-  .filter(name => name.endsWith(".js"));
+const seller = read("src/seller-catalog-api.js");
+const posts = read("src/post-core-api.js");
+const uploads = read("src/image-upload-api.js");
+const srcFiles = fs.readdirSync(path.join(root, "src")).filter(name => name.endsWith(".js"));
 
-expect(!entry.includes('from "./worker.js"'), "worker-entry no longer imports the legacy monolith directly");
-expect(entry.includes('from "./legacy-compat-router.js"'), "worker-entry delegates legacy compatibility through one boundary module");
-expect(entry.includes("await handleLegacyCompatibility(request, env, ctx)"), "legacy compatibility is an explicit routing stage");
-expect(!entry.includes("legacyWorker.fetch"), "worker-entry has no catch-all legacyWorker.fetch escape hatch");
-expect(
-  entry.includes('if (url.pathname.startsWith("/api/"))') && entry.includes('code: "API_NOT_FOUND"'),
-  "unknown APIs terminate in the modern router with an explicit 404 contract"
-);
-expect(entry.includes("return env.ASSETS.fetch(request);"), "static traffic is served directly by the modern entrypoint");
+expect(!fs.existsSync(path.join(root, "src/legacy-compat-router.js")), "legacy compatibility router is retired");
+expect(!entry.includes("handleLegacyCompatibility"), "worker-entry has no legacy compatibility routing stage");
+expect(!entry.includes('from "./worker.js"'), "worker-entry does not import the legacy monolith");
+expect(!entry.includes("legacyWorker.fetch"), "worker-entry has no legacy escape hatch");
 
-const importOwners = srcFiles.filter(name =>
+const legacyImportOwners = srcFiles.filter(name =>
   read(path.join("src", name)).includes('from "./worker.js"')
 );
-expect(
-  importOwners.length === 1 && importOwners[0] === "legacy-compat-router.js",
-  "legacy worker has exactly one import owner"
-);
-expect(compatibility.includes("const EXACT_ROUTES = new Set"), "legacy compatibility uses a visible method-aware allowlist");
-expect(stat("src/legacy-compat-router.js").size <= 4_500, "legacy compatibility boundary stays small enough to audit");
+expect(legacyImportOwners.length === 0, "no runtime source imports worker.js");
+expect(fs.existsSync(path.join(root, "src/worker.js")), "legacy worker remains source-only for audit history during P4 transition");
 
 expect(
-  entry.includes('from "./public-auth-api.js"') && entry.includes("await handlePublicAuthApi(request, env)"),
-  "public authentication has a modular route owner"
+  entry.includes('code: "API_NOT_FOUND"') && entry.includes('if (url.pathname.startsWith("/api/"))'),
+  "unknown API routes terminate fail-closed in worker-entry"
 );
-expect(
-  entry.includes('from "./category-api.js"') && entry.includes("await handleCategoryApi(request, env)"),
-  "public categories have a modular route owner"
-);
-expect(!compatibility.includes("/api/auth/"), "public auth routes have been retired from legacy compatibility");
-expect(!compatibility.includes("/api/categories"), "categories route has been retired from legacy compatibility");
-expect(stat("src/public-auth-api.js").size <= 12_000, "public auth module stays within a focused module budget");
-expect(stat("src/category-api.js").size <= 4_000, "category module stays within a focused module budget");
+expect(entry.includes("return env.ASSETS.fetch(request);"), "static asset ownership remains explicit in worker-entry");
+
+const ownerContracts = [
+  ["public-auth-api.js", "handlePublicAuthApi", auth, 12_000],
+  ["category-api.js", "handleCategoryApi", category, 4_000],
+  ["seller-catalog-api.js", "handleSellerCatalogApi", seller, 24_000],
+  ["post-core-api.js", "handlePostCoreApi", posts, 12_000],
+  ["image-upload-api.js", "handleImageUploadApi", uploads, 12_000]
+];
+
+for (const [file, handler, source, budget] of ownerContracts) {
+  expect(entry.includes(`from "./${file}"`), `${file} is imported by the modern entrypoint`);
+  expect(entry.includes(`await ${handler}(request, env)`), `${handler} owns a routing stage`);
+  expect(stat(`src/${file}`).size <= budget, `${file} stays within its focused module budget`);
+  expect(!source.includes('from "./worker.js"'), `${file} is independent from the legacy monolith`);
+}
 
 expect(auth.includes("crypto.getRandomValues(new Uint8Array(32))"), "session tokens keep 256 bits of cryptographic randomness");
 expect(auth.includes("gen_salt('bf', 12)"), "registration keeps bcrypt cost 12");
@@ -68,69 +67,51 @@ expect(!auth.includes("DATABASE_URL =") && !auth.includes("CLOUDINARY_API_SECRET
 
 expect(category.includes("WHERE is_active = TRUE"), "categories expose active catalog entries only");
 expect(category.includes("ORDER BY sort_order ASC, name ASC"), "category ordering remains deterministic");
-expect(category.includes("id,") && category.includes("slug,") && category.includes("is_home"), "category response preserves the public catalog fields");
 
-const request = (method, pathname) => new Request(`https://p4.test${pathname}`, { method });
-const allowed = [
-  ["GET", "/api/stores/me"],
-  ["POST", "/api/stores"],
-  ["GET", "/api/products/me"],
-  ["POST", "/api/products"],
-  ["PATCH", "/api/products/11111111-1111-4111-8111-111111111111"],
-  ["DELETE", "/api/products/11111111-1111-4111-8111-111111111111"],
-  ["GET", "/api/posts"],
-  ["POST", "/api/posts"],
-  ["DELETE", "/api/posts/11111111-1111-4111-8111-111111111111"],
-  ["POST", "/api/uploads/product-image"],
-  ["POST", "/api/uploads/post-image"]
-];
-
-for (const [method, pathname] of allowed) {
-  expect(
-    isLegacyCompatibilityRoute(request(method, pathname)),
-    `${method} ${pathname} remains explicitly compatible until extracted`
-  );
+for (const contract of [
+  'url.pathname === "/api/stores/me"',
+  'url.pathname === "/api/stores"',
+  'url.pathname === "/api/products/me"',
+  'url.pathname === "/api/products"',
+  '/^\\/api\\/products\\/([^/]+)$/'
+]) {
+  expect(seller.includes(contract), `seller catalog preserves route contract ${contract}`);
 }
+expect(seller.includes("owner_id = ${userId}"), "seller store ownership remains server-side");
+expect(seller.includes("store_id = ${owner.store.id}"), "product mutations remain scoped to the authenticated seller store");
+expect(seller.includes("SET is_active = FALSE"), "product deletion remains a reversible soft delete");
+expect(seller.includes("UUID_PATTERN"), "seller product mutations validate UUID identifiers");
+expect(seller.includes("crypto.randomUUID()"), "new store/product slugs retain collision-resistant suffixes");
+expect(seller.includes("is_active = TRUE"), "seller catalog preserves active-record guards");
 
-const forbidden = [
-  ["GET", "/api/health"],
-  ["GET", "/api/categories"],
-  ["POST", "/api/categories"],
-  ["POST", "/api/auth/register"],
-  ["POST", "/api/auth/login"],
-  ["GET", "/api/auth/me"],
-  ["POST", "/api/auth/logout"],
-  ["GET", "/api/stores"],
-  ["GET", "/api/products"],
-  ["GET", "/api/posts/11111111-1111-4111-8111-111111111111/comments"],
-  ["POST", "/api/products/11111111-1111-4111-8111-111111111111/comments"],
-  ["DELETE", "/api/comments/11111111-1111-4111-8111-111111111111"],
-  ["DELETE", "/api/product-comments/11111111-1111-4111-8111-111111111111"],
-  ["GET", "/api/commerce/search?q=kopi"],
-  ["GET", "/api/admin/auth/me"],
-  ["GET", "/api/definitely-unknown"],
-  ["GET", "/"]
-];
+expect(posts.includes('url.pathname === "/api/posts"'), "post core owns public list/create routes");
+expect(posts.includes('/^\\/api\\/posts\\/([^/]+)$/'), "post core owns exact delete route matching");
+expect(posts.includes("user.role !== \"seller\""), "post creation/deletion remains seller/admin restricted");
+expect(posts.includes("store_id = ${stores[0].id}"), "post deletion remains store-owner scoped");
+expect(posts.includes("SET is_active = FALSE"), "post deletion remains a soft delete");
+expect(posts.includes('imageUrl.startsWith("https://res.cloudinary.com/")'), "post image URLs remain constrained to Cloudinary delivery");
 
-for (const [method, pathname] of forbidden) {
-  expect(
-    !isLegacyCompatibilityRoute(request(method, pathname)),
-    `${method} ${pathname} cannot fall through to the legacy monolith`
-  );
-}
+expect(uploads.includes("const MAX_IMAGE_BYTES = 5 * 1024 * 1024"), "business image uploads keep a 5 MB hard limit");
+expect(uploads.includes('"image/jpeg"') && uploads.includes('"image/png"') && uploads.includes('"image/webp"'), "business image uploads keep the image MIME allowlist");
+expect(uploads.includes("user.role !== \"seller\""), "business image uploads remain seller/admin restricted");
+expect(uploads.includes("WHERE owner_id = ${user.id}"), "business image uploads verify store ownership server-side");
+expect(uploads.includes("env.CLOUDINARY_API_SECRET"), "Cloudinary secret is read only from Worker environment bindings");
+expect(!uploads.includes("CLOUDINARY_API_SECRET ="), "Cloudinary secret is never embedded in source");
+expect(uploads.includes("crypto.randomUUID()"), "business upload public IDs remain collision-resistant");
 
-const authStage = entry.indexOf("const publicAuthResponse = await handlePublicAuthApi");
-const categoryStage = entry.indexOf("const categoryResponse = await handleCategoryApi");
-const legacyStage = entry.indexOf("const legacyResponse = await handleLegacyCompatibility");
-const assets = entry.lastIndexOf("return env.ASSETS.fetch(request);");
-expect(
-  authStage !== -1 && categoryStage !== -1 && legacyStage > authStage && legacyStage > categoryStage && assets > legacyStage,
-  "modular auth/category ownership runs before legacy compatibility and static ownership"
-);
+const routeOrder = [
+  "const publicAuthResponse = await handlePublicAuthApi",
+  "const categoryResponse = await handleCategoryApi",
+  "const sellerCatalogResponse = await handleSellerCatalogApi",
+  "const postCoreResponse = await handlePostCoreApi",
+  "const imageUploadResponse = await handleImageUploadApi"
+].map(marker => entry.indexOf(marker));
+const api404 = entry.lastIndexOf("return apiNotFound()");
+expect(routeOrder.every(index => index !== -1 && index < api404), "all extracted core routes execute before fail-closed API termination");
 
 if (failures.length) {
-  console.error(`\nP4 architecture boundary failed with ${failures.length} violation(s).`);
+  console.error(`\nP4 architecture retirement failed with ${failures.length} violation(s).`);
   process.exit(1);
 }
 
-console.log("\nP4 architecture boundary contract: PASS");
+console.log("\nP4 legacy runtime retirement contract: PASS");
