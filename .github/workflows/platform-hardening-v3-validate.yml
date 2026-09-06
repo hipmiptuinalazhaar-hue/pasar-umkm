@@ -39,6 +39,9 @@ jobs:
       - name: Platform UI security and responsive contracts
         run: npm test
 
+      - name: Orders V2 transaction contracts
+        run: npm run test:orders
+
       - name: Existing final security contract
         run: node scripts/validate-final-security-d.mjs
 

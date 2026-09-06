@@ -9,7 +9,8 @@
     "build:runtime": "node scripts/build-runtime.mjs",
     "lint": "node scripts/lint-syntax.mjs",
     "test": "node scripts/validate-platform-hardening-v3.mjs",
-    "validate": "npm run lint && npm test",
+    "test:orders": "node scripts/validate-orders-v2.mjs",
+    "validate": "npm run lint && npm test && npm run test:orders",
     "smoke:production": "node scripts/production-smoke-a.mjs",
     "smoke:post-deploy": "node scripts/post-deploy-smoke.mjs",
     "smoke:authenticated": "node scripts/authenticated-smoke-v1.mjs"
