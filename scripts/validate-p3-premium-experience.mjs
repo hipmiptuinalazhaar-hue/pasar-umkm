@@ -12,13 +12,23 @@ const pass = message => console.log(`P3 PASS: ${message}`);
 const expect = (condition, message) => condition ? pass(message) : fail(message);
 
 const index = read('index.html');
+const loader = read('js/account-resilience.js');
 const css = read('css/p3-premium-experience.css');
 const js = read('js/p3-premium-experience.js');
 
-expect(index.includes('css/p3-premium-experience.css?v='), 'premium CSS is loaded by the public shell');
-expect(index.includes('js/p3-premium-experience.js?v='), 'premium UX controller is loaded by the public shell');
-expect(index.indexOf('css/p3-premium-experience.css?v=') > index.indexOf('css/tablet-desktop-v2.css?v='), 'premium CSS loads after responsive owner styles');
-expect(index.indexOf('js/p3-premium-experience.js?v=') > index.indexOf('js/account-resilience.js?v='), 'premium UX controller loads after core resilience code');
+expect(!index.includes('css/p3-premium-experience.css?v='), 'premium CSS is excluded from critical HTML');
+expect(!index.includes('js/p3-premium-experience.js?v='), 'premium controller is excluded from critical HTML');
+expect(loader.includes('css/p3-premium-experience.css?v=1.0'), 'P6 loader lazy-loads premium CSS');
+expect(loader.includes('js/p3-premium-experience.js?v=1.0'), 'P6 loader lazy-loads premium controller');
+expect(loader.includes('function ensurePremiumExperience()'), 'premium lazy loader has one reusable gate');
+expect(loader.includes('runIdle(() => ensurePremiumExperience().catch(() => null),1200)'), 'premium experience is scheduled after critical render');
+
+const initialScripts = [...index.matchAll(/<script[^>]+src="js\//g)].length;
+const initialStyles = [...index.matchAll(/<link[^>]+href="css\//g)].length;
+expect(initialScripts === 4, `critical shell keeps exactly four first-party scripts (${initialScripts})`);
+expect(initialStyles === 5, `critical shell keeps exactly five first-party stylesheets (${initialStyles})`);
+expect(stat('index.html').size <= 16_000, 'critical HTML stays within 16 KB P6 budget');
+expect(stat('js/account-resilience.js').size <= 18_000, 'P6 loader stays within 18 KB budget after premium gate');
 
 expect(css.includes(':focus-visible'), 'keyboard focus-visible contract exists');
 expect(css.includes('min-height: 44px') || css.includes('min-height:44px'), '44px touch target contract exists');
@@ -44,7 +54,7 @@ for (const forbidden of ['eval(', 'new Function(', 'document.write(']) {
 
 const cssBytes = stat('css/p3-premium-experience.css').size;
 const jsBytes = stat('js/p3-premium-experience.js').size;
-console.log(`P3 footprint: CSS ${cssBytes} bytes, JS ${jsBytes} bytes`);
+console.log(`P3 deferred footprint: CSS ${cssBytes} bytes, JS ${jsBytes} bytes`);
 expect(cssBytes <= 18_000, 'premium CSS stays within 18 KB source budget');
 expect(jsBytes <= 12_000, 'premium JS stays within 12 KB source budget');
 
