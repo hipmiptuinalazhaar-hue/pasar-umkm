@@ -35,11 +35,11 @@ jobs:
 
           if (lock.lockfileVersion !== 3) throw new Error(`Unexpected lockfileVersion: ${lock.lockfileVersion}`);
           if (!root) throw new Error('Lockfile root metadata missing.');
-          if (pkg.dependencies['@neondatabase/serverless'] !== '1.0.0') throw new Error('Neon dependency must remain exact.');
+          if (pkg.dependencies['@neondatabase/serverless'] !== '1.1.0') throw new Error('Neon dependency must remain exact.');
           if (pkg.devDependencies.esbuild !== '0.25.10') throw new Error('esbuild must remain exact.');
-          if (root.dependencies['@neondatabase/serverless'] !== '1.0.0') throw new Error('Neon lock root mismatch.');
+          if (root.dependencies['@neondatabase/serverless'] !== '1.1.0') throw new Error('Neon lock root mismatch.');
           if (root.devDependencies.esbuild !== '0.25.10') throw new Error('esbuild lock root mismatch.');
-          if (lock.packages['node_modules/@neondatabase/serverless']?.version !== '1.0.0') throw new Error('Resolved Neon version mismatch.');
+          if (lock.packages['node_modules/@neondatabase/serverless']?.version !== '1.1.0') throw new Error('Resolved Neon version mismatch.');
           if (lock.packages['node_modules/esbuild']?.version !== '0.25.10') throw new Error('Resolved esbuild version mismatch.');
 
           for (const [path, meta] of Object.entries(lock.packages)) {
