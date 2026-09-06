@@ -44,7 +44,7 @@ for (const [marker, label] of [
 ]) requireText(worker, marker, label);
 
 const securityIndex = worker.indexOf('const securityResponse = enforceRequestSecurity(request);');
-const rateLimitIndex = worker.indexOf('const rateLimitResponse = await enforceRateLimit(request);');
+const rateLimitIndex = worker.indexOf('const rateLimitResponse = await enforceRateLimit(request, env);');
 if (securityIndex < 0 || rateLimitIndex < 0 || securityIndex > rateLimitIndex) {
   fail('request security must execute before rate limiting and API dispatch');
 }
