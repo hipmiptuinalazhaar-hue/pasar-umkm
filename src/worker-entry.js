@@ -33,6 +33,7 @@ const P0_MIGRATION = "2026-09-02-p0-runtime-schema-hardening";
 const P1_MIGRATION = "2026-09-02-p1-security-performance";
 const FINAL_SECURITY_MIGRATION = "2026-09-05-final-security-hardening";
 const RELEASE_CONTRACT = "2026-09-06-platform-hardening-v3";
+const STAGING_ATTESTATION_MARKER = "p2-e2e-isolated";
 
 function runtimeEnvironment(env) {
   const value = String(env?.APP_ENV || "production").trim().toLowerCase();
@@ -90,6 +91,7 @@ async function handleHealth(env) {
     let p0Applied = false;
     let p1Applied = false;
     let finalSecurityApplied = false;
+    let stagingDatabaseAttested = false;
 
     if (state.schema_migrations) {
       const appliedRows = await sql`
@@ -104,6 +106,20 @@ async function handleHealth(env) {
       finalSecurityApplied = applied.has(FINAL_SECURITY_MIGRATION);
     }
 
+    // A staging database is attested only when the staging-only table exists AND
+    // contains the exact synthetic marker. Production does not have this table,
+    // so it pays no extra query and can never become attested by APP_ENV alone.
+    if (state.staging_environment) {
+      const markerRows = await sql`
+        SELECT EXISTS (
+          SELECT 1
+          FROM staging_environment
+          WHERE marker = ${STAGING_ATTESTATION_MARKER}
+        ) AS attested
+      `;
+      stagingDatabaseAttested = markerRows[0]?.attested === true;
+    }
+
     return Response.json(
       {
         ok: true,
@@ -111,7 +127,7 @@ async function handleHealth(env) {
         backend: "Cloudflare Workers",
         release: RELEASE_CONTRACT,
         environment: runtimeEnvironment(env),
-        staging_database_attested: state.staging_environment === true,
+        staging_database_attested: stagingDatabaseAttested,
         database: {
           connected: true
         },
