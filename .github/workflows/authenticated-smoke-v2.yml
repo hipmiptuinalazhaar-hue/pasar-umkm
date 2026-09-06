@@ -31,7 +31,6 @@ jobs:
       SMOKE_SELLER_PASSWORD: ${{ secrets.SMOKE_SELLER_PASSWORD }}
       SMOKE_ADMIN_EMAIL: ${{ secrets.SMOKE_ADMIN_EMAIL }}
       SMOKE_ADMIN_PASSWORD: ${{ secrets.SMOKE_ADMIN_PASSWORD }}
-      STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
 
     steps:
       - name: Checkout
@@ -54,7 +53,6 @@ jobs:
               ;;
           esac
           for name in \
-            STAGING_DATABASE_URL \
             SMOKE_BUYER_EMAIL SMOKE_BUYER_PASSWORD \
             SMOKE_SELLER_EMAIL SMOKE_SELLER_PASSWORD \
             SMOKE_ADMIN_EMAIL SMOKE_ADMIN_PASSWORD; do
