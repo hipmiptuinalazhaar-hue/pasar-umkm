@@ -89,7 +89,8 @@ jobs:
           set -euo pipefail
           test -s _headers
           grep -q 'X-Content-Type-Options: nosniff' _headers
-          grep -q 'X-Frame-Options: SAMEORIGIN' _headers
+          grep -q 'X-Frame-Options: DENY' _headers
+          grep -q "frame-ancestors 'none'" _headers
           grep -q 'Referrer-Policy: strict-origin-when-cross-origin' _headers
           grep -q '/css/\*' _headers
           grep -q '/js/\*' _headers
