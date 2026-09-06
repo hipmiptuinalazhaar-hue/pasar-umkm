@@ -126,7 +126,7 @@
           <div class="about-v2-principles" aria-label="Prinsip platform">
             <span><i class="ph ph-device-mobile" aria-hidden="true"></i>Mobile-first</span>
             <span><i class="ph ph-shield-check" aria-hidden="true"></i>Keamanan</span>
-            <span><i class="ph ph-lightning" aria-hidden="true"></i>Performa</span>
+            <span><i class="ph ph-gauge" aria-hidden="true"></i>Performa</span>
             <span><i class="ph ph-map-pin" aria-hidden="true"></i>Berakar lokal</span>
           </div>
         </section>
