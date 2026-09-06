@@ -1,0 +1,51 @@
+name: P2 Staging Release Gate V2
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate-staging-release-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+
+      - name: Syntax check P2 release scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check scripts/authenticated-smoke-v2.mjs
+          node --check scripts/validate-staging-release-gate-v2.mjs
+
+      - name: Validate staging isolation and E2E release contracts
+        run: npm run validate:staging-release
+
+      - name: Verify production keeps fail-safe default
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'env?.APP_ENV || "production"' src/worker-entry.js
+          grep -q 'staging_database_attested' src/worker-entry.js
+          ! grep -q 'APP_ENV.*staging' wrangler.jsonc
+
+      - name: Verify production mutation target is absent
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! grep -q 'SMOKE_ALLOW_MUTATIONS: "true"' .github/workflows/post-deploy-smoke.yml
+          ! grep -q 'SMOKE_ALLOW_MUTATIONS: "true"' .github/workflows/load-smoke-v1.yml
