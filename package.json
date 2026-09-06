@@ -13,7 +13,8 @@
     "validate": "npm run lint && npm test && npm run test:orders",
     "smoke:production": "node scripts/production-smoke-a.mjs",
     "smoke:post-deploy": "node scripts/post-deploy-smoke.mjs",
-    "smoke:authenticated": "node scripts/authenticated-smoke-v1.mjs"
+    "smoke:authenticated": "node scripts/authenticated-smoke-v1.mjs",
+    "smoke:load": "node scripts/load-smoke-v1.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "1.0.0"

@@ -15,6 +15,7 @@ if (IS_PRODUCTION && ALLOW_MUTATIONS) {
 }
 
 let cookie = '';
+let authenticatedRole = '';
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -66,7 +67,8 @@ await probe('valid login', async () => {
   assert(response.status === 200, `HTTP ${response.status}`);
   assert(json?.ok === true && json?.authenticated === true, 'login contract invalid');
   assert(cookie.includes('__Host-pasar_umkm_session='), 'session cookie not issued');
-  return json?.user?.role || 'authenticated';
+  authenticatedRole = String(json?.user?.role || '').trim().toLowerCase();
+  return authenticatedRole || 'authenticated';
 });
 
 for (const [name, path] of [
@@ -75,6 +77,7 @@ for (const [name, path] of [
   ['seller products read', '/api/products/me'],
   ['cart read', '/api/commerce/cart'],
   ['saved items read', '/api/commerce/saved'],
+  ['buyer orders read', '/api/commerce/orders?scope=buyer'],
   ['notifications read', '/api/social/notifications'],
   ['conversation list read', '/api/social/conversations'],
   ['chat unread count read', '/api/social/unread-count']
@@ -83,7 +86,19 @@ for (const [name, path] of [
     const { response, json } = await request(path);
     assert(response.status === 200, `HTTP ${response.status}`);
     assert(json?.ok === true, `${path} ok !== true`);
+    if (path.includes('/api/commerce/orders')) {
+      assert(Array.isArray(json?.orders), 'orders contract missing array');
+    }
     return 'HTTP 200';
+  });
+}
+
+if (authenticatedRole === 'seller' || authenticatedRole === 'admin') {
+  await probe('seller orders read', async () => {
+    const { response, json } = await request('/api/commerce/orders?scope=seller');
+    assert(response.status === 200, `HTTP ${response.status}`);
+    assert(json?.ok === true && Array.isArray(json?.orders), 'seller orders contract invalid');
+    return `${json.orders.length} orders`;
   });
 }
 
