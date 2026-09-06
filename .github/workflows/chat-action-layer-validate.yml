@@ -1,0 +1,29 @@
+name: Chat Action Layer Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'index.html'
+      - 'css/style.runtime.css'
+      - 'css/chat-experience-v7.css'
+      - 'js/chat-experience-v7.js'
+      - 'js/chat-conversation-actions-v7.js'
+      - 'scripts/validate-chat-action-layer.mjs'
+      - '.github/workflows/chat-action-layer-validate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-chat-action-layer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Validate script syntax
+        run: node --check scripts/validate-chat-action-layer.mjs
+      - name: Validate chat action layers
+        run: node scripts/validate-chat-action-layer.mjs
