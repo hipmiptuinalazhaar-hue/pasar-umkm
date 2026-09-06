@@ -1,5 +1,7 @@
 import { neon } from "@neondatabase/serverless";
 import { handleLegacyCompatibility } from "./legacy-compat-router.js";
+import { handlePublicAuthApi } from "./public-auth-api.js";
+import { handleCategoryApi } from "./category-api.js";
 import { handleProfileApi } from "./profile-api.js";
 import { handleProfileMediaApi } from "./profile-media-api.js";
 import { handlePublicProfileApi } from "./public-profile-api.js";
@@ -142,9 +144,7 @@ async function handleHealth(env) {
         release: RELEASE_CONTRACT,
         environment: runtimeEnvironment(env),
         staging_database_attested: stagingDatabaseAttested,
-        database: {
-          connected: true
-        },
+        database: { connected: true },
         schema: {
           core_ready: missingCore.length === 0,
           missing_core_count: missingCore.length,
@@ -187,42 +187,34 @@ async function routeRequest(request, env, ctx) {
   const url = new URL(request.url);
 
   const securityResponse = enforceRequestSecurity(request);
-  if (securityResponse) {
-    return securityResponse;
-  }
+  if (securityResponse) return securityResponse;
 
   const rateLimitResponse = await enforceRateLimit(request, env);
-  if (rateLimitResponse) {
-    return rateLimitResponse;
-  }
+  if (rateLimitResponse) return rateLimitResponse;
 
-  if (url.pathname === "/api/health") {
-    return handleHealth(env);
-  }
+  if (url.pathname === "/api/health") return handleHealth(env);
 
   const adminAuthResponse = await handleAdminAuthApi(request, env);
-  if (adminAuthResponse) {
-    return adminAuthResponse;
-  }
+  if (adminAuthResponse) return adminAuthResponse;
 
   const adminAccessResponse = await handleAdminAccessApi(request, env);
-  if (adminAccessResponse) {
-    return adminAccessResponse;
-  }
+  if (adminAccessResponse) return adminAccessResponse;
 
   const adminControlResponse = await handleAdminControlApi(request, env);
-  if (adminControlResponse) {
-    return adminControlResponse;
-  }
+  if (adminControlResponse) return adminControlResponse;
 
   try {
     await ensureNotificationInfrastructure(env);
     await ensureFullFunctionalityInfrastructure(env);
   } catch {
-    if (url.pathname.startsWith("/api/")) {
-      return schemaUnavailable();
-    }
+    if (url.pathname.startsWith("/api/")) return schemaUnavailable();
   }
+
+  const publicAuthResponse = await handlePublicAuthApi(request, env);
+  if (publicAuthResponse) return publicAuthResponse;
+
+  const categoryResponse = await handleCategoryApi(request, env);
+  if (categoryResponse) return categoryResponse;
 
   const publicCatalogResponse = await handlePublicCatalogApi(request, env);
   if (publicCatalogResponse) return publicCatalogResponse;
@@ -287,9 +279,7 @@ async function routeRequest(request, env, ctx) {
   const legacyResponse = await handleLegacyCompatibility(request, env, ctx);
   if (legacyResponse) return legacyResponse;
 
-  if (url.pathname.startsWith("/api/")) {
-    return apiNotFound();
-  }
+  if (url.pathname.startsWith("/api/")) return apiNotFound();
 
   return env.ASSETS.fetch(request);
 }

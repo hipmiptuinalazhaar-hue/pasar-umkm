@@ -8,6 +8,8 @@ on:
       - 'src/worker-entry.js'
       - 'src/worker.js'
       - 'src/legacy-compat-router.js'
+      - 'src/public-auth-api.js'
+      - 'src/category-api.js'
       - 'scripts/validate-p4-architecture-boundary.mjs'
       - 'package.json'
       - 'package-lock.json'
@@ -19,6 +21,8 @@ on:
       - 'src/worker-entry.js'
       - 'src/worker.js'
       - 'src/legacy-compat-router.js'
+      - 'src/public-auth-api.js'
+      - 'src/category-api.js'
       - 'scripts/validate-p4-architecture-boundary.mjs'
       - 'package.json'
       - 'package-lock.json'
@@ -50,6 +54,8 @@ jobs:
         run: |
           node --check src/worker-entry.js
           node --check src/legacy-compat-router.js
+          node --check src/public-auth-api.js
+          node --check src/category-api.js
           node --check scripts/validate-p4-architecture-boundary.mjs
 
       - name: Verify explicit legacy compatibility contract
