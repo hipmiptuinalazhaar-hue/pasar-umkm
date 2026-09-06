@@ -1,0 +1,59 @@
+name: P4 Architecture Boundary
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/worker-entry.js'
+      - 'src/worker.js'
+      - 'src/legacy-compat-router.js'
+      - 'scripts/validate-p4-architecture-boundary.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/p4-architecture-boundary-validate.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/worker-entry.js'
+      - 'src/worker.js'
+      - 'src/legacy-compat-router.js'
+      - 'scripts/validate-p4-architecture-boundary.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/p4-architecture-boundary-validate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  architecture-boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install exact locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Syntax check architecture boundary
+        run: |
+          node --check src/worker-entry.js
+          node --check src/legacy-compat-router.js
+          node --check scripts/validate-p4-architecture-boundary.mjs
+
+      - name: Verify explicit legacy compatibility contract
+        run: npm run test:p4-architecture
+
+      - name: Canonical validation
+        run: npm run validate
