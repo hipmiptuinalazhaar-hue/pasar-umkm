@@ -1,0 +1,55 @@
+name: P3 Premium UX Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - css/p3-premium-experience.css
+      - js/p3-premium-experience.js
+      - js/account-resilience.js
+      - scripts/validate-p3-premium-experience.mjs
+      - package.json
+      - .github/workflows/p3-premium-ux-validate.yml
+  push:
+    branches:
+      - main
+    paths:
+      - css/p3-premium-experience.css
+      - js/p3-premium-experience.js
+      - js/account-resilience.js
+      - scripts/validate-p3-premium-experience.mjs
+      - package.json
+      - .github/workflows/p3-premium-ux-validate.yml
+
+permissions:
+  contents: read
+
+jobs:
+  premium-ux-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: JavaScript syntax
+        run: |
+          node --check js/p3-premium-experience.js
+          node --check js/account-resilience.js
+
+      - name: P3 premium UX contract
+        run: npm run test:p3
+
+      - name: Canonical validation
+        run: npm run validate
