@@ -1,0 +1,36 @@
+name: Authenticated Smoke V1
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'Staging/preview URL. Production stays read-only.'
+        required: true
+        type: string
+      allow_reversible_mutations:
+        description: 'Allow reversible cart mutation outside production'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  authenticated-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Validate harness syntax
+        run: node --check scripts/authenticated-smoke-v1.mjs
+
+      - name: Run authenticated smoke
+        env:
+          E2E_BASE_URL: ${{ inputs.base_url }}
+          SMOKE_USER_EMAIL: ${{ secrets.SMOKE_USER_EMAIL }}
+          SMOKE_USER_PASSWORD: ${{ secrets.SMOKE_USER_PASSWORD }}
+          SMOKE_ALLOW_MUTATIONS: ${{ inputs.allow_reversible_mutations }}
+        run: node scripts/authenticated-smoke-v1.mjs
