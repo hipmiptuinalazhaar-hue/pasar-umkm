@@ -10,6 +10,9 @@ on:
       - 'src/legacy-compat-router.js'
       - 'src/public-auth-api.js'
       - 'src/category-api.js'
+      - 'src/seller-catalog-api.js'
+      - 'src/post-core-api.js'
+      - 'src/image-upload-api.js'
       - 'scripts/validate-p4-architecture-boundary.mjs'
       - 'package.json'
       - 'package-lock.json'
@@ -23,6 +26,9 @@ on:
       - 'src/legacy-compat-router.js'
       - 'src/public-auth-api.js'
       - 'src/category-api.js'
+      - 'src/seller-catalog-api.js'
+      - 'src/post-core-api.js'
+      - 'src/image-upload-api.js'
       - 'scripts/validate-p4-architecture-boundary.mjs'
       - 'package.json'
       - 'package-lock.json'
@@ -50,16 +56,62 @@ jobs:
       - name: Install exact locked dependencies
         run: npm ci --no-audit --no-fund
 
-      - name: Syntax check architecture boundary
+      - name: Syntax check retired legacy domains
         run: |
+          set -euo pipefail
           node --check src/worker-entry.js
-          node --check src/legacy-compat-router.js
           node --check src/public-auth-api.js
           node --check src/category-api.js
+          node --check src/seller-catalog-api.js
+          node --check src/post-core-api.js
+          node --check src/image-upload-api.js
           node --check scripts/validate-p4-architecture-boundary.mjs
+          test ! -e src/worker.js
+          test ! -e src/legacy-compat-router.js
 
-      - name: Verify explicit legacy compatibility contract
+      - name: Verify complete legacy runtime retirement contract
         run: npm run test:p4-architecture
+
+      - name: Prove final Worker bundle excludes legacy runtime
+        run: |
+          set -euo pipefail
+          ./node_modules/.bin/esbuild src/worker-entry.js \
+            --bundle \
+            --format=esm \
+            --platform=browser \
+            --target=es2022 \
+            --outfile=/tmp/p4-worker-entry.js \
+            --metafile=/tmp/p4-worker-meta.json
+          test -s /tmp/p4-worker-entry.js
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          meta = json.loads(Path('/tmp/p4-worker-meta.json').read_text(encoding='utf-8'))
+          inputs = {key.replace('\\', '/') for key in meta.get('inputs', {})}
+          forbidden = {
+              'src/worker.js',
+              'src/legacy-compat-router.js',
+          }
+          leaked = sorted(forbidden & inputs)
+          if leaked:
+              raise SystemExit('retired legacy modules leaked into Worker bundle: ' + ', '.join(leaked))
+
+          required = {
+              'src/worker-entry.js',
+              'src/public-auth-api.js',
+              'src/category-api.js',
+              'src/seller-catalog-api.js',
+              'src/post-core-api.js',
+              'src/image-upload-api.js',
+              'src/orders-api-v2.js',
+          }
+          missing = sorted(required - inputs)
+          if missing:
+              raise SystemExit('expected modular runtime inputs missing: ' + ', '.join(missing))
+
+          print(f'P4 BUNDLE PASS: {len(inputs)} bundled inputs, zero retired legacy modules')
+          PY
 
       - name: Canonical validation
         run: npm run validate

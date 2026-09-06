@@ -1,7 +1,9 @@
 import { neon } from "@neondatabase/serverless";
-import { handleLegacyCompatibility } from "./legacy-compat-router.js";
 import { handlePublicAuthApi } from "./public-auth-api.js";
 import { handleCategoryApi } from "./category-api.js";
+import { handleSellerCatalogApi } from "./seller-catalog-api.js";
+import { handlePostCoreApi } from "./post-core-api.js";
+import { handleImageUploadApi } from "./image-upload-api.js";
 import { handleProfileApi } from "./profile-api.js";
 import { handleProfileMediaApi } from "./profile-media-api.js";
 import { handlePublicProfileApi } from "./public-profile-api.js";
@@ -216,6 +218,15 @@ async function routeRequest(request, env, ctx) {
   const categoryResponse = await handleCategoryApi(request, env);
   if (categoryResponse) return categoryResponse;
 
+  const sellerCatalogResponse = await handleSellerCatalogApi(request, env);
+  if (sellerCatalogResponse) return sellerCatalogResponse;
+
+  const postCoreResponse = await handlePostCoreApi(request, env);
+  if (postCoreResponse) return postCoreResponse;
+
+  const imageUploadResponse = await handleImageUploadApi(request, env);
+  if (imageUploadResponse) return imageUploadResponse;
+
   const publicCatalogResponse = await handlePublicCatalogApi(request, env);
   if (publicCatalogResponse) return publicCatalogResponse;
 
@@ -275,9 +286,6 @@ async function routeRequest(request, env, ctx) {
 
   const profileResponse = await handleProfileApi(request, env);
   if (profileResponse) return profileResponse;
-
-  const legacyResponse = await handleLegacyCompatibility(request, env, ctx);
-  if (legacyResponse) return legacyResponse;
 
   if (url.pathname.startsWith("/api/")) return apiNotFound();
 
