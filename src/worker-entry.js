@@ -31,6 +31,7 @@ import { enforceRequestSecurity } from "./request-security.js";
 const P0_MIGRATION = "2026-09-02-p0-runtime-schema-hardening";
 const P1_MIGRATION = "2026-09-02-p1-security-performance";
 const FINAL_SECURITY_MIGRATION = "2026-09-05-final-security-hardening";
+const RELEASE_CONTRACT = "2026-09-06-platform-hardening-v3";
 
 function schemaUnavailable() {
   return Response.json(
@@ -101,6 +102,7 @@ async function handleHealth(env) {
         ok: true,
         app: "Pasar UMKM",
         backend: "Cloudflare Workers",
+        release: RELEASE_CONTRACT,
         database: {
           connected: true
         },
@@ -125,6 +127,7 @@ async function handleHealth(env) {
       {
         ok: false,
         app: "Pasar UMKM",
+        release: RELEASE_CONTRACT,
         error: "Database connection failed",
         code: "HEALTH_DATABASE_ERROR"
       },
@@ -171,7 +174,7 @@ async function routeRequest(request, env, ctx) {
   }
 
   // Operational control-center APIs remain inside the same privileged boundary.
-  // They must never depend on unrelated public social-commerce bootstraps.
+  // They must never depend on unrelated public feature bootstraps.
   const adminControlResponse = await handleAdminControlApi(request, env);
   if (adminControlResponse) {
     return adminControlResponse;
