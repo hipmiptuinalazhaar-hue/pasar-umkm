@@ -10,10 +10,12 @@
     "lint": "node scripts/lint-syntax.mjs",
     "test": "node scripts/validate-platform-hardening-v3.mjs",
     "test:orders": "node scripts/validate-orders-v2.mjs",
-    "validate": "npm run lint && npm test && npm run test:orders",
+    "validate:staging-release": "node scripts/validate-staging-release-gate-v2.mjs",
+    "validate": "npm run lint && npm test && npm run test:orders && npm run validate:staging-release",
     "smoke:production": "node scripts/production-smoke-a.mjs",
     "smoke:post-deploy": "node scripts/post-deploy-smoke.mjs",
-    "smoke:authenticated": "node scripts/authenticated-smoke-v1.mjs",
+    "smoke:authenticated": "node scripts/authenticated-smoke-v2.mjs",
+    "smoke:authenticated:v1": "node scripts/authenticated-smoke-v1.mjs",
     "smoke:load": "node scripts/load-smoke-v1.mjs"
   },
   "dependencies": {
