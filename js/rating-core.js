@@ -12,6 +12,30 @@
     lastBuyerOrderId: ''
   };
 
+  function ensureStyle(selector, href, datasetKey) {
+    if (document.querySelector(selector)) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    link.dataset[datasetKey] = 'true';
+    document.head.appendChild(link);
+  }
+
+  function ensureStyles() {
+    ensureStyle(
+      'link[data-rating-form-v3-style="true"]',
+      'css/rating-form-v3.css?v=3.0',
+      'ratingFormV3Style'
+    );
+    ensureStyle(
+      'link[data-rating-commerce-style="true"]',
+      'css/rating-commerce-v1.css?v=1.0',
+      'ratingCommerceStyle'
+    );
+  }
+
+  ensureStyles();
+
   function esc(value) {
     return typeof escapeHTML === 'function'
       ? escapeHTML(String(value ?? ''))
