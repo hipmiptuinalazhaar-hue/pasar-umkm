@@ -93,9 +93,9 @@ if (!errors.length) {
   }
 
   for (const ownerContract of [
-    "data-state-action=\"pin\"",
-    "data-state-action=\"archive\"",
-    "data-state-action=\"delete_me\"",
+    "pinned ? 'unpin' : 'pin'",
+    "archived ? 'unarchive' : 'archive'",
+    'data-state-action="delete_me"',
     '/api/chat/conversations/',
   ]) {
     if (!chatOwner.includes(ownerContract)) errors.push(`Chat V7 action owner lost contract: ${ownerContract}`);
