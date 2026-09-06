@@ -124,7 +124,7 @@ jobs:
           const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
           const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
           if (pkg.dependencies['@neondatabase/serverless'] !== '1.1.0') throw new Error('Neon must be exact');
-          if (pkg.devDependencies.esbuild !== '0.25.10') throw new Error('esbuild must be exact');
+          if (pkg.devDependencies.esbuild !== '0.28.2') throw new Error('esbuild must be exact');
           if (lock.lockfileVersion !== 3) throw new Error('lockfileVersion must be 3');
           NODE
           grep -qF 'save-exact=true' .npmrc
