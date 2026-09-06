@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  rebuild-runtime:
+  finalize-esbuild-upgrade:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
@@ -29,40 +29,43 @@ jobs:
       - name: Install exact locked toolchain
         run: npm ci --no-audit --no-fund
 
-      - name: Verify toolchain
+      - name: Align exact-version policy
         run: |
-          node -e "const p=require('./package.json'); if(p.devDependencies.esbuild!=='0.28.2') process.exit(1)"
-          ./node_modules/.bin/esbuild --version
+          python - <<'PY'
+          from pathlib import Path
+          targets = [
+              Path('.github/workflows/supply-chain-validate.yml'),
+              Path('.github/workflows/p4-final-audit.yml'),
+          ]
+          total = 0
+          for path in targets:
+              text = path.read_text(encoding='utf-8')
+              count = text.count("0.25.10")
+              if count == 0:
+                  raise SystemExit(f'Expected old esbuild contract missing in {path}')
+              path.write_text(text.replace("0.25.10", "0.28.2"), encoding='utf-8')
+              total += count
+          if total < 2:
+              raise SystemExit('Insufficient exact-version replacements')
+          print(f'Updated {total} exact esbuild contract references.')
+          PY
 
-      - name: Rebuild deterministic runtime assets
-        run: npm run build:runtime
-
-      - name: Validate generated runtime
+      - name: Verify deterministic runtime and Worker bundle
         run: |
           set -euo pipefail
+          ./node_modules/.bin/esbuild --version | grep -qx '0.28.2'
+          npm run build:runtime
           node --check js/app.runtime.js
           ./node_modules/.bin/esbuild src/worker-entry.js --bundle --format=esm --platform=browser --target=es2022 --outfile=/tmp/worker-entry.js
           test -s /tmp/worker-entry.js
           git diff --check
-          python - <<'PY'
-          import subprocess
-          allowed = {'js/app.runtime.js', 'css/style.runtime.css', 'index.html', '.assetsignore'}
-          paths = set(filter(None, subprocess.check_output(['git','diff','--name-only'], text=True).splitlines()))
-          unexpected = paths - allowed
-          if unexpected:
-              raise SystemExit('Unexpected generated tracked files: ' + ', '.join(sorted(unexpected)))
-          print('Generated tracked runtime files:', ', '.join(sorted(paths)) if paths else 'no changes')
-          PY
 
-      - name: Commit deterministic assets
+      - name: Remove temporary build-room and commit final P1 state
         run: |
           set -euo pipefail
-          git add js/app.runtime.js css/style.runtime.css index.html .assetsignore
-          if git diff --cached --quiet; then
-            echo 'Runtime assets unchanged under esbuild 0.28.2.'
-            exit 0
-          fi
+          git rm .github/workflows/p1-esbuild-runtime-refresh.yml
+          git add package.json package-lock.json .github/workflows/supply-chain-validate.yml .github/workflows/p4-final-audit.yml js/app.runtime.js css/style.runtime.css index.html .assetsignore
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'build: regenerate runtime assets with esbuild 0.28.2 [skip ci]'
+          git commit -m 'P1: finalize esbuild 0.28.2 deterministic toolchain [skip ci]'
           git push origin "HEAD:${GITHUB_REF_NAME}"
