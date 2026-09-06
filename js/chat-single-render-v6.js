@@ -6,6 +6,7 @@
   window.__PUMKM_CHAT_V7_BOOTSTRAP__ = true;
 
   let loadPromise = null;
+  let actionPromise = null;
 
   function ensureStyle() {
     const existing = document.querySelector('link[data-chat-v7-style="true"]');
@@ -57,14 +58,65 @@
     });
   }
 
+  function ensureConversationActions() {
+    if (window.PasarChatConversationActions?.version === '1.0') {
+      return Promise.resolve(window.PasarChatConversationActions);
+    }
+    if (actionPromise) return actionPromise;
+
+    const existing = document.querySelector(
+      'script[data-chat-v7-conversation-actions="true"]'
+    );
+
+    if (existing) {
+      actionPromise = new Promise((resolve, reject) => {
+        const started = Date.now();
+        const timer = window.setInterval(() => {
+          if (window.PasarChatConversationActions?.version === '1.0') {
+            window.clearInterval(timer);
+            resolve(window.PasarChatConversationActions);
+          } else if (Date.now() - started > 5000) {
+            window.clearInterval(timer);
+            reject(new Error('Aksi percakapan Chat V7 belum siap.'));
+          }
+        }, 40);
+      });
+      return actionPromise;
+    }
+
+    actionPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'js/chat-conversation-actions-v7.js?v=1.0';
+      script.async = true;
+      script.dataset.chatV7ConversationActions = 'true';
+      script.onload = () => {
+        if (window.PasarChatConversationActions?.version === '1.0') {
+          resolve(window.PasarChatConversationActions);
+        } else {
+          reject(new Error('Aksi percakapan Chat V7 tidak terinisialisasi.'));
+        }
+      };
+      script.onerror = () => reject(new Error('Aksi percakapan Chat V7 gagal dimuat.'));
+      document.body.appendChild(script);
+    }).catch(error => {
+      actionPromise = null;
+      throw error;
+    });
+
+    return actionPromise;
+  }
+
   function ensureV7() {
     if (window.PasarChatV7?.version === '7.0') {
-      return Promise.resolve(window.PasarChatV7);
+      return ensureConversationActions().then(() => window.PasarChatV7);
     }
     if (loadPromise) return loadPromise;
 
     loadPromise = Promise.all([ensureStyle(), ensureScript()])
-      .then(([, module]) => module)
+      .then(async ([, module]) => {
+        await ensureConversationActions();
+        return module;
+      })
       .catch(error => {
         loadPromise = null;
         throw error;
@@ -114,6 +166,7 @@
     version: 'retired',
     renderer: 'chat-v7-bootstrap',
     legacyThreadPollSuppressed: true,
-    mutationObserver: false
+    mutationObserver: false,
+    conversationLongPress: 'chat-conversation-actions-v7'
   };
 })();
