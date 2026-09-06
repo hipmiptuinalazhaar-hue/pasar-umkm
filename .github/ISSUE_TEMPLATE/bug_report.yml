@@ -1,0 +1,60 @@
+name: Bug report
+description: Laporkan bug produk, UI, API, atau regresi.
+title: "Bug: "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: "Jangan kirim password, token, data pribadi, atau detail eksploit keamanan di issue publik. Gunakan SECURITY.md untuk kerentanan keamanan."
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Area
+      options:
+        - Beranda / Feed
+        - Marketplace / Produk
+        - Toko / Seller
+        - Keranjang / Checkout / Pesanan
+        - Akun / Profil
+        - Reels / Media
+        - Chat / Pesan
+        - Notifikasi
+        - Admin Control Center
+        - API / Backend
+        - Responsive / Accessibility
+        - Lainnya
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Masalah
+      description: Jelaskan apa yang terjadi dan apa yang seharusnya terjadi.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Langkah reproduksi
+      placeholder: "1. Buka ...\n2. Tekan ...\n3. Lihat ..."
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Perangkat / viewport
+      placeholder: "Contoh: Android 390px, iPad 1024px, Chrome desktop 1440px"
+    validations:
+      required: true
+  - type: input
+    id: release
+    attributes:
+      label: Release / waktu kejadian
+      placeholder: "Contoh: production, 6 Sep 2026 14:30 WIB"
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Konfirmasi
+      options:
+        - label: Laporan ini tidak memuat credential, token, atau data pribadi.
+          required: true
