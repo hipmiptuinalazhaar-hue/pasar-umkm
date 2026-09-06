@@ -17,6 +17,8 @@ const expect = (condition, message) => {
 
 const entry = read("src/worker-entry.js");
 const compatibility = read("src/legacy-compat-router.js");
+const auth = read("src/public-auth-api.js");
+const category = read("src/category-api.js");
 const srcFiles = fs.readdirSync(path.join(root, "src"))
   .filter(name => name.endsWith(".js"));
 
@@ -52,6 +54,21 @@ expect(!compatibility.includes("/api/auth/"), "public auth routes have been reti
 expect(!compatibility.includes("/api/categories"), "categories route has been retired from legacy compatibility");
 expect(stat("src/public-auth-api.js").size <= 12_000, "public auth module stays within a focused module budget");
 expect(stat("src/category-api.js").size <= 4_000, "category module stays within a focused module budget");
+
+expect(auth.includes("crypto.getRandomValues(new Uint8Array(32))"), "session tokens keep 256 bits of cryptographic randomness");
+expect(auth.includes("gen_salt('bf', 12)"), "registration keeps bcrypt cost 12");
+expect(auth.includes("password_hash = crypt(${password}, password_hash)"), "login verifies password against the stored bcrypt hash");
+expect(auth.includes("encode(digest(${token}, 'sha256'), 'hex')"), "session tokens are hashed before database lookup/storage");
+expect(auth.includes("HttpOnly; Secure; SameSite=Lax"), "public session cookie remains HttpOnly, Secure, and SameSite=Lax");
+expect(auth.includes("const MAX_SESSION_AGE = 604800"), "public session lifetime remains seven days");
+expect(auth.includes("Max-Age=0"), "invalid/logout sessions clear the browser cookie");
+expect(auth.includes("SET last_used_at = NOW()"), "authenticated session reads refresh last-used telemetry");
+expect(auth.includes("DELETE FROM sessions"), "logout revokes the server-side session");
+expect(!auth.includes("DATABASE_URL =") && !auth.includes("CLOUDINARY_API_SECRET"), "auth module contains no embedded infrastructure secrets");
+
+expect(category.includes("WHERE is_active = TRUE"), "categories expose active catalog entries only");
+expect(category.includes("ORDER BY sort_order ASC, name ASC"), "category ordering remains deterministic");
+expect(category.includes("id,") && category.includes("slug,") && category.includes("is_home"), "category response preserves the public catalog fields");
 
 const request = (method, pathname) => new Request(`https://p4.test${pathname}`, { method });
 const allowed = [
