@@ -33,9 +33,9 @@
     );
     if (!menu) return false;
 
-    press.suppressUntil = Date.now() + 800;
     if (navigator.vibrate) navigator.vibrate(24);
     menu.click();
+    press.suppressUntil = Date.now() + 800;
     return true;
   }
 
