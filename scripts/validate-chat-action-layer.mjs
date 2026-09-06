@@ -34,8 +34,10 @@ for (const [label, pattern] of [
 for (const marker of [
   'data-chat-v7-action="conversation-menu"',
   'data-chat-v7-action="conversation-state"',
-  "['pin', 'unpin', 'archive', 'unarchive', 'delete_me']",
-  '/api/chat/conversations/${conversationId}/action'
+  "pinned ? 'unpin' : 'pin'",
+  "archived ? 'unarchive' : 'archive'",
+  'data-state-action="delete_me"',
+  '/api/chat/conversations/${encodeURIComponent(conversationId)}/action'
 ]) {
   if (!chatJs.includes(marker)) fail(`Chat V7 action owner kehilangan contract: ${marker}`);
 }
