@@ -1,0 +1,52 @@
+name: Load Smoke V1
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'scripts/load-smoke-v1.mjs'
+      - 'package.json'
+      - '.github/workflows/load-smoke-v1.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'wrangler.jsonc'
+      - 'package.json'
+      - 'scripts/load-smoke-v1.mjs'
+      - '.github/workflows/load-smoke-v1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: load-smoke-v1-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  public-read-load-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+
+      - name: Validate load harness syntax
+        run: node --check scripts/load-smoke-v1.mjs
+
+      - name: Run 50-100-200 concurrent public read load smoke
+        env:
+          LOAD_BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+          LOAD_TIERS: 50,100,200
+          LOAD_TIMEOUT_MS: 12000
+          LOAD_P95_LIMIT_MS: 8000
+          LOAD_MIN_SUCCESS_RATE: 0.99
+        run: npm run smoke:load
