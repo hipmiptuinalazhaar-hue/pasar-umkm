@@ -76,6 +76,17 @@
     return job;
   }
 
+  let premiumJob;
+  function ensurePremiumExperience() {
+    if (window.PasarP3Experience?.version === '1.0') return Promise.resolve(window.PasarP3Experience);
+    if (premiumJob) return premiumJob;
+    premiumJob = Promise.all([
+      loadStyle('link[data-p3-premium-style="true"]','css/p3-premium-experience.css?v=1.0','p3PremiumStyle'),
+      loadScript('script[data-p3-premium-script="true"]','js/p3-premium-experience.js?v=1.0','p3PremiumScript')
+    ]).then(() => window.PasarP3Experience).catch(error => { premiumJob = null; throw error; });
+    return premiumJob;
+  }
+
   const CORE_SCRIPTS = [
     ['script[data-navigation-refresh-guard="true"]','js/navigation-refresh-guard.js?v=1.0','navigationRefreshGuard'],
     ['script[data-social-core-module="true"]','js/social-core.js?v=1.0','socialCoreModule'],
@@ -183,9 +194,12 @@
     else setTimeout(task,450);
   }
   function schedulePostRenderWarmup() {
-    const start = () => setTimeout(() => runIdle(() => {
-      ensureCoreEnhancements().then(() => runIdle(() => ensureMediaEnhancements().catch(() => null),5000)).catch(() => null);
-    },3000),700);
+    const start = () => {
+      runIdle(() => ensurePremiumExperience().catch(() => null),1200);
+      setTimeout(() => runIdle(() => {
+        ensureCoreEnhancements().then(() => runIdle(() => ensureMediaEnhancements().catch(() => null),5000)).catch(() => null);
+      },3000),700);
+    };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',start,{once:true});
     else start();
   }
