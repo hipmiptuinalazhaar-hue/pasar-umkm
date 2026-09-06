@@ -1,10 +1,10 @@
 import fs from 'node:fs';
 
 const migrationPath = 'database/migrations/2026-09-05-admin-foundation.sql';
-const workerPath = 'src/worker.js';
+const publicAuthPath = 'src/public-auth-api.js';
 
 const migration = fs.readFileSync(migrationPath, 'utf8');
-const worker = fs.readFileSync(workerPath, 'utf8');
+const publicAuth = fs.readFileSync(publicAuthPath, 'utf8');
 
 function requireMatch(text, pattern, message) {
   if (!pattern.test(text)) {
@@ -95,16 +95,16 @@ requireMatch(
   'Admin foundation migration must record its migration version.'
 );
 
-// Public registration boundary: registration must keep relying on the public
-// users.role default and must never accept a requested admin role.
-const registerStart = worker.indexOf('// AUTH REGISTER');
-const loginStart = worker.indexOf('// AUTH LOGIN', registerStart + 1);
+// Public registration boundary now lives in the modular public-auth owner.
+// It must keep relying on users.role default and never accept/write admin role.
+const registerStart = publicAuth.indexOf('async function register');
+const loginStart = publicAuth.indexOf('async function login', registerStart + 1);
 
 if (registerStart < 0 || loginStart < 0 || loginStart <= registerStart) {
-  throw new Error('Could not isolate public registration handler for validation.');
+  throw new Error('Could not isolate modular public registration handler for validation.');
 }
 
-const registerBlock = worker.slice(registerStart, loginStart);
+const registerBlock = publicAuth.slice(registerStart, loginStart);
 
 requireAbsent(
   registerBlock,
@@ -117,7 +117,7 @@ const insertMatch = registerBlock.match(
 );
 
 if (!insertMatch) {
-  throw new Error('Could not validate the public registration users INSERT.');
+  throw new Error('Could not validate the modular public registration users INSERT.');
 }
 
 const registrationColumns = insertMatch[1]
@@ -135,6 +135,12 @@ if (registrationColumns.includes('role')) {
   throw new Error('Public registration must not write users.role directly.');
 }
 
+requireMatch(
+  registerBlock,
+  /crypt\(\$\{password\},\s*gen_salt\('bf',\s*12\)\)/,
+  'Public registration must preserve bcrypt cost 12.'
+);
+
 console.log('Admin foundation validation passed.');
 console.log(`Validated tables: ${requiredTables.join(', ')}`);
-console.log('Validated boundary: public registration cannot request or write an admin role.');
+console.log('Validated boundary: modular public registration cannot request or write an admin role.');
