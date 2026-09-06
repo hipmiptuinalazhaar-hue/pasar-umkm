@@ -1,0 +1,15 @@
+# Default repository owner
+* @hipmiptuinalazhaar-hue
+
+# Privileged/security domains
+/src/admin-* @hipmiptuinalazhaar-hue
+/src/request-security.js @hipmiptuinalazhaar-hue
+/src/rate-limit.js @hipmiptuinalazhaar-hue
+/src/worker-entry.js @hipmiptuinalazhaar-hue
+/admin/ @hipmiptuinalazhaar-hue
+/js/admin/ @hipmiptuinalazhaar-hue
+/css/admin-* @hipmiptuinalazhaar-hue
+/database/migrations/ @hipmiptuinalazhaar-hue
+/wrangler.jsonc @hipmiptuinalazhaar-hue
+/_headers @hipmiptuinalazhaar-hue
+/.github/workflows/ @hipmiptuinalazhaar-hue
