@@ -31,6 +31,7 @@ import { enforceRequestSecurity } from "./request-security.js";
 const P0_MIGRATION = "2026-09-02-p0-runtime-schema-hardening";
 const P1_MIGRATION = "2026-09-02-p1-security-performance";
 const FINAL_SECURITY_MIGRATION = "2026-09-05-final-security-hardening";
+const RELEASE_CONTRACT = "2026-09-06-platform-hardening-v3";
 
 function schemaUnavailable() {
   return Response.json(
@@ -55,12 +56,6 @@ async function handleHealth(env) {
 
     const rows = await sql`
       SELECT
-        current_database() AS database_name,
-        (
-          SELECT COUNT(*)::int
-          FROM information_schema.tables
-          WHERE table_schema = 'public'
-        ) AS public_tables,
         to_regclass('public.users') IS NOT NULL AS users,
         to_regclass('public.sessions') IS NOT NULL AS sessions,
         to_regclass('public.categories') IS NOT NULL AS categories,
@@ -88,18 +83,8 @@ async function handleHealth(env) {
     let p0Applied = false;
     let p1Applied = false;
     let finalSecurityApplied = false;
-    let latestMigration = null;
 
     if (state.schema_migrations) {
-      const migrationRows = await sql`
-        SELECT version, applied_at
-        FROM schema_migrations
-        ORDER BY applied_at DESC, version DESC
-        LIMIT 1
-      `;
-
-      latestMigration = migrationRows[0]?.version || null;
-
       const appliedRows = await sql`
         SELECT version
         FROM schema_migrations
@@ -117,27 +102,23 @@ async function handleHealth(env) {
         ok: true,
         app: "Pasar UMKM",
         backend: "Cloudflare Workers",
+        release: RELEASE_CONTRACT,
         database: {
-          connected: true,
-          name: state.database_name,
-          public_tables: Number(state.public_tables || 0)
+          connected: true
         },
         schema: {
           core_ready: missingCore.length === 0,
-          missing_core: missingCore,
-          p0_migration: P0_MIGRATION,
+          missing_core_count: missingCore.length,
           p0_applied: p0Applied,
-          p1_migration: P1_MIGRATION,
           p1_applied: p1Applied,
-          final_security_migration: FINAL_SECURITY_MIGRATION,
-          final_security_applied: finalSecurityApplied,
-          latest_migration: latestMigration
+          final_security_applied: finalSecurityApplied
         }
       },
       {
         status: 200,
         headers: {
-          "Cache-Control": "no-store"
+          "Cache-Control": "no-store, max-age=0",
+          "X-Content-Type-Options": "nosniff"
         }
       }
     );
@@ -146,13 +127,15 @@ async function handleHealth(env) {
       {
         ok: false,
         app: "Pasar UMKM",
+        release: RELEASE_CONTRACT,
         error: "Database connection failed",
         code: "HEALTH_DATABASE_ERROR"
       },
       {
         status: 500,
         headers: {
-          "Cache-Control": "no-store"
+          "Cache-Control": "no-store, max-age=0",
+          "X-Content-Type-Options": "nosniff"
         }
       }
     );
@@ -160,186 +143,110 @@ async function handleHealth(env) {
 }
 
 async function routeRequest(request, env, ctx) {
-    const url = new URL(request.url);
+  const url = new URL(request.url);
 
-    if (url.pathname === "/api/health") {
-      return handleHealth(env);
+  const securityResponse = enforceRequestSecurity(request);
+  if (securityResponse) {
+    return securityResponse;
+  }
+
+  const rateLimitResponse = await enforceRateLimit(request, env);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  if (url.pathname === "/api/health") {
+    return handleHealth(env);
+  }
+
+  // Privileged administration auth is an isolated security domain and must
+  // remain available independently from public social-commerce feature bootstraps.
+  const adminAuthResponse = await handleAdminAuthApi(request, env);
+  if (adminAuthResponse) {
+    return adminAuthResponse;
+  }
+
+  // RBAC/capability resolution shares the isolated admin runtime boundary.
+  // Future privileged APIs must authorize server-side before public bootstraps.
+  const adminAccessResponse = await handleAdminAccessApi(request, env);
+  if (adminAccessResponse) {
+    return adminAccessResponse;
+  }
+
+  // Operational control-center APIs remain inside the same privileged boundary.
+  // They must never depend on unrelated public feature bootstraps.
+  const adminControlResponse = await handleAdminControlApi(request, env);
+  if (adminControlResponse) {
+    return adminControlResponse;
+  }
+
+  try {
+    await ensureNotificationInfrastructure(env);
+    await ensureFullFunctionalityInfrastructure(env);
+  } catch {
+    if (url.pathname.startsWith("/api/")) {
+      return schemaUnavailable();
     }
+  }
 
-    const securityResponse = enforceRequestSecurity(request);
-    if (securityResponse) {
-      return securityResponse;
-    }
+  const publicCatalogResponse = await handlePublicCatalogApi(request, env);
+  if (publicCatalogResponse) return publicCatalogResponse;
 
-    const rateLimitResponse = await enforceRateLimit(request);
-    if (rateLimitResponse) {
-      return rateLimitResponse;
-    }
+  const notificationResponse = await handleNotificationApi(request, env);
+  if (notificationResponse) return notificationResponse;
 
-    // Privileged administration auth is an isolated security domain and must
-    // remain available independently from public social-commerce feature bootstraps.
-    const adminAuthResponse = await handleAdminAuthApi(request, env);
-    if (adminAuthResponse) {
-      return adminAuthResponse;
-    }
+  const ratingSummaryResponse = await handleRatingSummaryV2(request, env);
+  if (ratingSummaryResponse) return ratingSummaryResponse;
 
-    // RBAC/capability resolution shares the isolated admin runtime boundary.
-    // Future privileged APIs must authorize server-side before public bootstraps.
-    const adminAccessResponse = await handleAdminAccessApi(request, env);
-    if (adminAccessResponse) {
-      return adminAccessResponse;
-    }
+  const ratingResponse = await handleRatingApi(request, env);
+  if (ratingResponse) return ratingResponse;
 
-    // Operational control-center APIs remain inside the same privileged boundary.
-    // They must never depend on unrelated public social-commerce bootstraps.
-    const adminControlResponse = await handleAdminControlApi(request, env);
-    if (adminControlResponse) {
-      return adminControlResponse;
-    }
+  const storyUploadResponse = await handleStoryUploadApi(request, env);
+  if (storyUploadResponse) return storyUploadResponse;
 
-    try {
-      await ensureNotificationInfrastructure(env);
-      await ensureFullFunctionalityInfrastructure(env);
-    } catch {
-      if (url.pathname.startsWith("/api/")) {
-        return schemaUnavailable();
-      }
-    }
+  const mediaSocialResponse = await handleMediaSocialApi(request, env);
+  if (mediaSocialResponse) return mediaSocialResponse;
 
-    const publicCatalogResponse =
-      await handlePublicCatalogApi(request, env);
+  const businessAgencyResponse = await handleBusinessAgencyApi(request, env);
+  if (businessAgencyResponse) return businessAgencyResponse;
 
-    if (publicCatalogResponse) {
-      return publicCatalogResponse;
-    }
+  const storeManagementResponse = await handleStoreManagementApi(request, env);
+  if (storeManagementResponse) return storeManagementResponse;
 
-    const notificationResponse =
-      await handleNotificationApi(request, env);
+  const functionalityResponse = await handleFunctionalityApi(request, env);
+  if (functionalityResponse) return functionalityResponse;
 
-    if (notificationResponse) {
-      return notificationResponse;
-    }
+  const engagementResponse = await handleEngagementApi(request, env);
+  if (engagementResponse) return engagementResponse;
 
-    const ratingSummaryResponse =
-      await handleRatingSummaryV2(request, env);
+  const commentResponse = await handleCommentApi(request, env);
+  if (commentResponse) return commentResponse;
 
-    if (ratingSummaryResponse) {
-      return ratingSummaryResponse;
-    }
+  const chatMediaResponse = await handleChatMediaApiV2(request, env);
+  if (chatMediaResponse) return chatMediaResponse;
 
-    const ratingResponse =
-      await handleRatingApi(request, env);
+  const chatMessageActionResponse = await handleChatMessageActionApi(request, env);
+  if (chatMessageActionResponse) return chatMessageActionResponse;
 
-    if (ratingResponse) {
-      return ratingResponse;
-    }
+  const chatMarkReadResponse = await handleChatMarkReadApi(request, env);
+  if (chatMarkReadResponse) return chatMarkReadResponse;
 
-    const storyUploadResponse =
-      await handleStoryUploadApi(request, env);
+  const chatManagementResponse = await handleChatManagementApi(request, env);
+  if (chatManagementResponse) return chatManagementResponse;
 
-    if (storyUploadResponse) {
-      return storyUploadResponse;
-    }
+  const socialResponse = await handleSocialApi(request, env);
+  if (socialResponse) return socialResponse;
 
-    const mediaSocialResponse =
-      await handleMediaSocialApi(request, env);
+  const publicProfileResponse = await handlePublicProfileApi(request, env);
+  if (publicProfileResponse) return publicProfileResponse;
 
-    if (mediaSocialResponse) {
-      return mediaSocialResponse;
-    }
+  const profileMediaResponse = await handleProfileMediaApi(request, env);
+  if (profileMediaResponse) return profileMediaResponse;
 
-    const businessAgencyResponse =
-      await handleBusinessAgencyApi(request, env);
+  const profileResponse = await handleProfileApi(request, env);
+  if (profileResponse) return profileResponse;
 
-    if (businessAgencyResponse) {
-      return businessAgencyResponse;
-    }
-
-    const storeManagementResponse =
-      await handleStoreManagementApi(request, env);
-
-    if (storeManagementResponse) {
-      return storeManagementResponse;
-    }
-
-    const functionalityResponse =
-      await handleFunctionalityApi(request, env);
-
-    if (functionalityResponse) {
-      return functionalityResponse;
-    }
-
-    const engagementResponse =
-      await handleEngagementApi(request, env);
-
-    if (engagementResponse) {
-      return engagementResponse;
-    }
-
-    const commentResponse =
-      await handleCommentApi(request, env);
-
-    if (commentResponse) {
-      return commentResponse;
-    }
-
-    const chatMediaResponse =
-      await handleChatMediaApiV2(request, env);
-
-    if (chatMediaResponse) {
-      return chatMediaResponse;
-    }
-
-    const chatMessageActionResponse =
-      await handleChatMessageActionApi(request, env);
-
-    if (chatMessageActionResponse) {
-      return chatMessageActionResponse;
-    }
-
-    const chatMarkReadResponse =
-      await handleChatMarkReadApi(request, env);
-
-    if (chatMarkReadResponse) {
-      return chatMarkReadResponse;
-    }
-
-    const chatManagementResponse =
-      await handleChatManagementApi(request, env);
-
-    if (chatManagementResponse) {
-      return chatManagementResponse;
-    }
-
-    const socialResponse =
-      await handleSocialApi(request, env);
-
-    if (socialResponse) {
-      return socialResponse;
-    }
-
-    const publicProfileResponse =
-      await handlePublicProfileApi(request, env);
-
-    if (publicProfileResponse) {
-      return publicProfileResponse;
-    }
-
-    const profileMediaResponse =
-      await handleProfileMediaApi(request, env);
-
-    if (profileMediaResponse) {
-      return profileMediaResponse;
-    }
-
-    const profileResponse =
-      await handleProfileApi(request, env);
-
-    if (profileResponse) {
-      return profileResponse;
-    }
-
-    return legacyWorker.fetch(request, env, ctx);
+  return legacyWorker.fetch(request, env, ctx);
 }
 
 export default {

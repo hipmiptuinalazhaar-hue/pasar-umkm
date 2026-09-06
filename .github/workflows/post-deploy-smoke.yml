@@ -1,0 +1,55 @@
+name: Post Deploy Smoke
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'index.html'
+      - '_headers'
+      - 'admin/**'
+      - 'css/**'
+      - 'js/**'
+      - 'src/**'
+      - 'wrangler.jsonc'
+      - 'database/migrations/**'
+      - 'scripts/post-deploy-smoke.mjs'
+      - '.github/workflows/post-deploy-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: post-deploy-production
+  cancel-in-progress: true
+
+jobs:
+  verify-production:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Validate smoke syntax
+        run: node --check scripts/post-deploy-smoke.mjs
+
+      - name: Wait for deployment and verify production
+        env:
+          PRODUCTION_BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+          EXPECTED_RELEASE: 2026-09-06-platform-hardening-v3
+          SMOKE_TIMEOUT_MS: '15000'
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5 6 7 8; do
+            echo "Post-deploy verification attempt ${attempt}/8"
+            if node scripts/post-deploy-smoke.mjs; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 8 ]; then
+              sleep 20
+            fi
+          done
+          echo "Production did not reach the expected healthy release contract."
+          exit 1

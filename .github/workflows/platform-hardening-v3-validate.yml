@@ -1,0 +1,64 @@
+name: Platform Hardening V3
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: platform-hardening-v3-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-platform:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Repository-wide syntax lint
+        run: npm run lint
+
+      - name: Platform UI security and responsive contracts
+        run: npm test
+
+      - name: Existing final security contract
+        run: node scripts/validate-final-security-d.mjs
+
+      - name: Existing final responsive contract
+        run: node scripts/validate-release-readiness-f.mjs
+
+      - name: Existing Chat V7 action-layer contract
+        run: node scripts/validate-chat-action-layer.mjs
+
+      - name: Reproducible runtime build
+        run: |
+          npm run build:runtime
+          git diff --exit-code
+
+      - name: Bundle Worker
+        run: |
+          ./node_modules/.bin/esbuild src/worker-entry.js \
+            --bundle \
+            --format=esm \
+            --platform=browser \
+            --target=es2022 \
+            --outfile=/tmp/pasar-umkm-worker.js
+          test -s /tmp/pasar-umkm-worker.js

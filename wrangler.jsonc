@@ -11,6 +11,33 @@
     ]
   },
 
+  "ratelimits": [
+    {
+      "name": "EDGE_AUTH_LIMITER",
+      "namespace_id": "12001",
+      "simple": {
+        "limit": 20,
+        "period": 60
+      }
+    },
+    {
+      "name": "EDGE_WRITE_LIMITER",
+      "namespace_id": "12002",
+      "simple": {
+        "limit": 120,
+        "period": 60
+      }
+    },
+    {
+      "name": "EDGE_READ_LIMITER",
+      "namespace_id": "12003",
+      "simple": {
+        "limit": 600,
+        "period": 60
+      }
+    }
+  ],
+
   "observability": {
     "enabled": true,
     "logs": {

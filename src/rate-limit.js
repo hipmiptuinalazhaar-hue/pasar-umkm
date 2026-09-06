@@ -1,20 +1,35 @@
 const buckets = new Map();
 let lastSweepAt = 0;
 
+const EDGE_LIMITS = Object.freeze({
+  EDGE_AUTH_LIMITER: 20,
+  EDGE_WRITE_LIMITER: 120,
+  EDGE_READ_LIMITER: 600
+});
+
 const RULES = [
+  {
+    name: "health-read",
+    match: (request, url) => request.method === "GET" && url.pathname === "/api/health",
+    limit: 60,
+    windowMs: 60 * 1000,
+    edgeBinding: "EDGE_READ_LIMITER"
+  },
   {
     name: "admin-auth-login",
     match: (request, url) => request.method === "POST" && url.pathname === "/api/admin/auth/login",
     limit: 5,
     windowMs: 15 * 60 * 1000,
-    includeAccount: true
+    includeAccount: true,
+    edgeBinding: "EDGE_AUTH_LIMITER"
   },
   {
     name: "admin-auth-rotate-password",
     match: (request, url) => request.method === "POST" && url.pathname === "/api/admin/auth/rotate-password",
     limit: 5,
     windowMs: 30 * 60 * 1000,
-    includeAccount: true
+    includeAccount: true,
+    edgeBinding: "EDGE_AUTH_LIMITER"
   },
   {
     name: "admin-mfa-challenge-write",
@@ -25,7 +40,8 @@ const RULES = [
     ),
     limit: 10,
     windowMs: 5 * 60 * 1000,
-    includeAdminChallenge: true
+    includeAdminChallenge: true,
+    edgeBinding: "EDGE_AUTH_LIMITER"
   },
   {
     name: "admin-step-up-write",
@@ -35,7 +51,8 @@ const RULES = [
     ),
     limit: 10,
     windowMs: 10 * 60 * 1000,
-    includeAdminSession: true
+    includeAdminSession: true,
+    edgeBinding: "EDGE_AUTH_LIMITER"
   },
   {
     name: "admin-auth-session-write",
@@ -45,7 +62,8 @@ const RULES = [
     ),
     limit: 30,
     windowMs: 10 * 60 * 1000,
-    includeAdminSession: true
+    includeAdminSession: true,
+    edgeBinding: "EDGE_WRITE_LIMITER"
   },
   {
     name: "admin-security-read",
@@ -55,49 +73,56 @@ const RULES = [
     ),
     limit: 120,
     windowMs: 60 * 1000,
-    includeAdminSession: true
+    includeAdminSession: true,
+    edgeBinding: "EDGE_READ_LIMITER"
   },
   {
     name: "admin-security-write",
     match: (request, url) => request.method === "POST" && url.pathname.startsWith("/api/admin/security/"),
     limit: 20,
     windowMs: 10 * 60 * 1000,
-    includeAdminSession: true
+    includeAdminSession: true,
+    edgeBinding: "EDGE_WRITE_LIMITER"
   },
   {
     name: "admin-access-read",
     match: (request, url) => request.method === "GET" && url.pathname === "/api/admin/access/me",
     limit: 120,
     windowMs: 60 * 1000,
-    includeAdminSession: true
+    includeAdminSession: true,
+    edgeBinding: "EDGE_READ_LIMITER"
   },
   {
     name: "admin-control-read",
     match: (request, url) => request.method === "GET" && url.pathname.startsWith("/api/admin/control/"),
     limit: 180,
     windowMs: 60 * 1000,
-    includeAdminSession: true
+    includeAdminSession: true,
+    edgeBinding: "EDGE_READ_LIMITER"
   },
   {
     name: "admin-control-write",
     match: (request, url) => ["POST", "PUT", "PATCH", "DELETE"].includes(request.method) && url.pathname.startsWith("/api/admin/control/"),
     limit: 30,
     windowMs: 10 * 60 * 1000,
-    includeAdminSession: true
+    includeAdminSession: true,
+    edgeBinding: "EDGE_WRITE_LIMITER"
   },
   {
     name: "auth-login",
     match: (request, url) => request.method === "POST" && url.pathname === "/api/auth/login",
     limit: 10,
     windowMs: 5 * 60 * 1000,
-    includeAccount: true
+    includeAccount: true,
+    edgeBinding: "EDGE_AUTH_LIMITER"
   },
   {
     name: "auth-register",
     match: (request, url) => request.method === "POST" && url.pathname === "/api/auth/register",
     limit: 5,
     windowMs: 60 * 60 * 1000,
-    includeAccount: true
+    includeAccount: true,
+    edgeBinding: "EDGE_AUTH_LIMITER"
   },
   {
     name: "public-catalog",
@@ -106,28 +131,32 @@ const RULES = [
       url.pathname === "/api/stores"
     ),
     limit: 240,
-    windowMs: 60 * 1000
+    windowMs: 60 * 1000,
+    edgeBinding: "EDGE_READ_LIMITER"
   },
   {
     name: "story-upload",
     match: (request, url) => request.method === "POST" && url.pathname === "/api/story-v2/upload-image",
     limit: 30,
     windowMs: 10 * 60 * 1000,
-    includeSession: true
+    includeSession: true,
+    edgeBinding: "EDGE_WRITE_LIMITER"
   },
   {
     name: "chat-upload",
     match: (request, url) => request.method === "POST" && url.pathname === "/api/chat/media/upload",
     limit: 40,
     windowMs: 10 * 60 * 1000,
-    includeSession: true
+    includeSession: true,
+    edgeBinding: "EDGE_WRITE_LIMITER"
   },
   {
     name: "chat-media-cleanup",
     match: (request, url) => request.method === "POST" && url.pathname === "/api/chat/media/cleanup",
     limit: 30,
     windowMs: 10 * 60 * 1000,
-    includeSession: true
+    includeSession: true,
+    edgeBinding: "EDGE_WRITE_LIMITER"
   },
   {
     name: "comment-write",
@@ -142,14 +171,16 @@ const RULES = [
     },
     limit: 60,
     windowMs: 10 * 60 * 1000,
-    includeSession: true
+    includeSession: true,
+    edgeBinding: "EDGE_WRITE_LIMITER"
   },
   {
     name: "avatar-upload",
     match: (request, url) => request.method === "PUT" && url.pathname === "/api/profile/avatar",
     limit: 20,
     windowMs: 60 * 60 * 1000,
-    includeSession: true
+    includeSession: true,
+    edgeBinding: "EDGE_WRITE_LIMITER"
   }
 ];
 
@@ -206,19 +237,30 @@ function limited(rule, result) {
       "Cache-Control": "no-store",
       "Retry-After": String(retryAfter),
       "X-RateLimit-Limit": String(rule.limit),
-      "X-RateLimit-Remaining": "0"
+      "X-RateLimit-Remaining": "0",
+      "X-RateLimit-Scope": "isolate"
     }
   });
 }
 
-export async function enforceRateLimit(request) {
-  const url = new URL(request.url);
-  const rule = RULES.find(item => item.match(request, url));
-  if (!rule) return null;
-  const now = Date.now();
-  sweep(now);
+function edgeLimited(rule) {
+  const limit = EDGE_LIMITS[rule.edgeBinding] || 0;
+  return Response.json({ ok: false, error: "Terlalu banyak permintaan. Coba lagi setelah beberapa saat.", code: "RATE_LIMITED" }, {
+    status: 429,
+    headers: {
+      "Cache-Control": "no-store",
+      "Retry-After": "60",
+      ...(limit ? { "X-RateLimit-Limit": String(limit) } : {}),
+      "X-RateLimit-Remaining": "0",
+      "X-RateLimit-Scope": "edge"
+    }
+  });
+}
+
+async function identityKeys(request, rule) {
   const ipHash = await digestKey(clientAddress(request));
   const keys = [`${rule.name}:ip:${ipHash}`];
+
   if (rule.includeAccount) {
     const account = await accountHint(request);
     if (account) keys.push(`${rule.name}:acct:${account}`);
@@ -235,6 +277,41 @@ export async function enforceRateLimit(request) {
     const adminChallenge = await cookieSessionHint(request, "__Host-pasar_umkm_admin_challenge");
     if (adminChallenge) keys.push(`${rule.name}:admin-challenge:${adminChallenge}`);
   }
+
+  return keys;
+}
+
+async function enforceEdgeLimit(rule, env, keys) {
+  if (!rule.edgeBinding) return null;
+  const binding = env?.[rule.edgeBinding];
+  if (!binding || typeof binding.limit !== "function") return null;
+
+  try {
+    for (const key of keys) {
+      const result = await binding.limit({ key });
+      if (result?.success === false) return edgeLimited(rule);
+    }
+  } catch {
+    // Keep the existing local limiter available if the platform binding is
+    // temporarily unavailable. Authentication still has its own DB lockouts.
+    console.warn("Edge rate limiter unavailable", rule.name);
+  }
+
+  return null;
+}
+
+export async function enforceRateLimit(request, env = {}) {
+  const url = new URL(request.url);
+  const rule = RULES.find(item => item.match(request, url));
+  if (!rule) return null;
+
+  const now = Date.now();
+  sweep(now);
+  const keys = await identityKeys(request, rule);
+
+  const edgeResponse = await enforceEdgeLimit(rule, env, keys);
+  if (edgeResponse) return edgeResponse;
+
   for (const key of keys) {
     const result = consume(key, rule.limit, rule.windowMs, now);
     if (!result.allowed) return limited(rule, result);
@@ -242,8 +319,9 @@ export async function enforceRateLimit(request) {
   return null;
 }
 
-export const rateLimitPolicy = RULES.map(({ name, limit, windowMs }) => ({
+export const rateLimitPolicy = RULES.map(({ name, limit, windowMs, edgeBinding }) => ({
   name,
   limit,
-  window_seconds: Math.round(windowMs / 1000)
+  window_seconds: Math.round(windowMs / 1000),
+  edge_binding: edgeBinding || null
 }));
