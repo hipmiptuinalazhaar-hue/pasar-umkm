@@ -1,0 +1,66 @@
+name: Authenticated Smoke V2
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Staging Worker/preview base URL. Production URL is rejected.
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: authenticated-smoke-v2
+  cancel-in-progress: false
+
+jobs:
+  authenticated-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    environment: staging
+    env:
+      E2E_BASE_URL: ${{ inputs.base_url }}
+      SMOKE_EXPECT_ENVIRONMENT: staging
+      SMOKE_ALLOW_MUTATIONS: "true"
+      SMOKE_TIMEOUT_MS: "15000"
+      SMOKE_BUYER_EMAIL: ${{ secrets.SMOKE_BUYER_EMAIL }}
+      SMOKE_BUYER_PASSWORD: ${{ secrets.SMOKE_BUYER_PASSWORD }}
+      SMOKE_SELLER_EMAIL: ${{ secrets.SMOKE_SELLER_EMAIL }}
+      SMOKE_SELLER_PASSWORD: ${{ secrets.SMOKE_SELLER_PASSWORD }}
+      SMOKE_ADMIN_EMAIL: ${{ secrets.SMOKE_ADMIN_EMAIL }}
+      SMOKE_ADMIN_PASSWORD: ${{ secrets.SMOKE_ADMIN_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+
+      - name: Validate target and credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$E2E_BASE_URL"
+          case "$E2E_BASE_URL" in
+            https://pasar-umkm.hipmiptuinalazhaar.workers.dev|https://pasar-umkm.hipmiptuinalazhaar.workers.dev/*)
+              echo "Production target rejected for stateful authenticated E2E."
+              exit 1
+              ;;
+          esac
+          for name in \
+            SMOKE_BUYER_EMAIL SMOKE_BUYER_PASSWORD \
+            SMOKE_SELLER_EMAIL SMOKE_SELLER_PASSWORD \
+            SMOKE_ADMIN_EMAIL SMOKE_ADMIN_PASSWORD; do
+            test -n "${!name:-}" || { echo "Missing staging secret: $name"; exit 1; }
+          done
+
+      - name: Syntax check authenticated E2E
+        run: node --check scripts/authenticated-smoke-v2.mjs
+
+      - name: Run multi-role staging E2E
+        run: npm run smoke:authenticated

@@ -34,6 +34,11 @@ const P1_MIGRATION = "2026-09-02-p1-security-performance";
 const FINAL_SECURITY_MIGRATION = "2026-09-05-final-security-hardening";
 const RELEASE_CONTRACT = "2026-09-06-platform-hardening-v3";
 
+function runtimeEnvironment(env) {
+  const value = String(env?.APP_ENV || "production").trim().toLowerCase();
+  return value === "staging" ? "staging" : "production";
+}
+
 function schemaUnavailable() {
   return Response.json(
     {
@@ -65,7 +70,8 @@ async function handleHealth(env) {
         to_regclass('public.posts') IS NOT NULL AS posts,
         to_regclass('public.orders') IS NOT NULL AS orders,
         to_regclass('public.notifications') IS NOT NULL AS notifications,
-        to_regclass('public.schema_migrations') IS NOT NULL AS schema_migrations
+        to_regclass('public.schema_migrations') IS NOT NULL AS schema_migrations,
+        to_regclass('public.staging_environment') IS NOT NULL AS staging_environment
     `;
 
     const state = rows[0] || {};
@@ -104,6 +110,8 @@ async function handleHealth(env) {
         app: "Pasar UMKM",
         backend: "Cloudflare Workers",
         release: RELEASE_CONTRACT,
+        environment: runtimeEnvironment(env),
+        staging_database_attested: state.staging_environment === true,
         database: {
           connected: true
         },
@@ -129,6 +137,8 @@ async function handleHealth(env) {
         ok: false,
         app: "Pasar UMKM",
         release: RELEASE_CONTRACT,
+        environment: runtimeEnvironment(env),
+        staging_database_attested: false,
         error: "Database connection failed",
         code: "HEALTH_DATABASE_ERROR"
       },
