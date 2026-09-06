@@ -6,7 +6,13 @@
     "node": ">=22 <23"
   },
   "scripts": {
-    "build:runtime": "node scripts/build-runtime.mjs"
+    "build:runtime": "node scripts/build-runtime.mjs",
+    "lint": "node scripts/lint-syntax.mjs",
+    "test": "node scripts/validate-platform-hardening-v3.mjs",
+    "validate": "npm run lint && npm test",
+    "smoke:production": "node scripts/production-smoke-a.mjs",
+    "smoke:post-deploy": "node scripts/post-deploy-smoke.mjs",
+    "smoke:authenticated": "node scripts/authenticated-smoke-v1.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "1.0.0"
