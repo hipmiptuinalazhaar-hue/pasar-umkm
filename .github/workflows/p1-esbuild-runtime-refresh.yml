@@ -1,0 +1,69 @@
+name: P1 Esbuild Runtime Refresh
+
+on:
+  push:
+    branches:
+      - p1/esbuild-0-28-2-modernization
+
+permissions:
+  contents: write
+
+concurrency:
+  group: p1-esbuild-runtime-refresh
+  cancel-in-progress: false
+
+jobs:
+  rebuild-runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install exact locked toolchain
+        run: npm ci --no-audit --no-fund
+
+      - name: Verify toolchain
+        run: |
+          node -e "const p=require('./package.json'); if(p.devDependencies.esbuild!=='0.28.2') process.exit(1)"
+          ./node_modules/.bin/esbuild --version
+
+      - name: Rebuild deterministic runtime assets
+        run: npm run build:runtime
+
+      - name: Validate generated runtime
+        run: |
+          set -euo pipefail
+          node --check js/app.runtime.js
+          ./node_modules/.bin/esbuild src/worker-entry.js --bundle --format=esm --platform=browser --target=es2022 --outfile=/tmp/worker-entry.js
+          test -s /tmp/worker-entry.js
+          git diff --check
+          python - <<'PY'
+          import subprocess
+          allowed = {'js/app.runtime.js', 'css/style.runtime.css', 'index.html', '.assetsignore'}
+          changed = set(subprocess.check_output(['git','status','--porcelain'], text=True).splitlines())
+          paths = {line[3:] for line in changed if len(line) > 3}
+          unexpected = paths - allowed
+          if unexpected:
+              raise SystemExit('Unexpected generated files: ' + ', '.join(sorted(unexpected)))
+          print('Generated runtime files:', ', '.join(sorted(paths)) if paths else 'no changes')
+          PY
+
+      - name: Commit deterministic assets
+        run: |
+          set -euo pipefail
+          git add js/app.runtime.js css/style.runtime.css index.html .assetsignore
+          if git diff --cached --quiet; then
+            echo 'Runtime assets unchanged under esbuild 0.28.2.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'build: regenerate runtime assets with esbuild 0.28.2 [skip ci]'
+          git push origin "HEAD:${GITHUB_REF_NAME}"
