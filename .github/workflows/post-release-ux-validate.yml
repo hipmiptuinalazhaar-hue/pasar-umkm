@@ -1,0 +1,57 @@
+name: Post-Release UX Recovery Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'index.html'
+      - 'js/chat-single-render-v6.js'
+      - 'js/chat-conversation-actions-v7.js'
+      - 'js/chat-experience-v7.js'
+      - 'js/rating-core.js'
+      - 'js/about-experience-v2.js'
+      - 'css/rating-form-v3.css'
+      - 'css/rating-commerce-v1.css'
+      - 'css/about-experience-v2.css'
+      - 'scripts/validate-post-release-ux.mjs'
+      - '.github/workflows/post-release-ux-validate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-post-release-ux:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Validate JavaScript syntax
+        run: |
+          node --check js/chat-single-render-v6.js
+          node --check js/chat-conversation-actions-v7.js
+          node --check js/rating-core.js
+          node --check js/about-experience-v2.js
+          node --check scripts/validate-post-release-ux.mjs
+
+      - name: Validate UX recovery contracts
+        run: node scripts/validate-post-release-ux.mjs
+
+      - name: Install locked toolchain
+        run: npm ci --no-audit --no-fund
+
+      - name: Verify deterministic runtime build
+        run: |
+          npm run build:runtime
+          git diff --exit-code
