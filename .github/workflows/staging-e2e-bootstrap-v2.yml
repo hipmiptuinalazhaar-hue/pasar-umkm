@@ -1,0 +1,111 @@
+name: Staging E2E Bootstrap V2
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging-e2e-bootstrap-v2
+  cancel-in-progress: false
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    environment: staging
+    env:
+      STAGING_SCHEMA_SOURCE_URL: ${{ secrets.STAGING_SCHEMA_SOURCE_URL }}
+      STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+      SMOKE_BUYER_EMAIL: ${{ secrets.SMOKE_BUYER_EMAIL }}
+      SMOKE_BUYER_PASSWORD: ${{ secrets.SMOKE_BUYER_PASSWORD }}
+      SMOKE_SELLER_EMAIL: ${{ secrets.SMOKE_SELLER_EMAIL }}
+      SMOKE_SELLER_PASSWORD: ${{ secrets.SMOKE_SELLER_PASSWORD }}
+      SMOKE_ADMIN_EMAIL: ${{ secrets.SMOKE_ADMIN_EMAIL }}
+      SMOKE_ADMIN_PASSWORD: ${{ secrets.SMOKE_ADMIN_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Validate required staging secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in \
+            STAGING_SCHEMA_SOURCE_URL STAGING_DATABASE_URL \
+            SMOKE_BUYER_EMAIL SMOKE_BUYER_PASSWORD \
+            SMOKE_SELLER_EMAIL SMOKE_SELLER_PASSWORD \
+            SMOKE_ADMIN_EMAIL SMOKE_ADMIN_PASSWORD; do
+            test -n "${!name:-}" || { echo "Missing staging secret: $name"; exit 1; }
+          done
+
+      - name: Install PostgreSQL client
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client
+          pg_dump --version
+          psql --version
+
+      - name: Verify target database identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          db_name="$(psql "$STAGING_DATABASE_URL" -Atqc 'select current_database()')"
+          test "$db_name" = "pasar_umkm_staging" || {
+            echo "Refusing bootstrap: target database is $db_name, expected pasar_umkm_staging"
+            exit 1
+          }
+
+      - name: Bootstrap exact schema without copying production rows
+        shell: bash
+        run: |
+          set -euo pipefail
+          core_ready="$(psql "$STAGING_DATABASE_URL" -Atqc "select to_regclass('public.users') is not null")"
+          if [ "$core_ready" = "t" ]; then
+            echo "Staging schema already exists; schema-only restore skipped."
+            exit 0
+          fi
+
+          pg_dump \
+            --schema-only \
+            --no-owner \
+            --no-privileges \
+            "$STAGING_SCHEMA_SOURCE_URL" \
+            > /tmp/pasar-umkm-staging-schema.sql
+
+          if grep -Eq '^(COPY|INSERT INTO) ' /tmp/pasar-umkm-staging-schema.sql; then
+            echo "Schema-only safety assertion failed: data statement detected."
+            exit 1
+          fi
+
+          psql "$STAGING_DATABASE_URL" \
+            -v ON_ERROR_STOP=1 \
+            -f /tmp/pasar-umkm-staging-schema.sql
+
+      - name: Seed synthetic smoke identities and fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql "$STAGING_DATABASE_URL" \
+            -v ON_ERROR_STOP=1 \
+            -v smoke_buyer_email="$SMOKE_BUYER_EMAIL" \
+            -v smoke_buyer_password="$SMOKE_BUYER_PASSWORD" \
+            -v smoke_seller_email="$SMOKE_SELLER_EMAIL" \
+            -v smoke_seller_password="$SMOKE_SELLER_PASSWORD" \
+            -v smoke_admin_email="$SMOKE_ADMIN_EMAIL" \
+            -v smoke_admin_password="$SMOKE_ADMIN_PASSWORD" \
+            -f database/staging/seed-smoke.sql
+
+      - name: Verify staging attestation
+        shell: bash
+        run: |
+          set -euo pipefail
+          marker="$(psql "$STAGING_DATABASE_URL" -Atqc "select exists(select 1 from staging_environment where marker='p2-e2e-isolated')")"
+          users="$(psql "$STAGING_DATABASE_URL" -Atqc "select count(*) from users where id in ('00000000-0000-4000-8000-000000000201','00000000-0000-4000-8000-000000000202')")"
+          test "$marker" = "t"
+          test "$users" = "2"
+          echo "P2 staging database bootstrap: PASS"
