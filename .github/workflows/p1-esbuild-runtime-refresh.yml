@@ -47,12 +47,11 @@ jobs:
           python - <<'PY'
           import subprocess
           allowed = {'js/app.runtime.js', 'css/style.runtime.css', 'index.html', '.assetsignore'}
-          changed = set(subprocess.check_output(['git','status','--porcelain'], text=True).splitlines())
-          paths = {line[3:] for line in changed if len(line) > 3}
+          paths = set(filter(None, subprocess.check_output(['git','diff','--name-only'], text=True).splitlines()))
           unexpected = paths - allowed
           if unexpected:
-              raise SystemExit('Unexpected generated files: ' + ', '.join(sorted(unexpected)))
-          print('Generated runtime files:', ', '.join(sorted(paths)) if paths else 'no changes')
+              raise SystemExit('Unexpected generated tracked files: ' + ', '.join(sorted(unexpected)))
+          print('Generated tracked runtime files:', ', '.join(sorted(paths)) if paths else 'no changes')
           PY
 
       - name: Commit deterministic assets
