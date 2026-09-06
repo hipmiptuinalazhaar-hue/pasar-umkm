@@ -6,6 +6,7 @@ on:
       - 'js/chat-experience-v7.js'
       - 'css/chat-experience-v7.css'
       - 'js/chat-single-render-v6.js'
+      - 'js/chat-conversation-actions-v7.js'
       - 'js/chat-stability-v4.js'
       - 'js/chat-experience.js'
       - 'js/chat-media-experience.js'
@@ -38,6 +39,7 @@ jobs:
         run: |
           node --check js/chat-experience-v7.js
           node --check js/chat-single-render-v6.js
+          node --check js/chat-conversation-actions-v7.js
 
       - name: Validate single ownership and design budgets
         shell: python
@@ -51,8 +53,9 @@ jobs:
           controller = Path('js/chat-experience-v7.js')
           css = Path('css/chat-experience-v7.css')
           bootstrap = Path('js/chat-single-render-v6.js')
+          gestures = Path('js/chat-conversation-actions-v7.js')
 
-          for path in (controller, css, bootstrap):
+          for path in (controller, css, bootstrap, gestures):
               if not path.exists():
                   errors.append(f'Missing Chat V7 file: {path}')
 
@@ -63,11 +66,13 @@ jobs:
           controller_text = controller.read_text(encoding='utf-8')
           css_text = css.read_text(encoding='utf-8')
           bootstrap_text = bootstrap.read_text(encoding='utf-8')
+          gesture_text = gestures.read_text(encoding='utf-8')
 
           budgets = {
               'Chat V7 JS': (controller.stat().st_size, 56_000),
               'Chat V7 CSS': (css.stat().st_size, 20_000),
               'Chat bootstrap': (bootstrap.stat().st_size, 5_000),
+              'Chat conversation gestures': (gestures.stat().st_size, 5_000),
           }
 
           for name, (size, limit) in budgets.items():
@@ -104,6 +109,7 @@ jobs:
           required_bootstrap = (
               "css/chat-experience-v7.css?v=7.0",
               "js/chat-experience-v7.js?v=7.0",
+              "js/chat-conversation-actions-v7.js?v=1.0",
               '[data-action="messages"]',
               '[data-social-action="message-user"]',
               '[data-social-action="open-conversation"]',
@@ -113,6 +119,22 @@ jobs:
           for contract in required_bootstrap:
               if contract not in bootstrap_text:
                   errors.append(f'Missing Chat V7 bootstrap contract: {contract}')
+
+          required_gestures = (
+              "version: '1.0'",
+              "[data-chat-v7-row]",
+              "conversation-menu",
+              "contextmenu",
+              "delete_me",
+              "Hapus percakapan",
+              "520",
+          )
+          for contract in required_gestures:
+              if contract not in gesture_text:
+                  errors.append(f'Missing conversation gesture contract: {contract}')
+
+          if '/api/' in gesture_text or re.search(r'\bfetch\s*\(', gesture_text):
+              errors.append('Conversation gesture adapter must not own Chat API calls')
 
           tiny_fonts = [
               float(value)
@@ -172,4 +194,4 @@ jobs:
                   print(f'- {error}')
               sys.exit(1)
 
-          print('UI P4 Chat V7 validation passed with retired shims absent.')
+          print('UI P4 Chat V7 validation passed with conversation gestures delegated to the V7 action owner.')

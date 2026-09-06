@@ -56,8 +56,8 @@ if (!failures.length) {
     if (index.includes(path)) fail(`index masih mereferensikan retired artifact: ${path}`);
   }
 
-  if (!index.includes('js/chat-single-render-v6.js?v=7.0')) {
-    fail('index tidak memuat compatibility bootstrap Chat V7');
+  if (!index.includes('js/chat-single-render-v6.js?v=7.1')) {
+    fail('index tidak memuat compatibility bootstrap Chat V7 cache boundary 7.1');
   }
 
   if (!p4.includes('HISTORICAL / ARCHIVED')) {

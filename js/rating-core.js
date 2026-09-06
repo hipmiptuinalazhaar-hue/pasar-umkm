@@ -1,14 +1,40 @@
 'use strict';
 
 (() => {
+  if (window.PasarRatingCore?.version === '2.2') return;
   if (typeof STATE === 'undefined' || typeof DATA === 'undefined') return;
 
   const RATING = {
     products: new Map(),
     stores: new Map(),
     loading: false,
-    timer: null
+    timer: null,
+    lastBuyerOrderId: ''
   };
+
+  function ensureStyle(selector, href, datasetKey) {
+    if (document.querySelector(selector)) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    link.dataset[datasetKey] = 'true';
+    document.head.appendChild(link);
+  }
+
+  function ensureStyles() {
+    ensureStyle(
+      'link[data-rating-form-v3-style="true"]',
+      'css/rating-form-v3.css?v=3.0',
+      'ratingFormV3Style'
+    );
+    ensureStyle(
+      'link[data-rating-commerce-style="true"]',
+      'css/rating-commerce-v1.css?v=1.0',
+      'ratingCommerceStyle'
+    );
+  }
+
+  ensureStyles();
 
   function esc(value) {
     return typeof escapeHTML === 'function'
@@ -42,7 +68,6 @@
 
   function formatRatingScore(value) {
     const rating = Math.max(0, Math.min(5, Number(value || 0)));
-
     return Number.isInteger(rating)
       ? String(rating)
       : rating.toFixed(1).replace(/\.0$/, '');
@@ -100,12 +125,10 @@
 
     if (STATE.currentStore?.id) storeIds.add(String(STATE.currentStore.id));
 
-    document
-      .querySelectorAll('[data-store-id]')
-      .forEach(node => {
-        const id = String(node.dataset.storeId || '').trim();
-        if (id) storeIds.add(id);
-      });
+    document.querySelectorAll('[data-store-id]').forEach(node => {
+      const id = String(node.dataset.storeId || '').trim();
+      if (id) storeIds.add(id);
+    });
 
     return {
       productIds: [...productIds].slice(0, 100),
@@ -117,7 +140,10 @@
     if (RATING.loading) return;
 
     const { productIds, storeIds } = collectIds();
-    if (!productIds.length && !storeIds.length) return;
+    if (!productIds.length && !storeIds.length) {
+      decorate();
+      return;
+    }
 
     RATING.loading = true;
 
@@ -153,44 +179,36 @@
   }
 
   function decorateProductRatings() {
-    document
-      .querySelectorAll('.post-card.is-product-post')
-      .forEach(card => {
-        const product = productForCard(card);
-        if (!product?.id) return;
+    document.querySelectorAll('.post-card.is-product-post').forEach(card => {
+      const product = productForCard(card);
+      if (!product?.id) return;
 
-        const info = card.querySelector('.ig-product-info');
-        if (!info) return;
+      const info = card.querySelector('.ig-product-info');
+      if (!info) return;
 
-        let line = info.querySelector('.product-rating-line');
+      let line = info.querySelector('.product-rating-line');
+      if (!line) {
+        line = document.createElement('div');
+        line.className = 'product-rating-line';
 
-        if (!line) {
-          line = document.createElement('div');
-          line.className = 'product-rating-line';
+        const description = info.querySelector('.ig-product-description');
+        const buttons = info.querySelector('.ig-product-buttons');
+        if (description) info.insertBefore(line, description);
+        else if (buttons) info.insertBefore(line, buttons);
+        else info.appendChild(line);
+      }
 
-          const description = info.querySelector('.ig-product-description');
-          const buttons = info.querySelector('.ig-product-buttons');
-
-          if (description) info.insertBefore(line, description);
-          else if (buttons) info.insertBefore(line, buttons);
-          else info.appendChild(line);
-        }
-
-        setHtmlIfChanged(
-          line,
-          ratingMarkup(
-            RATING.products.get(String(product.id)),
-            'product'
-          )
-        );
-      });
+      setHtmlIfChanged(
+        line,
+        ratingMarkup(RATING.products.get(String(product.id)), 'product')
+      );
+    });
   }
 
   function insertStoreRating(container, storeId, anchorSelector) {
     if (!container || !storeId) return;
 
     let line = container.querySelector('.store-rating-line');
-
     if (!line) {
       line = document.createElement('div');
       line.className = 'store-rating-line';
@@ -202,10 +220,7 @@
 
     setHtmlIfChanged(
       line,
-      ratingMarkup(
-        RATING.stores.get(String(storeId)),
-        'store'
-      )
+      ratingMarkup(RATING.stores.get(String(storeId)), 'store')
     );
   }
 
@@ -222,36 +237,114 @@
       );
     }
 
-    document
-      .querySelectorAll('.social-universal-profile[data-store-id]')
-      .forEach(page => {
-        const storeId = String(page.dataset.storeId || '').trim();
-        if (!storeId) return;
+    document.querySelectorAll('.social-universal-profile[data-store-id]').forEach(page => {
+      const storeId = String(page.dataset.storeId || '').trim();
+      if (!storeId) return;
 
-        insertStoreRating(
-          page.querySelector('.social-profile-copy'),
-          storeId,
-          '.social-profile-description'
+      insertStoreRating(
+        page.querySelector('.social-profile-copy'),
+        storeId,
+        '.social-profile-description'
+      );
+    });
+  }
+
+  function ratingButton(orderId, className = 'menu-sheet-btn') {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = className;
+    button.dataset.ratingOrderId = String(orderId || '');
+    button.innerHTML = '<i class="ph ph-star" aria-hidden="true"></i><span>Beri / Ubah Rating</span>';
+    button.setAttribute('aria-label', 'Beri atau ubah rating pesanan selesai');
+    return button;
+  }
+
+  function decorateLegacyCompletedOrders() {
+    document.querySelectorAll('.product-card[data-order-id]').forEach(card => {
+      const badge = card.querySelector('.product-badge');
+      const isCompleted = badge?.textContent?.trim() === 'Selesai';
+      if (!isCompleted || card.querySelector('[data-rating-order-id]')) return;
+      card.appendChild(ratingButton(card.dataset.orderId));
+    });
+  }
+
+  function modernOrderCompleted(card) {
+    return Boolean(
+      card.querySelector('.commerce-order-status.completed') ||
+      card.querySelector('.commerce-order-status')?.textContent?.trim() === 'Selesai'
+    );
+  }
+
+  function decorateCommerceOrderList() {
+    document
+      .querySelectorAll('.commerce-order-card[data-order-id][data-order-scope="buyer"]')
+      .forEach(card => {
+        if (!modernOrderCompleted(card)) return;
+
+        const orderId = String(card.dataset.orderId || '').trim();
+        if (!orderId) return;
+
+        const next = card.nextElementSibling;
+        if (
+          next?.matches?.('.commerce-rating-cta[data-rating-order-id]') &&
+          String(next.dataset.ratingOrderId || '') === orderId
+        ) return;
+
+        card.insertAdjacentElement(
+          'afterend',
+          ratingButton(orderId, 'commerce-rating-cta')
         );
       });
   }
 
+  function commerceDetailCompleted(content) {
+    const pairs = [...content.querySelectorAll('.commerce-detail-pair')];
+    return pairs.some(pair => {
+      const label = pair.querySelector('span')?.textContent?.trim().toLowerCase();
+      const value = pair.querySelector('strong')?.textContent?.trim();
+      return label === 'status' && value === 'Selesai';
+    });
+  }
+
+  function decorateCommerceOrderDetail() {
+    const orderId = String(RATING.lastBuyerOrderId || '').trim();
+    if (!orderId) return;
+
+    const content = document.querySelector(
+      '.commerce-page .commerce-content:not(:has(.commerce-order-list))'
+    );
+    if (!content) return;
+
+    const existing = content.querySelector('.commerce-rating-panel');
+    if (!commerceDetailCompleted(content)) {
+      existing?.remove();
+      return;
+    }
+
+    if (
+      existing?.querySelector?.('[data-rating-order-id]')?.dataset?.ratingOrderId === orderId
+    ) return;
+
+    existing?.remove();
+    const panel = document.createElement('section');
+    panel.className = 'commerce-rating-panel';
+    panel.innerHTML = `
+      <div>
+        <i class="ph ph-star" aria-hidden="true"></i>
+        <span>
+          <strong>Bagaimana pengalaman belanja Anda?</strong>
+          <small>Rating membantu UMKM membangun kepercayaan dan meningkatkan layanan.</small>
+        </span>
+      </div>
+    `;
+    panel.appendChild(ratingButton(orderId, 'commerce-rating-cta is-primary'));
+    content.appendChild(panel);
+  }
+
   function decorateCompletedOrders() {
-    document
-      .querySelectorAll('.product-card[data-order-id]')
-      .forEach(card => {
-        const badge = card.querySelector('.product-badge');
-        const isCompleted = badge?.textContent?.trim() === 'Selesai';
-
-        if (!isCompleted || card.querySelector('[data-rating-order-id]')) return;
-
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'menu-sheet-btn';
-        button.dataset.ratingOrderId = String(card.dataset.orderId || '');
-        button.innerHTML = '<i class="ph ph-star"></i> Beri / Ubah Rating';
-        card.appendChild(button);
-      });
+    decorateLegacyCompletedOrders();
+    decorateCommerceOrderList();
+    decorateCommerceOrderDetail();
   }
 
   function decorate() {
@@ -384,12 +477,23 @@
     }
   }
 
+  document.addEventListener('pointerdown', event => {
+    const order = event.target.closest?.(
+      '[data-commerce-action="order-detail"][data-order-id][data-order-scope]'
+    );
+    if (!order) return;
+    RATING.lastBuyerOrderId = order.dataset.orderScope === 'buyer'
+      ? String(order.dataset.orderId || '')
+      : '';
+  }, true);
+
   document.addEventListener('click', event => {
     const button = event.target.closest('[data-rating-order-id]');
     if (!button) return;
 
     event.preventDefault();
     event.stopPropagation();
+    event.stopImmediatePropagation();
     openRatingForm(button.dataset.ratingOrderId);
   }, true);
 
@@ -410,6 +514,12 @@
   observer.observe(document.body, { childList: true, subtree: true });
 
   window.refreshRatingSummaries = refreshSummaries;
+  window.openOrderRating = openRatingForm;
+  window.PasarRatingCore = Object.freeze({
+    version: '2.2',
+    refresh: refreshSummaries,
+    openOrder: openRatingForm
+  });
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => setTimeout(refreshSummaries, 0), { once: true });
