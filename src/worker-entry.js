@@ -1,5 +1,5 @@
 import { neon } from "@neondatabase/serverless";
-import legacyWorker from "./worker.js";
+import { handleLegacyCompatibility } from "./legacy-compat-router.js";
 import { handleProfileApi } from "./profile-api.js";
 import { handleProfileMediaApi } from "./profile-media-api.js";
 import { handlePublicProfileApi } from "./public-profile-api.js";
@@ -57,6 +57,23 @@ function schemaUnavailable() {
   );
 }
 
+function apiNotFound() {
+  return Response.json(
+    {
+      ok: false,
+      error: "API endpoint tidak ditemukan.",
+      code: "API_NOT_FOUND"
+    },
+    {
+      status: 404,
+      headers: {
+        "Cache-Control": "no-store",
+        "X-Content-Type-Options": "nosniff"
+      }
+    }
+  );
+}
+
 async function handleHealth(env) {
   try {
     const sql = neon(env.DATABASE_URL);
@@ -106,9 +123,6 @@ async function handleHealth(env) {
       finalSecurityApplied = applied.has(FINAL_SECURITY_MIGRATION);
     }
 
-    // A staging database is attested only when the staging-only table exists AND
-    // contains the exact synthetic marker. Production does not have this table,
-    // so it pays no extra query and can never become attested by APP_ENV alone.
     if (state.staging_environment) {
       const markerRows = await sql`
         SELECT EXISTS (
@@ -186,22 +200,16 @@ async function routeRequest(request, env, ctx) {
     return handleHealth(env);
   }
 
-  // Privileged administration auth is an isolated security domain and must
-  // remain available independently from public social-commerce feature bootstraps.
   const adminAuthResponse = await handleAdminAuthApi(request, env);
   if (adminAuthResponse) {
     return adminAuthResponse;
   }
 
-  // RBAC/capability resolution shares the isolated admin runtime boundary.
-  // Future privileged APIs must authorize server-side before public bootstraps.
   const adminAccessResponse = await handleAdminAccessApi(request, env);
   if (adminAccessResponse) {
     return adminAccessResponse;
   }
 
-  // Operational control-center APIs remain inside the same privileged boundary.
-  // They must never depend on unrelated public feature bootstraps.
   const adminControlResponse = await handleAdminControlApi(request, env);
   if (adminControlResponse) {
     return adminControlResponse;
@@ -240,7 +248,6 @@ async function routeRequest(request, env, ctx) {
   const storeManagementResponse = await handleStoreManagementApi(request, env);
   if (storeManagementResponse) return storeManagementResponse;
 
-  // Orders V2 owns checkout/order routes before the legacy functionality surface.
   const ordersResponse = await handleOrdersApiV2(request, env);
   if (ordersResponse) return ordersResponse;
 
@@ -277,7 +284,14 @@ async function routeRequest(request, env, ctx) {
   const profileResponse = await handleProfileApi(request, env);
   if (profileResponse) return profileResponse;
 
-  return legacyWorker.fetch(request, env, ctx);
+  const legacyResponse = await handleLegacyCompatibility(request, env, ctx);
+  if (legacyResponse) return legacyResponse;
+
+  if (url.pathname.startsWith("/api/")) {
+    return apiNotFound();
+  }
+
+  return env.ASSETS.fetch(request);
 }
 
 export default {
