@@ -75,7 +75,7 @@ jobs:
         run: npm run validate
 
       - name: Bundle final Worker
-        run: npx esbuild src/worker-entry.js --bundle --format=esm --platform=browser --target=es2022 --outfile=/tmp/p6-worker.mjs
+        run: ./node_modules/.bin/esbuild src/worker-entry.js --bundle --format=esm --platform=browser --target=es2022 --outfile=/tmp/p6-worker.mjs
 
   production-safe-boundary:
     if: github.event_name == 'push'

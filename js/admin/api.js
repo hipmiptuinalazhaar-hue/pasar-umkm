@@ -78,5 +78,9 @@ export const adminApi = Object.freeze({
   changePostStatus(id, active, reason) { return request(`/api/admin/control/posts/${encodeURIComponent(id)}/status`, { method: "PATCH", body: JSON.stringify({ active, reason }) }); },
   operationsMetrics({ signal } = {}) { return request("/api/admin/operations/metrics", { signal }); },
   operations(resource, params = {}, { signal } = {}) { return request(`/api/admin/operations/${resource}${queryString(params)}`, { signal }); },
-  operationAction(resource, id, payload) { return request(`/api/admin/operations/${resource}/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(payload) }); }
+  operationAction(resource, id, payload) { return request(`/api/admin/operations/${resource}/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(payload) }); },
+  growthMetrics({ signal } = {}) { return request("/api/admin/growth/metrics", { signal }); },
+  promotions(params = {}, { signal } = {}) { return request(`/api/admin/growth/promotions${queryString(params)}`, { signal }); },
+  createPromotion(payload) { return request("/api/admin/growth/promotions", { method: "POST", body: JSON.stringify(payload) }); },
+  changePromotionStatus(id, status, reason) { return request(`/api/admin/growth/promotions/${encodeURIComponent(id)}/status`, { method: "PATCH", body: JSON.stringify({ status, reason }) }); }
 });

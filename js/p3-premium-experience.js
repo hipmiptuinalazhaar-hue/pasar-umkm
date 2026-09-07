@@ -203,6 +203,22 @@
     doc.addEventListener('pointercancel', clear, { passive: true, capture: true });
   }
 
+  function loadP7LaunchGrowth() {
+    if (window.PasarP7Growth?.version === '1.0' || doc.querySelector('script[data-p7-launch-growth="true"]')) return;
+    if (!doc.querySelector('link[data-p7-launch-growth-style="true"]')) {
+      const link = doc.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'css/p7-launch-growth.css?v=1.0';
+      link.dataset.p7LaunchGrowthStyle = 'true';
+      doc.head.appendChild(link);
+    }
+    const script = doc.createElement('script');
+    script.src = 'js/p7-launch-growth.js?v=1.0';
+    script.async = true;
+    script.dataset.p7LaunchGrowth = 'true';
+    body.appendChild(script);
+  }
+
   function init() {
     installSkipLink();
     installNavigationA11y();
@@ -212,6 +228,7 @@
     installLoadingSemantics();
     installPointerIntent();
     root.dataset.p3Ready = 'true';
+    window.setTimeout(loadP7LaunchGrowth, 0);
   }
 
   if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', init, { once: true });

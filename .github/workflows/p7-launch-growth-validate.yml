@@ -1,0 +1,168 @@
+name: P7 Launch Growth Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'database/migrations/2026-09-07-p7-launch-growth.sql'
+      - 'src/launch-growth-api.js'
+      - 'src/admin-growth-api.js'
+      - 'src/seller-dispute-api.js'
+      - 'src/worker-entry.js'
+      - 'launch/**'
+      - 'css/p7-launch.css'
+      - 'css/p7-launch-growth.css'
+      - 'js/p7-launch-center.js'
+      - 'js/p7-launch-growth.js'
+      - 'js/p3-premium-experience.js'
+      - 'js/admin/api.js'
+      - 'js/admin/control.js'
+      - 'js/admin/growth.js'
+      - 'docs/P7_LAUNCH_GROWTH.md'
+      - 'scripts/validate-p7-launch-growth.mjs'
+      - '.github/workflows/p7-launch-growth-validate.yml'
+      - 'package.json'
+  push:
+    branches: [main]
+    paths:
+      - 'database/migrations/2026-09-07-p7-launch-growth.sql'
+      - 'src/launch-growth-api.js'
+      - 'src/admin-growth-api.js'
+      - 'src/seller-dispute-api.js'
+      - 'src/worker-entry.js'
+      - 'launch/**'
+      - 'css/p7-launch.css'
+      - 'css/p7-launch-growth.css'
+      - 'js/p7-launch-center.js'
+      - 'js/p7-launch-growth.js'
+      - 'js/p3-premium-experience.js'
+      - 'js/admin/api.js'
+      - 'js/admin/control.js'
+      - 'js/admin/growth.js'
+      - 'docs/P7_LAUNCH_GROWTH.md'
+      - 'scripts/validate-p7-launch-growth.mjs'
+      - '.github/workflows/p7-launch-growth-validate.yml'
+      - 'package.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: read
+
+concurrency:
+  group: p7-launch-growth-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  launch-growth-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install exact locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Syntax check P7 runtime and UI
+        run: |
+          node --check src/launch-growth-api.js
+          node --check src/admin-growth-api.js
+          node --check src/seller-dispute-api.js
+          node --check src/worker-entry.js
+          node --check js/p7-launch-center.js
+          node --check js/p7-launch-growth.js
+          node --check js/p3-premium-experience.js
+          node --check js/admin/api.js
+          node --check js/admin/control.js
+          node --check js/admin/growth.js
+          node --check scripts/validate-p7-launch-growth.mjs
+
+      - name: P7 launch growth contract
+        run: npm run test:p7-launch
+
+      - name: Canonical validation
+        run: npm run validate
+
+      - name: Bundle final Worker
+        run: ./node_modules/.bin/esbuild src/worker-entry.js --bundle --format=esm --platform=browser --target=es2022 --outfile=/tmp/p7-worker.mjs
+
+  production-safe-boundary:
+    if: github.event_name == 'push'
+    needs: launch-growth-contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+
+      - name: Wait for exact Cloudflare deployment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLOUDFLARE_SHA: ${{ github.sha }}
+          CLOUDFLARE_WAIT_TIMEOUT_MS: '420000'
+          CLOUDFLARE_WAIT_POLL_MS: '5000'
+        run: node scripts/wait-cloudflare-deploy.mjs
+
+      - name: Verify P7 production read-only surfaces
+        env:
+          BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+        run: |
+          node --input-type=module <<'NODE'
+          const base = process.env.BASE_URL;
+          async function response(path, expected = 200) {
+            const res = await fetch(base + path, { redirect: 'manual', headers: { Accept: '*/*' } });
+            if (res.status !== expected) throw new Error(`${path}: expected ${expected}, got ${res.status}`);
+            console.log(`PASS ${path} -> ${res.status}`);
+            return res;
+          }
+
+          await response('/launch/');
+          const sitemap = await response('/sitemap.xml');
+          if (!String(sitemap.headers.get('content-type') || '').includes('xml')) throw new Error('sitemap.xml content type is not XML');
+
+          const health = await response('/api/health');
+          const healthData = await health.json();
+          if (healthData?.schema?.p7_applied !== true || healthData?.schema?.launch_ready !== true) {
+            throw new Error(`P7 health attestation failed: ${JSON.stringify(healthData?.schema || {})}`);
+          }
+          console.log('PASS P7 health launch_ready');
+
+          await response('/api/discover?q=umkm&kind=all&limit=2');
+          await response('/api/launch/status', 401);
+          await response('/api/disputes/seller', 401);
+          await response('/api/admin/growth/metrics', 401);
+
+          const productResponse = await response('/api/products?limit=1');
+          const productData = await productResponse.json();
+          const product = productData?.products?.[0];
+          if (product?.id) {
+            const share = await response(`/share/product/${product.id}`);
+            const html = await share.text();
+            if (!html.includes('og:title') || !html.includes('application/ld+json')) throw new Error('Product share SEO metadata missing');
+            console.log('PASS product share SEO');
+          }
+
+          const storeResponse = await response('/api/stores?limit=1');
+          const storeData = await storeResponse.json();
+          const store = storeData?.stores?.[0];
+          if (store?.id) {
+            const share = await response(`/share/store/${store.id}`);
+            const html = await share.text();
+            if (!html.includes('og:title') || !html.includes('LocalBusiness')) throw new Error('Store share SEO metadata missing');
+            console.log('PASS store share SEO');
+          }
+
+          console.log('P7 production-safe boundary: PASS');
+          NODE
