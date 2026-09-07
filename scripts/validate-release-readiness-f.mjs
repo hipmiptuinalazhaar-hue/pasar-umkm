@@ -45,8 +45,9 @@ if (!errors.length) {
   }
 
   const responsiveLinks = [...index.matchAll(/css\/tablet-desktop-v\d+\.css\?v=[^"']+/g)].map(match => match[0]);
-  if (responsiveLinks.length !== 1 || responsiveLinks[0] !== 'css/tablet-desktop-v2.css?v=2.1') {
-    errors.push(`Expected exactly one responsive owner in index, found: ${responsiveLinks.join(', ') || 'none'}`);
+  const responsiveOwnerPattern = /^css\/tablet-desktop-v2\.css\?v=[0-9a-f]{12}$/;
+  if (responsiveLinks.length !== 1 || !responsiveOwnerPattern.test(responsiveLinks[0])) {
+    errors.push(`Expected exactly one fingerprinted responsive owner in index, found: ${responsiveLinks.join(', ') || 'none'}`);
   }
 
   if (!index.includes('media="screen and (min-width: 768px)"')) {
@@ -55,7 +56,8 @@ if (!errors.length) {
 
   const hotfixStart = index.indexOf('<style id="postP6MobileShellHotfix">');
   const hotfixEnd = index.indexOf('</style>', hotfixStart);
-  const responsiveLink = index.indexOf('css/tablet-desktop-v2.css?v=2.1');
+  const responsiveLinkMatch = index.match(/css\/tablet-desktop-v2\.css\?v=[0-9a-f]{12}/);
+  const responsiveLink = responsiveLinkMatch ? index.indexOf(responsiveLinkMatch[0]) : -1;
   if (hotfixStart < 0 || hotfixEnd < 0) {
     errors.push('Post-P6 mobile shell hotfix block is missing');
   } else {
