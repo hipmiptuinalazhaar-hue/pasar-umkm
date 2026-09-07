@@ -37,7 +37,7 @@ for(const text of [
   'CLOUDINARY_QRIS_PATTERN','QRIS harus berasal dari unggahan merchant Pasar UMKM.',
   'bank_transfer_instructions: _bankTransferInstructions','qris_instructions: _qrisInstructions','settings: publicSettings'
 ])requireText(api,text,'structured payment API contract');
-forbid(api,/\b(wallet|escrow|settlement|refund_ledger|payment_gateway)\b/i,'custodial primitive in P8.1 API');
+forbid(api,/\b(escrow|settlement|refund_ledger|payment_gateway|wallet_balance|wallet_transactions|seller_wallet|user_wallet)\b/i,'custodial primitive in P8.1 API');
 
 for(const text of [
   '/api/uploads/qris-image','MAX_QRIS_BYTES = 3 * 1024 * 1024','pasar-umkm/qris/',
@@ -58,7 +58,7 @@ for(const text of [
   'data-copy-payment','Pasar UMKM hanya menampilkan tujuan pembayaran seller. Platform tidak membuat QRIS'
 ])requireText(ui,text,'P8.1 UI contract');
 forbid(ui,/generate.{0,20}qris|qris.{0,20}from.{0,20}(account|rekening|ewallet)/i,'fake QRIS generation from account number');
-forbid(ui,/\b(wallet|escrow|settlement|refund_ledger)\b/i,'custodial UI primitive');
+forbid(ui,/\b(escrow|settlement|refund_ledger|wallet_balance|wallet_transactions|seller_wallet|user_wallet)\b/i,'custodial UI primitive');
 
 for(const [name,html] of [['seller',seller],['checkout',checkout],['purchases',purchases]]){
   requireText(html,'/css/p8-payment-profile.css?v=1.0',`${name} P8.1 stylesheet`);
