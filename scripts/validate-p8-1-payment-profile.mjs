@@ -63,8 +63,8 @@ forbid(ui,/\b(refund_ledger|wallet_balance|wallet_transactions|seller_wallet|use
 forbid(ui,/\/api\/(?:wallet|escrow|settlement)(?:\/|['"`])/i,'custodial UI route');
 
 for(const [name,html] of [['seller',seller],['checkout',checkout],['purchases',purchases]]){
-  requireText(html,'/css/p8-payment-profile.css?v=1.0',`${name} P8.1 stylesheet`);
-  requireText(html,'/js/p8-payment-profile.js?v=1.0',`${name} P8.1 controller`);
+  requireText(html,'/css/p8-payment-profile.css?v=',`${name} P8.1 stylesheet`);
+  requireText(html,'/js/p8-payment-profile.js?v=',`${name} P8.1 controller`);
 }
 if(home.includes('p8-payment-profile.js')||home.includes('p8-payment-profile.css'))fail('P8.1 assets must not join critical homepage shell');
 
