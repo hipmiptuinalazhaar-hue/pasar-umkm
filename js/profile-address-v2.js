@@ -8,6 +8,7 @@
   let enhanceTimer=0;
 
   const esc=value=>String(value??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
+  const nativeUser=()=>typeof STATE!=='undefined'&&STATE.user?STATE.user:{};
 
   function style(){
     if(doc.querySelector('link[data-profile-address-v2-style]'))return;
@@ -26,14 +27,15 @@
   }
 
   function markup(address={}){
+    const user=nativeUser();
     return `<section id="profileAddressV2" class="profile-edit-section profile-address-v2">
       <div class="profile-address-v2-head"><div><h3 class="profile-edit-section-title">Alamat utama</h3><p>Alamat ini otomatis menjadi pilihan awal saat checkout. Titik GPS membantu seller mengantar tepat sasaran.</p></div><span class="profile-address-v2-badge">Default checkout</span></div>
       <div class="profile-address-v2-grid two">
         ${field('Label alamat','profileAddressLabel',address.label||'Rumah','maxlength="60"')}
-        ${field('Nama penerima','profileAddressRecipient',address.recipient_name||window.STATE?.user?.name||'','maxlength="120" autocomplete="name"')}
+        ${field('Nama penerima','profileAddressRecipient',address.recipient_name||user.name||'','maxlength="120" autocomplete="name"')}
       </div>
       <div class="profile-address-v2-grid two">
-        ${field('Nomor WhatsApp / telepon','profileAddressPhone',address.phone||window.STATE?.user?.phone||'','maxlength="30" inputmode="tel" autocomplete="tel"')}
+        ${field('Nomor WhatsApp / telepon','profileAddressPhone',address.phone||user.phone||'','maxlength="30" inputmode="tel" autocomplete="tel"')}
         ${field('Kode pos','profileAddressPostal',address.postal_code||'','maxlength="20" inputmode="numeric"')}
       </div>
       <div class="profile-edit-field"><label class="profile-edit-label" for="profileAddressText">Alamat lengkap</label><textarea id="profileAddressText" class="profile-edit-textarea" maxlength="1200" rows="3" placeholder="Nama jalan, RT/RW, kelurahan, nomor rumah...">${esc(address.address_text||'')}</textarea></div>
