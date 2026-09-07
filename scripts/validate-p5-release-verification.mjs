@@ -18,6 +18,7 @@ const requireContract = (condition, message) => {
 };
 
 requireContract(files.wait.includes('/commits/${sha}/check-runs'), 'deployment waiter is commit-SHA scoped');
+requireContract(files.wait.includes('process.env.CLOUDFLARE_SHA || process.env.GITHUB_SHA'), 'deployment waiter supports explicit PR head SHA');
 requireContract(files.wait.includes("cloudflare-workers-and-pages"), 'deployment waiter identifies Cloudflare GitHub App checks');
 requireContract(files.wait.includes("check.conclusion === 'success'"), 'deployment waiter requires successful Cloudflare conclusion');
 requireContract(files.wait.includes('terminalFailure'), 'deployment waiter fails closed on terminal deployment failure');
@@ -37,11 +38,14 @@ requireContract(files.browser.includes('primary CTA touch target'), 'browser pro
 requireContract(!/\.click\s*\(/.test(files.browser), 'production/preview browser probe performs no scripted clicks');
 requireContract(!/method\s*:\s*['\"](?:POST|PUT|PATCH|DELETE)['\"]/i.test(files.browser), 'browser probe contains no mutating HTTP method');
 
+const waitStepIndex = files.workflow.indexOf('- name: Wait for exact Cloudflare deployment');
+const browserStepIndex = files.workflow.indexOf('- name: Run real browser viewport matrix');
 requireContract(files.workflow.includes('checks: read'), 'P5 workflow can read exact deployment check-runs');
 requireContract(files.workflow.includes('node scripts/wait-cloudflare-deploy.mjs'), 'P5 workflow waits for exact Cloudflare deployment');
 requireContract(files.workflow.includes('node scripts/browser-release-smoke.mjs'), 'P5 workflow runs real browser verification');
-requireContract(files.workflow.indexOf('wait-cloudflare-deploy.mjs') < files.workflow.indexOf('browser-release-smoke.mjs'), 'browser verification runs only after deployment attestation');
+requireContract(waitStepIndex >= 0 && browserStepIndex > waitStepIndex, 'browser verification runs only after deployment attestation');
 requireContract(files.workflow.includes('google-chrome --version'), 'P5 workflow proves a real Chrome binary is present');
+requireContract(files.workflow.includes('CLOUDFLARE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}'), 'P5 PR attestation targets branch head SHA, not merge-test SHA');
 requireContract(files.workflow.includes('EVENT_NAME: ${{ github.event_name }}'), 'P5 workflow distinguishes PR preview from production release');
 requireContract(files.workflow.includes('PREVIEW_URL: ${{ steps.deploy.outputs.preview_url }}'), 'P5 workflow consumes exact Cloudflare preview URL');
 requireContract(files.workflow.includes('Cloudflare PR preview URL missing.'), 'PR verification fails closed when preview URL is absent');
@@ -50,7 +54,9 @@ requireContract(files.workflow.includes('P5_BASE_URL=https://pasar-umkm.hipmiptu
 
 requireContract(files.postDeploy.includes('checks: read'), 'post-deploy smoke can read Cloudflare check-runs');
 requireContract(files.postDeploy.includes('node scripts/wait-cloudflare-deploy.mjs'), 'post-deploy smoke waits for exact Cloudflare deployment');
-requireContract(files.postDeploy.indexOf('wait-cloudflare-deploy.mjs') < files.postDeploy.indexOf('post-deploy-smoke.mjs'), 'post-deploy HTTP smoke occurs after deployment attestation');
+const postWaitIndex = files.postDeploy.indexOf('- name: Wait for exact Cloudflare deployment');
+const postSmokeIndex = files.postDeploy.indexOf('- name: Verify deployed production');
+requireContract(postWaitIndex >= 0 && postSmokeIndex > postWaitIndex, 'post-deploy HTTP smoke occurs after deployment attestation');
 
 requireContract(files.authenticated.includes('Production target rejected for stateful authenticated E2E.'), 'stateful authenticated E2E explicitly rejects production');
 requireContract(files.authenticated.includes('SMOKE_EXPECT_ENVIRONMENT: staging'), 'stateful authenticated E2E requires non-production runtime identity');
