@@ -2,7 +2,9 @@
 
 (() => {
   const doc=document;
-  if(window.PasarP8Commerce?.version==='1.1')return;
+  if(window.PasarP8Commerce?.version==='1.2')return;
+
+  let buyNowPending=false;
 
   function sideLink(href,icon,label,key){
     const link=doc.createElement('a');
@@ -32,19 +34,71 @@
     if(!host.querySelector('[data-p8-purchases-link]'))host.appendChild(sideLink('/purchases/','package','Pembelian Saya','p8PurchasesLink'));
   }
 
+  function openCheckout(replace=false){
+    if(location.pathname==='/checkout/'||location.pathname==='/checkout')return;
+    if(replace)location.replace('/checkout/');
+    else location.href='/checkout/';
+  }
+
+  async function buyNow(productId,target){
+    if(!productId||buyNowPending)return;
+    buyNowPending=true;
+    const wasDisabled=Boolean(target?.disabled);
+    if(target){target.disabled=true;target.setAttribute('aria-busy','true')}
+    try{
+      const response=await fetch('/api/commerce/cart/items',{
+        method:'POST',credentials:'include',cache:'no-store',
+        headers:{Accept:'application/json','Content-Type':'application/json'},
+        body:JSON.stringify({product_id:productId,quantity:1})
+      });
+      const data=await response.json().catch(()=>({}));
+      if(response.status===401){location.href='/?intent=login';return}
+      if(!response.ok||data.ok!==true)throw new Error(data.error||'Produk belum dapat diproses.');
+      openCheckout();
+    }catch(error){
+      window.showToast?.(error.message||'Checkout belum dapat dibuka.');
+    }finally{
+      buyNowPending=false;
+      if(target&&target.isConnected){target.disabled=wasDisabled;target.removeAttribute('aria-busy')}
+    }
+  }
+
+  function isLegacyCheckoutForm(node){return node instanceof HTMLFormElement&&node.id==='commerceCheckoutForm'}
+
   doc.addEventListener('click',event=>{
-    const checkout=event.target?.closest?.('[data-action="checkout"],[data-function-action="checkout-open"]');
-    if(checkout){
+    const buy=event.target?.closest?.('[data-action="buy-now"],[data-commerce-action="buy-now"]');
+    if(buy){
       event.preventDefault();event.stopImmediatePropagation();
-      location.href='/checkout/';
+      buyNow(String(buy.dataset.productId||''),buy);
       return;
     }
+
+    const checkout=event.target?.closest?.('[data-action="checkout"],[data-function-action="checkout-open"],[data-commerce-action="checkout"]');
+    if(checkout){
+      event.preventDefault();event.stopImmediatePropagation();
+      openCheckout();
+      return;
+    }
+
     const account=event.target?.closest?.('[data-nav="account"]');
     if(account)setTimeout(installLinks,80);
   },true);
 
+  doc.addEventListener('submit',event=>{
+    if(!isLegacyCheckoutForm(event.target))return;
+    event.preventDefault();event.stopImmediatePropagation();
+    openCheckout();
+  },true);
+
+  const legacyGuard=new MutationObserver(()=>{
+    if(!doc.getElementById('commerceCheckoutForm'))return;
+    legacyGuard.disconnect();
+    openCheckout(true);
+  });
+  legacyGuard.observe(doc.documentElement,{childList:true,subtree:true});
+
   if(doc.readyState==='loading')doc.addEventListener('DOMContentLoaded',installLinks,{once:true});
   else installLinks();
 
-  window.PasarP8Commerce=Object.freeze({version:'1.1',installLinks,loadSellerBridge});
+  window.PasarP8Commerce=Object.freeze({version:'1.2',installLinks,loadSellerBridge,openCheckout});
 })();
