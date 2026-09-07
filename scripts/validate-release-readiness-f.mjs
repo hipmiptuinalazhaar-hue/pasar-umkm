@@ -4,6 +4,7 @@ const requiredFiles = [
   'index.html',
   'css/mobile-foundation-v2.css',
   'css/tablet-desktop-v2.css',
+  'css/tablet-desktop-v2-base.css',
   'css/home-feed-v3.css',
   'js/app.runtime.js',
   'js/chat-single-render-v6.js',
@@ -29,10 +30,11 @@ try {
 }
 
 if (!errors.length) {
-  const [index, mobile, responsive, chat] = await Promise.all([
+  const [index, mobile, responsive, responsiveBase, chat] = await Promise.all([
     readFile('index.html', 'utf8'),
     readFile('css/mobile-foundation-v2.css', 'utf8'),
     readFile('css/tablet-desktop-v2.css', 'utf8'),
+    readFile('css/tablet-desktop-v2-base.css', 'utf8'),
     readFile('css/chat-experience-v7.css', 'utf8'),
   ]);
 
@@ -66,6 +68,10 @@ if (!errors.length) {
     }
   }
 
+  if (!responsive.includes('@import url("./tablet-desktop-v2-base.css?v=2.1")')) {
+    errors.push('Responsive V2 compatibility base import is missing');
+  }
+
   const deviceContracts = [
     ['tablet', '@media (min-width: 768px)'],
     ['tablet-landscape', '@media (min-width: 900px) and (max-width: 1023px)'],
@@ -79,22 +85,35 @@ if (!errors.length) {
 
   const architectureContracts = [
     '--p5-rail: 0px',
-    '--p5-rail: 88px',
-    '--p5-rail: 208px',
     '--p5-feed-max: 720px',
     '--p5-work-max: 920px',
     '--p5-social-max: 860px',
-    'width: min(590px, calc(100vw - 40px))',
-    'grid-template-columns: repeat(8, minmax(0, 1fr))',
-    '.commerce-page:has(> .commerce-detail-media)',
-    'body.p3-comments-open .bottom-sheet',
+    'width: min(760px, calc(100vw - 48px))',
+    'grid-template-columns: repeat(5, minmax(0, 1fr))',
+    'grid-template-columns: repeat(auto-fit, minmax(132px, 1fr))',
+    'padding-top: calc(var(--p5-header-height) + 18px)',
+    'bottom: 0 !important',
+    'transform: translateX(-50%) !important',
     'body.chat-v7-body .app-navigation',
-    'visibility: visible !important',
     '@media (hover: hover) and (pointer: fine)',
     '@media (prefers-reduced-motion: reduce)',
   ];
   for (const marker of architectureContracts) {
     if (!responsive.includes(marker)) errors.push(`Missing release responsive contract: ${marker}`);
+  }
+
+  // The imported base remains responsible for established commerce/social/modal contracts.
+  for (const marker of [
+    '.commerce-page:has(> .commerce-detail-media)',
+    'body.p3-comments-open .bottom-sheet',
+    'body.chat-v7-body .app-navigation',
+  ]) {
+    if (!responsiveBase.includes(marker)) errors.push(`Responsive compatibility base missing contract: ${marker}`);
+  }
+
+  // The current desktop contract must not reintroduce the retired left rail.
+  for (const retired of ['--p5-rail: 88px', '--p5-rail: 208px']) {
+    if (responsive.includes(retired)) errors.push(`Responsive V2 reintroduces retired desktop rail: ${retired}`);
   }
 
   if (!mobile.includes('@media (max-width: 767px)') || !mobile.includes('font-size: 16px')) {
@@ -128,10 +147,12 @@ if (!errors.length) {
     errors.push(`Responsive V2 has font sizes below 10px: ${tinyFonts.join(', ')}`);
   }
 
-  const stripped = responsive.replace(/\/\*[\s\S]*?\*\//g, '');
-  const opens = (stripped.match(/\{/g) || []).length;
-  const closes = (stripped.match(/\}/g) || []).length;
-  if (opens !== closes) errors.push(`Responsive V2 CSS braces are unbalanced: ${opens}/${closes}`);
+  for (const [label, source] of [['Responsive V2', responsive], ['Responsive V2 base', responsiveBase]]) {
+    const stripped = source.replace(/\/\*[\s\S]*?\*\//g, '');
+    const opens = (stripped.match(/\{/g) || []).length;
+    const closes = (stripped.match(/\}/g) || []).length;
+    if (opens !== closes) errors.push(`${label} CSS braces are unbalanced: ${opens}/${closes}`);
+  }
 
   if (index.includes('tablet-desktop-v1.css')) {
     errors.push('index.html still mentions retired responsive v1');
