@@ -204,9 +204,9 @@
   }
 
   function loadP8Commerce() {
-    if (window.PasarP8Commerce?.version === '1.1' || doc.querySelector('script[data-p8-commerce="true"]')) return;
+    if (window.PasarP8Commerce?.version === '1.2' || doc.querySelector('script[data-p8-commerce="true"]')) return;
     const script = doc.createElement('script');
-    script.src = 'js/p8-commerce-integration.js?v=1.1';
+    script.src = 'js/p8-commerce-integration.js?v=1.2';
     script.async = true;
     script.dataset.p8Commerce = 'true';
     body.appendChild(script);
@@ -240,6 +240,7 @@
     installConnectivityStatus();
     installLoadingSemantics();
     installPointerIntent();
+    loadP8Commerce();
     root.dataset.p3Ready = 'true';
     window.setTimeout(loadP7LaunchGrowth, 0);
   }
