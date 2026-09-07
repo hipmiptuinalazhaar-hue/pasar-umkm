@@ -1,0 +1,155 @@
+name: P8 Real Commerce Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'database/migrations/2026-09-07-p8-real-commerce-fulfillment.sql'
+      - 'src/commerce-fulfillment-helpers.js'
+      - 'src/commerce-fulfillment-api.js'
+      - 'src/checkout-commerce-preference-api.js'
+      - 'src/worker-entry.js'
+      - 'checkout/**'
+      - 'purchases/**'
+      - 'seller-orders/**'
+      - 'css/p8-commerce-center.css'
+      - 'js/p8-commerce-center.js'
+      - 'js/p8-commerce-integration.js'
+      - 'js/p3-premium-experience.js'
+      - 'docs/P8_REAL_COMMERCE_FULFILLMENT.md'
+      - 'scripts/validate-p8-real-commerce.mjs'
+      - '.github/workflows/p8-real-commerce-validate.yml'
+      - 'package.json'
+  push:
+    branches: [main]
+    paths:
+      - 'database/migrations/2026-09-07-p8-real-commerce-fulfillment.sql'
+      - 'src/commerce-fulfillment-helpers.js'
+      - 'src/commerce-fulfillment-api.js'
+      - 'src/checkout-commerce-preference-api.js'
+      - 'src/worker-entry.js'
+      - 'checkout/**'
+      - 'purchases/**'
+      - 'seller-orders/**'
+      - 'css/p8-commerce-center.css'
+      - 'js/p8-commerce-center.js'
+      - 'js/p8-commerce-integration.js'
+      - 'js/p3-premium-experience.js'
+      - 'docs/P8_REAL_COMMERCE_FULFILLMENT.md'
+      - 'scripts/validate-p8-real-commerce.mjs'
+      - '.github/workflows/p8-real-commerce-validate.yml'
+      - 'package.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: read
+
+concurrency:
+  group: p8-real-commerce-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  commerce-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install exact locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Syntax check P8 runtime and UI
+        run: |
+          node --check src/commerce-fulfillment-helpers.js
+          node --check src/commerce-fulfillment-api.js
+          node --check src/checkout-commerce-preference-api.js
+          node --check src/worker-entry.js
+          node --check js/p8-commerce-center.js
+          node --check js/p8-commerce-integration.js
+          node --check js/p3-premium-experience.js
+          node --check scripts/validate-p8-real-commerce.mjs
+
+      - name: P8 real commerce contract
+        run: npm run test:p8-commerce
+
+      - name: Canonical validation
+        run: npm run validate
+
+      - name: Bundle final Worker
+        run: ./node_modules/.bin/esbuild src/worker-entry.js --bundle --format=esm --platform=browser --target=es2022 --outfile=/tmp/p8-worker.mjs
+
+  production-safe-boundary:
+    if: github.event_name == 'push'
+    needs: commerce-contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+
+      - name: Wait for exact Cloudflare deployment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLOUDFLARE_SHA: ${{ github.sha }}
+          CLOUDFLARE_WAIT_TIMEOUT_MS: '420000'
+          CLOUDFLARE_WAIT_POLL_MS: '5000'
+        run: node scripts/wait-cloudflare-deploy.mjs
+
+      - name: Verify P8 production read-only surfaces
+        env:
+          BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+        run: |
+          node --input-type=module <<'NODE'
+          const base = process.env.BASE_URL;
+          async function response(path, expected = 200, init = {}) {
+            const res = await fetch(base + path, { redirect: 'manual', headers: { Accept: '*/*', ...(init.headers || {}) }, ...init });
+            if (res.status !== expected) throw new Error(`${path}: expected ${expected}, got ${res.status}`);
+            console.log(`PASS ${path} -> ${res.status}`);
+            return res;
+          }
+
+          await response('/checkout/');
+          await response('/purchases/');
+          await response('/seller-orders/');
+
+          const health = await response('/api/health');
+          const healthData = await health.json();
+          if (healthData?.schema?.p8_applied !== true || healthData?.schema?.commerce_ready !== true) {
+            throw new Error(`P8 health attestation failed: ${JSON.stringify(healthData?.schema || {})}`);
+          }
+          console.log('PASS P8 health commerce_ready');
+
+          await response('/api/commerce/fulfillment/settings/me', 401);
+          await response('/api/commerce/checkout/preferences', 401, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ preferences: [] })
+          });
+
+          const storesResponse = await response('/api/stores?limit=1');
+          const storesData = await storesResponse.json();
+          const store = storesData?.stores?.[0];
+          if (store?.id) {
+            const settings = await response(`/api/commerce/fulfillment/stores/${store.id}`);
+            const data = await settings.json();
+            if (!Array.isArray(data?.options?.fulfillment_methods) || !Array.isArray(data?.options?.payment_methods)) {
+              throw new Error('P8 public commerce options missing');
+            }
+            console.log('PASS public commerce options');
+          }
+
+          console.log('P8 production-safe boundary: PASS');
+          NODE
