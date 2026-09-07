@@ -42,9 +42,11 @@ for (const asset of [
   'js/profile-saved.js',
   'js/p8-commerce-integration.js'
 ]) {
-  expect(buildRuntime.includes(`"${asset}"`), `build fingerprints ${asset}`);
+  expect(buildRuntime.includes(`"${asset}"`) || buildRuntime.includes(`'${asset}'`), `build fingerprints ${asset}`);
 }
 
+expect(buildRuntime.includes('css/ui-polish-v1.css'), 'tokens dependency graph includes UI polish CSS');
+expect(buildRuntime.includes('stampTokenImports'), 'tokens imports receive dependency fingerprints before token hashing');
 expect(buildRuntime.includes('createHash("sha256")'), 'asset fingerprint uses SHA-256');
 expect(buildRuntime.includes('slice(0, 12)'), 'asset fingerprint uses stable 12-character cache key');
 expect(buildRuntime.includes('src="js/p8-commerce-integration.js?v='), 'checkout router is promoted to critical deferred delivery');
