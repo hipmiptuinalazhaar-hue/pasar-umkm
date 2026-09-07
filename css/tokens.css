@@ -1,41 +1,41 @@
 @import url("./mobile-foundation-v2.css?v=1.0");
 
-/* PASAR UMKM — DESIGN TOKENS v7.0
+/* PASAR UMKM — DESIGN TOKENS v7.1
    Mobile-first foundation. Compatibility aliases are kept while legacy UI is migrated. */
 :root {
   /* Brand */
-  --forest-950:#06291d; --forest-900:#083725; --forest-850:#0a402b; --forest-800:#0d4b32;
-  --forest-700:#12603f; --forest-600:#17784d; --forest-500:#24915e; --forest-400:#48aa78;
-  --forest-300:#7fc59d; --forest-200:#b9e0c9; --forest-100:#dff1e6; --forest-50:#f1f8f4;
-  --gold-900:#6f4d05; --gold-800:#89630b; --gold-700:#a87910; --gold-600:#c58f18;
-  --gold-500:#dfa72f; --gold-400:#edbd5d; --gold-300:#f4d38b; --gold-200:#f8e4b8;
-  --gold-100:#fcf2dc; --gold-50:#fff9ed;
-  --commerce-900:#7a3218; --commerce-800:#933c1c; --commerce-700:#ad4a22; --commerce-600:#c85b2b;
-  --commerce-500:#df7040; --commerce-400:#eb8f68; --commerce-300:#f2af93; --commerce-200:#f8cebd;
-  --commerce-100:#fbe8df; --commerce-50:#fff6f1;
+  --forest-950:#041f16; --forest-900:#083725; --forest-850:#093d29; --forest-800:#0b4730;
+  --forest-700:#0f5c3b; --forest-600:#147348; --forest-500:#1c8b56; --forest-400:#43a875;
+  --forest-300:#78c39a; --forest-200:#b5dec7; --forest-100:#dff1e6; --forest-50:#f0f8f3;
+  --gold-900:#684a12; --gold-800:#7e5b16; --gold-700:#986f1c; --gold-600:#b48626;
+  --gold-500:#d2a23a; --gold-400:#e1b85f; --gold-300:#edcf8d; --gold-200:#f4dfb3;
+  --gold-100:#faf0d7; --gold-50:#fdf8ec;
+  --commerce-900:#713721; --commerce-800:#873f24; --commerce-700:#9e4a28; --commerce-600:#b75a31;
+  --commerce-500:#cf7044; --commerce-400:#df8d67; --commerce-300:#ebad91; --commerce-200:#f4cfbf;
+  --commerce-100:#f9e8df; --commerce-50:#fdf7f3;
 
-  /* Neutral + warm surfaces */
-  --white:#fff; --neutral-950:#111612; --neutral-900:#181d19; --neutral-850:#202621; --neutral-800:#2c332d;
-  --neutral-700:#414942; --neutral-600:#59615a; --neutral-500:#737b74; --neutral-400:#929992;
-  --neutral-300:#b0b6b1; --neutral-250:#c1c6c2; --neutral-200:#d1d5d2; --neutral-150:#e0e3e0;
-  --neutral-100:#e9ebe9; --neutral-75:#f0f1f0; --neutral-50:#f5f6f5; --neutral-25:#fafbfa;
-  --cream-100:#f4f1e8; --cream-75:#f7f5ef; --cream-50:#faf9f5; --cream-25:#fdfcf9;
+  /* Neutral + clean surfaces */
+  --white:#fff; --neutral-950:#101813; --neutral-900:#17201a; --neutral-850:#1f2822; --neutral-800:#2b352e;
+  --neutral-700:#3f4b43; --neutral-600:#56625a; --neutral-500:#707b73; --neutral-400:#909991;
+  --neutral-300:#adb5af; --neutral-250:#bec5c0; --neutral-200:#cfd5d1; --neutral-150:#dfe4e0;
+  --neutral-100:#e8ece9; --neutral-75:#eef2ef; --neutral-50:#f3f6f4; --neutral-25:#f8faf8;
+  --cream-100:#eff3ef; --cream-75:#f3f6f3; --cream-50:#f7f9f7; --cream-25:#fbfcfb;
   --surface-page:var(--cream-50); --surface-primary:var(--white); --surface-secondary:var(--neutral-25);
   --surface-soft:var(--neutral-50); --surface-muted:var(--cream-75); --surface-brand-soft:var(--forest-50);
   --surface-brand-muted:var(--forest-100); --surface-gold-soft:var(--gold-50); --surface-commerce-soft:var(--commerce-50);
-  --surface-dark:var(--forest-950); --surface-overlay:rgba(8,25,17,.42); --surface-overlay-heavy:rgba(7,18,12,.66);
+  --surface-dark:var(--forest-950); --surface-overlay:rgba(6,25,17,.44); --surface-overlay-heavy:rgba(5,18,12,.68);
 
   /* Text + borders */
   --text-primary:var(--neutral-950); --text-secondary:var(--neutral-700); --text-tertiary:var(--neutral-500);
   --text-muted:var(--neutral-400); --text-brand:var(--forest-700); --text-brand-strong:var(--forest-900);
   --text-commerce:var(--commerce-700); --text-gold:var(--gold-700); --text-inverse:#fff;
-  --border-subtle:rgba(24,29,25,.07); --border-soft:rgba(24,29,25,.11); --border-default:rgba(24,29,25,.16);
-  --border-strong:rgba(24,29,25,.23); --border-brand-soft:rgba(18,96,63,.13); --border-brand:rgba(18,96,63,.24);
-  --border-gold-soft:rgba(168,121,16,.18);
+  --border-subtle:rgba(16,24,19,.07); --border-soft:rgba(16,24,19,.11); --border-default:rgba(16,24,19,.16);
+  --border-strong:rgba(16,24,19,.23); --border-brand-soft:rgba(15,92,59,.14); --border-brand:rgba(15,92,59,.26);
+  --border-gold-soft:rgba(152,111,28,.19);
 
   /* Status */
-  --success-700:#147247; --success-100:#e4f4eb; --warning-700:#956200; --warning-100:#fff3d7;
-  --danger-700:#b43c30; --danger-100:#fde9e6; --info-700:#326581; --info-100:#e8f1f6;
+  --success-700:#157347; --success-100:#e3f3e9; --warning-700:#9a6813; --warning-100:#fff2d2;
+  --danger-700:#b83f36; --danger-100:#fde9e7; --info-700:#2e6680; --info-100:#e7f1f5;
 
   /* Typography: readable on phones, no 7–9px product UI */
   --font-ui:'Plus Jakarta Sans',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
@@ -58,12 +58,12 @@
   --radius-compact:8px; --radius-control:12px; --radius-card:16px; --radius-sheet:24px;
 
   /* Elevation */
-  --shadow-xs:0 1px 2px rgba(13,31,21,.04); --shadow-sm:0 2px 8px rgba(13,31,21,.06);
-  --shadow-md:0 6px 20px rgba(13,31,21,.08); --shadow-lg:0 14px 36px rgba(13,31,21,.11);
-  --shadow-xl:0 24px 64px rgba(7,24,15,.15); --shadow-floating:0 8px 28px rgba(8,55,37,.16);
-  --shadow-nav:0 -6px 20px rgba(11,40,27,.06); --shadow-sheet:0 -16px 44px rgba(7,22,14,.15);
-  --elevation-0:none; --elevation-1:0 4px 18px rgba(13,31,21,.06); --elevation-2:0 8px 28px rgba(8,55,37,.12);
-  --elevation-3:0 -16px 44px rgba(7,22,14,.15); --elevation-nav:0 -4px 18px rgba(13,31,21,.05);
+  --shadow-xs:0 1px 2px rgba(7,26,17,.04); --shadow-sm:0 2px 10px rgba(7,26,17,.055);
+  --shadow-md:0 8px 24px rgba(7,26,17,.075); --shadow-lg:0 16px 40px rgba(7,26,17,.10);
+  --shadow-xl:0 28px 72px rgba(4,22,14,.14); --shadow-floating:0 10px 32px rgba(8,55,37,.15);
+  --shadow-nav:0 -8px 24px rgba(7,26,17,.055); --shadow-sheet:0 -18px 52px rgba(5,21,13,.14);
+  --elevation-0:none; --elevation-1:0 4px 18px rgba(7,26,17,.055); --elevation-2:0 10px 30px rgba(8,55,37,.11);
+  --elevation-3:0 -18px 52px rgba(5,21,13,.14); --elevation-nav:0 -6px 20px rgba(7,26,17,.05);
 
   /* Layout */
   --content-max-width:430px; --header-height:104px; --bottom-nav-height:72px;
@@ -71,21 +71,21 @@
   --story-size:56px; --story-avatar-size:50px; --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
 
   /* Header + nav */
-  --header-bg:rgba(255,255,255,.97); --header-border:rgba(24,29,25,.07); --header-search-bg:var(--neutral-50);
-  --header-search-border:rgba(24,29,25,.11); --header-search-text:var(--neutral-600);
-  --nav-bg:rgba(255,255,255,.98); --nav-active-bg:transparent; --nav-active-color:var(--forest-700); --nav-inactive-color:var(--neutral-600);
+  --header-bg:rgba(255,255,255,.985); --header-border:rgba(16,24,19,.07); --header-search-bg:var(--neutral-50);
+  --header-search-border:rgba(16,24,19,.11); --header-search-text:var(--neutral-600);
+  --nav-bg:rgba(255,255,255,.985); --nav-active-bg:transparent; --nav-active-color:var(--forest-700); --nav-inactive-color:var(--neutral-600);
 
   /* Discovery + controls */
-  --discovery-bg:var(--forest-900); --discovery-text:#fff; --discovery-muted:rgba(255,255,255,.78); --discovery-eyebrow:var(--gold-400);
+  --discovery-bg:var(--forest-900); --discovery-text:#fff; --discovery-muted:rgba(255,255,255,.80); --discovery-eyebrow:var(--gold-400);
   --button-primary-bg:var(--forest-700); --button-primary-hover:var(--forest-800); --button-primary-text:#fff;
-  --button-secondary-bg:#fff; --button-secondary-text:var(--forest-800); --button-secondary-border:rgba(255,255,255,.18);
+  --button-secondary-bg:#fff; --button-secondary-text:var(--forest-800); --button-secondary-border:rgba(15,92,59,.16);
   --sheet-bg:#fff; --sheet-handle:var(--neutral-200); --toast-bg:var(--neutral-950); --toast-text:#fff;
-  --media-bg:var(--neutral-100); --media-overlay:linear-gradient(180deg,rgba(7,22,14,0) 58%,rgba(7,22,14,.42) 100%);
+  --media-bg:var(--neutral-100); --media-overlay:linear-gradient(180deg,rgba(5,20,13,0) 58%,rgba(5,20,13,.44) 100%);
 
   /* Motion */
   --ease-standard:cubic-bezier(.2,.8,.2,1); --ease-enter:cubic-bezier(.16,1,.3,1); --ease-exit:cubic-bezier(.4,0,1,1);
-  --ease-soft:cubic-bezier(.22,.61,.36,1); --duration-fast:140ms; --duration-normal:220ms; --duration-medium:320ms; --duration-slow:460ms;
-  --tap-scale:.97; --focus-ring:0 0 0 3px rgba(36,145,94,.18); --focus-ring-strong:0 0 0 3px rgba(36,145,94,.28);
+  --ease-soft:cubic-bezier(.22,.61,.36,1); --duration-fast:150ms; --duration-normal:220ms; --duration-medium:320ms; --duration-slow:460ms;
+  --tap-scale:.98; --focus-ring:0 0 0 3px rgba(28,139,86,.16); --focus-ring-strong:0 0 0 3px rgba(28,139,86,.26);
 
   /* Splash */
   --splash-bg:#fff; --splash-logo-width:clamp(180px,58vw,260px); --splash-enter-duration:650ms;
