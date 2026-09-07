@@ -8,9 +8,10 @@ const CSS_SOURCE = "css/style.css";
 const CSS_RUNTIME = "css/style.runtime.css";
 const INDEX = "index.html";
 const ASSETS_IGNORE = ".assetsignore";
+const TOKENS = "css/tokens.css";
 
 const CRITICAL_ASSETS = [
-  "css/tokens.css",
+  TOKENS,
   CSS_RUNTIME,
   "css/mobile-foundation-v2.css",
   "css/home-feed-v3.css",
@@ -54,9 +55,20 @@ function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function stampVersion(index, assetPath, version) {
-  const pattern = new RegExp(`${escapeRegExp(assetPath)}\\?v=[^&\"']+`, "g");
-  return index.replace(pattern, `${assetPath}?v=${version}`);
+function stampVersion(text, assetPath, version) {
+  const pattern = new RegExp(`${escapeRegExp(assetPath)}\\?v=[^&\"')]+`, "g");
+  return text.replace(pattern, `${assetPath}?v=${version}`);
+}
+
+async function stampTokenImports() {
+  let tokens = await readFile(TOKENS, "utf8");
+  for (const dependency of ["css/mobile-foundation-v2.css", "css/ui-polish-v1.css"]) {
+    const version = await sha12(dependency);
+    const relativePath = `./${dependency.slice(4)}`;
+    tokens = stampVersion(tokens, relativePath, version);
+    console.log(`asset-cache-key ${dependency}=${version}`);
+  }
+  await writeFile(TOKENS, tokens, "utf8");
 }
 
 await build({
@@ -80,6 +92,10 @@ await build({
 
 await assertReduction(JS_SOURCE, JS_RUNTIME, 0.20);
 await assertReduction(CSS_SOURCE, CSS_RUNTIME, 0.15);
+
+// Tokens imports are part of the critical visual graph. Fingerprint them first so
+// changing ui-polish/mobile-foundation also changes the final tokens fingerprint.
+await stampTokenImports();
 
 let index = await readFile(INDEX, "utf8");
 
