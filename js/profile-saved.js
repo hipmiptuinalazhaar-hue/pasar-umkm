@@ -325,23 +325,76 @@ window.__PASAR_COMMERCE_V2__ = true;
 })();
 
 /* =========================================================
+   SELLER CENTER P8 UNIFIED BOOTSTRAP
+   Native Seller Center is the only seller hub. This bridge
+   injects P8 fulfillment/payment controls into that hub and
+   enhances its native Pesanan Masuk route.
+   ========================================================= */
+
+(() => {
+  const scripts = [
+    ['seller-center-p8-bridge','js/seller-center-p8-bridge.js?v=1.1',() => window.PasarSellerP8?.version === '1.0'],
+    ['seller-center-order-p8','js/seller-center-order-p8.js?v=1.1',() => window.PasarSellerOrdersP8?.version === '1.0']
+  ];
+
+  function loadOne(key, src, ready) {
+    if (ready() || document.querySelector(`script[data-${key}="true"]`)) return;
+    const script = document.createElement('script');
+    script.src = src;
+    script.async = true;
+    script.dataset[key.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = 'true';
+    script.onerror = () => console.error(`[Pasar UMKM] ${key} gagal dimuat.`);
+    document.body.appendChild(script);
+  }
+
+  function loadSellerCenterP8() {
+    for (const [key, src, ready] of scripts) loadOne(key, src, ready);
+  }
+
+  const sellerIntent = [
+    '[data-commerce-route="seller-center"]',
+    '[data-commerce-route="seller-orders"]',
+    '[data-action="seller-center"]',
+    '.commerce-menu-list[aria-label="Menu Seller Center"]'
+  ].join(',');
+
+  document.addEventListener('pointerdown', event => {
+    if (event.target?.closest?.(sellerIntent)) loadSellerCenterP8();
+  }, { capture: true, passive: true });
+
+  document.addEventListener('click', event => {
+    if (event.target?.closest?.(sellerIntent)) loadSellerCenterP8();
+  }, true);
+
+  const observer = new MutationObserver(() => {
+    if (document.querySelector('.commerce-menu-list[aria-label="Menu Seller Center"], .commerce-page')) {
+      loadSellerCenterP8();
+    }
+  });
+  observer.observe(document.documentElement, { childList: true, subtree: true });
+
+  window.PasarSellerCenterP8Bootstrap = Object.freeze({ load: loadSellerCenterP8 });
+})();
+
+/* =========================================================
    P8 MENU BOOTSTRAP FALLBACK
    The home shell does not eagerly load the deferred P8 module.
-   Load only the tiny navigation bridge here so seller/buyer
-   commerce centers are always discoverable from the side menu.
+   Keep buyer-only side-menu enhancements deferred; seller
+   management itself now boots from the native Seller Center.
    ========================================================= */
 
 (() => {
   function loadP8MenuBridge() {
     if (
-      window.PasarP8Commerce?.version === '1.0' ||
+      window.PasarP8Commerce?.version === '1.1' ||
       document.querySelector('script[data-p8-commerce="true"]')
     ) return;
 
     const script = document.createElement('script');
-    script.src = 'js/p8-commerce-integration.js?v=1.1';
+    script.src = 'js/p8-commerce-integration.js?v=1.2';
     script.async = true;
     script.dataset.p8Commerce = 'true';
+    script.onload = () => window.PasarP8Commerce?.loadSellerBridge?.();
     script.onerror = () => console.error('[Pasar UMKM] P8 menu bridge gagal dimuat.');
     document.body.appendChild(script);
   }
