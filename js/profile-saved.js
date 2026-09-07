@@ -323,3 +323,32 @@ window.__PASAR_COMMERCE_V2__ = true;
     }
   }, true);
 })();
+
+/* =========================================================
+   P8 MENU BOOTSTRAP FALLBACK
+   The home shell does not eagerly load the deferred P8 module.
+   Load only the tiny navigation bridge here so seller/buyer
+   commerce centers are always discoverable from the side menu.
+   ========================================================= */
+
+(() => {
+  function loadP8MenuBridge() {
+    if (
+      window.PasarP8Commerce?.version === '1.0' ||
+      document.querySelector('script[data-p8-commerce="true"]')
+    ) return;
+
+    const script = document.createElement('script');
+    script.src = 'js/p8-commerce-integration.js?v=1.1';
+    script.async = true;
+    script.dataset.p8Commerce = 'true';
+    script.onerror = () => console.error('[Pasar UMKM] P8 menu bridge gagal dimuat.');
+    document.body.appendChild(script);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadP8MenuBridge, { once: true });
+  } else {
+    loadP8MenuBridge();
+  }
+})();
