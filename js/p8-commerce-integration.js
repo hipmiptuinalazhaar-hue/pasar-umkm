@@ -61,7 +61,7 @@
   }
 
   function cartRows(){
-    const source=Array.isArray(window.STATE?.cart)?window.STATE.cart:[];
+    const source=typeof STATE!=='undefined'&&Array.isArray(STATE.cart)?STATE.cart:[];
     return source.map(row=>({
       id:String(row.productId||row.product?.id||''),
       quantity:Number(row.quantity||0),
