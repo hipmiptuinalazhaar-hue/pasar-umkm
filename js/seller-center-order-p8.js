@@ -60,6 +60,14 @@
     return `<span class="scp8-order-pill">${esc(text || '—')}</span>`;
   }
 
+  function buyerMapUrl(order) {
+    const lat = Number(order?.delivery_latitude);
+    const lng = Number(order?.delivery_longitude);
+    return Number.isFinite(lat) && Number.isFinite(lng)
+      ? `https://www.google.com/maps?q=${lat},${lng}`
+      : '';
+  }
+
   async function enhanceOrderList() {
     const cards = [...doc.querySelectorAll('.commerce-order-card[data-order-scope="seller"]')];
     if (!cards.length) return;
@@ -90,8 +98,22 @@
     return order.fulfillment_method === 'pickup' ? 'ready_for_pickup' : 'in_transit';
   }
 
+  function deliveryFacts(order) {
+    if (order.fulfillment_method === 'pickup') return '';
+    const map = buyerMapUrl(order);
+    const accuracy = Number(order.delivery_accuracy_m);
+    return `
+      <div class="scp8-delivery-address">
+        <span>Alamat pembeli</span>
+        <strong>${esc(order.delivery_address || 'Alamat belum tersedia')}</strong>
+        ${order.delivery_landmark ? `<small>Patokan: ${esc(order.delivery_landmark)}</small>` : ''}
+        ${map ? `<small>Titik GPS${Number.isFinite(accuracy) ? ` · akurasi ±${Math.round(accuracy)} m` : ''}</small>` : ''}
+      </div>`;
+  }
+
   function orderOps(order) {
     const next = nextFulfillment(order);
+    const map = buyerMapUrl(order);
     return `
       <section id="sellerP8OrderOps" class="commerce-section scp8-order-ops">
         <div class="scp8-order-ops-head"><div><span class="commerce-eyebrow">P8 COMMERCE</span><h2 class="commerce-section-title">Pengiriman & Pembayaran</h2></div><i class="ph ph-truck"></i></div>
@@ -102,7 +124,9 @@
           <div><span>Ongkir</span><strong>${money(order.delivery_fee)}</strong></div>
           ${order.estimated_fulfillment_at ? `<div><span>Estimasi</span><strong>${esc(date(order.estimated_fulfillment_at))}</strong></div>` : ''}
         </div>
+        ${deliveryFacts(order)}
         <div class="scp8-order-actions">
+          ${map ? `<a class="commerce-secondary-button" href="${map}" target="_blank" rel="noopener"><i class="ph ph-navigation-arrow"></i> Navigasi ke pembeli</a>` : ''}
           ${next ? `<button type="button" class="commerce-primary" data-seller-p8-fulfillment="${esc(next)}" data-order-id="${esc(order.id)}">${next === 'ready_for_pickup' ? 'Tandai siap diambil' : 'Mulai pengantaran'}</button>` : ''}
           <button type="button" class="commerce-secondary-button" data-seller-p8-timeline="${esc(order.id)}"><i class="ph ph-clock-counter-clockwise"></i> Timeline</button>
         </div>

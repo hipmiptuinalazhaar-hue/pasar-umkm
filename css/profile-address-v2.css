@@ -1,0 +1,17 @@
+/* Pasar UMKM Profile Address V2 */
+.profile-address-v2{border-top:1px solid rgba(16,24,19,.08)}
+.profile-address-v2-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+.profile-address-v2-head p{margin:4px 0 0;color:#707b73;font-size:12px;line-height:1.5}
+.profile-address-v2-badge{padding:5px 9px;border-radius:999px;background:#f0f8f3;color:#0f5c3b;font-size:10.5px;font-weight:800;white-space:nowrap}
+.profile-address-v2-grid{display:grid;gap:12px}
+.profile-address-v2-grid.two{grid-template-columns:1fr 1fr}
+.profile-address-v2-location{margin-top:12px;padding:13px;border:1px solid rgba(15,92,59,.13);border-radius:14px;background:#f7faf8}
+.profile-address-v2-location-actions{display:flex;gap:8px;flex-wrap:wrap}
+.profile-address-v2-location button,.profile-address-v2-save{min-height:46px;padding:0 14px;border-radius:12px;font:inherit;font-size:12.5px;font-weight:800}
+.profile-address-v2-location button{border:1px solid rgba(15,92,59,.2);background:#fff;color:#083725}
+.profile-address-v2-location button:disabled,.profile-address-v2-save:disabled{opacity:.55}
+.profile-address-v2-location-status{margin:9px 0 0;color:#66736b;font-size:11.5px;line-height:1.45}
+.profile-address-v2-location-status strong{color:#101813}
+.profile-address-v2-map{display:inline-flex;margin-top:8px;color:#0f5c3b;font-size:11.5px;font-weight:750;text-decoration:none}
+.profile-address-v2-save{width:100%;margin-top:14px;border:1px solid #083725;background:#083725;color:#fff}
+@media(max-width:430px){.profile-address-v2-grid.two{grid-template-columns:1fr}}
