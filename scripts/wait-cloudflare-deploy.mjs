@@ -2,14 +2,14 @@ import { appendFileSync } from 'node:fs';
 
 const token = process.env.GITHUB_TOKEN?.trim();
 const repository = process.env.GITHUB_REPOSITORY?.trim();
-const sha = process.env.GITHUB_SHA?.trim();
+const sha = (process.env.CLOUDFLARE_SHA || process.env.GITHUB_SHA)?.trim();
 const prefix = process.env.CLOUDFLARE_CHECK_PREFIX?.trim() || 'Workers Builds:';
 const timeoutMs = Number(process.env.CLOUDFLARE_WAIT_TIMEOUT_MS || 420000);
 const pollMs = Number(process.env.CLOUDFLARE_WAIT_POLL_MS || 5000);
 
 if (!token) throw new Error('GITHUB_TOKEN is required.');
 if (!repository || !repository.includes('/')) throw new Error('GITHUB_REPOSITORY owner/repo is required.');
-if (!/^[0-9a-f]{40}$/i.test(sha || '')) throw new Error('GITHUB_SHA must be a full commit SHA.');
+if (!/^[0-9a-f]{40}$/i.test(sha || '')) throw new Error('CLOUDFLARE_SHA/GITHUB_SHA must be a full commit SHA.');
 if (!Number.isFinite(timeoutMs) || timeoutMs < 30000) throw new Error('CLOUDFLARE_WAIT_TIMEOUT_MS must be >= 30000.');
 if (!Number.isFinite(pollMs) || pollMs < 1000) throw new Error('CLOUDFLARE_WAIT_POLL_MS must be >= 1000.');
 
@@ -32,6 +32,7 @@ function extractPreviewUrl(summary = '') {
 function writeOutputs(check) {
   if (!process.env.GITHUB_OUTPUT) return;
   const previewUrl = extractPreviewUrl(check?.output?.summary || '');
+  appendFileSync(process.env.GITHUB_OUTPUT, `cloudflare_sha=${sha}\n`, 'utf8');
   appendFileSync(process.env.GITHUB_OUTPUT, `cloudflare_check_id=${check.id}\n`, 'utf8');
   appendFileSync(process.env.GITHUB_OUTPUT, `cloudflare_details_url=${check.details_url || ''}\n`, 'utf8');
   appendFileSync(process.env.GITHUB_OUTPUT, `preview_url=${previewUrl}\n`, 'utf8');
