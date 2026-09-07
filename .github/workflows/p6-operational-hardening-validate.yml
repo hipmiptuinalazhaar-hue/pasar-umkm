@@ -8,6 +8,9 @@ on:
       - 'src/marketplace-safety-api.js'
       - 'src/admin-operations-api.js'
       - 'src/worker-entry.js'
+      - 'js/admin/api.js'
+      - 'js/admin/control.js'
+      - 'js/admin/operations.js'
       - 'legal/**'
       - 'docs/P6_OPERATIONAL_MARKETPLACE.md'
       - 'scripts/validate-p6-operational-hardening.mjs'
@@ -20,6 +23,9 @@ on:
       - 'src/marketplace-safety-api.js'
       - 'src/admin-operations-api.js'
       - 'src/worker-entry.js'
+      - 'js/admin/api.js'
+      - 'js/admin/control.js'
+      - 'js/admin/operations.js'
       - 'legal/**'
       - 'docs/P6_OPERATIONAL_MARKETPLACE.md'
       - 'scripts/validate-p6-operational-hardening.mjs'
@@ -52,11 +58,14 @@ jobs:
       - name: Install exact locked dependencies
         run: npm ci --no-audit --no-fund
 
-      - name: Syntax check P6 runtime
+      - name: Syntax check P6 runtime and admin UI
         run: |
           node --check src/marketplace-safety-api.js
           node --check src/admin-operations-api.js
           node --check src/worker-entry.js
+          node --check js/admin/api.js
+          node --check js/admin/control.js
+          node --check js/admin/operations.js
           node --check scripts/validate-p6-operational-hardening.mjs
 
       - name: P6 operational contract
