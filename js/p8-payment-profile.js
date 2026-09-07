@@ -14,7 +14,8 @@ function paymentLabel(value){return ({bank_transfer:'Transfer rekening / e-walle
 
 function buildProviderOptions(selected=''){
   const providers=['BRI','BCA','BNI','Mandiri','BSI','Bank Sumsel Babel','CIMB Niaga','BTN','PermataBank','SeaBank','DANA','GoPay','OVO','ShopeePay','LinkAja','Lainnya'];
-  return providers.map(item=>`<option value="${esc(item)}" ${item===selected?'selected':''}>${esc(item)}</option>`).join('');
+  const values=selected&&!providers.includes(selected)?[selected,...providers]:providers;
+  return values.map(item=>`<option value="${esc(item)}" ${item===selected?'selected':''}>${esc(item)}</option>`).join('');
 }
 function sellerProfileMarkup(settings){
   const currentQris=settings.qris_image_url?`<div class="p81-qris-preview"><img src="${esc(settings.qris_image_url)}" alt="QRIS merchant saat ini"><small>QRIS merchant tersimpan</small></div>`:'<div class="p81-qris-empty">Belum ada QRIS merchant.</div>';
@@ -109,9 +110,9 @@ document.addEventListener('submit',async event=>{
   try{
     if(data.has('remove_qris')){payload.qris_image_url='';payload.qris_public_id='';if(payload.merchant_qris_enabled)payload.merchant_qris_enabled=false}
     const file=document.getElementById('p81QrisFile')?.files?.[0];
-    if(file){toast('Mengunggah QRIS merchant…');const image=await uploadQris(file);payload.qris_image_url=image?.url||'';payload.qris_public_id=image?.public_id||''}
     if(payload.bank_transfer_enabled&&(!payload.transfer_provider_name||!payload.transfer_account_number||!payload.transfer_account_name))throw new Error('Lengkapi bank/e-wallet, nomor akun, dan nama pemilik sebelum mengaktifkan transfer.');
-    if(payload.merchant_qris_enabled&&(!payload.qris_merchant_name||!payload.qris_image_url))throw new Error('Nama merchant dan gambar QRIS wajib diisi sebelum QRIS diaktifkan.');
+    if(payload.merchant_qris_enabled&&(!payload.qris_merchant_name||(!payload.qris_image_url&&!file)))throw new Error('Nama merchant dan gambar QRIS wajib diisi sebelum QRIS diaktifkan.');
+    if(file){toast('Mengunggah QRIS merchant…');const image=await uploadQris(file);payload.qris_image_url=image?.url||'';payload.qris_public_id=image?.public_id||''}
     await api('/api/commerce/fulfillment/settings/me',{method:'PUT',body:JSON.stringify(payload)});
     toast('Tempat pembayaran seller berhasil disimpan.');
     setTimeout(()=>location.reload(),650);
