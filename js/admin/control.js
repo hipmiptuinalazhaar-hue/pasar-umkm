@@ -1,8 +1,9 @@
-import { adminApi, AdminApiError, setAdminStepUpHandler } from "./api.js?v=6.1.0";
+import { adminApi, AdminApiError, setAdminStepUpHandler } from "./api.js?v=7.0.0";
 
 const NAV_ITEMS = Object.freeze([
   { key: "overview", label: "Overview", permission: "dashboard.view", view: "overview" },
   { key: "operations", label: "Operations", permission: "dashboard.view", view: "operations" },
+  { key: "growth", label: "Growth", permission: "growth.view", view: "growth" },
   { key: "users", label: "Users", permission: "users.view", view: "records" },
   { key: "stores", label: "Stores", permission: "stores.view", view: "records" },
   { key: "products", label: "Products", permission: "products.view", view: "records" },
@@ -152,6 +153,9 @@ async function renderRoute({ access, items, host, confirmAction, onSessionExpire
     } else if (item.view === "operations") {
       const module = await import("./operations.js?v=6.1.0");
       await module.renderOperations(context);
+    } else if (item.view === "growth") {
+      const module = await import("./growth.js?v=7.0.0");
+      await module.renderGrowth(context);
     } else if (item.view === "security") {
       const module = await import("./security.js?v=6.0.0");
       await module.renderSecurity(context);
