@@ -10,6 +10,8 @@ import {
 const SESSION_COOKIE = "__Host-pasar_umkm_session";
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const FULFILLMENT_STATES = new Set(['awaiting_confirmation','ready_for_pickup','in_transit','picked_up','delivered','cancelled']);
+const PAYMENT_PROVIDER_TYPES = new Set(['bank','ewallet']);
+const CLOUDINARY_QRIS_PATTERN = /^https:\/\/res\.cloudinary\.com\//i;
 
 function json(data, status = 200) {
   return Response.json(data, { status, headers: { "Cache-Control": "no-store" } });
@@ -29,6 +31,17 @@ function uuid(value) {
   return UUID_PATTERN.test(id) ? id : null;
 }
 function text(value, max = 1000) { return String(value || '').trim().slice(0, max) || null; }
+function profileFromRow(row = {}) {
+  return {
+    transfer_provider_type: row.transfer_provider_type || null,
+    transfer_provider_name: row.transfer_provider_name || null,
+    transfer_account_number: row.transfer_account_number || null,
+    transfer_account_name: row.transfer_account_name || null,
+    qris_merchant_name: row.qris_merchant_name || null,
+    qris_image_url: row.qris_image_url || null,
+    qris_public_id: row.qris_public_id || null
+  };
+}
 
 async function authUser(sql, request) {
   const token = getCookie(request, SESSION_COOKIE);
@@ -77,7 +90,15 @@ async function sellerSettings(sql, request) {
   const store = await currentStore(sql, auth.user.id);
   if (!store) return jsonError('Buat UMKM terlebih dahulu.', 404);
   const rows = await sql`SELECT * FROM store_commerce_settings WHERE store_id=${store.id} LIMIT 1`;
-  return json({ ok:true, store, settings: normalizeStoreCommerceSettings({ store_id: store.id, ...(rows[0] || {}) }) });
+  const row = rows[0] || {};
+  return json({
+    ok:true,
+    store,
+    settings: {
+      ...normalizeStoreCommerceSettings({ store_id: store.id, ...row }),
+      ...profileFromRow(row)
+    }
+  });
 }
 
 async function updateSellerSettings(sql, request) {
@@ -105,17 +126,57 @@ async function updateSellerSettings(sql, request) {
   if (![fee,min,max,sla].every(Number.isFinite) || fee < 0 || min < 0 || max < min || sla < 15) return jsonError('Nilai biaya atau estimasi tidak valid.', 400);
   if (threshold != null && (!Number.isFinite(threshold) || threshold < 0)) return jsonError('Batas gratis ongkir tidak valid.', 400);
 
+  const providerType = text(body.transfer_provider_type,16);
+  const providerName = text(body.transfer_provider_name,80);
+  const accountNumber = text(body.transfer_account_number,120);
+  const accountName = text(body.transfer_account_name,160);
+  const qrisMerchantName = text(body.qris_merchant_name,160);
+  const qrisImageUrl = text(body.qris_image_url,1000);
+  const qrisPublicId = text(body.qris_public_id,300);
+
+  if (providerType && !PAYMENT_PROVIDER_TYPES.has(providerType)) return jsonError('Jenis tujuan transfer tidak valid.',400);
+  if (accountNumber && !/^[0-9+().\-\s]{3,120}$/.test(accountNumber)) return jsonError('Nomor rekening atau e-wallet tidak valid.',400);
+  if (qrisImageUrl && !CLOUDINARY_QRIS_PATTERN.test(qrisImageUrl)) return jsonError('QRIS harus berasal dari unggahan merchant Pasar UMKM.',400);
+
+  if (bankTransfer && (!providerType || !providerName || !accountNumber || !accountName)) {
+    return jsonError('Lengkapi jenis, nama bank/e-wallet, nomor akun, dan nama pemilik untuk mengaktifkan transfer.',400);
+  }
+  if (qris && (!qrisMerchantName || !qrisImageUrl)) {
+    return jsonError('Nama merchant dan gambar QRIS wajib diisi untuk mengaktifkan QRIS.',400);
+  }
+
+  const transferNote = text(body.bank_transfer_instructions,600);
+  const qrisNote = text(body.qris_instructions,600);
+  const structuredTransferInstructions = bankTransfer
+    ? [
+        `${providerName} · ${accountNumber}`,
+        `A/N ${accountName}`,
+        transferNote
+      ].filter(Boolean).join('\n')
+    : transferNote;
+  const structuredQrisInstructions = qris
+    ? [
+        `QRIS Merchant: ${qrisMerchantName}`,
+        'Scan QRIS merchant yang ditampilkan pada detail pesanan.',
+        qrisNote
+      ].filter(Boolean).join('\n')
+    : qrisNote;
+
   const rows = await sql`
     INSERT INTO store_commerce_settings (
       store_id,pickup_enabled,seller_delivery_enabled,local_courier_enabled,
       cod_enabled,pay_at_store_enabled,bank_transfer_enabled,merchant_qris_enabled,
       flat_delivery_fee,free_delivery_threshold,estimated_min_minutes,estimated_max_minutes,
-      response_sla_minutes,pickup_instructions,bank_transfer_instructions,qris_instructions,updated_at
+      response_sla_minutes,pickup_instructions,bank_transfer_instructions,qris_instructions,
+      transfer_provider_type,transfer_provider_name,transfer_account_number,transfer_account_name,
+      qris_merchant_name,qris_image_url,qris_public_id,updated_at
     ) VALUES (
       ${store.id},${pickup},${sellerDelivery},${localCourier},
       ${cod},${payAtStore},${bankTransfer},${qris},
       ${fee},${threshold},${Math.trunc(min)},${Math.trunc(max)},${Math.trunc(sla)},
-      ${text(body.pickup_instructions,1200)},${text(body.bank_transfer_instructions,1200)},${text(body.qris_instructions,1200)},NOW()
+      ${text(body.pickup_instructions,1200)},${structuredTransferInstructions},${structuredQrisInstructions},
+      ${providerType},${providerName},${accountNumber},${accountName},
+      ${qrisMerchantName},${qrisImageUrl},${qrisPublicId},NOW()
     )
     ON CONFLICT (store_id) DO UPDATE SET
       pickup_enabled=EXCLUDED.pickup_enabled,
@@ -133,10 +194,24 @@ async function updateSellerSettings(sql, request) {
       pickup_instructions=EXCLUDED.pickup_instructions,
       bank_transfer_instructions=EXCLUDED.bank_transfer_instructions,
       qris_instructions=EXCLUDED.qris_instructions,
+      transfer_provider_type=EXCLUDED.transfer_provider_type,
+      transfer_provider_name=EXCLUDED.transfer_provider_name,
+      transfer_account_number=EXCLUDED.transfer_account_number,
+      transfer_account_name=EXCLUDED.transfer_account_name,
+      qris_merchant_name=EXCLUDED.qris_merchant_name,
+      qris_image_url=EXCLUDED.qris_image_url,
+      qris_public_id=EXCLUDED.qris_public_id,
       updated_at=NOW()
     RETURNING *
   `;
-  return json({ ok:true, store, settings: normalizeStoreCommerceSettings(rows[0]) });
+  return json({
+    ok:true,
+    store,
+    settings: {
+      ...normalizeStoreCommerceSettings(rows[0]),
+      ...profileFromRow(rows[0])
+    }
+  });
 }
 
 async function loadOrderAccess(sql, orderId, user) {
