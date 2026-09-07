@@ -2,7 +2,7 @@
 
 (() => {
   const doc=document;
-  if(window.PasarP8Commerce?.version==='1.2')return;
+  if(window.PasarP8Commerce?.version==='1.3')return;
 
   const CART_SELECTION_KEY='pasar_cart_selection_v2';
   let buyNowPending=false;
@@ -147,8 +147,14 @@
       sticky.classList.add('cart-v2-sticky');
       const copy=sticky.querySelector('.commerce-sticky-copy');
       if(copy)copy.innerHTML=`<span>Total ${summary.count} item</span><strong>${rupiah(summary.total)}</strong>`;
-      const button=sticky.querySelector('[data-commerce-action="checkout"]');
-      if(button){button.textContent=`Checkout (${summary.count})`;button.disabled=summary.products===0;button.setAttribute('aria-disabled',summary.products===0?'true':'false')}
+      const button=sticky.querySelector('[data-commerce-action="checkout"],[data-cart-v2-checkout]');
+      if(button){
+        button.removeAttribute('data-commerce-action');
+        button.setAttribute('data-cart-v2-checkout','true');
+        button.textContent=`Checkout (${summary.count})`;
+        button.disabled=summary.products===0;
+        button.setAttribute('aria-disabled',summary.products===0?'true':'false');
+      }
     }
   }
 
@@ -161,7 +167,7 @@
     const rows=cartRows();
     if(rows.length&&selectedProductIds().length===0){window.showToast?.('Pilih minimal satu produk untuk checkout.');return}
     if(replace)location.replace('/checkout/');
-    else location.href='/checkout/';
+    else location.assign('/checkout/');
   }
 
   async function buyNow(productId,target){
@@ -210,7 +216,7 @@
       return;
     }
 
-    const checkout=event.target?.closest?.('[data-action="checkout"],[data-function-action="checkout-open"],[data-commerce-action="checkout"]');
+    const checkout=event.target?.closest?.('[data-cart-v2-checkout],[data-action="checkout"],[data-function-action="checkout-open"],[data-commerce-action="checkout"]');
     if(checkout){
       event.preventDefault();event.stopImmediatePropagation();
       openCheckout();
@@ -236,6 +242,6 @@
   if(doc.readyState==='loading')doc.addEventListener('DOMContentLoaded',()=>{installLinks();scheduleCartEnhance()},{once:true});
   else{installLinks();scheduleCartEnhance()}
 
-  window.PasarCartCheckoutV2=Object.freeze({version:'1.0',selectionKey:CART_SELECTION_KEY,selectedProductIds,setSelection,syncCartSelectionUI});
-  window.PasarP8Commerce=Object.freeze({version:'1.2',installLinks,loadSellerBridge,openCheckout});
+  window.PasarCartCheckoutV2=Object.freeze({version:'1.1',selectionKey:CART_SELECTION_KEY,selectedProductIds,setSelection,syncCartSelectionUI});
+  window.PasarP8Commerce=Object.freeze({version:'1.3',installLinks,loadSellerBridge,openCheckout});
 })();
