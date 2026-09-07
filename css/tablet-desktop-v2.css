@@ -92,25 +92,17 @@
   html body .app > .app-navigation::before,
   html body.chat-v7-body .app-navigation::before {
     content: "";
-    position: fixed;
-    left: 0;
-    right: 0;
+    position: absolute;
+    left: 50%;
     bottom: 0;
     width: 100vw;
     height: 64px;
-    margin-left: calc((720px - 100vw) / 2);
+    transform: translateX(-50%);
     background: #fff;
     border-top: 1px solid var(--border-subtle, rgba(24,29,25,.08));
     box-shadow: 0 -2px 12px rgba(13,31,21,.04);
     pointer-events: none;
     z-index: -1;
-  }
-
-  @media (max-width: 783px) {
-    html body .app > .app-navigation::before,
-    html body.chat-v7-body .app-navigation::before {
-      margin-left: calc((100vw - 64px - 100vw) / 2);
-    }
   }
 
   html body .app-navigation .nav-item {
@@ -278,11 +270,6 @@
   html body .app > .app-navigation,
   html body.chat-v7-body .app-navigation {
     width: min(760px, calc(100vw - 72px)) !important;
-  }
-
-  html body .app > .app-navigation::before,
-  html body.chat-v7-body .app-navigation::before {
-    margin-left: calc((760px - 100vw) / 2);
   }
 
   html body #homeDiscovery .home-section-head,
