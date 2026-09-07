@@ -103,14 +103,16 @@ for(const text of [
 forbid(sellerOrderBridge,/\/api\/(?:wallet|escrow|settlement)(?:\/|['"`])/i,'custodial seller order route');
 
 for(const text of [
-  "window.PasarP8Commerce?.version==='1.1'",
+  "window.PasarP8Commerce?.version==='1.2'",
   "js/seller-center-p8-bridge.js?v=1.0",
   "js/seller-center-order-p8.js?v=1.0",
-  "host.querySelector('[data-p8-seller-orders-link]')?.remove()"
-])requireText(integration,text,'Seller Center P8 integration loader');
+  "host.querySelector('[data-p8-seller-orders-link]')?.remove()",
+  '[data-commerce-action="checkout"]',
+  '[data-commerce-action="buy-now"]'
+])requireText(integration,text,'Seller Center and buyer checkout P8 integration loader');
 forbid(integration,/sideLink\(['"]\/seller-orders\//,'standalone Seller Order Center side-menu link');
-requireText(p3,"window.PasarP8Commerce?.version === '1.1'",'P8.1 cache-busted loader version');
-requireText(p3,"js/p8-commerce-integration.js?v=1.1",'P8.1 cache-busted integration asset');
+requireText(p3,"window.PasarP8Commerce?.version === '1.2'",'P8.1 cache-busted loader version');
+requireText(p3,"js/p8-commerce-integration.js?v=1.2",'P8.1 cache-busted integration asset');
 
 const budgets=[
   ['js/p8-payment-profile.js',ui,22000],
@@ -126,4 +128,4 @@ for(const [path,source,max] of budgets){const bytes=Buffer.byteLength(source);if
 if(pkg.scripts?.['test:p8-1-payments']!=='node scripts/validate-p8-1-payment-profile.mjs')fail('package.json missing test:p8-1-payments');
 if(!String(pkg.scripts?.validate||'').includes('npm run test:p8-1-payments'))fail('canonical validate must include P8.1');
 
-console.log('P8.1 payment profile and fulfillment are unified into the native Seller Center; structured bank/e-wallet, official QRIS upload, private order snapshots, and non-custodial boundaries OK.');
+console.log('P8.1 payment profile and fulfillment are unified into the native Seller Center; buyer checkout routes exclusively through P8 with seller-scoped payment choices; structured bank/e-wallet, official QRIS upload, private order snapshots, and non-custodial boundaries OK.');
