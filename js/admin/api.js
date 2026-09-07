@@ -75,5 +75,8 @@ export const adminApi = Object.freeze({
   changeUserStatus(id, active, reason) { return request(`/api/admin/control/users/${encodeURIComponent(id)}/status`, { method: "PATCH", body: JSON.stringify({ active, reason }) }); },
   storeAction(id, action, reason) { return request(`/api/admin/control/stores/${encodeURIComponent(id)}/action`, { method: "PATCH", body: JSON.stringify({ action, reason }) }); },
   changeProductStatus(id, active, reason) { return request(`/api/admin/control/products/${encodeURIComponent(id)}/status`, { method: "PATCH", body: JSON.stringify({ active, reason }) }); },
-  changePostStatus(id, active, reason) { return request(`/api/admin/control/posts/${encodeURIComponent(id)}/status`, { method: "PATCH", body: JSON.stringify({ active, reason }) }); }
+  changePostStatus(id, active, reason) { return request(`/api/admin/control/posts/${encodeURIComponent(id)}/status`, { method: "PATCH", body: JSON.stringify({ active, reason }) }); },
+  operationsMetrics({ signal } = {}) { return request("/api/admin/operations/metrics", { signal }); },
+  operations(resource, params = {}, { signal } = {}) { return request(`/api/admin/operations/${resource}${queryString(params)}`, { signal }); },
+  operationAction(resource, id, payload) { return request(`/api/admin/operations/${resource}/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(payload) }); }
 });
