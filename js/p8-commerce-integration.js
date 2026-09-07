@@ -33,7 +33,7 @@
   }
 
   doc.addEventListener('click',event=>{
-    const checkout=event.target?.closest?.('[data-action="checkout"]');
+    const checkout=event.target?.closest?.('[data-action="checkout"],[data-function-action="checkout-open"]');
     if(checkout){
       event.preventDefault();event.stopImmediatePropagation();
       location.href='/checkout/';
