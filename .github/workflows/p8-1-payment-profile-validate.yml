@@ -1,0 +1,122 @@
+name: P8.1 Payment Profile Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'database/migrations/2026-09-07-p8-1-structured-payment-profile.sql'
+      - 'src/commerce-fulfillment-api.js'
+      - 'src/image-upload-api.js'
+      - 'src/worker-entry.js'
+      - 'seller-orders/**'
+      - 'checkout/**'
+      - 'purchases/**'
+      - 'js/p8-payment-profile.js'
+      - 'css/p8-payment-profile.css'
+      - 'scripts/validate-p8-1-payment-profile.mjs'
+      - '.github/workflows/p8-1-payment-profile-validate.yml'
+      - 'package.json'
+  push:
+    branches: [main]
+    paths:
+      - 'database/migrations/2026-09-07-p8-1-structured-payment-profile.sql'
+      - 'src/commerce-fulfillment-api.js'
+      - 'src/image-upload-api.js'
+      - 'src/worker-entry.js'
+      - 'seller-orders/**'
+      - 'checkout/**'
+      - 'purchases/**'
+      - 'js/p8-payment-profile.js'
+      - 'css/p8-payment-profile.css'
+      - 'scripts/validate-p8-1-payment-profile.mjs'
+      - '.github/workflows/p8-1-payment-profile-validate.yml'
+      - 'package.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: read
+
+concurrency:
+  group: p8-1-payment-profile-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  payment-profile-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install exact locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Syntax check P8.1 runtime and UI
+        run: |
+          node --check src/commerce-fulfillment-api.js
+          node --check src/image-upload-api.js
+          node --check src/worker-entry.js
+          node --check js/p8-payment-profile.js
+          node --check scripts/validate-p8-1-payment-profile.mjs
+
+      - name: P8.1 structured payment contract
+        run: npm run test:p8-1-payments
+
+      - name: Canonical validation
+        run: npm run validate
+
+      - name: Bundle final Worker
+        run: ./node_modules/.bin/esbuild src/worker-entry.js --bundle --format=esm --platform=browser --target=es2022 --outfile=/tmp/p8-1-worker.mjs
+
+  production-safe-boundary:
+    if: github.event_name == 'push'
+    needs: payment-profile-contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+
+      - name: Wait for exact Cloudflare deployment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLOUDFLARE_SHA: ${{ github.sha }}
+          CLOUDFLARE_WAIT_TIMEOUT_MS: '420000'
+          CLOUDFLARE_WAIT_POLL_MS: '5000'
+        run: node scripts/wait-cloudflare-deploy.mjs
+
+      - name: Verify P8.1 production read-only boundary
+        env:
+          BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+        run: |
+          node --input-type=module <<'NODE'
+          const base=process.env.BASE_URL;
+          async function response(path,expected=200,init={}){
+            const res=await fetch(base+path,{redirect:'manual',headers:{Accept:'*/*',...(init.headers||{})},...init});
+            if(res.status!==expected)throw new Error(`${path}: expected ${expected}, got ${res.status}`);
+            console.log(`PASS ${path} -> ${res.status}`);return res;
+          }
+          await response('/seller-orders/');
+          await response('/checkout/');
+          await response('/purchases/');
+          const health=await response('/api/health');const healthData=await health.json();
+          if(healthData?.schema?.p8_1_applied!==true||healthData?.schema?.payment_profile_ready!==true)throw new Error(`P8.1 health failed: ${JSON.stringify(healthData?.schema||{})}`);
+          console.log('PASS P8.1 health payment_profile_ready');
+          await response('/api/commerce/fulfillment/settings/me',401);
+          await response('/api/uploads/qris-image',401,{method:'POST'});
+          const storesResponse=await response('/api/stores?limit=1');const storesData=await storesResponse.json();const store=storesData?.stores?.[0];
+          if(store?.id){const publicSettings=await response(`/api/commerce/fulfillment/stores/${store.id}`);const data=await publicSettings.json();const serialized=JSON.stringify(data?.settings||{});for(const secretField of ['transfer_account_number','transfer_account_name','qris_image_url','qris_public_id']){if(serialized.includes(secretField))throw new Error(`Public commerce settings leaked ${secretField}`)}console.log('PASS public settings do not expose structured payment destination');}
+          console.log('P8.1 production-safe boundary: PASS');
+          NODE
