@@ -14,11 +14,13 @@ on:
       - 'wrangler.jsonc'
       - 'database/migrations/**'
       - 'scripts/post-deploy-smoke.mjs'
+      - 'scripts/wait-cloudflare-deploy.mjs'
       - '.github/workflows/post-deploy-smoke.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
+  checks: read
 
 concurrency:
   group: post-deploy-production
@@ -27,29 +29,38 @@ concurrency:
 jobs:
   verify-production:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Validate smoke syntax
-        run: node --check scripts/post-deploy-smoke.mjs
+      - name: Validate release verification syntax
+        run: |
+          node --check scripts/wait-cloudflare-deploy.mjs
+          node --check scripts/post-deploy-smoke.mjs
 
-      - name: Wait for deployment and verify production
+      - name: Wait for exact Cloudflare deployment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLOUDFLARE_WAIT_TIMEOUT_MS: '420000'
+          CLOUDFLARE_WAIT_POLL_MS: '5000'
+        run: node scripts/wait-cloudflare-deploy.mjs
+
+      - name: Verify deployed production
         env:
           PRODUCTION_BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
           EXPECTED_RELEASE: 2026-09-06-platform-hardening-v3
           SMOKE_TIMEOUT_MS: '15000'
         run: |
           set -euo pipefail
-          for attempt in 1 2 3 4 5 6 7 8; do
-            echo "Post-deploy verification attempt ${attempt}/8"
+          for attempt in 1 2 3 4; do
+            echo "Post-deploy verification attempt ${attempt}/4"
             if node scripts/post-deploy-smoke.mjs; then
               exit 0
             fi
-            if [ "$attempt" -lt 8 ]; then
-              sleep 20
+            if [ "$attempt" -lt 4 ]; then
+              sleep 10
             fi
           done
-          echo "Production did not reach the expected healthy release contract."
+          echo "Deployed production failed the expected healthy release contract."
           exit 1
