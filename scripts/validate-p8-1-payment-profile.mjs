@@ -34,7 +34,8 @@ for(const text of [
   'transfer_provider_name','transfer_account_number','transfer_account_name','qris_merchant_name','qris_image_url',
   "if (bankTransfer && (!providerType || !providerName || !accountNumber || !accountName))",
   "if (qris && (!qrisMerchantName || !qrisImageUrl))",
-  'CLOUDINARY_QRIS_PATTERN','QRIS harus berasal dari unggahan merchant Pasar UMKM.'
+  'CLOUDINARY_QRIS_PATTERN','QRIS harus berasal dari unggahan merchant Pasar UMKM.',
+  'bank_transfer_instructions: _bankTransferInstructions','qris_instructions: _qrisInstructions','settings: publicSettings'
 ])requireText(api,text,'structured payment API contract');
 forbid(api,/\b(wallet|escrow|settlement|refund_ledger|payment_gateway)\b/i,'custodial primitive in P8.1 API');
 
@@ -76,4 +77,4 @@ for(const [path,source,max] of budgets){const bytes=Buffer.byteLength(source);if
 if(pkg.scripts?.['test:p8-1-payments']!=='node scripts/validate-p8-1-payment-profile.mjs')fail('package.json missing test:p8-1-payments');
 if(!String(pkg.scripts?.validate||'').includes('npm run test:p8-1-payments'))fail('canonical validate must include P8.1');
 
-console.log('P8.1 structured bank/e-wallet profile, official merchant QRIS upload, order snapshot, non-custodial and deferred UI contracts OK.');
+console.log('P8.1 structured bank/e-wallet profile, official merchant QRIS upload, private order snapshot, non-custodial and deferred UI contracts OK.');
