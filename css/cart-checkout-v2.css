@@ -1,0 +1,26 @@
+/* Pasar UMKM Cart V2 — selective, store-grouped mobile cart */
+.commerce-cart-v2-toolbar{min-height:48px;margin:0 0 12px;padding:0 4px;display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--commerce-ink)}
+.commerce-cart-v2-selectall,.commerce-cart-v2-store-select,.commerce-cart-v2-item-select{display:inline-flex;align-items:center;gap:9px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.commerce-cart-v2-selectall{font-size:13px;font-weight:760}
+.commerce-cart-v2-count{color:var(--commerce-muted);font-size:11.5px;font-weight:650}
+.commerce-cart-v2-check{appearance:none;-webkit-appearance:none;width:24px;height:24px;min-width:24px;margin:0;border:1.5px solid #b9c5be;border-radius:50%;display:grid;place-items:center;background:#fff;transition:border-color .15s ease,background .15s ease,box-shadow .15s ease}
+.commerce-cart-v2-check:checked{border-color:var(--commerce-forest);background:var(--commerce-forest)}
+.commerce-cart-v2-check:checked::after{content:"";width:9px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:translateY(-1px) rotate(-45deg)}
+.commerce-cart-v2-check:indeterminate{border-color:var(--commerce-forest);background:var(--commerce-forest)}
+.commerce-cart-v2-check:indeterminate::after{content:"";width:10px;border-top:2px solid #fff}
+.commerce-cart-v2-check:focus-visible{outline:3px solid rgba(18,96,63,.16);outline-offset:3px}
+.commerce-store-head.cart-v2-enhanced{justify-content:flex-start;padding-inline:12px}
+.commerce-cart-v2-store-select{min-width:0;flex:1}
+.commerce-cart-v2-store-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:800}
+.commerce-cart-item.cart-v2-enhanced{grid-template-columns:28px 82px minmax(0,1fr);align-items:start;column-gap:10px}
+.commerce-cart-v2-item-select{padding-top:28px;justify-content:center}
+.commerce-cart-item.cart-v2-enhanced.is-unselected{opacity:.72}
+.commerce-cart-item.cart-v2-enhanced.is-unselected .commerce-cart-price{color:var(--commerce-muted)}
+.commerce-sticky.cart-v2-sticky{gap:10px}
+.commerce-sticky.cart-v2-sticky .commerce-sticky-copy span{font-size:11.5px}
+.commerce-sticky.cart-v2-sticky .commerce-sticky-copy strong{font-size:18px}
+.commerce-sticky.cart-v2-sticky .commerce-primary{min-width:148px;min-height:52px;border-radius:14px;font-size:14px}
+.commerce-sticky.cart-v2-sticky .commerce-primary:disabled{background:#b8c0bb;border-color:#b8c0bb;color:#f7f8f7;opacity:1}
+@media(max-width:390px){.commerce-cart-item.cart-v2-enhanced{grid-template-columns:26px 72px minmax(0,1fr);gap:8px}.commerce-cart-media{width:72px;height:72px}.commerce-cart-v2-item-select{padding-top:24px}.commerce-sticky.cart-v2-sticky .commerce-primary{min-width:132px}}
+@media(hover:hover) and (pointer:fine){.commerce-cart-v2-selectall:hover .commerce-cart-v2-check,.commerce-cart-v2-store-select:hover .commerce-cart-v2-check,.commerce-cart-v2-item-select:hover .commerce-cart-v2-check{border-color:var(--commerce-forest)}}
+@media(prefers-reduced-motion:reduce){.commerce-cart-v2-check{transition:none}}
