@@ -115,7 +115,7 @@ jobs:
           if stripped.count('{') != stripped.count('}'):
               errors.append('Responsive V2 CSS braces are unbalanced')
 
-          current_href = 'css/tablet-desktop-v2.css?v=2.0'
+          current_href = 'css/tablet-desktop-v2.css?v=2.1'
           retired_href = 'tablet-desktop-v1.css'
           if current_href not in index:
               errors.append('Responsive V2 stylesheet is not wired in index.html')
@@ -123,7 +123,7 @@ jobs:
               errors.append('index.html still references retired responsive v1')
 
           media_pattern = re.compile(
-              r'<link\s+[^>]*href="css/tablet-desktop-v2\.css\?v=2\.0"[^>]*media="screen and \(min-width: 768px\)"[^>]*>',
+              r'<link\s+[^>]*href="css/tablet-desktop-v2\.css\?v=2\.1"[^>]*media="screen and \(min-width: 768px\)"[^>]*>',
               re.S
           )
           if not media_pattern.search(index):

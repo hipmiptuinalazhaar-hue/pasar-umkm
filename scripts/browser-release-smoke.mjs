@@ -214,20 +214,30 @@ function assertProbe(probe, viewport) {
   expect(probe.jsErrors.length === 0, `runtime JS errors: ${probe.jsErrors.join(' | ')}`);
 
   const nav = probe.navRect || {};
+  const header = probe.headerRect || {};
+  const hero = probe.heroRect || {};
   if (viewport.width < 768) {
     expect(Math.abs((nav.bottom || 0) - viewport.height) <= 24, `mobile nav is not docked to bottom: bottom=${nav.bottom}`);
     expect((nav.width || 0) <= viewport.width + 2, `mobile nav wider than viewport: ${nav.width}`);
   } else if (viewport.width < 1024) {
     expect((nav.width || 0) <= 600, `tablet dock too wide: ${nav.width}`);
     expect(Math.abs((nav.bottom || 0) - viewport.height) <= 24, `tablet dock is not bottom anchored: bottom=${nav.bottom}`);
+    expect((header.width || 0) >= viewport.width * .90, `tablet header collapsed: ${header.width}px of ${viewport.width}px`);
+    expect((hero.width || 0) >= viewport.width * .70, `tablet hero collapsed: ${hero.width}px of ${viewport.width}px`);
   } else if (viewport.width < 1280) {
     expect(Math.abs((nav.left || 0)) <= 2, `laptop rail must start at left edge: ${nav.left}`);
     expect((nav.width || 0) >= 84 && (nav.width || 0) <= 92, `laptop rail width expected ~88px, got ${nav.width}`);
     expect(Math.abs((nav.height || 0) - viewport.height) <= 4, `laptop rail must fill viewport height: ${nav.height}`);
+    const available = viewport.width - (nav.width || 0);
+    expect((header.width || 0) >= available * .95, `laptop header collapsed: ${header.width}px, available=${available}px`);
+    expect((hero.width || 0) >= available * .72, `laptop hero collapsed: ${hero.width}px, available=${available}px`);
   } else {
     expect(Math.abs((nav.left || 0)) <= 2, `desktop rail must start at left edge: ${nav.left}`);
     expect((nav.width || 0) >= 200 && (nav.width || 0) <= 216, `desktop rail width expected ~208px, got ${nav.width}`);
     expect(Math.abs((nav.height || 0) - viewport.height) <= 4, `desktop rail must fill viewport height: ${nav.height}`);
+    const available = viewport.width - (nav.width || 0);
+    expect((header.width || 0) >= available * .95, `desktop header collapsed: ${header.width}px, available=${available}px`);
+    expect((hero.width || 0) >= Math.min(1100, available * .72), `desktop hero collapsed: ${hero.width}px, available=${available}px`);
   }
 
   if (failures.length) throw new Error(`${viewport.name}: ${failures.join('; ')}`);

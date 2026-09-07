@@ -43,7 +43,7 @@ if (!errors.length) {
   }
 
   const responsiveLinks = [...index.matchAll(/css\/tablet-desktop-v\d+\.css\?v=[^"']+/g)].map(match => match[0]);
-  if (responsiveLinks.length !== 1 || responsiveLinks[0] !== 'css/tablet-desktop-v2.css?v=2.0') {
+  if (responsiveLinks.length !== 1 || responsiveLinks[0] !== 'css/tablet-desktop-v2.css?v=2.1') {
     errors.push(`Expected exactly one responsive owner in index, found: ${responsiveLinks.join(', ') || 'none'}`);
   }
 
@@ -53,7 +53,7 @@ if (!errors.length) {
 
   const hotfixStart = index.indexOf('<style id="postP6MobileShellHotfix">');
   const hotfixEnd = index.indexOf('</style>', hotfixStart);
-  const responsiveLink = index.indexOf('css/tablet-desktop-v2.css?v=2.0');
+  const responsiveLink = index.indexOf('css/tablet-desktop-v2.css?v=2.1');
   if (hotfixStart < 0 || hotfixEnd < 0) {
     errors.push('Post-P6 mobile shell hotfix block is missing');
   } else {
