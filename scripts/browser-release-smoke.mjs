@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 const baseUrl = new URL(process.env.P5_BASE_URL || 'https://pasar-umkm.hipmiptuinalazhaar.workers.dev/');
-const viewportSpec = process.env.P5_VIEWPORTS || '360x800,390x844,430x932,768x1024,1024x768,1280x800,1600x900';
+const viewportSpec = process.env.P5_VIEWPORTS || '360x800,390x844,430x932,768x1024,1024x768,1280x800,1366x768,1600x900';
 const outputDir = path.resolve(process.env.P5_BROWSER_OUTPUT_DIR || 'p5-browser-results');
 const readyTimeoutMs = Number(process.env.P5_BROWSER_READY_TIMEOUT_MS || 20000);
 
@@ -36,7 +36,6 @@ async function findBrowser() {
       return candidate;
     } catch {}
   }
-
   throw new Error(`No supported Chromium browser found. Checked: ${candidates.join(', ')}`);
 }
 
@@ -72,12 +71,10 @@ class CdpClient {
       else pending.resolve(message.result || {});
       return;
     }
-
-    if (message.method) {
-      const waiters = this.waiters.get(message.method) || [];
-      this.waiters.delete(message.method);
-      for (const waiter of waiters) waiter.resolve(message.params || {});
-    }
+    if (!message.method) return;
+    const waiters = this.waiters.get(message.method) || [];
+    this.waiters.delete(message.method);
+    for (const waiter of waiters) waiter.resolve(message.params || {});
   }
 
   send(method, params = {}) {
@@ -90,17 +87,15 @@ class CdpClient {
 
   waitFor(method, timeoutMs = 20000) {
     return new Promise((resolve, reject) => {
+      const wrappedResolve = value => {
+        clearTimeout(timer);
+        resolve(value);
+      };
       const timer = setTimeout(() => {
         const entries = this.waiters.get(method) || [];
         this.waiters.set(method, entries.filter(item => item.resolve !== wrappedResolve));
         reject(new Error(`Timed out waiting for CDP event ${method}`));
       }, timeoutMs);
-
-      const wrappedResolve = value => {
-        clearTimeout(timer);
-        resolve(value);
-      };
-
       const entries = this.waiters.get(method) || [];
       entries.push({ resolve: wrappedResolve, reject });
       this.waiters.set(method, entries);
@@ -157,6 +152,9 @@ const probeExpression = `(() => {
   const primary = document.querySelector('#homeDiscovery .market-hero-primary');
   const search = document.querySelector('#headerSearchButton');
   const splash = document.querySelector('#splashIntro');
+  const feed = document.querySelector('#feed');
+  const categories = document.querySelector('#quickCategories');
+  const categoryItems = [...document.querySelectorAll('#quickCategories .quick-category')];
   const root = document.documentElement;
   return {
     title: document.title,
@@ -174,22 +172,22 @@ const probeExpression = `(() => {
     splashVisible: visible(splash),
     headerPosition: header ? getComputedStyle(header).position : null,
     navPosition: nav ? getComputedStyle(nav).position : null,
+    navDisplay: nav ? getComputedStyle(nav).display : null,
     headerRect: rect(header),
     navRect: rect(nav),
     heroRect: rect(hero),
     primaryRect: rect(primary),
-    categoryCount: document.querySelectorAll('#quickCategories .quick-category').length,
+    feedRect: rect(feed),
+    categoriesRect: rect(categories),
+    categoryRects: categoryItems.map(rect),
+    categoryCount: categoryItems.length,
     heroText: document.querySelector('.market-hero-title')?.textContent?.replace(/\\s+/g, ' ').trim() || '',
     jsErrors: Array.isArray(window.__P5_BROWSER_ERRORS__) ? window.__P5_BROWSER_ERRORS__.slice(0, 10) : []
   };
 })()`;
 
 async function evaluate(client, expression) {
-  const result = await client.send('Runtime.evaluate', {
-    expression,
-    returnByValue: true,
-    awaitPromise: true
-  });
+  const result = await client.send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
   if (result.exceptionDetails) throw new Error(result.exceptionDetails.text || 'Runtime evaluation failed.');
   return result.result?.value;
 }
@@ -216,28 +214,33 @@ function assertProbe(probe, viewport) {
   const nav = probe.navRect || {};
   const header = probe.headerRect || {};
   const hero = probe.heroRect || {};
+  const feed = probe.feedRect || {};
+
+  expect(Math.abs((nav.bottom || 0) - viewport.height) <= 24, `navigation must be bottom anchored: bottom=${nav.bottom}`);
+  expect((nav.height || 0) >= 56 && (nav.height || 0) <= 110, `bottom navigation height is invalid: ${nav.height}`);
+
   if (viewport.width < 768) {
-    expect(Math.abs((nav.bottom || 0) - viewport.height) <= 24, `mobile nav is not docked to bottom: bottom=${nav.bottom}`);
     expect((nav.width || 0) <= viewport.width + 2, `mobile nav wider than viewport: ${nav.width}`);
   } else if (viewport.width < 1024) {
     expect((nav.width || 0) <= 600, `tablet dock too wide: ${nav.width}`);
-    expect(Math.abs((nav.bottom || 0) - viewport.height) <= 24, `tablet dock is not bottom anchored: bottom=${nav.bottom}`);
     expect((header.width || 0) >= viewport.width * .90, `tablet header collapsed: ${header.width}px of ${viewport.width}px`);
     expect((hero.width || 0) >= viewport.width * .70, `tablet hero collapsed: ${hero.width}px of ${viewport.width}px`);
-  } else if (viewport.width < 1280) {
-    expect(Math.abs((nav.left || 0)) <= 2, `laptop rail must start at left edge: ${nav.left}`);
-    expect((nav.width || 0) >= 84 && (nav.width || 0) <= 92, `laptop rail width expected ~88px, got ${nav.width}`);
-    expect(Math.abs((nav.height || 0) - viewport.height) <= 4, `laptop rail must fill viewport height: ${nav.height}`);
-    const available = viewport.width - (nav.width || 0);
-    expect((header.width || 0) >= available * .95, `laptop header collapsed: ${header.width}px, available=${available}px`);
-    expect((hero.width || 0) >= available * .72, `laptop hero collapsed: ${hero.width}px, available=${available}px`);
   } else {
-    expect(Math.abs((nav.left || 0)) <= 2, `desktop rail must start at left edge: ${nav.left}`);
-    expect((nav.width || 0) >= 200 && (nav.width || 0) <= 216, `desktop rail width expected ~208px, got ${nav.width}`);
-    expect(Math.abs((nav.height || 0) - viewport.height) <= 4, `desktop rail must fill viewport height: ${nav.height}`);
-    const available = viewport.width - (nav.width || 0);
-    expect((header.width || 0) >= available * .95, `desktop header collapsed: ${header.width}px, available=${available}px`);
-    expect((hero.width || 0) >= Math.min(1100, available * .72), `desktop hero collapsed: ${hero.width}px, available=${available}px`);
+    expect((nav.width || 0) >= 520 && (nav.width || 0) <= 820, `desktop dock width must stay compact: ${nav.width}`);
+    expect(Math.abs(((nav.left || 0) + (nav.width || 0) / 2) - viewport.width / 2) <= 4, `desktop dock is not centered: left=${nav.left} width=${nav.width}`);
+    expect((header.width || 0) >= viewport.width * .96, `desktop header collapsed: ${header.width}px of ${viewport.width}px`);
+    expect((hero.width || 0) >= Math.min(900, viewport.width * .72), `desktop hero too narrow: ${hero.width}px of ${viewport.width}px`);
+    expect((hero.top || 0) >= (header.bottom || 0) + 8, `hero overlaps fixed header: heroTop=${hero.top} headerBottom=${header.bottom}`);
+    expect((feed.width || 0) >= (hero.width || 0) * .68, `desktop feed too narrow versus hero: feed=${feed.width}px hero=${hero.width}px`);
+
+    const categoryRects = probe.categoryRects || [];
+    const categoriesRect = probe.categoriesRect || {};
+    if (categoryRects.length >= 2 && categoriesRect.width) {
+      const left = Math.min(...categoryRects.map(item => item.left));
+      const right = Math.max(...categoryRects.map(item => item.right));
+      const used = right - left;
+      expect(used >= categoriesRect.width * .72, `desktop categories cluster too narrowly: used=${used}px container=${categoriesRect.width}px`);
+    }
   }
 
   if (failures.length) throw new Error(`${viewport.name}: ${failures.join('; ')}`);
@@ -251,17 +254,10 @@ async function stopChrome(chrome) {
 }
 
 async function cleanupProfile(profileDir) {
-  for (let attempt = 1; attempt <= 6; attempt += 1) {
-    try {
-      await rm(profileDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 150 });
-      return;
-    } catch (error) {
-      if (attempt === 6) {
-        console.warn(`P5 cleanup warning: ${error.code || 'ERROR'} ${profileDir}`);
-        return;
-      }
-      await sleep(attempt * 150);
-    }
+  try {
+    await rm(profileDir, { recursive: true, force: true, maxRetries: 4, retryDelay: 150 });
+  } catch (error) {
+    console.warn(`P5 cleanup warning: ${error.code || 'ERROR'} ${profileDir}`);
   }
 }
 
@@ -269,18 +265,10 @@ async function runViewport(browserBin, viewport) {
   const port = await freePort();
   const profileDir = await mkdtemp(path.join(os.tmpdir(), `p5-browser-${viewport.width}-`));
   const args = [
-    '--headless=new',
-    '--no-sandbox',
-    '--disable-gpu',
-    '--disable-dev-shm-usage',
-    '--hide-scrollbars',
-    '--remote-debugging-address=127.0.0.1',
-    `--remote-debugging-port=${port}`,
-    `--user-data-dir=${profileDir}`,
-    `--window-size=${viewport.width},${viewport.height}`,
-    'about:blank'
+    '--headless=new', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage', '--hide-scrollbars',
+    '--remote-debugging-address=127.0.0.1', `--remote-debugging-port=${port}`,
+    `--user-data-dir=${profileDir}`, `--window-size=${viewport.width},${viewport.height}`, 'about:blank'
   ];
-
   const chrome = spawn(browserBin, args, { stdio: ['ignore', 'ignore', 'pipe'] });
   let stderr = '';
   chrome.stderr.on('data', chunk => { stderr += String(chunk).slice(-4000); });
@@ -289,7 +277,6 @@ async function runViewport(browserBin, viewport) {
     const wsUrl = await waitForTarget(port);
     const ws = await connectWebSocket(wsUrl);
     const client = new CdpClient(ws);
-
     await client.send('Page.enable');
     await client.send('Runtime.enable');
     await client.send('Emulation.setDeviceMetricsOverride', {
@@ -317,16 +304,12 @@ async function runViewport(browserBin, viewport) {
     } while (Date.now() < deadline);
 
     assertProbe(probe, viewport);
-
     const shot = await client.send('Page.captureScreenshot', { format: 'png', fromSurface: true, captureBeyondViewport: false });
     const screenshotPath = path.join(outputDir, `${viewport.name}.png`);
     await writeFile(screenshotPath, Buffer.from(shot.data, 'base64'));
-
     ws.close();
-    console.log(
-      `P5 BROWSER PASS ${viewport.name} :: categories=${probe.categoryCount} overflow=${probe.overflowX}px ` +
-      `nav=${Math.round(probe.navRect.width)}x${Math.round(probe.navRect.height)} hero=${Math.round(probe.heroRect.width)}px`
-    );
+
+    console.log(`P5 BROWSER PASS ${viewport.name} :: categories=${probe.categoryCount} overflow=${probe.overflowX}px nav=${Math.round(probe.navRect.width)}x${Math.round(probe.navRect.height)} hero=${Math.round(probe.heroRect.width)}px feed=${Math.round(probe.feedRect.width)}px`);
     return { viewport: viewport.name, ...probe, screenshot: screenshotPath };
   } catch (error) {
     throw new Error(`${viewport.name} browser probe failed: ${error.message}\nChrome stderr: ${stderr.slice(-1500)}`);
@@ -345,6 +328,5 @@ console.log('P5 safety: browser verification is read-only; it performs no authen
 
 const results = [];
 for (const viewport of viewports) results.push(await runViewport(browserBin, viewport));
-
 await writeFile(path.join(outputDir, 'report.json'), JSON.stringify({ target: baseUrl.origin, browserBin, results }, null, 2));
 console.log(`P5 real browser matrix: ${results.length}/${viewports.length} PASS`);
