@@ -25,9 +25,10 @@ expect(loader.includes('runIdle(() => ensurePremiumExperience().catch(() => null
 
 const initialScripts = [...index.matchAll(/<script[^>]+src="js\//g)].length;
 const initialStyles = [...index.matchAll(/<link[^>]+href="css\//g)].length;
-expect(initialScripts === 4, `critical shell keeps exactly four first-party scripts (${initialScripts})`);
+expect(initialScripts === 5, `critical shell keeps exactly five first-party scripts including checkout router (${initialScripts})`);
+expect(index.includes('js/p8-commerce-integration.js?v='), 'critical shell includes cache-safe checkout routing');
 expect(initialStyles === 5, `critical shell keeps exactly five first-party stylesheets (${initialStyles})`);
-expect(stat('index.html').size <= 16_000, 'critical HTML stays within 16 KB P6 budget');
+expect(stat('index.html').size <= 18_000, 'critical HTML stays within 18 KB P6+commerce budget');
 expect(stat('js/account-resilience.js').size <= 18_000, 'P6 loader stays within 18 KB budget after premium gate');
 
 expect(css.includes(':focus-visible'), 'keyboard focus-visible contract exists');
