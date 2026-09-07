@@ -12,12 +12,14 @@
     "test:orders": "node scripts/validate-orders-v2.mjs",
     "test:p3": "node scripts/validate-p3-premium-experience.mjs",
     "test:p4-architecture": "node scripts/validate-p4-architecture-boundary.mjs",
+    "test:p5-release": "node scripts/validate-p5-release-verification.mjs",
     "validate:staging-release": "node scripts/validate-staging-release-gate-v2.mjs",
-    "validate": "npm run lint && npm test && npm run test:orders && npm run test:p3 && npm run test:p4-architecture && npm run validate:staging-release",
+    "validate": "npm run lint && npm test && npm run test:orders && npm run test:p3 && npm run test:p4-architecture && npm run test:p5-release && npm run validate:staging-release",
     "smoke:production": "node scripts/production-smoke-a.mjs",
     "smoke:post-deploy": "node scripts/post-deploy-smoke.mjs",
     "smoke:authenticated": "node scripts/authenticated-smoke-v2.mjs",
     "smoke:authenticated:v1": "node scripts/authenticated-smoke-v1.mjs",
+    "smoke:browser": "node scripts/browser-release-smoke.mjs",
     "smoke:load": "node scripts/load-smoke-v1.mjs"
   },
   "dependencies": {

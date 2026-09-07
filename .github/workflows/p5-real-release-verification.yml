@@ -1,0 +1,126 @@
+name: P5 Real Release Verification
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'index.html'
+      - '_headers'
+      - 'admin/**'
+      - 'css/**'
+      - 'js/**'
+      - 'src/**'
+      - 'wrangler.jsonc'
+      - 'scripts/browser-release-smoke.mjs'
+      - 'scripts/wait-cloudflare-deploy.mjs'
+      - 'scripts/validate-p5-release-verification.mjs'
+      - '.github/workflows/p5-real-release-verification.yml'
+      - '.github/workflows/post-deploy-smoke.yml'
+      - 'package.json'
+  push:
+    branches:
+      - main
+    paths:
+      - 'index.html'
+      - '_headers'
+      - 'admin/**'
+      - 'css/**'
+      - 'js/**'
+      - 'src/**'
+      - 'wrangler.jsonc'
+      - 'scripts/browser-release-smoke.mjs'
+      - 'scripts/wait-cloudflare-deploy.mjs'
+      - 'scripts/validate-p5-release-verification.mjs'
+      - '.github/workflows/p5-real-release-verification.yml'
+      - '.github/workflows/post-deploy-smoke.yml'
+      - 'package.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: read
+
+concurrency:
+  group: p5-real-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install exact locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Syntax check P5 release tooling
+        run: |
+          node --check scripts/wait-cloudflare-deploy.mjs
+          node --check scripts/browser-release-smoke.mjs
+          node --check scripts/validate-p5-release-verification.mjs
+
+      - name: Canonical validation including P5
+        run: npm run validate
+
+  real-browser:
+    needs: release-contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      P5_VIEWPORTS: 360x800,390x844,430x932,768x1024,1024x768,1280x800,1600x900
+      P5_BROWSER_READY_TIMEOUT_MS: '20000'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+
+      - name: Wait for exact Cloudflare deployment
+        id: deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLOUDFLARE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          CLOUDFLARE_WAIT_TIMEOUT_MS: '420000'
+          CLOUDFLARE_WAIT_POLL_MS: '5000'
+        run: node scripts/wait-cloudflare-deploy.mjs
+
+      - name: Resolve exact browser target
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PREVIEW_URL: ${{ steps.deploy.outputs.preview_url }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            test -n "$PREVIEW_URL" || { echo "Cloudflare PR preview URL missing."; exit 1; }
+            echo "P5_BASE_URL=$PREVIEW_URL" >> "$GITHUB_ENV"
+            echo "Browser target: exact PR preview"
+          else
+            echo "P5_BASE_URL=https://pasar-umkm.hipmiptuinalazhaar.workers.dev" >> "$GITHUB_ENV"
+            echo "Browser target: production after exact deploy attestation"
+          fi
+
+      - name: Verify real Chrome runtime
+        run: google-chrome --version
+
+      - name: Run real browser viewport matrix
+        run: node scripts/browser-release-smoke.mjs
+
+      - name: Print browser verification report
+        if: always()
+        run: |
+          if [ -f p5-browser-results/report.json ]; then
+            cat p5-browser-results/report.json
+          fi
