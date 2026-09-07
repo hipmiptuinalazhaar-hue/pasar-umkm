@@ -46,6 +46,7 @@ const FINAL_SECURITY_MIGRATION = "2026-09-05-final-security-hardening";
 const P6_MIGRATION = "2026-09-07-p6-operational-marketplace";
 const P7_MIGRATION = "2026-09-07-p7-launch-growth";
 const P8_MIGRATION = "2026-09-07-p8-real-commerce-fulfillment";
+const P81_MIGRATION = "2026-09-07-p8-1-structured-payment-profile";
 const RELEASE_CONTRACT = "2026-09-06-platform-hardening-v3";
 const STAGING_ATTESTATION_MARKER = "p2-e2e-isolated";
 
@@ -91,7 +92,27 @@ async function handleHealth(env) {
         to_regclass('public.marketplace_promotions') IS NOT NULL AS marketplace_promotions,
         to_regclass('public.store_commerce_settings') IS NOT NULL AS store_commerce_settings,
         to_regclass('public.checkout_commerce_preferences') IS NOT NULL AS checkout_commerce_preferences,
-        to_regclass('public.order_timeline_events') IS NOT NULL AS order_timeline_events
+        to_regclass('public.order_timeline_events') IS NOT NULL AS order_timeline_events,
+        (
+          SELECT COUNT(*) = 7
+          FROM information_schema.columns
+          WHERE table_schema='public'
+            AND table_name='store_commerce_settings'
+            AND column_name = ANY(ARRAY[
+              'transfer_provider_type','transfer_provider_name','transfer_account_number','transfer_account_name',
+              'qris_merchant_name','qris_image_url','qris_public_id'
+            ]::text[])
+        ) AS payment_profile_settings,
+        (
+          SELECT COUNT(*) = 6
+          FROM information_schema.columns
+          WHERE table_schema='public'
+            AND table_name='orders'
+            AND column_name = ANY(ARRAY[
+              'payment_provider_type','payment_provider_name','payment_account_number','payment_account_name',
+              'payment_qris_merchant_name','payment_qris_image_url'
+            ]::text[])
+        ) AS payment_profile_orders
     `;
 
     const state = rows[0] || {};
@@ -109,12 +130,13 @@ async function handleHealth(env) {
     let p6Applied = false;
     let p7Applied = false;
     let p8Applied = false;
+    let p81Applied = false;
     let stagingDatabaseAttested = false;
 
     if (state.schema_migrations) {
       const appliedRows = await sql`
         SELECT version FROM schema_migrations
-        WHERE version = ANY(${[P0_MIGRATION, P1_MIGRATION, FINAL_SECURITY_MIGRATION, P6_MIGRATION, P7_MIGRATION, P8_MIGRATION]}::text[])
+        WHERE version = ANY(${[P0_MIGRATION, P1_MIGRATION, FINAL_SECURITY_MIGRATION, P6_MIGRATION, P7_MIGRATION, P8_MIGRATION, P81_MIGRATION]}::text[])
       `;
       const applied = new Set(appliedRows.map(row => row.version));
       p0Applied = applied.has(P0_MIGRATION);
@@ -123,6 +145,7 @@ async function handleHealth(env) {
       p6Applied = applied.has(P6_MIGRATION);
       p7Applied = applied.has(P7_MIGRATION);
       p8Applied = applied.has(P8_MIGRATION);
+      p81Applied = applied.has(P81_MIGRATION);
     }
 
     if (state.staging_environment) {
@@ -154,7 +177,9 @@ async function handleHealth(env) {
         missing_launch_count: missingP7.length,
         p8_applied: p8Applied,
         commerce_ready: p8Applied && missingP8.length === 0,
-        missing_commerce_count: missingP8.length
+        missing_commerce_count: missingP8.length,
+        p8_1_applied: p81Applied,
+        payment_profile_ready: p81Applied && state.payment_profile_settings === true && state.payment_profile_orders === true
       }
     }, { status: 200, headers: { "Cache-Control": "no-store, max-age=0", "X-Content-Type-Options": "nosniff" } });
   } catch {

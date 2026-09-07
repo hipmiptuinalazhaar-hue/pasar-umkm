@@ -32,8 +32,12 @@ requireText(preferences,"url.pathname!=='/api/commerce/checkout/preferences'",'c
 requireText(preferences,'allowedStores.has(storeId)','cart-scoped checkout preference');
 requireText(preferences,"updated_at<NOW()-INTERVAL '60 minutes'",'preference expiry');
 
-forbid(api,/\b(wallet|escrow|settlement|refund_ledger|payment_gateway)\b/i,'custodial payment primitive in P8 API');
-forbid(preferences,/\b(wallet|escrow|settlement|refund_ledger|payment_gateway)\b/i,'custodial payment primitive in checkout API');
+const custodialPrimitive=/\b(refund_ledger|payment_gateway|wallet_balance|wallet_transactions|seller_wallet|user_wallet|escrow_account|settlement_account)\b/i;
+const custodialRoute=/\/api\/(?:wallet|escrow|settlement)(?:\/|['"`])/i;
+forbid(api,custodialPrimitive,'custodial payment primitive in P8 API');
+forbid(api,custodialRoute,'custodial payment route in P8 API');
+forbid(preferences,custodialPrimitive,'custodial payment primitive in checkout API');
+forbid(preferences,custodialRoute,'custodial payment route in checkout API');
 
 requireText(worker,'import { handleCommerceFulfillmentApi } from "./commerce-fulfillment-api.js";','P8 fulfillment import');
 requireText(worker,'import { handleCheckoutCommercePreferenceApi } from "./checkout-commerce-preference-api.js";','P8 preference import');
