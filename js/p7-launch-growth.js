@@ -67,8 +67,8 @@
         if (method === 'POST' && url.pathname === '/api/reports') track('report_submitted', { resourceType: 'platform', metadata: { source: 'safety_ui' } });
         if (method === 'POST' && url.pathname === '/api/disputes') track('dispute_opened', { resourceType: 'platform', metadata: { source: 'order_ui' } });
         if (method === 'POST' && url.pathname === '/api/store-verification/submissions') track('verification_submitted', { resourceType: 'seller_onboarding', metadata: { source: 'seller_ui' } });
-        const orderStatus = url.pathname.match(/^\/api\/orders\/([0-9a-f-]{36})\/status$/i);
-        if (orderStatus && (method === 'PATCH' || method === 'POST')) {
+        const orderStatus = url.pathname.match(/^\/api\/commerce\/orders\/([0-9a-f-]{36})\/status$/i);
+        if (orderStatus && method === 'PATCH') {
           let body = null;
           if (typeof init?.body === 'string') body = JSON.parse(init.body);
           if (body?.status === 'completed') track('order_completed', { resourceType: 'order', resourceId: orderStatus[1], metadata: { source: 'seller_status' } });
@@ -124,7 +124,7 @@
       const row = event.target.closest('[data-p7-result]');
       if (!row) return;
       track(row.dataset.p7Result === 'product' ? 'product_view' : 'store_view', { resourceType: row.dataset.p7Result, resourceId: row.dataset.resourceId, metadata: { source: 'discovery_search' } });
-    }, { once: false });
+    });
     track('search', { resourceType: 'search', metadata: { source: 'header_search', query_length: query.length } });
   }
 
