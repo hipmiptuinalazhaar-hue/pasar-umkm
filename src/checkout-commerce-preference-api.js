@@ -1,5 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { normalizeStoreCommerceSettings, publicCommerceOptions } from "./commerce-fulfillment-helpers.js";
+import { handleCartCheckoutV2Api } from "./cart-checkout-v2-api.js";
 
 const SESSION_COOKIE = "__Host-pasar_umkm_session";
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -16,6 +17,12 @@ async function user(sql,request){const token=cookie(request,SESSION_COOKIE);if(!
 
 export async function handleCheckoutCommercePreferenceApi(request,env){
   const url=new URL(request.url);
+
+  // Cart + Checkout V2 lives behind the established commerce boundary so the
+  // Worker routing order remains deterministic: preferences/V2 -> fulfillment -> Orders V2.
+  const v2Response=await handleCartCheckoutV2Api(request,env);
+  if(v2Response)return v2Response;
+
   if(url.pathname!=='/api/commerce/checkout/preferences')return null;
   if(request.method!=='PUT')return error('Metode tidak diizinkan.',405);
   try{
@@ -34,9 +41,12 @@ export async function handleCheckoutCommercePreferenceApi(request,env){
     if(!allowedStores.size)return error('Keranjang masih kosong.',409);
 
     const saved=[];
+    const seen=new Set();
     for(const item of preferences){
       const storeId=uuid(item?.store_id);
       if(!storeId||!allowedStores.has(storeId))return error('Pilihan checkout memuat toko yang tidak ada di keranjang.',400);
+      if(seen.has(storeId))return error('Pilihan checkout memuat toko yang sama lebih dari sekali.',400);
+      seen.add(storeId);
       const rows=await sql`SELECT * FROM store_commerce_settings WHERE store_id=${storeId}::uuid LIMIT 1`;
       const settings=normalizeStoreCommerceSettings({store_id:storeId,...(rows[0]||{})});
       const options=publicCommerceOptions(settings);
