@@ -15,6 +15,12 @@
 /index.html
   Cache-Control: public, max-age=0, must-revalidate
 
+/seller-orders
+  Cache-Control: no-store, max-age=0
+
+/seller-orders/*
+  Cache-Control: no-store, max-age=0
+
 /admin
   Cache-Control: no-store, max-age=0
   Referrer-Policy: no-referrer
