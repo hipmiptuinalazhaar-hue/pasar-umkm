@@ -1,12 +1,36 @@
 <!doctype html>
-<html lang="id"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#083725"><meta name="robots" content="noindex,nofollow">
-<meta name="description" content="Checkout Pasar UMKM Lubuklinggau dengan pilihan pengantaran, ambil di toko, COD, transfer langsung, atau QRIS merchant.">
-<title>Checkout | Pasar UMKM Lubuklinggau</title><link rel="icon" href="/assets/logo.webp" type="image/webp">
-<link rel="stylesheet" href="/css/p8-commerce-center.css?v=1.0"><link rel="stylesheet" href="/css/p8-payment-profile.css?v=1.0"></head>
-<body data-p8-mode="checkout"><div class="p8-shell">
-<header class="p8-top"><a class="p8-brand" href="/"><img src="/assets/logo.webp" width="44" height="44" alt="Pasar UMKM"><span><strong>Pasar UMKM</strong><small>Checkout Terpandu</small></span></a><a class="p8-back" href="/">Kembali ke Pasar</a></header>
-<main id="p8Root" class="p8-main" aria-live="polite"><section class="p8-card"><h1>Menyiapkan checkout…</h1><p>Memeriksa keranjang dan metode pemenuhan tiap UMKM.</p></section></main>
-<footer class="p8-footer">Pasar UMKM tidak menyimpan saldo dan tidak menahan dana. Pembayaran terjadi langsung antara pembeli dan merchant.</footer>
-</div><div id="p8Toast" class="p8-toast" role="status" aria-live="polite"></div><script type="module" src="/js/p8-commerce-center.js?v=1.0"></script><script type="module" src="/js/p8-payment-profile.js?v=1.0"></script></body></html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#083725">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="description" content="Checkout Pasar UMKM Lubuklinggau dengan alamat presisi, pilihan pengiriman, dan pembayaran langsung ke seller.">
+  <title>Checkout | Pasar UMKM Lubuklinggau</title>
+  <link rel="icon" href="/assets/logo.webp" type="image/webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=optional" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/style.css">
+  <link rel="stylesheet" href="/css/checkout-v2.css?v=1.0">
+</head>
+<body data-p8-mode="checkout-v2">
+  <div class="cv2-shell">
+    <header class="cv2-top">
+      <a class="cv2-back" href="/" aria-label="Kembali ke Pasar"><i class="ph ph-arrow-left"></i></a>
+      <div class="cv2-title">Checkout</div>
+      <div class="cv2-secure" aria-label="Checkout aman"><i class="ph ph-shield-check"></i></div>
+    </header>
+    <main id="checkoutV2Root" class="cv2-main" aria-live="polite">
+      <div class="cv2-loading"><strong>Menyiapkan checkout…</strong><p>Memeriksa produk, alamat, pengiriman, dan metode pembayaran.</p></div>
+    </main>
+  </div>
+  <footer class="cv2-sticky">
+    <div class="cv2-total"><span id="checkoutV2Count">Total</span><strong id="checkoutV2Total">Rp0</strong></div>
+    <button id="checkoutV2Submit" class="cv2-submit" type="button" disabled>Buat Pesanan</button>
+  </footer>
+  <div id="checkoutV2Toast" class="cv2-toast" role="status" aria-live="polite"></div>
+  <script src="/js/checkout-v2.js?v=1.0" defer></script>
+</body>
+</html>
