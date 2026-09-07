@@ -9,6 +9,19 @@ const CSS_RUNTIME = "css/style.runtime.css";
 const INDEX = "index.html";
 const ASSETS_IGNORE = ".assetsignore";
 
+const CRITICAL_ASSETS = [
+  "css/tokens.css",
+  CSS_RUNTIME,
+  "css/mobile-foundation-v2.css",
+  "css/home-feed-v3.css",
+  "css/tablet-desktop-v2.css",
+  JS_RUNTIME,
+  "js/chat-single-render-v6.js",
+  "js/account-resilience.js",
+  "js/profile-saved.js",
+  "js/p8-commerce-integration.js"
+];
+
 async function sha12(path) {
   const data = await readFile(path);
   return createHash("sha256").update(data).digest("hex").slice(0, 12);
@@ -37,6 +50,15 @@ async function assertReduction(source, runtime, minimum) {
   }
 }
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function stampVersion(index, assetPath, version) {
+  const pattern = new RegExp(`${escapeRegExp(assetPath)}\\?v=[^&\"']+`, "g");
+  return index.replace(pattern, `${assetPath}?v=${version}`);
+}
+
 await build({
   entryPoints: [JS_SOURCE],
   outfile: JS_RUNTIME,
@@ -59,8 +81,6 @@ await build({
 await assertReduction(JS_SOURCE, JS_RUNTIME, 0.20);
 await assertReduction(CSS_SOURCE, CSS_RUNTIME, 0.15);
 
-const jsVersion = await sha12(JS_RUNTIME);
-const cssVersion = await sha12(CSS_RUNTIME);
 let index = await readFile(INDEX, "utf8");
 
 const cssPattern = /css\/style(?:\.runtime)?\.css\?v=[^"']+/g;
@@ -74,13 +94,31 @@ if (cssMatches.length !== 1 || jsMatches.length !== 1) {
   );
 }
 
-index = index
-  .replace(cssPattern, `css/style.runtime.css?v=${cssVersion}`)
-  .replace(jsPattern, `js/app.runtime.js?v=${jsVersion}`)
-  .replace(
-    '<script src="https://unpkg.com/@phosphor-icons/web"></script>',
-    '<script src="https://unpkg.com/@phosphor-icons/web" defer></script>'
+const fingerprints = new Map();
+for (const assetPath of CRITICAL_ASSETS) {
+  fingerprints.set(assetPath, await sha12(assetPath));
+}
+
+// Checkout routing is core commerce behavior, not a cosmetic enhancement. It is
+// deployed as a critical deferred script so a stale lazy-loader can never route
+// buyers back into the legacy checkout flow.
+if (!index.includes('src="js/p8-commerce-integration.js?v=')) {
+  const anchor = '  <script src="js/account-resilience.js';
+  const p8Version = fingerprints.get("js/p8-commerce-integration.js");
+  index = index.replace(
+    anchor,
+    `  <script src="js/p8-commerce-integration.js?v=${p8Version}" defer></script>\n${anchor}`
   );
+}
+
+for (const [assetPath, version] of fingerprints) {
+  index = stampVersion(index, assetPath, version);
+}
+
+index = index.replace(
+  '<script src="https://unpkg.com/@phosphor-icons/web"></script>',
+  '<script src="https://unpkg.com/@phosphor-icons/web" defer></script>'
+);
 
 await writeFile(INDEX, index, "utf8");
 
@@ -91,5 +129,6 @@ for (const required of [JS_SOURCE, CSS_SOURCE, "scripts/"]) {
 }
 await writeFile(ASSETS_IGNORE, `${ignoreLines.join("\n")}\n`, "utf8");
 
-console.log(`runtime-js-cache-key=${jsVersion}`);
-console.log(`runtime-css-cache-key=${cssVersion}`);
+for (const [assetPath, version] of fingerprints) {
+  console.log(`asset-cache-key ${assetPath}=${version}`);
+}
