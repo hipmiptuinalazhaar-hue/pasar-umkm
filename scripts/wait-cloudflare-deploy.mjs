@@ -1,3 +1,5 @@
+import { appendFileSync } from 'node:fs';
+
 const token = process.env.GITHUB_TOKEN?.trim();
 const repository = process.env.GITHUB_REPOSITORY?.trim();
 const sha = process.env.GITHUB_SHA?.trim();
@@ -18,6 +20,21 @@ let seen = false;
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function extractPreviewUrl(summary = '') {
+  const alias = summary.match(/Preview Alias URL:\s*(https:\/\/[^\s)]+)/i);
+  if (alias) return alias[1];
+  const preview = summary.match(/Preview URL:\s*(https:\/\/[^\s)]+)/i);
+  return preview?.[1] || '';
+}
+
+function writeOutputs(check) {
+  if (!process.env.GITHUB_OUTPUT) return;
+  const previewUrl = extractPreviewUrl(check?.output?.summary || '');
+  appendFileSync(process.env.GITHUB_OUTPUT, `cloudflare_check_id=${check.id}\n`, 'utf8');
+  appendFileSync(process.env.GITHUB_OUTPUT, `cloudflare_details_url=${check.details_url || ''}\n`, 'utf8');
+  appendFileSync(process.env.GITHUB_OUTPUT, `preview_url=${previewUrl}\n`, 'utf8');
 }
 
 async function getChecks() {
@@ -52,7 +69,9 @@ while (Date.now() - startedAt < timeoutMs) {
     const label = `${check.name} status=${check.status} conclusion=${check.conclusion || 'pending'}`;
 
     if (check.status === 'completed' && check.conclusion === 'success') {
-      console.log(`Cloudflare deploy attested for ${sha.slice(0, 12)} :: ${label}`);
+      writeOutputs(check);
+      const previewUrl = extractPreviewUrl(check?.output?.summary || '');
+      console.log(`Cloudflare deploy attested for ${sha.slice(0, 12)} :: ${label}${previewUrl ? ` :: preview=${previewUrl}` : ''}`);
       process.exit(0);
     }
 
