@@ -233,6 +233,28 @@ function assertProbe(probe, viewport) {
   if (failures.length) throw new Error(`${viewport.name}: ${failures.join('; ')}`);
 }
 
+async function stopChrome(chrome) {
+  if (chrome.exitCode !== null || chrome.signalCode !== null) return;
+  const exited = new Promise(resolve => chrome.once('exit', resolve));
+  chrome.kill('SIGKILL');
+  await Promise.race([exited, sleep(3000)]);
+}
+
+async function cleanupProfile(profileDir) {
+  for (let attempt = 1; attempt <= 6; attempt += 1) {
+    try {
+      await rm(profileDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 150 });
+      return;
+    } catch (error) {
+      if (attempt === 6) {
+        console.warn(`P5 cleanup warning: ${error.code || 'ERROR'} ${profileDir}`);
+        return;
+      }
+      await sleep(attempt * 150);
+    }
+  }
+}
+
 async function runViewport(browserBin, viewport) {
   const port = await freePort();
   const profileDir = await mkdtemp(path.join(os.tmpdir(), `p5-browser-${viewport.width}-`));
@@ -299,8 +321,8 @@ async function runViewport(browserBin, viewport) {
   } catch (error) {
     throw new Error(`${viewport.name} browser probe failed: ${error.message}\nChrome stderr: ${stderr.slice(-1500)}`);
   } finally {
-    chrome.kill('SIGKILL');
-    await rm(profileDir, { recursive: true, force: true });
+    await stopChrome(chrome);
+    await cleanupProfile(profileDir);
   }
 }
 
