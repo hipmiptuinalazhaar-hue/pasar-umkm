@@ -11,13 +11,17 @@
     return link;
   }
 
-  function loadSellerBridge(){
-    if(window.PasarSellerP8?.version==='1.0'||doc.querySelector('script[data-seller-p8-bridge="true"]'))return;
+  function appendScript(src,key,ready){
+    if(ready()||doc.querySelector(`script[data-${key}="true"]`))return;
     const script=doc.createElement('script');
-    script.src='js/seller-center-p8-bridge.js?v=1.0';
-    script.async=true;
-    script.dataset.sellerP8Bridge='true';
+    script.src=src;script.async=true;
+    script.dataset[key.replace(/-([a-z])/g,(_,c)=>c.toUpperCase())]='true';
     doc.body.appendChild(script);
+  }
+
+  function loadSellerBridge(){
+    appendScript('js/seller-center-p8-bridge.js?v=1.0','seller-p8-bridge',()=>window.PasarSellerP8?.version==='1.0');
+    appendScript('js/seller-center-order-p8.js?v=1.0','seller-order-p8-bridge',()=>window.PasarSellerOrdersP8?.version==='1.0');
   }
 
   async function installLinks(){
