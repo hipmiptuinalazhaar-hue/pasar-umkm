@@ -3,6 +3,7 @@ import { neon } from "@neondatabase/serverless";
 const SESSION_COOKIE = "__Host-pasar_umkm_session";
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_QRIS_BYTES = 3 * 1024 * 1024;
 
 function json(data, status = 200) {
   return Response.json(data, {
@@ -75,8 +76,9 @@ async function uploadImage(request, env, kind) {
   if (!ALLOWED_TYPES.has(type)) {
     return json({ ok: false, error: "Format foto harus JPG, PNG, atau WEBP." }, 400);
   }
-  if (file.size > MAX_IMAGE_BYTES) {
-    return json({ ok: false, error: "Ukuran foto maksimal 5 MB." }, 400);
+  const maxBytes = kind === "qris" ? MAX_QRIS_BYTES : MAX_IMAGE_BYTES;
+  if (file.size > maxBytes) {
+    return json({ ok: false, error: `Ukuran foto maksimal ${kind === "qris" ? 3 : 5} MB.` }, 400);
   }
 
   const cloudName = env.CLOUDINARY_CLOUD_NAME;
@@ -89,11 +91,12 @@ async function uploadImage(request, env, kind) {
 
   const uploadBody = new FormData();
   uploadBody.append("file", file);
-  uploadBody.append(
-    "public_id",
-    `pasar-umkm/${kind === "post" ? "posts" : "products"}/${context.store.id}/${crypto.randomUUID()}`
-  );
-  uploadBody.append("overwrite", "false");
+  const publicId = kind === "qris"
+    ? `pasar-umkm/qris/${context.store.id}/merchant-qris`
+    : `pasar-umkm/${kind === "post" ? "posts" : "products"}/${context.store.id}/${crypto.randomUUID()}`;
+  uploadBody.append("public_id", publicId);
+  uploadBody.append("overwrite", kind === "qris" ? "true" : "false");
+  if (kind === "qris") uploadBody.append("invalidate", "true");
 
   const credentials = btoa(`${apiKey}:${apiSecret}`);
   const response = await fetch(
@@ -122,7 +125,7 @@ async function uploadImage(request, env, kind) {
   return json(
     {
       ok: true,
-      message: "Foto berhasil diunggah.",
+      message: kind === "qris" ? "QRIS merchant berhasil diunggah." : "Foto berhasil diunggah.",
       image: {
         url: data.secure_url,
         public_id: data.public_id || null,
@@ -140,16 +143,21 @@ export async function handleImageUploadApi(request, env) {
   if (request.method !== "POST") return null;
 
   const pathname = new URL(request.url).pathname;
-  if (pathname !== "/api/uploads/product-image" && pathname !== "/api/uploads/post-image") {
+  if (
+    pathname !== "/api/uploads/product-image" &&
+    pathname !== "/api/uploads/post-image" &&
+    pathname !== "/api/uploads/qris-image"
+  ) {
     return null;
   }
 
   try {
-    return await uploadImage(
-      request,
-      env,
-      pathname === "/api/uploads/post-image" ? "post" : "product"
-    );
+    const kind = pathname === "/api/uploads/post-image"
+      ? "post"
+      : pathname === "/api/uploads/qris-image"
+        ? "qris"
+        : "product";
+    return await uploadImage(request, env, kind);
   } catch (error) {
     console.error("Image upload error:", error);
     return json({ ok: false, error: "Terjadi kesalahan saat mengunggah foto." }, 500);
