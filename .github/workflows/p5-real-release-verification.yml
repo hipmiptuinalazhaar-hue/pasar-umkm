@@ -71,13 +71,11 @@ jobs:
       - name: Canonical validation including P5
         run: npm run validate
 
-  production-browser:
-    if: github.event_name != 'pull_request'
+  real-browser:
     needs: release-contract
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     env:
-      P5_BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
       P5_VIEWPORTS: 360x800,390x844,430x932,768x1024,1024x768,1280x800,1600x900
       P5_BROWSER_READY_TIMEOUT_MS: '20000'
     steps:
@@ -90,11 +88,28 @@ jobs:
           node-version: '22'
 
       - name: Wait for exact Cloudflare deployment
+        id: deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CLOUDFLARE_WAIT_TIMEOUT_MS: '420000'
           CLOUDFLARE_WAIT_POLL_MS: '5000'
         run: node scripts/wait-cloudflare-deploy.mjs
+
+      - name: Resolve exact browser target
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PREVIEW_URL: ${{ steps.deploy.outputs.preview_url }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            test -n "$PREVIEW_URL" || { echo "Cloudflare PR preview URL missing."; exit 1; }
+            echo "P5_BASE_URL=$PREVIEW_URL" >> "$GITHUB_ENV"
+            echo "Browser target: exact PR preview"
+          else
+            echo "P5_BASE_URL=https://pasar-umkm.hipmiptuinalazhaar.workers.dev" >> "$GITHUB_ENV"
+            echo "Browser target: production after exact deploy attestation"
+          fi
 
       - name: Verify real Chrome runtime
         run: google-chrome --version
