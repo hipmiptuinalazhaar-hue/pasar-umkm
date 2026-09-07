@@ -1,0 +1,117 @@
+name: P6 Operational Marketplace Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'database/migrations/2026-09-07-p6-operational-marketplace.sql'
+      - 'src/marketplace-safety-api.js'
+      - 'src/admin-operations-api.js'
+      - 'src/worker-entry.js'
+      - 'legal/**'
+      - 'docs/P6_OPERATIONAL_MARKETPLACE.md'
+      - 'scripts/validate-p6-operational-hardening.mjs'
+      - '.github/workflows/p6-operational-hardening-validate.yml'
+      - 'package.json'
+  push:
+    branches: [main]
+    paths:
+      - 'database/migrations/2026-09-07-p6-operational-marketplace.sql'
+      - 'src/marketplace-safety-api.js'
+      - 'src/admin-operations-api.js'
+      - 'src/worker-entry.js'
+      - 'legal/**'
+      - 'docs/P6_OPERATIONAL_MARKETPLACE.md'
+      - 'scripts/validate-p6-operational-hardening.mjs'
+      - '.github/workflows/p6-operational-hardening-validate.yml'
+      - 'package.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: read
+
+concurrency:
+  group: p6-operational-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  operational-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install exact locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Syntax check P6 runtime
+        run: |
+          node --check src/marketplace-safety-api.js
+          node --check src/admin-operations-api.js
+          node --check src/worker-entry.js
+          node --check scripts/validate-p6-operational-hardening.mjs
+
+      - name: P6 operational contract
+        run: npm run test:p6-operations
+
+      - name: Canonical validation
+        run: npm run validate
+
+      - name: Bundle final Worker
+        run: npx esbuild src/worker-entry.js --bundle --format=esm --platform=browser --target=es2022 --outfile=/tmp/p6-worker.mjs
+
+  production-safe-boundary:
+    if: github.event_name == 'push'
+    needs: operational-contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+
+      - name: Wait for exact Cloudflare deployment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLOUDFLARE_SHA: ${{ github.sha }}
+          CLOUDFLARE_WAIT_TIMEOUT_MS: '420000'
+          CLOUDFLARE_WAIT_POLL_MS: '5000'
+        run: node scripts/wait-cloudflare-deploy.mjs
+
+      - name: Verify production P6 read-only boundary
+        env:
+          BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+        run: |
+          node --input-type=module <<'NODE'
+          const base = process.env.BASE_URL;
+          const expectStatus = async (path, expected) => {
+            const response = await fetch(base + path, { redirect: 'manual' });
+            if (response.status !== expected) throw new Error(`${path}: expected ${expected}, got ${response.status}`);
+            console.log(`PASS ${path} -> ${response.status}`);
+            return response;
+          };
+
+          await expectStatus('/legal/', 200);
+          const health = await expectStatus('/api/health', 200);
+          const data = await health.json();
+          if (data?.schema?.p6_applied !== true || data?.schema?.operational_ready !== true) {
+            throw new Error(`P6 health attestation failed: ${JSON.stringify(data?.schema || {})}`);
+          }
+          console.log('PASS P6 health operational_ready');
+          await expectStatus('/api/reports/me', 401);
+          await expectStatus('/api/disputes/me', 401);
+          await expectStatus('/api/admin/operations/metrics', 401);
+          console.log('P6 production-safe boundary: PASS');
+          NODE
