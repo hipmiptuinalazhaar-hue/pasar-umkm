@@ -8,6 +8,8 @@ const migration=read('database/migrations/2026-09-08-cart-checkout-v2-addresses.
 const api=read('src/cart-checkout-v2-api.js');
 const boundary=read('src/checkout-commerce-preference-api.js');
 const cart=read('js/p8-commerce-integration.js');
+const hotfix=read('js/cart-checkout-hotfix-v1.js');
+const p3=read('js/p3-premium-experience.js');
 const checkout=read('js/checkout-v2.js');
 const checkoutHtml=read('checkout/index.html');
 const checkoutCss=read('css/checkout-v2.css');
@@ -26,7 +28,9 @@ forbid(api,/DELETE FROM cart_items WHERE cart_id=\$1::uuid["'`)]/,'whole-cart de
 forbid(api,/VALUES\([^\n]*'pending'[^\n]*\$4,0,\$4/,'hard-coded zero delivery total');
 need(boundary,'handleCartCheckoutV2Api','V2 commerce boundary');
 
-for(const text of ['pasar_cart_selection_v2','data-cart-v2-item','data-cart-v2-store','data-cart-v2-all','data-cart-v2-checkout','removeAttribute(\'data-commerce-action\')','Checkout (','setSelection([String(productId)])','css/cart-checkout-v2.css?v=1.0','js/profile-address-v2.js?v=1.0',"window.PasarP8Commerce=Object.freeze({version:'1.3'"])need(cart,text,'selective cart UI');
+for(const text of ['pasar_cart_selection_v2','data-cart-v2-item','data-cart-v2-store','data-cart-v2-all','Checkout (','setSelection([String(productId)])','css/cart-checkout-v2.css?v=1.0','js/profile-address-v2.js?v=1.0',"window.PasarP8Commerce=Object.freeze({version:'1.2'"])need(cart,text,'selective cart UI');
+for(const text of ['data-cart-v2-checkout','removeAttribute(\'data-commerce-action\')','PasarP8Commerce?.openCheckout',"location.assign('/checkout/')",'stopImmediatePropagation','PasarCartCheckoutHotfix'])need(hotfix,text,'cart checkout click ownership');
+for(const text of ['js/cart-checkout-hotfix-v1.js?v=1.0','loadCartCheckoutHotfix()',"window.PasarP8Commerce?.version === '1.2'","js/p8-commerce-integration.js?v=1.2"])need(p3,text,'cart hotfix/P8 loader');
 for(const text of ['min-width:24px','min-height:52px',':focus-visible'])need(cartCss,text,'cart accessibility styling');
 
 for(const text of ['/api/commerce/cart','/api/commerce/address-book','/api/commerce/fulfillment/stores/','/api/commerce/checkout/preferences','/api/commerce/checkout-v2','pasar_cart_selection_v2','navigator.geolocation','https://www.google.com/maps?q=','selected_product_ids','notes_by_store','sessionStorage.removeItem'])need(checkout,text,'Checkout V2 state flow');
@@ -39,10 +43,10 @@ for(const text of ['min-height:54px','position:fixed','accent-color:var(--c-prim
 for(const text of ['/api/commerce/address-book','navigator.geolocation','https://www.google.com/maps?q=','Simpan alamat utama','profileAddressV2'])need(profile,text,'profile address/location');
 for(const text of ['delivery_latitude','delivery_longitude','delivery_landmark','https://www.google.com/maps?q=','Navigasi ke pembeli'])need(seller,text,'seller delivery navigation');
 
-const budgets=[['src/cart-checkout-v2-api.js',api,26000],['js/p8-commerce-integration.js',cart,17000],['js/checkout-v2.js',checkout,26000],['js/profile-address-v2.js',profile,14000],['js/seller-center-order-p8.js',seller,14000],['css/checkout-v2.css',checkoutCss,18000],['css/cart-checkout-v2.css',cartCss,7000]];
+const budgets=[['src/cart-checkout-v2-api.js',api,26000],['js/p8-commerce-integration.js',cart,16000],['js/cart-checkout-hotfix-v1.js',hotfix,5000],['js/checkout-v2.js',checkout,26000],['js/profile-address-v2.js',profile,14000],['js/seller-center-order-p8.js',seller,14000],['css/checkout-v2.css',checkoutCss,18000],['css/cart-checkout-v2.css',cartCss,7000]];
 for(const [path,source,max] of budgets){const bytes=Buffer.byteLength(source);if(bytes>max)throw new Error(`${path} too large: ${bytes}/${max}`)}
 
 if(pkg.scripts?.['test:cart-checkout-v2']!=='node scripts/validate-cart-checkout-v2.mjs')throw new Error('package.json missing test:cart-checkout-v2');
 if(!String(pkg.scripts?.validate||'').includes('npm run test:cart-checkout-v2'))throw new Error('canonical validate must include Cart Checkout V2');
 
-console.log('Cart + Checkout V2 contract PASS: owned checkout action, selective cart, server-authoritative fulfillment/payment/fees, address/GPS snapshot, seller navigation, and selected-only deletion are intact.');
+console.log('Cart + Checkout V2 contract PASS: isolated checkout click ownership, selective cart, server-authoritative fulfillment/payment/fees, address/GPS snapshot, seller navigation, and selected-only deletion are intact.');
