@@ -35,20 +35,21 @@
 
   html body .app {
     width: 100%;
-    max-width: none;
+    max-width: none !important;
     min-height: 100dvh;
     margin: 0;
     background: var(--surface-page, #faf9f5);
   }
 
   html body .app > .app-header {
-    position: fixed;
+    position: fixed !important;
     inset: 0 0 auto 0;
-    width: 100%;
-    max-width: none;
+    left: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
     min-height: var(--p5-header-height);
     padding: 10px max(var(--p5-gutter), calc((100vw - var(--p5-discovery-max)) / 2));
-    transform: none;
+    transform: none !important;
     display: grid;
     grid-template-columns: 44px 122px minmax(220px, 1fr) auto;
     grid-template-areas: "menu brand search actions";
@@ -106,8 +107,8 @@
   html body .app > .app-navigation {
     left: 50%;
     right: auto;
-    width: min(590px, calc(100vw - 40px));
-    max-width: none;
+    width: min(590px, calc(100vw - 40px)) !important;
+    max-width: none !important;
     min-height: 70px;
     padding: 7px 12px calc(7px + env(safe-area-inset-bottom));
     transform: translateX(-50%);
@@ -516,8 +517,8 @@
   }
 
   html body .app > .app-header {
-    left: var(--p5-rail);
-    width: calc(100% - var(--p5-rail));
+    left: var(--p5-rail) !important;
+    width: calc(100% - var(--p5-rail)) !important;
     padding-inline: max(var(--p5-gutter), calc((100vw - var(--p5-rail) - var(--p5-discovery-max)) / 2));
     grid-template-columns: 44px 116px minmax(260px, 1fr) auto;
   }
@@ -577,7 +578,7 @@
   }
 
   html body .app-navigation .nav-item.active {
-    background: var(--surface-brand-soft, #f1f8f4);
+    background: var(--surface-soft, #f5f6f5);
   }
 
   html body .app-navigation .nav-item.active::before {
