@@ -117,6 +117,12 @@ jobs:
           await response('/api/commerce/fulfillment/settings/me',401);
           await response('/api/uploads/qris-image',401,{method:'POST'});
           const storesResponse=await response('/api/stores?limit=1');const storesData=await storesResponse.json();const store=storesData?.stores?.[0];
-          if(store?.id){const publicSettings=await response(`/api/commerce/fulfillment/stores/${store.id}`);const data=await publicSettings.json();const serialized=JSON.stringify(data?.settings||{});for(const secretField of ['transfer_account_number','transfer_account_name','qris_image_url','qris_public_id']){if(serialized.includes(secretField))throw new Error(`Public commerce settings leaked ${secretField}`)}console.log('PASS public settings do not expose structured payment destination');}
+          if(store?.id){
+            const publicSettings=await response(`/api/commerce/fulfillment/stores/${store.id}`);const data=await publicSettings.json();const settings=data?.settings||{};
+            for(const secretField of ['bank_transfer_instructions','qris_instructions','transfer_account_number','transfer_account_name','qris_image_url','qris_public_id']){
+              if(Object.prototype.hasOwnProperty.call(settings,secretField))throw new Error(`Public commerce settings leaked ${secretField}`);
+            }
+            console.log('PASS public settings hide payment destination and instructions');
+          }
           console.log('P8.1 production-safe boundary: PASS');
           NODE
