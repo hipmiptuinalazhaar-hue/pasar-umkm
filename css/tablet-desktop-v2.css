@@ -45,8 +45,10 @@
     position: fixed;
     inset: 0 0 auto 0;
     width: 100%;
+    max-width: none;
     min-height: var(--p5-header-height);
     padding: 10px max(var(--p5-gutter), calc((100vw - var(--p5-discovery-max)) / 2));
+    transform: none;
     display: grid;
     grid-template-columns: 44px 122px minmax(220px, 1fr) auto;
     grid-template-areas: "menu brand search actions";
@@ -92,6 +94,7 @@
 
   html body .app > .app-main {
     width: 100%;
+    max-width: none;
     min-width: 0;
     min-height: 100dvh;
     padding-top: var(--p5-header-height);
@@ -104,6 +107,7 @@
     left: 50%;
     right: auto;
     width: min(590px, calc(100vw - 40px));
+    max-width: none;
     min-height: 70px;
     padding: 7px 12px calc(7px + env(safe-area-inset-bottom));
     transform: translateX(-50%);
@@ -146,6 +150,7 @@
 
   html body #homeDiscovery .market-hero-content {
     width: min(100%, 610px);
+    min-width: 0;
     position: relative;
     z-index: 2;
   }
@@ -156,7 +161,10 @@
   }
 
   html body #homeDiscovery .market-hero-title {
+    width: 100%;
     max-width: 590px;
+    overflow-wrap: normal;
+    word-break: normal;
     font-size: clamp(36px, 5vw, 46px);
     line-height: 1.06;
     letter-spacing: -.04em;
