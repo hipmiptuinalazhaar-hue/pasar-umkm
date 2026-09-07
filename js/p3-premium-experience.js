@@ -204,9 +204,9 @@
   }
 
   function loadP8Commerce() {
-    if (window.PasarP8Commerce?.version === '1.0' || doc.querySelector('script[data-p8-commerce="true"]')) return;
+    if (window.PasarP8Commerce?.version === '1.1' || doc.querySelector('script[data-p8-commerce="true"]')) return;
     const script = doc.createElement('script');
-    script.src = 'js/p8-commerce-integration.js?v=1.0';
+    script.src = 'js/p8-commerce-integration.js?v=1.1';
     script.async = true;
     script.dataset.p8Commerce = 'true';
     body.appendChild(script);

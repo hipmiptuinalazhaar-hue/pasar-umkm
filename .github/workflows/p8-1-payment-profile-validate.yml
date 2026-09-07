@@ -12,7 +12,13 @@ on:
       - 'checkout/**'
       - 'purchases/**'
       - 'js/p8-payment-profile.js'
+      - 'js/p8-commerce-integration.js'
+      - 'js/p3-premium-experience.js'
+      - 'js/seller-center-p8-bridge.js'
+      - 'js/seller-center-order-p8.js'
+      - 'js/commerce-experience-v2.js'
       - 'css/p8-payment-profile.css'
+      - 'css/seller-center-p8-bridge.css'
       - 'scripts/validate-p8-1-payment-profile.mjs'
       - '.github/workflows/p8-1-payment-profile-validate.yml'
       - 'package.json'
@@ -27,7 +33,13 @@ on:
       - 'checkout/**'
       - 'purchases/**'
       - 'js/p8-payment-profile.js'
+      - 'js/p8-commerce-integration.js'
+      - 'js/p3-premium-experience.js'
+      - 'js/seller-center-p8-bridge.js'
+      - 'js/seller-center-order-p8.js'
+      - 'js/commerce-experience-v2.js'
       - 'css/p8-payment-profile.css'
+      - 'css/seller-center-p8-bridge.css'
       - 'scripts/validate-p8-1-payment-profile.mjs'
       - '.github/workflows/p8-1-payment-profile-validate.yml'
       - 'package.json'
@@ -64,6 +76,9 @@ jobs:
           node --check src/image-upload-api.js
           node --check src/worker-entry.js
           node --check js/p8-payment-profile.js
+          node --check js/p8-commerce-integration.js
+          node --check js/seller-center-p8-bridge.js
+          node --check js/seller-center-order-p8.js
           node --check scripts/validate-p8-1-payment-profile.mjs
 
       - name: P8.1 structured payment contract
@@ -111,6 +126,13 @@ jobs:
           await response('/seller-orders/');
           await response('/checkout/');
           await response('/purchases/');
+          for(const asset of ['/js/seller-center-p8-bridge.js?v=1.0','/js/seller-center-order-p8.js?v=1.0','/css/seller-center-p8-bridge.css?v=1.0']){
+            await response(asset);
+          }
+          const integration=await response('/js/p8-commerce-integration.js?v=1.1');
+          const integrationText=await integration.text();
+          if(!integrationText.includes('seller-center-p8-bridge.js')||!integrationText.includes('seller-center-order-p8.js')||integrationText.includes("sideLink('/seller-orders/"))throw new Error('Native Seller Center integration asset mismatch');
+          console.log('PASS native Seller Center owns P8 seller navigation');
           const health=await response('/api/health');const healthData=await health.json();
           if(healthData?.schema?.p8_1_applied!==true||healthData?.schema?.payment_profile_ready!==true)throw new Error(`P8.1 health failed: ${JSON.stringify(healthData?.schema||{})}`);
           console.log('PASS P8.1 health payment_profile_ready');

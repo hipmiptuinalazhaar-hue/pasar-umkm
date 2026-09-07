@@ -2,7 +2,7 @@
 
 (() => {
   const doc=document;
-  if(window.PasarP8Commerce?.version==='1.0')return;
+  if(window.PasarP8Commerce?.version==='1.1')return;
 
   function sideLink(href,icon,label,key){
     const link=doc.createElement('a');
@@ -11,17 +11,25 @@
     return link;
   }
 
+  function appendScript(src,key,ready){
+    if(ready()||doc.querySelector(`script[data-${key}="true"]`))return;
+    const script=doc.createElement('script');
+    script.src=src;script.async=true;
+    script.dataset[key.replace(/-([a-z])/g,(_,c)=>c.toUpperCase())]='true';
+    doc.body.appendChild(script);
+  }
+
+  function loadSellerBridge(){
+    appendScript('js/seller-center-p8-bridge.js?v=1.0','seller-p8-bridge',()=>window.PasarSellerP8?.version==='1.0');
+    appendScript('js/seller-center-order-p8.js?v=1.0','seller-order-p8-bridge',()=>window.PasarSellerOrdersP8?.version==='1.0');
+  }
+
   async function installLinks(){
+    loadSellerBridge();
     const host=doc.getElementById('sideMenuContent');
     if(!host)return;
+    host.querySelector('[data-p8-seller-orders-link]')?.remove();
     if(!host.querySelector('[data-p8-purchases-link]'))host.appendChild(sideLink('/purchases/','package','Pembelian Saya','p8PurchasesLink'));
-    try{
-      const response=await fetch('/api/auth/me',{credentials:'include',cache:'no-store'});
-      if(!response.ok)return;
-      const data=await response.json();
-      const user=data?.user||data;
-      if(['seller','admin'].includes(user?.role)&&!host.querySelector('[data-p8-seller-orders-link]'))host.appendChild(sideLink('/seller-orders/','storefront','Pesanan Seller','p8SellerOrdersLink'));
-    }catch{}
   }
 
   doc.addEventListener('click',event=>{
@@ -38,5 +46,5 @@
   if(doc.readyState==='loading')doc.addEventListener('DOMContentLoaded',installLinks,{once:true});
   else installLinks();
 
-  window.PasarP8Commerce=Object.freeze({version:'1.0',installLinks});
+  window.PasarP8Commerce=Object.freeze({version:'1.1',installLinks,loadSellerBridge});
 })();
