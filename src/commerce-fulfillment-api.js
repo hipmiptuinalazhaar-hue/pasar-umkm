@@ -71,6 +71,11 @@ async function getPublicSettings(sql, storeId) {
   `;
   if (!rows[0]) return null;
   const normalized = normalizeStoreCommerceSettings({ store_id: storeId, ...rows[0] });
+  const {
+    bank_transfer_instructions: _bankTransferInstructions,
+    qris_instructions: _qrisInstructions,
+    ...publicSettings
+  } = normalized;
   return {
     store: {
       id: rows[0].store_id,
@@ -80,7 +85,7 @@ async function getPublicSettings(sql, storeId) {
       city: rows[0].city,
       verification_status: rows[0].verification_status
     },
-    settings: normalized,
+    settings: publicSettings,
     options: publicCommerceOptions(normalized)
   };
 }
