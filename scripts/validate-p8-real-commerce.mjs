@@ -56,8 +56,8 @@ for (const text of ['/api/commerce/cart','/api/commerce/checkout/preferences','/
 requireText(center,"location.replace('/purchases/')",'post-checkout redirect');
 requireText(center,'Platform tidak menyimpan saldo','non-custodial UI boundary');
 requireText(integration,"location.href='/checkout/'",'main checkout redirect');
-requireText(integration,"href='/purchases/'",'buyer center navigation');
-requireText(integration,"href='/seller-orders/'",'seller center navigation');
+requireText(integration,"sideLink('/purchases/'",'buyer center navigation');
+requireText(integration,"sideLink('/seller-orders/'",'seller center navigation');
 requireText(p3,'js/p8-commerce-integration.js?v=1.0','deferred P8 loader');
 if (index.includes('p8-commerce-integration.js') || index.includes('p8-commerce-center.css')) fail('P8 assets must not join critical index shell');
 
