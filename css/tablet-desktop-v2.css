@@ -2,9 +2,30 @@
 
 /* =========================================================
    PASAR UMKM — DESKTOP BOTTOM DOCK CORRECTION v2.2
-   Restores bottom navigation on laptop/desktop and aligns the
-   desktop home composition after the legacy rail experiment.
+   Tablet contracts remain explicit here while the previous P5
+   owner is imported as the compatibility base.
    ========================================================= */
+
+@media (min-width: 768px) {
+  :root {
+    --p5-feed-max: 720px;
+    --p5-work-max: 920px;
+    --p5-social-max: 860px;
+  }
+
+  html body #homeDiscovery .quick-category-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+@media (min-width: 900px) and (max-width: 1023px) {
+  :root {
+    --p5-feed-max: 740px;
+    --p5-work-max: 960px;
+  }
+}
 
 @media (min-width: 1024px) {
   :root {
@@ -153,6 +174,7 @@
   }
 
   html body #homeDiscovery .quick-category {
+    min-width: 0 !important;
     min-height: 94px !important;
   }
 
@@ -222,5 +244,21 @@
   :root {
     --p5-discovery-max: 1260px;
     --p5-feed-max: 940px;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html body .app-navigation .nav-item {
+    transition: background-color 160ms ease, transform 160ms ease;
+  }
+
+  html body .app-navigation .nav-item:hover {
+    background: var(--surface-soft, #f5f6f5) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .app-navigation .nav-item {
+    transition-duration: .01ms !important;
   }
 }
