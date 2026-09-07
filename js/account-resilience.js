@@ -124,7 +124,9 @@
         ['script[data-profile-identity-module="true"]','js/profile-identity.js?v=2.0','profileIdentityModule'],
         ['script[data-profile-title-center-module="true"]','js/profile-title-center.js?v=1.1','profileTitleCenterModule'],
         ['script[data-saved-remove-core="true"]','js/saved-remove-core.js?v=1.0','savedRemoveCore'],
-        ['script[data-rating-core="true"]','js/rating-core.js?v=2.1','ratingCore']
+        ['script[data-rating-core="true"]','js/rating-core.js?v=2.1','ratingCore'],
+        ['script[data-seller-p8-bridge="true"]','js/seller-center-p8-bridge.js?v=1.1','sellerP8Bridge'],
+        ['script[data-seller-order-p8-bridge="true"]','js/seller-center-order-p8.js?v=1.1','sellerOrderP8Bridge']
       ];
       for (const args of modules) await loadScript(...args);
       profileReady = true; return true;
