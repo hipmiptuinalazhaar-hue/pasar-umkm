@@ -24,9 +24,11 @@ import { handleChatMediaApiV2 } from "./chat-media-api-v2.js";
 import { handleChatMessageActionApi } from "./chat-message-action-api.js";
 import { handleCommentApi } from "./comment-api.js";
 import { handlePublicCatalogApi } from "./public-catalog-api.js";
+import { handleMarketplaceSafetyApi } from "./marketplace-safety-api.js";
 import { handleAdminAuthApi } from "./admin-auth-api.js";
 import { handleAdminAccessApi } from "./admin-access-api.js";
 import { handleAdminControlApi } from "./admin-control-api.js";
+import { handleAdminOperationsApi } from "./admin-operations-api.js";
 import { enforceRateLimit } from "./rate-limit.js";
 import { ensureNotificationInfrastructure } from "./notification-store.js";
 import { ensureFullFunctionalityInfrastructure } from "./functionality-bootstrap.js";
@@ -36,6 +38,7 @@ import { enforceRequestSecurity } from "./request-security.js";
 const P0_MIGRATION = "2026-09-02-p0-runtime-schema-hardening";
 const P1_MIGRATION = "2026-09-02-p1-security-performance";
 const FINAL_SECURITY_MIGRATION = "2026-09-05-final-security-hardening";
+const P6_MIGRATION = "2026-09-07-p6-operational-marketplace";
 const RELEASE_CONTRACT = "2026-09-06-platform-hardening-v3";
 const STAGING_ATTESTATION_MARKER = "p2-e2e-isolated";
 
@@ -93,7 +96,11 @@ async function handleHealth(env) {
         to_regclass('public.orders') IS NOT NULL AS orders,
         to_regclass('public.notifications') IS NOT NULL AS notifications,
         to_regclass('public.schema_migrations') IS NOT NULL AS schema_migrations,
-        to_regclass('public.staging_environment') IS NOT NULL AS staging_environment
+        to_regclass('public.staging_environment') IS NOT NULL AS staging_environment,
+        to_regclass('public.moderation_reports') IS NOT NULL AS moderation_reports,
+        to_regclass('public.order_disputes') IS NOT NULL AS order_disputes,
+        to_regclass('public.store_verification_submissions') IS NOT NULL AS store_verification_submissions,
+        to_regclass('public.marketplace_case_events') IS NOT NULL AS marketplace_case_events
     `;
 
     const state = rows[0] || {};
@@ -107,24 +114,33 @@ async function handleHealth(env) {
       "orders",
       "notifications"
     ];
+    const p6Required = [
+      "moderation_reports",
+      "order_disputes",
+      "store_verification_submissions",
+      "marketplace_case_events"
+    ];
 
     const missingCore = required.filter(name => !state[name]);
+    const missingP6 = p6Required.filter(name => !state[name]);
     let p0Applied = false;
     let p1Applied = false;
     let finalSecurityApplied = false;
+    let p6Applied = false;
     let stagingDatabaseAttested = false;
 
     if (state.schema_migrations) {
       const appliedRows = await sql`
         SELECT version
         FROM schema_migrations
-        WHERE version = ANY(${[P0_MIGRATION, P1_MIGRATION, FINAL_SECURITY_MIGRATION]}::text[])
+        WHERE version = ANY(${[P0_MIGRATION, P1_MIGRATION, FINAL_SECURITY_MIGRATION, P6_MIGRATION]}::text[])
       `;
 
       const applied = new Set(appliedRows.map(row => row.version));
       p0Applied = applied.has(P0_MIGRATION);
       p1Applied = applied.has(P1_MIGRATION);
       finalSecurityApplied = applied.has(FINAL_SECURITY_MIGRATION);
+      p6Applied = applied.has(P6_MIGRATION);
     }
 
     if (state.staging_environment) {
@@ -152,7 +168,10 @@ async function handleHealth(env) {
           missing_core_count: missingCore.length,
           p0_applied: p0Applied,
           p1_applied: p1Applied,
-          final_security_applied: finalSecurityApplied
+          final_security_applied: finalSecurityApplied,
+          p6_applied: p6Applied,
+          operational_ready: p6Applied && missingP6.length === 0,
+          missing_operational_count: missingP6.length
         }
       },
       {
@@ -202,6 +221,9 @@ async function routeRequest(request, env, ctx) {
   const adminAccessResponse = await handleAdminAccessApi(request, env);
   if (adminAccessResponse) return adminAccessResponse;
 
+  const adminOperationsResponse = await handleAdminOperationsApi(request, env);
+  if (adminOperationsResponse) return adminOperationsResponse;
+
   const adminControlResponse = await handleAdminControlApi(request, env);
   if (adminControlResponse) return adminControlResponse;
 
@@ -214,6 +236,9 @@ async function routeRequest(request, env, ctx) {
 
   const publicAuthResponse = await handlePublicAuthApi(request, env);
   if (publicAuthResponse) return publicAuthResponse;
+
+  const marketplaceSafetyResponse = await handleMarketplaceSafetyApi(request, env);
+  if (marketplaceSafetyResponse) return marketplaceSafetyResponse;
 
   const categoryResponse = await handleCategoryApi(request, env);
   if (categoryResponse) return categoryResponse;
