@@ -203,6 +203,15 @@
     doc.addEventListener('pointercancel', clear, { passive: true, capture: true });
   }
 
+  function loadCartCheckoutHotfix() {
+    if (window.PasarCartCheckoutHotfix?.version === '1.0' || doc.querySelector('script[data-cart-checkout-hotfix="true"]')) return;
+    const script = doc.createElement('script');
+    script.src = 'js/cart-checkout-hotfix-v1.js?v=1.0';
+    script.async = true;
+    script.dataset.cartCheckoutHotfix = 'true';
+    body.appendChild(script);
+  }
+
   function loadP8Commerce() {
     if (window.PasarP8Commerce?.version === '1.2' || doc.querySelector('script[data-p8-commerce="true"]')) return;
     const script = doc.createElement('script');
@@ -240,6 +249,7 @@
     installConnectivityStatus();
     installLoadingSemantics();
     installPointerIntent();
+    loadCartCheckoutHotfix();
     loadP8Commerce();
     root.dataset.p3Ready = 'true';
     window.setTimeout(loadP7LaunchGrowth, 0);
