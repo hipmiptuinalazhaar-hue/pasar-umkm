@@ -63,6 +63,11 @@ for (const text of ['/api/commerce/cart','/api/commerce/checkout/preferences','/
 requireText(center,"location.replace('/purchases/')",'post-checkout redirect');
 requireText(center,'Platform tidak menyimpan saldo','non-custodial UI boundary');
 requireText(integration,"location.href='/checkout/'",'main checkout redirect');
+requireText(integration,'[data-commerce-action="checkout"]','native commerce checkout interception');
+requireText(integration,'[data-commerce-action="buy-now"]','native buy-now interception');
+requireText(integration,"fetch('/api/commerce/cart/items'",'buy-now server cart bridge');
+requireText(integration,"node.id==='commerceCheckoutForm'",'legacy checkout form guard');
+requireText(integration,"doc.getElementById('commerceCheckoutForm')",'legacy checkout render guard');
 requireText(integration,"sideLink('/purchases/'",'buyer center navigation');
 requireText(integration,"js/seller-center-p8-bridge.js?v=1.0",'native seller settings bridge');
 requireText(integration,"js/seller-center-order-p8.js?v=1.0",'native seller order bridge');
@@ -74,14 +79,16 @@ requireText(sellerBridge,'/api/commerce/fulfillment/settings/me','native seller 
 requireText(sellerOrderBridge,'/api/commerce/orders?scope=seller','native seller order data');
 requireText(sellerOrderBridge,'/fulfillment','native seller fulfillment action');
 requireText(sellerOrderBridge,'/timeline','native seller timeline');
-requireText(p3,'js/p8-commerce-integration.js?v=1.1','deferred P8 loader');
+requireText(p3,'js/p8-commerce-integration.js?v=1.2','deferred P8 loader cache key');
+requireText(p3,"window.PasarP8Commerce?.version === '1.2'",'P8 loader version contract');
+requireText(p3,'loadP8Commerce();','P8 router eager activation');
 if (index.includes('p8-commerce-integration.js') || index.includes('p8-commerce-center.css')) fail('P8 assets must not join critical index shell');
 
 const budgets=[
   ['src/commerce-fulfillment-api.js',api,26000],
   ['src/checkout-commerce-preference-api.js',preferences,12000],
   ['js/p8-commerce-center.js',center,30000],
-  ['js/p8-commerce-integration.js',integration,6000],
+  ['js/p8-commerce-integration.js',integration,6500],
   ['js/seller-center-p8-bridge.js',sellerBridge,24000],
   ['js/seller-center-order-p8.js',sellerOrderBridge,16000],
   ['css/p8-commerce-center.css',css,16000]
@@ -91,4 +98,4 @@ for(const [path,source,max] of budgets){const bytes=Buffer.byteLength(source);if
 if(pkg.scripts?.['test:p8-commerce']!=='node scripts/validate-p8-real-commerce.mjs') fail('package.json missing test:p8-commerce');
 if(!String(pkg.scripts?.validate||'').includes('npm run test:p8-commerce')) fail('canonical validate must include P8');
 
-console.log('P8 real commerce, native Seller Center fulfillment, non-custodial payment boundary, ownership and deferred UI contracts OK.');
+console.log('P8 real commerce, single checkout routing, native Seller Center fulfillment, non-custodial payment boundary, ownership and deferred UI contracts OK.');
