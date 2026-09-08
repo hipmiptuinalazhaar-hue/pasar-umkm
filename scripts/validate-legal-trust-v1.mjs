@@ -63,7 +63,7 @@ for (const token of ['platform digital yang mempertemukan pembeli','non-kustodia
 for (const token of ['status verifikasi toko','transaksi selesai','rating pembelian terverifikasi','status produk unggulan','ketersediaan stok','Tidak ada boost berbayar tersembunyi','komisi, biaya layanan']) has('seller', token);
 for (const token of ['Checkout hanya memproses produk yang dipilih','tidak menyimpan saldo atau dana transaksi','automated refund ledger','Hak konsumen']) has('buyer', token);
 for (const token of ['Narkotika','Senjata api','Barang palsu','database pribadi','perjudian','Transaksi palsu']) has('prohibited', token);
-for (const token of ['hipmiptuinalazhaar@gmail.com','Permintaan Data Pribadi','nomor pesanan','tidak meminta OTP/password']) has('complaints', token);
+for (const token of ['hipmiptuinalazhaar@gmail.com','Permintaan Data Pribadi','Nomor pesanan','tidak meminta OTP/password']) has('complaints', token);
 
 has('about', "version === '2.1'", 'About module must guard V2.1');
 has('about', "version: '2.1'", 'About module public version must be 2.1');
