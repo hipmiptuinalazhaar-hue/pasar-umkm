@@ -30,6 +30,10 @@
     doc.head.appendChild(link);
   }
 
+  function loadAuthSecurity(){
+    appendScript('js/auth-security-v2.js?v=1.0','auth-security-v2',()=>window.PasarAuthSecurityV2?.version==='1.0');
+  }
+
   function loadSellerBridge(){
     appendScript('js/seller-center-p8-bridge.js?v=1.0','seller-p8-bridge',()=>window.PasarSellerP8?.version==='1.0');
     appendScript('js/seller-center-order-p8.js?v=1.0','seller-order-p8-bridge',()=>window.PasarSellerOrdersP8?.version==='1.0');
@@ -40,7 +44,7 @@
   }
 
   async function installLinks(){
-    loadSellerBridge();loadProfileAddress();
+    loadAuthSecurity();loadSellerBridge();loadProfileAddress();
     const host=doc.getElementById('sideMenuContent');
     if(!host)return;
     host.querySelector('[data-p8-seller-orders-link]')?.remove();
@@ -233,6 +237,7 @@
   });
   legacyGuard.observe(doc.documentElement,{childList:true,subtree:true});
 
+  loadAuthSecurity();
   if(doc.readyState==='loading')doc.addEventListener('DOMContentLoaded',()=>{installLinks();scheduleCartEnhance()},{once:true});
   else{installLinks();scheduleCartEnhance()}
 
