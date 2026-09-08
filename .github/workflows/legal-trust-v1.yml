@@ -1,0 +1,41 @@
+name: Legal Trust V1 Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'legal/**'
+      - 'js/about-experience-v2.js'
+      - 'css/about-experience-v2.css'
+      - 'scripts/validate-legal-trust-v1.mjs'
+      - 'docs/LEGAL_TRUST_V1.md'
+      - 'package.json'
+      - '.github/workflows/legal-trust-v1.yml'
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-legal-trust:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup Node 22
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Syntax check
+        run: |
+          node --check js/about-experience-v2.js
+          node --check scripts/validate-legal-trust-v1.mjs
+      - name: Legal and trust contract
+        run: npm run test:legal-trust
+      - name: Canonical regression
+        run: npm run validate
