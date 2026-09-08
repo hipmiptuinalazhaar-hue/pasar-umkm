@@ -1,0 +1,60 @@
+name: Customer Support V1 Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'database/migrations/2026-09-09-customer-support-v1.sql'
+      - 'src/support-store.js'
+      - 'src/support-api.js'
+      - 'src/admin-support-api.js'
+      - 'src/worker-entry.js'
+      - 'support/index.html'
+      - 'js/support-center-v1.js'
+      - 'css/support-center-v1.css'
+      - 'js/admin/api.js'
+      - 'js/admin/control.js'
+      - 'js/admin/support.js'
+      - 'css/admin-support-v1.css'
+      - 'legal/pengaduan.html'
+      - 'js/about-experience-v2.js'
+      - 'scripts/post-deploy-smoke.mjs'
+      - 'scripts/validate-customer-support-v1.mjs'
+      - 'scripts/validate-legal-trust-v1.mjs'
+      - 'package.json'
+      - '.github/workflows/customer-support-v1-validate.yml'
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-customer-support:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup Node 22
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Syntax check support modules
+        run: |
+          node --check src/support-store.js
+          node --check src/support-api.js
+          node --check src/admin-support-api.js
+          node --check js/support-center-v1.js
+          node --check js/admin/support.js
+          node --check scripts/validate-customer-support-v1.mjs
+          node --check scripts/post-deploy-smoke.mjs
+      - name: Customer Support V1 contract
+        run: npm run test:customer-support
+      - name: Legal trust compatibility
+        run: npm run test:legal-trust
+      - name: Canonical validation
+        run: npm run validate
