@@ -83,14 +83,14 @@ jobs:
           if important_count > 20:
               errors.append(f'Commerce !important debt exceeds budget: {important_count} > 20')
 
-          # Commerce route assets must NOT be part of the initial HTML payload.
           for asset in ('commerce-experience-v2.css', 'commerce-experience-v2.js'):
               if asset in index:
                   errors.append(f'{asset} is referenced directly by index.html; commerce must remain lazy-loaded')
 
-          # The always-loaded carrier itself must be cache-busted when its bootstrap changes.
-          if 'js/profile-saved.js?v=2.2' not in index:
-              errors.append('index.html must reference profile-saved.js?v=2.2 for the current commerce bootstrap cache boundary')
+          carrier_pattern = re.compile(r'js/profile-saved\.js\?v=([0-9a-f]{12})')
+          carrier_match = carrier_pattern.search(index)
+          if not carrier_match:
+              errors.append('index.html must reference profile-saved.js with a 12-character deterministic runtime fingerprint')
 
           loader_contracts = (
               'window.__PASAR_COMMERCE_V2__ = true',
@@ -119,31 +119,18 @@ jobs:
                   errors.append(f'Missing commerce CSS contract: {contract}')
 
           route_contracts = (
-              "case 'cart'",
-              "case 'checkout'",
-              "case 'buyer-orders'",
-              "case 'seller-orders'",
-              "case 'order-detail'",
-              "case 'seller-center'",
-              "case 'store-profile'",
-              "case 'products'",
-              "case 'product-editor'",
-              "case 'product-detail'",
-              "case 'onboarding'",
+              "case 'cart'", "case 'checkout'", "case 'buyer-orders'", "case 'seller-orders'",
+              "case 'order-detail'", "case 'seller-center'", "case 'store-profile'", "case 'products'",
+              "case 'product-editor'", "case 'product-detail'", "case 'onboarding'",
           )
           for contract in route_contracts:
               if contract not in js:
                   errors.append(f'Missing commerce route: {contract}')
 
           endpoint_contracts = (
-              '/api/commerce/cart',
-              '/api/commerce/checkout',
-              '/api/commerce/orders?scope=',
-              '/api/commerce/seller/summary',
-              '/api/store-management',
-              '/api/products/me',
-              '/api/products',
-              '/api/uploads/product-image',
+              '/api/commerce/cart', '/api/commerce/checkout', '/api/commerce/orders?scope=',
+              '/api/commerce/seller/summary', '/api/store-management', '/api/products/me',
+              '/api/products', '/api/uploads/product-image',
           )
           for contract in endpoint_contracts:
               if contract not in js:
@@ -151,14 +138,14 @@ jobs:
 
           sheet_count = js.count('openBottomSheet(')
           if sheet_count > 2:
-              errors.append(
-                  f'Commerce uses bottom sheet {sheet_count} times; only quick actions and confirmation are allowed'
-              )
+              errors.append(f'Commerce uses bottom sheet {sheet_count} times; only quick actions and confirmation are allowed')
 
           print(f'Commerce CSS source: {css_size} bytes / 28000')
           print(f'Commerce JS source: {js_size} bytes / 80000')
           print(f'Commerce !important migration debt: {important_count} / 20')
           print(f'Commerce bottom-sheet calls: {sheet_count} / 2')
+          if carrier_match:
+              print(f'Commerce carrier fingerprint: {carrier_match.group(1)}')
 
           if errors:
               print('UI P2 Commerce validation failed:')
