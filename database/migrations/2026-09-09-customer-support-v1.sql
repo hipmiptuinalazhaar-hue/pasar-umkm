@@ -121,7 +121,7 @@ INSERT INTO admin_permissions (
 VALUES
   ('support.view', 'support', 'view', 'View customer-support queues and ticket context.', FALSE, TRUE),
   ('support.reply', 'support', 'reply', 'Reply to customer-support conversations.', FALSE, TRUE),
-  ('support.manage', 'support', 'manage', 'Assign, prioritize, resolve, reopen, and annotate support tickets.', FALSE, TRUE)
+  ('support.manage', 'support', 'manage', 'Assign, prioritize, resolve, reopen, and annotate support tickets.', TRUE, TRUE)
 ON CONFLICT (permission_key) DO UPDATE SET
   resource = EXCLUDED.resource,
   action = EXCLUDED.action,
