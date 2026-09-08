@@ -1,19 +1,19 @@
 import { adminApi, AdminApiError, setAdminStepUpHandler } from "./api.js?v=7.0.0";
 
 const NAV_ITEMS = Object.freeze([
-  { key: "overview", label: "Dashboard", permission: "dashboard.view", view: "overview", group: "main", icon: "dashboard" },
-  { key: "operations", label: "Operasional", permission: "dashboard.view", view: "operations", group: "main", icon: "activity" },
-  { key: "support", label: "Dukungan", permission: "support.view", view: "support", group: "service", icon: "support" },
-  { key: "growth", label: "Pertumbuhan", permission: "growth.view", view: "growth", group: "service", icon: "growth" },
-  { key: "users", label: "Pengguna", permission: "users.view", view: "records", group: "marketplace", icon: "users" },
-  { key: "stores", label: "Toko", permission: "stores.view", view: "records", group: "marketplace", icon: "store" },
-  { key: "products", label: "Produk", permission: "products.view", view: "records", group: "marketplace", icon: "box" },
-  { key: "posts", label: "Konten", permission: "posts.view", view: "records", group: "marketplace", icon: "content" },
-  { key: "orders", label: "Pesanan", permission: "orders.view", view: "records", group: "marketplace", icon: "orders" },
-  { key: "reviews", label: "Ulasan", permission: "reviews.view", view: "records", group: "marketplace", icon: "star" },
-  { key: "audit", label: "Audit", permission: "audit_logs.view", view: "records", group: "system", icon: "audit" },
-  { key: "access", label: "Akses Admin", permission: "admin_accounts.view", view: "records", group: "system", icon: "access" },
-  { key: "security", label: "Keamanan", permission: null, view: "security", group: "system", icon: "shield" }
+  { key: "overview", label: "Overview", displayLabel: "Dashboard", permission: "dashboard.view", view: "overview", group: "main", icon: "dashboard" },
+  { key: "operations", label: "Operations", displayLabel: "Operasional", permission: "dashboard.view", view: "operations", group: "main", icon: "activity" },
+  { key: "support", label: "Customer Support", displayLabel: "Dukungan", permission: "support.view", view: "support", group: "service", icon: "support" },
+  { key: "growth", label: "Growth", displayLabel: "Pertumbuhan", permission: "growth.view", view: "growth", group: "service", icon: "growth" },
+  { key: "users", label: "Users", displayLabel: "Pengguna", permission: "users.view", view: "records", group: "marketplace", icon: "users" },
+  { key: "stores", label: "Stores", displayLabel: "Toko", permission: "stores.view", view: "records", group: "marketplace", icon: "store" },
+  { key: "products", label: "Products", displayLabel: "Produk", permission: "products.view", view: "records", group: "marketplace", icon: "box" },
+  { key: "posts", label: "Posts", displayLabel: "Konten", permission: "posts.view", view: "records", group: "marketplace", icon: "content" },
+  { key: "orders", label: "Orders", displayLabel: "Pesanan", permission: "orders.view", view: "records", group: "marketplace", icon: "orders" },
+  { key: "reviews", label: "Reviews", displayLabel: "Ulasan", permission: "reviews.view", view: "records", group: "marketplace", icon: "star" },
+  { key: "audit", label: "Audit", displayLabel: "Audit", permission: "audit_logs.view", view: "records", group: "system", icon: "audit" },
+  { key: "access", label: "Access", displayLabel: "Akses Admin", permission: "admin_accounts.view", view: "records", group: "system", icon: "access" },
+  { key: "security", label: "Security", displayLabel: "Keamanan", permission: null, view: "security", group: "system", icon: "shield" }
 ]);
 
 const NAV_GROUPS = Object.freeze([
@@ -68,8 +68,12 @@ function initials(value) {
   return String(value || "A").trim().split(/\s+/).slice(0, 2).map(part => part[0] || "").join("").toUpperCase() || "A";
 }
 
+function displayLabel(item) {
+  return item?.displayLabel || item?.label || "Dashboard";
+}
+
 function navMarkup(items, current, className = "") {
-  return items.map(item => `<a class="nav-link ${className}" href="#/${item.key}" data-route="${item.key}" data-route-label="${escapeHtml(item.label)}" ${item.key === current ? 'aria-current="page"' : ""}>${iconSvg(item.icon)}<span class="nav-label">${escapeHtml(item.label)}</span></a>`).join("");
+  return items.map(item => `<a class="nav-link ${className}" href="#/${item.key}" data-route="${item.key}" data-route-label="${escapeHtml(displayLabel(item))}" ${item.key === current ? 'aria-current="page"' : ""}>${iconSvg(item.icon)}<span class="nav-label">${escapeHtml(displayLabel(item))}</span></a>`).join("");
 }
 
 function sidebarNavMarkup(items, current) {
@@ -98,7 +102,7 @@ function buildShell(root, access, items, current) {
     <main class="control-main">
       <header class="control-topbar">
         <div class="topbar-brand"><img class="topbar-logo" src="/assets/logo.webp" width="36" height="36" alt=""><div class="topbar-title"><strong>Pasar UMKM Admin</strong><span>${session}</span></div></div>
-        <div class="topbar-context"><span>Admin Console</span><strong id="topbarRouteTitle">${escapeHtml(currentItem?.label || "Dashboard")}</strong></div>
+        <div class="topbar-context"><span>Admin Console</span><strong id="topbarRouteTitle">${escapeHtml(displayLabel(currentItem))}</strong></div>
         <div class="topbar-actions">
           <a class="topbar-market-link" href="/" target="_blank" rel="noopener">${iconSvg("external")}<span>Marketplace</span></a>
           <div class="topbar-account"><span class="admin-avatar" aria-hidden="true">${avatar}</span><div class="topbar-account-copy"><strong>${name}</strong><span>${session}</span></div></div>
