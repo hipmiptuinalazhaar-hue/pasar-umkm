@@ -21,6 +21,7 @@ const budget = (path, max) => {
 
 const runtime = read('js/v1-completion.js');
 const css = read('css/v1-completion.css');
+const p5Css = read('css/p5-trust-conversion.css');
 const p3 = read('js/p3-premium-experience.js');
 const index = read('index.html');
 const checkoutApi = read('src/cart-checkout-v2-api.js');
@@ -58,12 +59,17 @@ for (const marker of [
   '/api/ratings/summaries?',
   'rankingScore',
   'UMKM terverifikasi',
-  'Rekomendasi marketplace',
+  'Rekomendasi untuk kamu',
   'Mengapa produk ini muncul?',
   'saveData',
-  "['slow-2g','2g']"
+  "['slow-2g','2g']",
+  'data-action="product-detail"',
+  'data-action="add-cart"',
+  'data-action="buy-now"'
 ]) need(runtime, marker, 'P7 Discovery & Recommendation V2 contract');
+forbid(runtime, /\/share\/product\//i, 'static share route inside in-app discovery');
 forbid(runtime, /\bpaid\s*boost\s*=\s*true\b/i, 'opaque paid recommendation boost');
+forbid(runtime, /P(?:[1-9]|10)\s*[·:]/i, 'user-facing milestone labels in marketplace runtime');
 
 for (const marker of [
   'pasar_cart_selection_v2',
@@ -93,6 +99,7 @@ for (const marker of [
 need(adminPage, 'noindex,nofollow,noarchive', 'P9 private robots contract');
 need(adminPage, '/js/admin/intelligence-v2.js?v=1.0', 'P9 controller wiring');
 forbid(adminJs, /operationAction\(|changeUserStatus\(|storeAction\(|changeProductStatus\(|changePostStatus\(/, 'P9 intelligence mutation action');
+forbid(adminJs, /INTERNAL\s*[·-]\s*P\d|Operational P\d|Launch\/Growth P\d|Commerce P\d|P10 INPUT/i, 'user-facing milestone labels in admin intelligence');
 
 for (const marker of [
   'js/v1-completion.js?v=1.0',
@@ -101,6 +108,9 @@ for (const marker of [
   'script.onload = loadV1Completion'
 ]) need(p3, marker, 'lazy V1 loader contract');
 if (index.includes('js/v1-completion.js')) throw new Error('V1 completion must not join the initial index script graph');
+
+need(css, 'data-action', '');
+needRegex(p5Css, /\.p5-trust-stats:has\(>span:nth-child\(3\):last-child\)\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)\}/, 'three-column trust evidence layout');
 
 if (manifest.release !== '2026-09-08-v1-completion') throw new Error('Unexpected P10 release manifest version');
 for (const key of [
@@ -126,4 +136,4 @@ for (const source of [css, adminCss]) {
 if (pkg.scripts?.['test:v1-completion'] !== 'node scripts/validate-v1-completion.mjs') throw new Error('package.json missing test:v1-completion');
 if (!String(pkg.scripts?.validate || '').includes('npm run test:v1-completion')) throw new Error('Canonical validate must include P10 V1 certification');
 
-console.log('P6-P10 V1 completion certification PASS: seller operations, evidence-ranked discovery, cart safety, operational intelligence, non-custodial boundaries, lazy performance, and launch manifest are intact.');
+console.log('P6-P10 V1 completion certification PASS: seller operations, shoppable discovery, cart safety, operational intelligence, non-custodial boundaries, clean user-facing copy, and launch manifest are intact.');
