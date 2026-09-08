@@ -1,0 +1,58 @@
+name: Auth Security V2
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'src/public-auth-api.js'
+      - 'src/public-auth-security-v2-api.js'
+      - 'src/auth-security-v2-shared.js'
+      - 'src/auth-email.js'
+      - 'src/rate-limit.js'
+      - 'js/auth-security-v2.js'
+      - 'css/auth-security-v2.css'
+      - 'js/p8-commerce-integration.js'
+      - 'database/migrations/2026-09-08-auth-security-v2.sql'
+      - 'scripts/validate-auth-security-v2.mjs'
+      - '.github/workflows/auth-security-v2.yml'
+  push:
+    branches:
+      - 'feature/auth-security-v2'
+    paths:
+      - 'src/public-auth-api.js'
+      - 'src/public-auth-security-v2-api.js'
+      - 'src/auth-security-v2-shared.js'
+      - 'src/auth-email.js'
+      - 'src/rate-limit.js'
+      - 'js/auth-security-v2.js'
+      - 'css/auth-security-v2.css'
+      - 'js/p8-commerce-integration.js'
+      - 'database/migrations/2026-09-08-auth-security-v2.sql'
+      - 'scripts/validate-auth-security-v2.mjs'
+      - '.github/workflows/auth-security-v2.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Validate Auth Security V2 contract
+        run: node scripts/validate-auth-security-v2.mjs
+
+      - name: Existing repository lint
+        run: npm run lint

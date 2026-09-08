@@ -8,6 +8,9 @@ const fail = message => {
 const requireText = (text, marker, label) => {
   if (!text.includes(marker)) fail(`missing ${label}: ${marker}`);
 };
+const requirePattern = (text, pattern, label) => {
+  if (!pattern.test(text)) fail(`missing ${label}: ${pattern}`);
+};
 const forbidText = (text, marker, label) => {
   if (text.includes(marker)) fail(`forbidden ${label}: ${marker}`);
 };
@@ -57,11 +60,7 @@ for (const [marker, label] of [
 }
 
 requireText(commerce, 'const cart = await loadCart();', 'fresh checkout cart read');
-forbidText(
-  commerce,
-  'const cart = COMMERCE.cart?.items?.length ? COMMERCE.cart : await loadCart();',
-  'stale checkout cart shortcut'
-);
+forbidText(commerce, 'const cart = COMMERCE.cart?.items?.length ? COMMERCE.cart : await loadCart();', 'stale checkout cart shortcut');
 forbidText(commerce, 'window.fetch =', 'second global fetch owner');
 
 const patchStart = api.indexOf('if (request.method === "PATCH")');
@@ -80,10 +79,13 @@ for (const [marker, label] of [
 ]) {
   requireText(carrier, marker, label);
 }
-requireText(index, 'js/profile-saved.js?v=2.2', 'carrier 2.2 cache boundary');
-requireText(p2, 'js/profile-saved.js?v=2.2', 'P2 carrier cache assertion');
+
+requirePattern(index, /js\/profile-saved\.js\?v=[0-9a-f]{12}/, 'deterministic Commerce carrier fingerprint');
+requireText(p2, 'carrier_pattern = re.compile', 'P2 deterministic carrier assertion');
+requireText(p2, 'js/profile-saved\\.js\\?v=([0-9a-f]{12})', 'P2 carrier fingerprint pattern');
 requireText(p2, 'js/commerce-experience-v2.js?v=2.1', 'P2 Commerce cache assertion');
-requireText(p6, 'js/profile-saved.js?v=2.2', 'P6 carrier cache assertion');
+requireText(p6, 'carrier_pattern = re.compile', 'P6 deterministic carrier assertion');
+requireText(p6, 'js/profile-saved\\.js\\?v=([0-9a-f]{12})', 'P6 carrier fingerprint pattern');
 requireText(p6, 'js/commerce-experience-v2.js?v=2.1', 'P6 Commerce cache assertion');
 requireText(p6, 'scripts/validate-edge-hardening-b\\.mjs', 'P6 hardening scope guard');
 requireText(p6, 'src/functionality-api\\.js', 'P6 backend hardening scope guard');

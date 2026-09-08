@@ -135,25 +135,22 @@ jobs:
               if stripped.count('{') != stripped.count('}'):
                   errors.append(f'{label} CSS braces are unbalanced')
 
-          current_href = 'css/tablet-desktop-v2.css?v=2.1'
           retired_href = 'tablet-desktop-v1.css'
-          if current_href not in index:
-              errors.append('Responsive V2 stylesheet is not wired in index.html')
-          if retired_href in index:
-              errors.append('index.html still references retired responsive v1')
-
-          media_pattern = re.compile(
-              r'<link\s+[^>]*href="css/tablet-desktop-v2\.css\?v=2\.1"[^>]*media="screen and \(min-width: 768px\)"[^>]*>',
+          responsive_link_pattern = re.compile(
+              r'<link\s+[^>]*href="css/tablet-desktop-v2\.css\?v=([0-9a-f]{12})"[^>]*media="screen and \(min-width: 768px\)"[^>]*>',
               re.S
           )
-          if not media_pattern.search(index):
-              errors.append('Responsive V2 link must be media-qualified to >=768px')
+          responsive_match = responsive_link_pattern.search(index)
+          if not responsive_match:
+              errors.append('Responsive V2 stylesheet must be wired with a 12-character deterministic fingerprint and media-qualified to >=768px')
+          if retired_href in index:
+              errors.append('index.html still references retired responsive v1')
 
           hotfix_marker = '<style id="postP6MobileShellHotfix">'
           mobile_scope = '@media (max-width: 767px)'
           if hotfix_marker not in index or mobile_scope not in index:
               errors.append('Post-P6 shell hotfix is not explicitly mobile-scoped')
-          elif index.index(current_href) < index.index(hotfix_marker):
+          elif responsive_match and responsive_match.start() < index.index(hotfix_marker):
               errors.append('Responsive V2 must load after the mobile-only hotfix block')
 
           if 'tablet-desktop-v2.css' in tokens or 'tablet-desktop-v1.css' in tokens:
@@ -165,4 +162,4 @@ jobs:
                   print(f'- {error}')
               sys.exit(1)
 
-          print('Responsive V2 validation passed.')
+          print(f'Responsive V2 validation passed with fingerprint {responsive_match.group(1)}.')

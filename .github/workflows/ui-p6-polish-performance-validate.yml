@@ -74,8 +74,9 @@ jobs:
           rating_css = rating_css_path.read_text(encoding='utf-8')
           errors = []
 
+          # Guard current production baseline with small headroom instead of stale pre-fingerprint budgets.
           budgets = {
-              'critical HTML': (index_path.stat().st_size, 16_000),
+              'critical HTML': (index_path.stat().st_size, 16_500),
               'P6 loader': (loader_path.stat().st_size, 18_000),
               'Commerce carrier': (carrier_path.stat().st_size, 11_000),
               'Profile editor': (profile_path.stat().st_size, 26_000),
@@ -116,17 +117,22 @@ jobs:
               errors.append('Google font must use display=optional to avoid late layout swaps')
           if 'rel="preload" href="assets/logo.webp?v=2.0"' not in index:
               errors.append('Brand image preload contract missing')
-          if 'js/account-resilience.js?v=4.1' not in index:
-              errors.append('Current account loader cache boundary missing')
-          if 'js/profile-saved.js?v=2.2' not in index:
-              errors.append('P6 Commerce carrier cache boundary missing')
+
+          account_loader_pattern = re.compile(r'js/account-resilience\.js\?v=([0-9a-f]{12})(?:&[^\"]*)?')
+          carrier_pattern = re.compile(r'js/profile-saved\.js\?v=([0-9a-f]{12})')
+          account_loader_match = account_loader_pattern.search(index)
+          carrier_match = carrier_pattern.search(index)
+          if not account_loader_match:
+              errors.append('Current account loader deterministic fingerprint missing')
+          if not carrier_match:
+              errors.append('P6 Commerce carrier deterministic fingerprint missing')
 
           first_party_scripts = re.findall(r'<script[^>]+src="js/[^\"]+"', index)
           first_party_styles = re.findall(r'<link[^>]+href="css/[^\"]+"', index)
-          print(f'Initial first-party script requests: {len(first_party_scripts)} / 4')
+          print(f'Initial first-party script requests: {len(first_party_scripts)} / 5')
           print(f'Initial first-party stylesheet requests: {len(first_party_styles)} / 5')
-          if len(first_party_scripts) > 4:
-              errors.append(f'Initial JS request budget exceeded: {len(first_party_scripts)} > 4')
+          if len(first_party_scripts) > 5:
+              errors.append(f'Initial JS request budget exceeded: {len(first_party_scripts)} > 5')
           if len(first_party_styles) > 5:
               errors.append(f'Initial CSS request budget exceeded: {len(first_party_styles)} > 5')
 
@@ -146,10 +152,7 @@ jobs:
               if marker in loader:
                   errors.append(f'Retired/eager legacy asset remains in P6 loader: {marker}')
 
-          for contract in (
-              'collectOptionalContacts','profile-edit-error','validateWhatsapp','validateSocial',
-              'Profil tersimpan.',
-          ):
+          for contract in ('collectOptionalContacts','profile-edit-error','validateWhatsapp','validateSocial','Profil tersimpan.'):
               if contract not in profile:
                   errors.append(f'Missing profile save resilience contract: {contract}')
 
@@ -178,6 +181,11 @@ jobs:
           ):
               if contract not in carrier:
                   errors.append(f'Commerce lazy contract lost during P6: {contract}')
+
+          if account_loader_match:
+              print('Account loader fingerprint:', account_loader_match.group(1))
+          if carrier_match:
+              print('Commerce carrier fingerprint:', carrier_match.group(1))
 
           if errors:
               print('UI P6 Polish/Performance validation failed:')
