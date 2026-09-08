@@ -67,6 +67,7 @@ for (const marker of [
   'data-action="add-cart"',
   'data-action="buy-now"'
 ]) need(runtime, marker, 'P7 Discovery & Recommendation V2 contract');
+for (const marker of ['.v1-rec-open','.v1-rec-actions','.v1-rec-cart','.v1-rec-buy']) need(css, marker, 'shoppable discovery presentation');
 forbid(runtime, /\/share\/product\//i, 'static share route inside in-app discovery');
 forbid(runtime, /\bpaid\s*boost\s*=\s*true\b/i, 'opaque paid recommendation boost');
 forbid(runtime, /P(?:[1-9]|10)\s*[·:]/i, 'user-facing milestone labels in marketplace runtime');
@@ -109,7 +110,6 @@ for (const marker of [
 ]) need(p3, marker, 'lazy V1 loader contract');
 if (index.includes('js/v1-completion.js')) throw new Error('V1 completion must not join the initial index script graph');
 
-need(css, 'data-action', '');
 needRegex(p5Css, /\.p5-trust-stats:has\(>span:nth-child\(3\):last-child\)\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)\}/, 'three-column trust evidence layout');
 
 if (manifest.release !== '2026-09-08-v1-completion') throw new Error('Unexpected P10 release manifest version');
