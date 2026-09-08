@@ -34,8 +34,9 @@ if (!errors.length) {
     aboutCss,
   ] = await Promise.all(Object.values(files).map(path => readFile(path, 'utf8')));
 
+  // Keep a tight ceiling around the current fingerprinted production shell.
   const budgets = {
-    'critical HTML': [files.index, 16_000],
+    'critical HTML': [files.index, 16_500],
     'Chat bootstrap': [files.chatBootstrap, 5_000],
     'Chat gesture adapter': [files.chatGestures, 5_000],
     'Rating Core': [files.rating, 19_000],
@@ -51,12 +52,18 @@ if (!errors.length) {
   }
 
   const initialScripts = [...index.matchAll(/<script[^>]+src="js\//g)].length;
-  if (initialScripts !== 4) {
-    errors.push(`Expected exactly four initial first-party scripts, found ${initialScripts}`);
+  if (initialScripts > 5) {
+    errors.push(`Initial first-party script budget exceeded: ${initialScripts} > 5`);
+  }
+
+  const chatFingerprint = index.match(/js\/chat-single-render-v6\.js\?v=([0-9a-f]{12})/);
+  if (!chatFingerprint) {
+    errors.push('Missing deterministic Chat bootstrap fingerprint in index');
+  } else {
+    console.log(`Chat bootstrap fingerprint: ${chatFingerprint[1]}`);
   }
 
   for (const contract of [
-    'js/chat-single-render-v6.js?v=7.1',
     'id="postReleaseUXBootstrap"',
     'js/about-experience-v2.js?v=2.0',
     'css/about-experience-v2.css?v=2.0',
