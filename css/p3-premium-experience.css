@@ -346,9 +346,73 @@ html body .loading-spinner {
   html body #feed > .post-card { border-color: rgba(17,22,18,.28) !important; }
 }
 
+/* ---------- Premium active state system ----------
+   One visual owner for bottom navigation and profile tabs. */
+html body .app-navigation .nav-item:not(.nav-item-create).active::before,
+html body .app-navigation .nav-item:not(.nav-item-create)[aria-current="page"]::before {
+  display: none !important;
+}
+
+html body .app-navigation .nav-item:not(.nav-item-create).active::after,
+html body .app-navigation .nav-item:not(.nav-item-create)[aria-current="page"]::after {
+  top: 1px !important;
+  left: 50% !important;
+  width: 32px !important;
+  height: 3px !important;
+  border-radius: 999px !important;
+  background: currentColor !important;
+  transform: translateX(-50%) !important;
+}
+
+html body .app-navigation .nav-item-create::after {
+  display: none !important;
+}
+
+html body .app-navigation .nav-item:not(.nav-item-create).active > i,
+html body .app-navigation .nav-item:not(.nav-item-create)[aria-current="page"] > i {
+  width: 38px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(18,96,63,.08);
+  color: var(--nav-active-color, #12603f);
+}
+
+html body .app-navigation .nav-item:not(.nav-item-create).active > span:not(.nav-badge):not(.nav-create-icon),
+html body .app-navigation .nav-item:not(.nav-item-create)[aria-current="page"] > span:not(.nav-badge):not(.nav-create-icon) {
+  color: var(--nav-active-color, #12603f);
+  font-weight: 800;
+}
+
+html body .social-account-page[data-p3-upgraded="true"] .social-account-tab.active::after,
+html body .social-universal-profile[data-p3-upgraded="true"] .social-profile-tab.active::after {
+  left: 50% !important;
+  right: auto !important;
+  bottom: -1px !important;
+  width: 44px !important;
+  height: 3px !important;
+  border-radius: 999px 999px 0 0 !important;
+  background: var(--p3-brand, #0f573a) !important;
+  transform: translateX(-50%) !important;
+}
+
+html body .social-account-page[data-p3-upgraded="true"] .social-account-tab.active i,
+html body .social-universal-profile[data-p3-upgraded="true"] .social-profile-tab.active i {
+  width: 38px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(15,87,58,.075);
+  color: var(--p3-brand, #0f573a);
+}
+
 @media (forced-colors: active) {
   .p3-connectivity,
   html body #homeDiscovery .market-hero { forced-color-adjust: auto; }
   html body .nav-item.active::after,
-  html body .nav-item[aria-current="page"]::after { background: Highlight; }
+  html body .nav-item[aria-current="page"]::after,
+  html body .social-account-tab.active::after,
+  html body .social-profile-tab.active::after { background: Highlight !important; }
 }
