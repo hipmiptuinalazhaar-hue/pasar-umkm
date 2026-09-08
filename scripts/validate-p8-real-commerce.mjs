@@ -59,7 +59,8 @@ for(const text of ['/api/commerce/orders?scope=buyer','/api/commerce/orders?scop
 for(const text of ['/api/commerce/cart','/api/commerce/checkout/preferences','/api/commerce/checkout-v2','selected_product_ids','navigator.geolocation','sessionStorage.removeItem'])need(checkoutV2,text,'Checkout V2 commerce flow');
 forbid(checkoutV2,/MutationObserver/,'checkout MutationObserver state engine');
 
-for(const text of ["location.href='/checkout/'",'[data-commerce-action="checkout"]','[data-commerce-action="buy-now"]',"fetch('/api/commerce/cart/items'",'pasar_cart_selection_v2','data-cart-v2-item',"sideLink('/purchases/'",'js/seller-center-p8-bridge.js?v=1.0','js/seller-center-order-p8.js?v=1.0'])need(integration,text,'cart/checkout integration');
+for(const text of ["const target='/checkout/index.html'",'[data-cart-v2-checkout]','[data-commerce-action="checkout"]','[data-commerce-action="buy-now"]',"fetch('/api/commerce/cart/items'",'pasar_cart_selection_v2','data-cart-v2-item',"sideLink('/purchases/'",'js/seller-center-p8-bridge.js?v=1.0','js/seller-center-order-p8.js?v=1.0'])need(integration,text,'cart/checkout integration');
+forbid(integration,/location\.pathname==='\/checkout\/'\s*\|\|\s*location\.pathname==='\/checkout'/,'legacy directory checkout no-op guard');
 need(nativeCommerce,'aria-label="Menu Seller Center"','native Seller Center menu');
 need(nativeCommerce,"sellerMenuRow('receipt', 'Pesanan Masuk'",'native seller orders navigation');
 need(sellerBridge,'Pengiriman & Pembayaran','native seller fulfillment/payment settings');
