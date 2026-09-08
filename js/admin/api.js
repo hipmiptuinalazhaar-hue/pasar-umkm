@@ -82,5 +82,10 @@ export const adminApi = Object.freeze({
   growthMetrics({ signal } = {}) { return request("/api/admin/growth/metrics", { signal }); },
   promotions(params = {}, { signal } = {}) { return request(`/api/admin/growth/promotions${queryString(params)}`, { signal }); },
   createPromotion(payload) { return request("/api/admin/growth/promotions", { method: "POST", body: JSON.stringify(payload) }); },
-  changePromotionStatus(id, status, reason) { return request(`/api/admin/growth/promotions/${encodeURIComponent(id)}/status`, { method: "PATCH", body: JSON.stringify({ status, reason }) }); }
+  changePromotionStatus(id, status, reason) { return request(`/api/admin/growth/promotions/${encodeURIComponent(id)}/status`, { method: "PATCH", body: JSON.stringify({ status, reason }) }); },
+  supportTickets(params = {}, { signal } = {}) { return request(`/api/admin/support/tickets${queryString(params)}`, { signal }); },
+  supportTicket(id, { signal } = {}) { return request(`/api/admin/support/tickets/${encodeURIComponent(id)}`, { signal }); },
+  supportReply(id, message) { return request(`/api/admin/support/tickets/${encodeURIComponent(id)}/messages`, { method: "POST", body: JSON.stringify({ message }) }); },
+  supportUpdate(id, payload) { return request(`/api/admin/support/tickets/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(payload) }); },
+  supportNote(id, note) { return request(`/api/admin/support/tickets/${encodeURIComponent(id)}/notes`, { method: "POST", body: JSON.stringify({ note }) }); }
 });
