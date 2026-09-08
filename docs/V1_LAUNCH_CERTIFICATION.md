@@ -2,9 +2,15 @@
 
 Release contract: `2026-09-08-v1-completion`
 
+## Certification status
+
+V1 is **technical-certified for production engineering** after the P1-P10 contract, Legal & Trust V1, Customer Support V1, production checkout/auth verification, exact Cloudflare deployment attestation, post-deploy smoke, and real Chrome viewport verification have passed on production releases.
+
+This technical certification does **not** claim that government licensing/registration such as NIB/PSE/PMSE has been completed, does not certify marketplace seller/product density, and does not substitute for repository branch protection. Those are operator/governance launch controls outside the runtime engineering contract.
+
 ## Scope
 
-V1 is considered launch-ready only when the production release preserves all ten product milestones and the automated release pipeline validates the exact deployed commit.
+V1 is considered technically launch-ready only when the production release preserves all ten product milestones and the automated release pipeline validates the exact deployed commit.
 
 ### Product milestones
 
@@ -19,9 +25,16 @@ V1 is considered launch-ready only when the production release preserves all ten
 - P9 Operational Intelligence V2: internal health, operations, growth funnel and trust-and-safety queues in one read-only workspace.
 - P10 Launch Certification: machine-readable manifest and CI contract covering P6-P10 plus canonical platform gates.
 
+### Launch hardening completed after P10
+
+- Legal & Trust V1: privacy, terms, seller/buyer policy, prohibited activity policy, complaint/dispute path and operator disclosure.
+- Customer Support V1: private user-to-support tickets, admin support inbox, RBAC, internal notes and operational ticket lifecycle.
+- Production checkout/auth verification: real production paths validated without introducing custodial payment primitives.
+- Mobile chat recovery: header chat transition reconciles partial DOM state and fails safely instead of leaving a frozen partial shell.
+
 ## Mandatory release gates
 
-A V1 production release is not certified unless all applicable checks pass on the exact release SHA:
+A V1 production release is not technically certified unless all applicable checks pass on the exact release SHA:
 
 1. `npm run validate`
 2. P6-P10 V1 completion validation
