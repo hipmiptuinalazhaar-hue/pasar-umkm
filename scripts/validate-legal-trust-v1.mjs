@@ -45,7 +45,7 @@ for (const key of ['hub','privacy','terms','seller','buyer','prohibited','compla
   bytes(key, 18000);
 }
 bytes('css', 9000);
-bytes('about', 12000);
+bytes('about', 13000);
 bytes('aboutCss', 12000);
 
 for (const href of [
@@ -63,12 +63,14 @@ for (const token of ['platform digital yang mempertemukan pembeli','non-kustodia
 for (const token of ['status verifikasi toko','transaksi selesai','rating pembelian terverifikasi','status produk unggulan','ketersediaan stok','Tidak ada boost berbayar tersembunyi','komisi, biaya layanan']) has('seller', token);
 for (const token of ['Checkout hanya memproses produk yang dipilih','tidak menyimpan saldo atau dana transaksi','automated refund ledger','Hak konsumen']) has('buyer', token);
 for (const token of ['Narkotika','Senjata api','Barang palsu','database pribadi','perjudian','Transaksi palsu']) has('prohibited', token);
-for (const token of ['hipmiptuinalazhaar@gmail.com','Permintaan Data Pribadi','Nomor pesanan','tidak meminta OTP/password']) has('complaints', token);
+for (const token of ['hipmiptuinalazhaar@gmail.com','Permintaan Data Pribadi','Nomor pesanan','tidak meminta OTP/password','/support/','Chat Customer Service']) has('complaints', token);
 
 has('about', "version === '2.0'", 'About module must preserve V2 compatibility');
 has('about', "version: '2.0'", 'About module public version must remain V2 compatible');
-has('about', "revision: '2.1'", 'About module must expose Legal & Trust revision 2.1');
+has('about', "revision: '2.2'", 'About module must expose support-enhanced Legal & Trust revision 2.2');
 has('about', 'Penyelenggara platform');
+has('about', '/support/');
+has('about', 'Customer Service Pasar UMKM');
 has('about', '/legal/index.html');
 has('about', '/legal/privasi.html');
 has('about', '/legal/pengaduan.html');
@@ -95,7 +97,7 @@ if (errors.length) {
 console.log('Legal & Trust V1 validation passed');
 console.log(' - 1 legal hub');
 console.log(' - 6 user-facing policy pages');
-console.log(' - operator disclosure and support channel');
+console.log(' - operator disclosure and in-app support channel');
 console.log(' - non-custodial commerce disclosure');
 console.log(' - seller ranking transparency');
 console.log(' - no unsupported PSE/NIB registration claim');

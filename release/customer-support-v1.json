@@ -1,0 +1,14 @@
+{
+  "release": "customer-support-v1",
+  "date": "2026-09-09",
+  "scope": [
+    "authenticated support tickets",
+    "support center UI",
+    "admin support queue",
+    "RBAC support permissions",
+    "ticket timeline and internal notes",
+    "legal complaint integration"
+  ],
+  "financial_actions": false,
+  "custodial_payments": false
+}

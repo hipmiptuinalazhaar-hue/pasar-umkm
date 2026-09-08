@@ -92,7 +92,21 @@ await check('legal complaint channel', async () => {
   assertSameOrigin(response, 'legal complaint channel');
   assert(/Pengaduan\s*&\s*Penyelesaian\s*Sengketa/i.test(text), 'complaint policy marker missing');
   assert(text.includes('hipmiptuinalazhaar@gmail.com'), 'support channel missing');
+  assert(text.includes('/support/'), 'in-app Customer Service link missing');
   return `complaints + support channel (${new URL(response.url).pathname})`;
+});
+
+await check('support shell', async () => {
+  const { response, text } = await request('/support/index.html', {
+    redirect: 'follow',
+    headers: { Accept: 'text/html' }
+  });
+  assert(response.status === 200, `HTTP ${response.status}`);
+  assertSameOrigin(response, 'support shell');
+  assert(/Customer\s+Service/i.test(text), 'Customer Service marker missing');
+  assert(/support-center-v1\.js/.test(text), 'support client module missing');
+  assert(/noindex,nofollow,noarchive/i.test(text), 'support shell must stay noindex');
+  return `private support workspace (${new URL(response.url).pathname})`;
 });
 
 await check('admin shell', async () => {
@@ -114,11 +128,14 @@ await check('health release contract', async () => {
   assert(json?.schema?.p0_applied === true, 'P0 migration missing');
   assert(json?.schema?.p1_applied === true, 'P1 migration missing');
   assert(json?.schema?.final_security_applied === true, 'final security migration missing');
+  assert(json?.schema?.support_applied === true, 'Customer Support V1 migration missing');
+  assert(json?.schema?.support_ready === true, 'Customer Support V1 schema not ready');
+  assert(json?.schema?.missing_support_count === 0, 'Customer Support V1 missing tables');
   assert(json?.database?.name === undefined, 'database name leaked');
   assert(json?.database?.public_tables === undefined, 'public table count leaked');
   assert(json?.schema?.latest_migration === undefined, 'latest migration leaked');
   assert(/no-store/i.test(response.headers.get('cache-control') || ''), 'health is cacheable');
-  return EXPECTED_RELEASE;
+  return `${EXPECTED_RELEASE} + support-ready`;
 });
 
 await check('public categories', async () => {
@@ -153,11 +170,26 @@ await check('public auth boundary', async () => {
   return '401 fail-closed';
 });
 
+await check('support auth boundary', async () => {
+  const { response, json } = await request('/api/support/tickets');
+  assert(response.status === 401, `expected 401, got ${response.status}`);
+  assert(json?.ok === false, 'anonymous support boundary invalid');
+  assert(json?.code === 'AUTH_REQUIRED', `unexpected code ${json?.code}`);
+  return '401 private user channel';
+});
+
 await check('admin auth boundary', async () => {
   const { response, json } = await request('/api/admin/auth/me');
   assert(response.status === 401, `expected 401, got ${response.status}`);
   assert(json?.authenticated === false, 'anonymous admin boundary invalid');
   return '401 fail-closed';
+});
+
+await check('admin support auth boundary', async () => {
+  const { response, json } = await request('/api/admin/support/tickets');
+  assert(response.status === 401, `expected 401, got ${response.status}`);
+  assert(json?.ok === false, 'anonymous admin support boundary invalid');
+  return '401 privileged support channel';
 });
 
 await check('legacy public-admin disabled', async () => {

@@ -29,11 +29,13 @@ import { handleSellerDisputeApi } from "./seller-dispute-api.js";
 import { handleLaunchGrowthApi } from "./launch-growth-api.js";
 import { handleCommerceFulfillmentApi } from "./commerce-fulfillment-api.js";
 import { handleCheckoutCommercePreferenceApi } from "./checkout-commerce-preference-api.js";
+import { handleSupportApi } from "./support-api.js";
 import { handleAdminAuthApi } from "./admin-auth-api.js";
 import { handleAdminAccessApi } from "./admin-access-api.js";
 import { handleAdminControlApi } from "./admin-control-api.js";
 import { handleAdminOperationsApi } from "./admin-operations-api.js";
 import { handleAdminGrowthApi } from "./admin-growth-api.js";
+import { handleAdminSupportApi } from "./admin-support-api.js";
 import { enforceRateLimit } from "./rate-limit.js";
 import { ensureNotificationInfrastructure } from "./notification-store.js";
 import { ensureFullFunctionalityInfrastructure } from "./functionality-bootstrap.js";
@@ -47,6 +49,7 @@ const P6_MIGRATION = "2026-09-07-p6-operational-marketplace";
 const P7_MIGRATION = "2026-09-07-p7-launch-growth";
 const P8_MIGRATION = "2026-09-07-p8-real-commerce-fulfillment";
 const P81_MIGRATION = "2026-09-07-p8-1-structured-payment-profile";
+const SUPPORT_MIGRATION = "2026-09-09-customer-support-v1";
 const RELEASE_CONTRACT = "2026-09-06-platform-hardening-v3";
 const STAGING_ATTESTATION_MARKER = "p2-e2e-isolated";
 
@@ -93,6 +96,10 @@ async function handleHealth(env) {
         to_regclass('public.store_commerce_settings') IS NOT NULL AS store_commerce_settings,
         to_regclass('public.checkout_commerce_preferences') IS NOT NULL AS checkout_commerce_preferences,
         to_regclass('public.order_timeline_events') IS NOT NULL AS order_timeline_events,
+        to_regclass('public.support_tickets') IS NOT NULL AS support_tickets,
+        to_regclass('public.support_messages') IS NOT NULL AS support_messages,
+        to_regclass('public.support_internal_notes') IS NOT NULL AS support_internal_notes,
+        to_regclass('public.support_ticket_events') IS NOT NULL AS support_ticket_events,
         (
           SELECT COUNT(*) = 7
           FROM information_schema.columns
@@ -120,10 +127,12 @@ async function handleHealth(env) {
     const p6Required = ["moderation_reports","order_disputes","store_verification_submissions","marketplace_case_events"];
     const p7Required = ["growth_events","marketplace_promotions"];
     const p8Required = ["store_commerce_settings","checkout_commerce_preferences","order_timeline_events"];
+    const supportRequired = ["support_tickets","support_messages","support_internal_notes","support_ticket_events"];
     const missingCore = required.filter(name => !state[name]);
     const missingP6 = p6Required.filter(name => !state[name]);
     const missingP7 = p7Required.filter(name => !state[name]);
     const missingP8 = p8Required.filter(name => !state[name]);
+    const missingSupport = supportRequired.filter(name => !state[name]);
     let p0Applied = false;
     let p1Applied = false;
     let finalSecurityApplied = false;
@@ -131,12 +140,13 @@ async function handleHealth(env) {
     let p7Applied = false;
     let p8Applied = false;
     let p81Applied = false;
+    let supportApplied = false;
     let stagingDatabaseAttested = false;
 
     if (state.schema_migrations) {
       const appliedRows = await sql`
         SELECT version FROM schema_migrations
-        WHERE version = ANY(${[P0_MIGRATION, P1_MIGRATION, FINAL_SECURITY_MIGRATION, P6_MIGRATION, P7_MIGRATION, P8_MIGRATION, P81_MIGRATION]}::text[])
+        WHERE version = ANY(${[P0_MIGRATION, P1_MIGRATION, FINAL_SECURITY_MIGRATION, P6_MIGRATION, P7_MIGRATION, P8_MIGRATION, P81_MIGRATION, SUPPORT_MIGRATION]}::text[])
       `;
       const applied = new Set(appliedRows.map(row => row.version));
       p0Applied = applied.has(P0_MIGRATION);
@@ -146,6 +156,7 @@ async function handleHealth(env) {
       p7Applied = applied.has(P7_MIGRATION);
       p8Applied = applied.has(P8_MIGRATION);
       p81Applied = applied.has(P81_MIGRATION);
+      supportApplied = applied.has(SUPPORT_MIGRATION);
     }
 
     if (state.staging_environment) {
@@ -179,7 +190,10 @@ async function handleHealth(env) {
         commerce_ready: p8Applied && missingP8.length === 0,
         missing_commerce_count: missingP8.length,
         p8_1_applied: p81Applied,
-        payment_profile_ready: p81Applied && state.payment_profile_settings === true && state.payment_profile_orders === true
+        payment_profile_ready: p81Applied && state.payment_profile_settings === true && state.payment_profile_orders === true,
+        support_applied: supportApplied,
+        support_ready: supportApplied && missingSupport.length === 0,
+        missing_support_count: missingSupport.length
       }
     }, { status: 200, headers: { "Cache-Control": "no-store, max-age=0", "X-Content-Type-Options": "nosniff" } });
   } catch {
@@ -211,6 +225,8 @@ async function routeRequest(request, env, ctx) {
   if (adminGrowthResponse) return adminGrowthResponse;
   const adminOperationsResponse = await handleAdminOperationsApi(request, env);
   if (adminOperationsResponse) return adminOperationsResponse;
+  const adminSupportResponse = await handleAdminSupportApi(request, env);
+  if (adminSupportResponse) return adminSupportResponse;
   const adminControlResponse = await handleAdminControlApi(request, env);
   if (adminControlResponse) return adminControlResponse;
 
@@ -225,6 +241,8 @@ async function routeRequest(request, env, ctx) {
   if (launchGrowthResponse) return launchGrowthResponse;
   const publicAuthResponse = await handlePublicAuthApi(request, env);
   if (publicAuthResponse) return publicAuthResponse;
+  const supportResponse = await handleSupportApi(request, env);
+  if (supportResponse) return supportResponse;
   const sellerDisputeResponse = await handleSellerDisputeApi(request, env);
   if (sellerDisputeResponse) return sellerDisputeResponse;
   const marketplaceSafetyResponse = await handleMarketplaceSafetyApi(request, env);
