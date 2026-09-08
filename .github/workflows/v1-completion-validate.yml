@@ -1,0 +1,47 @@
+name: V1 Completion P6-P10 Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'js/v1-completion.js'
+      - 'css/v1-completion.css'
+      - 'js/p3-premium-experience.js'
+      - 'admin/intelligence.html'
+      - 'js/admin/intelligence-v2.js'
+      - 'css/admin-intelligence-v2.css'
+      - 'release/v1-manifest.json'
+      - 'scripts/validate-v1-completion.mjs'
+      - 'package.json'
+      - 'src/cart-checkout-v2-api.js'
+      - 'src/orders-api-v2.js'
+      - '.github/workflows/v1-completion-validate.yml'
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  certify-v1:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup Node 22
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+      - name: Syntax check completion modules
+        run: |
+          node --check js/v1-completion.js
+          node --check js/admin/intelligence-v2.js
+          node --check scripts/validate-v1-completion.mjs
+      - name: P6-P10 launch certification
+        run: npm run test:v1-completion
+      - name: Canonical validation
+        run: npm run validate
