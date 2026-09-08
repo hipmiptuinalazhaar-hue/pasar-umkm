@@ -28,7 +28,8 @@ forbid(api,/DELETE FROM cart_items WHERE cart_id=\$1::uuid["'`)]/,'whole-cart de
 forbid(api,/VALUES\([^\n]*'pending'[^\n]*\$4,0,\$4/,'hard-coded zero delivery total');
 need(boundary,'handleCartCheckoutV2Api','V2 commerce boundary');
 
-for(const text of ['pasar_cart_selection_v2','data-cart-v2-item','data-cart-v2-store','data-cart-v2-all','Checkout (','setSelection([String(productId)])','css/cart-checkout-v2.css?v=1.0','js/profile-address-v2.js?v=1.0',"window.PasarP8Commerce=Object.freeze({version:'1.2'"])need(cart,text,'selective cart UI');
+for(const text of ['pasar_cart_selection_v2','data-cart-v2-item','data-cart-v2-store','data-cart-v2-all','Checkout (','setSelection([String(productId)])','css/cart-checkout-v2.css?v=1.0','js/profile-address-v2.js?v=1.0',"window.PasarP8Commerce=Object.freeze({version:'1.2'",'[data-cart-v2-checkout]',"const target='/checkout/index.html'","location[replace?'replace':'assign'](target)"])need(cart,text,'selective cart UI / checkout ownership');
+forbid(cart,/location\.pathname==='\/checkout\/'\s*\|\|\s*location\.pathname==='\/checkout'/,'legacy checkout pathname no-op');
 for(const text of ['data-cart-v2-checkout','removeAttribute(\'data-commerce-action\')','PasarP8Commerce?.openCheckout',"location.assign('/checkout/')",'stopImmediatePropagation','PasarCartCheckoutHotfix'])need(hotfix,text,'cart checkout click ownership');
 for(const text of ['js/cart-checkout-hotfix-v1.js?v=1.0','loadCartCheckoutHotfix()',"window.PasarP8Commerce?.version === '1.2'","js/p8-commerce-integration.js?v=1.2"])need(p3,text,'cart hotfix/P8 loader');
 for(const text of ['min-width:24px','min-height:52px',':focus-visible'])need(cartCss,text,'cart accessibility styling');
@@ -49,4 +50,4 @@ for(const [path,source,max] of budgets){const bytes=Buffer.byteLength(source);if
 if(pkg.scripts?.['test:cart-checkout-v2']!=='node scripts/validate-cart-checkout-v2.mjs')throw new Error('package.json missing test:cart-checkout-v2');
 if(!String(pkg.scripts?.validate||'').includes('npm run test:cart-checkout-v2'))throw new Error('canonical validate must include Cart Checkout V2');
 
-console.log('Cart + Checkout V2 contract PASS: isolated checkout click ownership, selective cart, server-authoritative fulfillment/payment/fees, address/GPS snapshot, seller navigation, and selected-only deletion are intact.');
+console.log('Cart + Checkout V2 contract PASS: isolated checkout click ownership, exact Checkout V2 navigation, selective cart, server-authoritative fulfillment/payment/fees, address/GPS snapshot, seller navigation, and selected-only deletion are intact.');
