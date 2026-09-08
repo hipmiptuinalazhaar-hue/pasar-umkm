@@ -6,6 +6,7 @@ on:
       - 'js/p2-social-commerce.js'
       - 'css/p2-social-commerce.css'
       - 'js/p8-commerce-integration.js'
+      - 'js/account-resilience.js'
       - 'scripts/validate-p2-social-commerce.mjs'
       - '.github/workflows/p2-social-commerce-validate.yml'
       - 'index.html'
@@ -34,6 +35,7 @@ jobs:
         run: |
           node --check js/p2-social-commerce.js
           node --check js/p8-commerce-integration.js
+          node --check js/account-resilience.js
           node --check scripts/validate-p2-social-commerce.mjs
 
       - name: Validate P2 social-commerce architecture
