@@ -7,6 +7,70 @@
   let loadPromise = null;
   let actionPromise = null;
   let commercePromise = null;
+  let mountGuard = 0;
+
+  function liveNode(id) {
+    const node = document.getElementById(id);
+    return node?.isConnected ? node : null;
+  }
+
+  function reconcileChatMount() {
+    const feed = liveNode('feed');
+    if (!feed) throw new Error('Area chat tidak tersedia pada halaman aktif.');
+
+    // app.runtime keeps a DOM cache. Reconcile it immediately before the lazy
+    // chat owner runs so a stale reference can never create a half-open shell
+    // where the header/navigation disappear but the old feed remains visible.
+    if (typeof DOM !== 'undefined') {
+      DOM.feed = feed;
+      DOM.storiesSection = liveNode('storiesSection');
+      DOM.homeDiscovery = liveNode('homeDiscovery');
+      DOM.navigation = liveNode('appNavigation');
+    }
+
+    return feed;
+  }
+
+  function restorePartialChat(message = 'Pesan belum dapat dibuka.') {
+    clearTimeout(mountGuard);
+    mountGuard = 0;
+
+    document.body.classList.remove('chat-v7-body');
+    document.documentElement.style.removeProperty('--chat7-height');
+    document.documentElement.style.removeProperty('--chat7-offset-top');
+
+    const discovery = liveNode('homeDiscovery');
+    if (discovery) discovery.hidden = false;
+
+    if (typeof renderStories === 'function') {
+      renderStories();
+    } else {
+      const stories = liveNode('storiesSection');
+      if (stories) stories.hidden = false;
+    }
+
+    if (typeof STATE !== 'undefined') STATE.activeNav = 'home';
+    if (typeof updateNavigation === 'function') updateNavigation();
+
+    window.showToast?.(message);
+  }
+
+  function guardMountedChat(feed) {
+    clearTimeout(mountGuard);
+
+    const verify = () => {
+      if (!document.body.classList.contains('chat-v7-body')) return;
+      const page = feed?.isConnected ? feed.querySelector('.chat-v7-page') : null;
+      if (page?.isConnected) return;
+      restorePartialChat();
+    };
+
+    // Chat V7 mounts its loading shell synchronously before its first network
+    // await. A microtask check catches the exact partial-shell state reported
+    // on mobile; the delayed check protects against future async regressions.
+    queueMicrotask(verify);
+    mountGuard = window.setTimeout(verify, 1200);
+  }
 
   function ensureStyle() {
     const found = document.querySelector('link[data-chat-v7-style="true"]');
@@ -113,17 +177,35 @@
     if (!target) return;
     event.preventDefault();
     event.stopImmediatePropagation();
+
+    let feed = null;
+    try {
+      feed = reconcileChatMount();
+    } catch (error) {
+      console.error('[Pasar UMKM] Chat mount error:', error);
+      restorePartialChat();
+      return;
+    }
+
     ensureV7().then(chat => {
+      let opening;
       if (target.matches('[data-social-action="message-user"]')) {
-        return chat.openWithUser(target.dataset.userId);
+        opening = chat.openWithUser(target.dataset.userId);
+      } else if (target.matches('[data-social-action="open-conversation"]')) {
+        opening = chat.openConversation(target.dataset.conversationId);
+      } else {
+        opening = chat.openList();
       }
-      if (target.matches('[data-social-action="open-conversation"]')) {
-        return chat.openConversation(target.dataset.conversationId);
-      }
-      return chat.openList();
+
+      guardMountedChat(feed);
+      return opening;
     }).catch(error => {
       console.error('[Pasar UMKM] Chat bootstrap error:', error);
-      window.showToast?.('Pesan belum dapat dibuka.');
+      if (document.body.classList.contains('chat-v7-body') && !document.querySelector('.chat-v7-page')) {
+        restorePartialChat();
+      } else {
+        window.showToast?.('Pesan belum dapat dibuka.');
+      }
     });
   }, true);
 
@@ -134,6 +216,8 @@
     legacyThreadPollSuppressed: true,
     mutationObserver: false,
     conversationLongPress: 'chat-conversation-actions-v7',
-    commerceBridge: 'chat-commerce-v8'
+    commerceBridge: 'chat-commerce-v8',
+    mobileMountGuard: true,
+    liveDomReconciliation: true
   };
 })();
