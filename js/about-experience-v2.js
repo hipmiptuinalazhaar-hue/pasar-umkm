@@ -6,7 +6,7 @@
    ========================================================= */
 
 (() => {
-  if (window.PasarAboutExperience?.version === '2.1') return;
+  if (window.PasarAboutExperience?.version === '2.0' && window.PasarAboutExperience?.revision === '2.1') return;
 
   const fallback = typeof window.openAbout === 'function'
     ? window.openAbout.bind(window)
@@ -177,7 +177,8 @@
 
   window.openAbout = openAboutV2;
   window.PasarAboutExperience = Object.freeze({
-    version: '2.1',
+    version: '2.0',
+    revision: '2.1',
     open: openAboutV2
   });
 })();
