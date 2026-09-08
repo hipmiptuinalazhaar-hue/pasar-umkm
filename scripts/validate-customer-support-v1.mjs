@@ -75,7 +75,7 @@ has('worker', '2026-09-09-customer-support-v1');
 // User-facing support experience.
 for (const token of ['Customer Service','noindex,nofollow,noarchive','support-center-v1.css','support-center-v1.js']) has('userHtml', token);
 for (const token of [
-  'Mulai chat dengan CS','Customer Service Pasar UMKM','password','OTP','/api/support/tickets',
+  'Mulai chat dengan CS','Customer Service tidak pernah meminta','password','OTP','/api/support/tickets',
   'data-new-ticket','data-close-ticket','waiting_support','waiting_user'
 ]) has('userJs', token);
 must(!/Super\s*Admin/i.test(data.userHtml + data.userJs), 'user-facing support UI must never expose the internal Super Admin label');
@@ -117,8 +117,10 @@ budget('userCss', 18000);
 budget('adminJs', 20000);
 budget('adminCss', 18000);
 
+// Reject unfinished engineering markers, but never confuse legitimate HTML
+// placeholder attributes or placeholder copy with an unfinished implementation.
 for (const [key, text] of Object.entries(data)) {
-  must(!/(TODO|TBD|LOREM|PLACEHOLDER)/i.test(text), `${files[key]} contains placeholder content`);
+  must(!/(?:\bTODO\b|\bTBD\b|\bLOREM\b|__PLACEHOLDER__)/i.test(text), `${files[key]} contains unfinished marker content`);
 }
 
 if (errors.length) {
