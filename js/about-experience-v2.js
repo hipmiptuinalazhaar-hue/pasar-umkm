@@ -6,7 +6,7 @@
    ========================================================= */
 
 (() => {
-  if (window.PasarAboutExperience?.version === '2.0') return;
+  if (window.PasarAboutExperience?.version === '2.0' && window.PasarAboutExperience?.revision === '2.1') return;
 
   const fallback = typeof window.openAbout === 'function'
     ? window.openAbout.bind(window)
@@ -38,6 +38,9 @@
       : 'HIPMI PT UIN Al Azhaar Lubuklinggau';
     const initiator = typeof CONFIG !== 'undefined'
       ? (CONFIG.INITIATOR || 'Capryan Agusto')
+      : 'Capryan Agusto';
+    const operator = typeof CONFIG !== 'undefined'
+      ? (CONFIG.OPERATOR || 'Capryan Agusto')
       : 'Capryan Agusto';
     const logo = typeof ASSETS !== 'undefined'
       ? (ASSETS.logo || 'assets/logo.webp')
@@ -132,7 +135,7 @@
         </section>
 
         <section class="about-v2-identity">
-          <span class="about-v2-kicker">Inisiatif & pengembangan</span>
+          <span class="about-v2-kicker">Identitas & penyelenggara</span>
           <div class="about-v2-identity-row">
             <span>Inisiatif</span>
             <strong>${esc(organization)}</strong>
@@ -142,8 +145,25 @@
             <strong>${esc(initiator)}</strong>
           </div>
           <div class="about-v2-identity-row">
-            <span>Fokus awal</span>
-            <strong>Penguatan digital UMKM ${esc(city)}</strong>
+            <span>Penyelenggara platform</span>
+            <strong>${esc(operator)} · orang perseorangan</strong>
+          </div>
+          <div class="about-v2-identity-row">
+            <span>Domisili operasional</span>
+            <strong>${esc(city)}, Sumatera Selatan</strong>
+          </div>
+        </section>
+
+        <section class="about-v2-legal" aria-label="Legal dan kepercayaan">
+          <div class="about-v2-legal-copy">
+            <span class="about-v2-kicker">Legal & kepercayaan</span>
+            <h3>Kebijakan dibuat mudah ditemukan.</h3>
+            <p>Pelajari privasi, aturan transaksi, kebijakan seller dan buyer, produk terlarang, serta jalur pengaduan.</p>
+          </div>
+          <div class="about-v2-legal-links">
+            <a href="/legal/index.html"><i class="ph ph-shield-check" aria-hidden="true"></i><span><strong>Pusat Legal & Kepercayaan</strong><small>Semua kebijakan dan identitas penyelenggara</small></span><i class="ph ph-caret-right" aria-hidden="true"></i></a>
+            <a href="/legal/privasi.html"><i class="ph ph-lock-key" aria-hidden="true"></i><span><strong>Kebijakan Privasi</strong><small>Data, keamanan, dan hak pengguna</small></span><i class="ph ph-caret-right" aria-hidden="true"></i></a>
+            <a href="/legal/pengaduan.html"><i class="ph ph-lifebuoy" aria-hidden="true"></i><span><strong>Pengaduan & Sengketa</strong><small>Transaksi, keamanan, konten, dan data pribadi</small></span><i class="ph ph-caret-right" aria-hidden="true"></i></a>
           </div>
         </section>
 
@@ -158,6 +178,7 @@
   window.openAbout = openAboutV2;
   window.PasarAboutExperience = Object.freeze({
     version: '2.0',
+    revision: '2.1',
     open: openAboutV2
   });
 })();

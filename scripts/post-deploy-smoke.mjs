@@ -52,6 +52,31 @@ await check('public shell', async () => {
   return 'shell + CSP';
 });
 
+await check('legal trust center', async () => {
+  const { response, text } = await request('/legal/index.html', { headers: { Accept: 'text/html' } });
+  assert(response.status === 200, `HTTP ${response.status}`);
+  assert(/Legal\s*&\s*Trust\s*Center/i.test(text), 'Legal & Trust Center marker missing');
+  assert(text.includes('Capryan Agusto, orang perseorangan'), 'operator disclosure missing');
+  assert(text.includes('Penyelesaian kasus tidak otomatis memindahkan uang.'), 'financial dispute boundary missing');
+  return 'hub + operator + commerce boundary';
+});
+
+await check('legal privacy policy', async () => {
+  const { response, text } = await request('/legal/privasi.html', { headers: { Accept: 'text/html' } });
+  assert(response.status === 200, `HTTP ${response.status}`);
+  assert(/Kebijakan\s+Privasi/i.test(text), 'privacy policy marker missing');
+  assert(/Hak pengguna/i.test(text), 'privacy rights marker missing');
+  return 'privacy + data rights';
+});
+
+await check('legal complaint channel', async () => {
+  const { response, text } = await request('/legal/pengaduan.html', { headers: { Accept: 'text/html' } });
+  assert(response.status === 200, `HTTP ${response.status}`);
+  assert(/Pengaduan\s*&\s*Penyelesaian\s*Sengketa/i.test(text), 'complaint policy marker missing');
+  assert(text.includes('hipmiptuinalazhaar@gmail.com'), 'support channel missing');
+  return 'complaints + support channel';
+});
+
 await check('admin shell', async () => {
   const { response, text } = await request('/admin/', { headers: { Accept: 'text/html' } });
   assert(response.status === 200, `HTTP ${response.status}`);
