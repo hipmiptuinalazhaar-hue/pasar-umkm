@@ -6,7 +6,7 @@
    ========================================================= */
 
 (() => {
-  if (window.PasarAboutExperience?.version === '2.0' && window.PasarAboutExperience?.revision === '2.1') return;
+  if (window.PasarAboutExperience?.version === '2.0' && window.PasarAboutExperience?.revision === '2.2') return;
 
   const fallback = typeof window.openAbout === 'function'
     ? window.openAbout.bind(window)
@@ -154,13 +154,14 @@
           </div>
         </section>
 
-        <section class="about-v2-legal" aria-label="Legal dan kepercayaan">
+        <section class="about-v2-legal" aria-label="Bantuan, legal, dan kepercayaan">
           <div class="about-v2-legal-copy">
-            <span class="about-v2-kicker">Legal & kepercayaan</span>
-            <h3>Kebijakan dibuat mudah ditemukan.</h3>
-            <p>Pelajari privasi, aturan transaksi, kebijakan seller dan buyer, produk terlarang, serta jalur pengaduan.</p>
+            <span class="about-v2-kicker">Bantuan, legal & kepercayaan</span>
+            <h3>Bantuan dan kebijakan dibuat mudah ditemukan.</h3>
+            <p>Hubungi Customer Service, pelajari privasi, aturan transaksi, kebijakan seller dan buyer, produk terlarang, serta jalur pengaduan.</p>
           </div>
           <div class="about-v2-legal-links">
+            <a href="/support/"><i class="ph ph-headset" aria-hidden="true"></i><span><strong>Customer Service Pasar UMKM</strong><small>Chat privat untuk pesanan, akun, toko, dan pengaduan</small></span><i class="ph ph-caret-right" aria-hidden="true"></i></a>
             <a href="/legal/index.html"><i class="ph ph-shield-check" aria-hidden="true"></i><span><strong>Pusat Legal & Kepercayaan</strong><small>Semua kebijakan dan identitas penyelenggara</small></span><i class="ph ph-caret-right" aria-hidden="true"></i></a>
             <a href="/legal/privasi.html"><i class="ph ph-lock-key" aria-hidden="true"></i><span><strong>Kebijakan Privasi</strong><small>Data, keamanan, dan hak pengguna</small></span><i class="ph ph-caret-right" aria-hidden="true"></i></a>
             <a href="/legal/pengaduan.html"><i class="ph ph-lifebuoy" aria-hidden="true"></i><span><strong>Pengaduan & Sengketa</strong><small>Transaksi, keamanan, konten, dan data pribadi</small></span><i class="ph ph-caret-right" aria-hidden="true"></i></a>
@@ -178,7 +179,7 @@
   window.openAbout = openAboutV2;
   window.PasarAboutExperience = Object.freeze({
     version: '2.0',
-    revision: '2.1',
+    revision: '2.2',
     open: openAboutV2
   });
 })();
