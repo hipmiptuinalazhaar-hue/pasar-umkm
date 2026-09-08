@@ -11,7 +11,7 @@
     if (doc.querySelector('link[data-v1-completion-style]')) return;
     const link = doc.createElement('link');
     link.rel = 'stylesheet';
-    link.href = 'css/v1-completion.css?v=1.0';
+    link.href = 'css/v1-completion.css?v=1.1';
     link.dataset.v1CompletionStyle = 'true';
     doc.head.appendChild(link);
   }
@@ -91,7 +91,7 @@
     return `
       <section class="v1-seller-ops" data-v1-seller-ops>
         <div class="v1-seller-head">
-          <div><span class="v1-kicker">P6 · OPERASI TOKO</span><h2>Tindakan hari ini</h2><p>${attention ? `${attention} hal membutuhkan perhatian toko.` : 'Tidak ada pekerjaan mendesak saat ini.'}</p></div>
+          <div><h2>Tindakan hari ini</h2><p>${attention ? `${attention} hal membutuhkan perhatian toko.` : 'Tidak ada pekerjaan mendesak saat ini.'}</p></div>
           <span class="v1-attention ${attention ? 'has-work' : ''}">${attention}</span>
         </div>
         <div class="v1-metrics">
@@ -135,7 +135,7 @@
       menu.parentElement?.insertBefore(wrapper.firstElementChild, menu);
       cache.sellerAt = Date.now();
     } catch (error) {
-      if (error.status !== 401 && error.status !== 403) console.warn('[Pasar UMKM] P6 seller operations:', error);
+      if (error.status !== 401 && error.status !== 403) console.warn('[Pasar UMKM] seller operations:', error);
     } finally { cache.sellerLoading = false; }
   }
 
@@ -158,6 +158,27 @@
     if (number(pEvidence?.sold_count) > 0) return `${number(pEvidence.sold_count).toLocaleString('id-ID')} terjual`;
     if (number(pEvidence?.average_rating) > 0) return `Rating ${number(pEvidence.average_rating).toFixed(1)}`;
     return product.is_featured ? 'Pilihan marketplace' : 'Produk lokal aktif';
+  }
+
+  function recommendationCard(item, products, stores) {
+    const pEvidence = products.get(String(item.id));
+    const sEvidence = stores.get(String(item.store_id));
+    const id = esc(item.id);
+    const name = esc(item.name || 'Produk');
+    const image = esc(item.image_url || '/assets/logo.webp');
+    const store = esc(item.store_name || 'UMKM Lokal');
+    const reason = esc(recommendationReason(item, pEvidence, sEvidence));
+    const stock = Math.max(0, number(item.stock));
+    return `<article class="v1-rec-card" data-v1-rec-product="${id}">
+      <button type="button" class="v1-rec-open" data-action="product-detail" data-product-id="${id}" aria-label="Lihat ${name}">
+        <span class="v1-rec-image"><img src="${image}" alt="${name}" loading="lazy" decoding="async"></span>
+        <span class="v1-rec-copy"><small>${reason}</small><strong>${name}</strong><span>${money.format(number(item.price))}</span><em>${store}</em><b>Stok ${stock.toLocaleString('id-ID')}</b></span>
+      </button>
+      <div class="v1-rec-actions">
+        <button type="button" class="v1-rec-cart" data-action="add-cart" data-product-id="${id}" aria-label="Tambah ${name} ke keranjang"><i class="ph ph-shopping-cart-simple" aria-hidden="true"></i><span>Keranjang</span></button>
+        <button type="button" class="v1-rec-buy" data-action="buy-now" data-product-id="${id}">Beli</button>
+      </div>
+    </article>`;
   }
 
   async function enhanceDiscovery() {
@@ -185,15 +206,11 @@
       const section = doc.createElement('section');
       section.className = 'v1-recommendations';
       section.dataset.v1Recommendations = 'true';
-      section.innerHTML = `<div class="v1-rec-head"><div><span class="v1-kicker">P7 · DISCOVERY</span><h2>Rekomendasi marketplace</h2><p>Diranking dari verifikasi, transaksi selesai, rating pembelian, dan ketersediaan produk.</p></div><button type="button" data-action="search" aria-label="Cari produk lain"><i class="ph ph-magnifying-glass"></i></button></div><div class="v1-rec-grid">${ranked.map(({ item }) => {
-        const pEvidence = products.get(String(item.id));
-        const sEvidence = stores.get(String(item.store_id));
-        return `<a class="v1-rec-card" href="/share/product/${encodeURIComponent(item.id)}" data-v1-rec-product="${esc(item.id)}"><span class="v1-rec-image"><img src="${esc(item.image_url || '/assets/logo.webp')}" alt="${esc(item.name || 'Produk')}" loading="lazy" decoding="async"></span><span class="v1-rec-copy"><small>${esc(recommendationReason(item, pEvidence, sEvidence))}</small><strong>${esc(item.name || 'Produk')}</strong><span>${money.format(number(item.price))}</span><em>${esc(item.store_name || 'UMKM Lokal')}</em></span></a>`;
-      }).join('')}</div><details class="v1-ranking-method"><summary>Mengapa produk ini muncul?</summary><p>Tidak ada skor berbayar tersembunyi pada layer ini. Urutan mempertimbangkan status UMKM, penjualan selesai, rating dari pembelian, produk unggulan, kesegaran, dan stok tersedia.</p></details>`;
+      section.innerHTML = `<div class="v1-rec-head"><div><h2>Rekomendasi untuk kamu</h2><p>Produk pilihan dari UMKM aktif, berdasarkan transaksi, rating pembeli, dan stok tersedia.</p></div><button type="button" data-action="search" aria-label="Cari produk lain"><i class="ph ph-magnifying-glass"></i></button></div><div class="v1-rec-grid">${ranked.map(({ item }) => recommendationCard(item, products, stores)).join('')}</div><details class="v1-ranking-method"><summary>Mengapa produk ini muncul?</summary><p>Urutan mempertimbangkan status UMKM, penjualan selesai, rating dari pembelian, produk unggulan, kesegaran, dan stok tersedia. Tidak ada posisi berbayar tersembunyi.</p></details>`;
       home.appendChild(section);
       cache.recommendationsAt = Date.now();
     } catch (error) {
-      console.warn('[Pasar UMKM] P7 recommendations:', error);
+      console.warn('[Pasar UMKM] recommendations:', error);
     } finally { cache.recommendationsLoading = false; }
   }
 
