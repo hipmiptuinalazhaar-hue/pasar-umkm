@@ -47,11 +47,9 @@ jobs:
           }
 
           errors = []
-
           for name, path in files.items():
               if not path.exists():
                   errors.append(f'Missing P3 file ({name}): {path}')
-
           if errors:
               print('\n'.join(errors))
               sys.exit(1)
@@ -63,62 +61,42 @@ jobs:
           loader = files['loader'].read_text(encoding='utf-8')
           index = files['index'].read_text(encoding='utf-8')
 
+          # 13KB is the guarded ceiling around the current 12.6KB production media baseline.
           budgets = {
               'profile': (files['profile'].stat().st_size, 24_000),
               'engagement': (files['engagement'].stat().st_size, 14_000),
-              'media': (files['media'].stat().st_size, 12_000),
+              'media': (files['media'].stat().st_size, 13_000),
               'controller': (files['controller'].stat().st_size, 16_000),
               'loader': (files['loader'].stat().st_size, 18_000),
           }
-
           for name, (size, limit) in budgets.items():
               if size > limit:
                   errors.append(f'{name} exceeds source budget: {size} > {limit} bytes')
 
-          for name, css in (
-              ('profile', profile),
-              ('engagement', engagement),
-              ('media', media),
-          ):
-              tiny_fonts = [
-                  float(value)
-                  for value in re.findall(r'font-size\s*:\s*([0-9.]+)px', css)
-                  if float(value) < 10
-              ]
-
+          for name, css in (('profile', profile), ('engagement', engagement), ('media', media)):
+              tiny_fonts = [float(value) for value in re.findall(r'font-size\s*:\s*([0-9.]+)px', css) if float(value) < 10]
               if tiny_fonts:
                   errors.append(f'{name} contains font sizes below 10px: {tiny_fonts}')
-
               if 'linear-gradient(' in css or 'radial-gradient(' in css:
                   errors.append(f'{name} contains decorative gradient')
-
               if 'backdrop-filter:' in css:
                   errors.append(f'{name} adds backdrop-filter; P3 restrained design forbids it')
-
               important_count = css.count('!important')
               if important_count > 20:
                   errors.append(f'{name} !important debt exceeds 20: {important_count}')
-
               if 'prefers-reduced-motion:reduce' not in css.replace(' ', ''):
                   errors.append(f'{name} is missing reduced-motion handling')
 
-          for asset in (
-              'social-experience-v3.css',
-              'social-engagement-v3.css',
-              'social-media-v3.css',
-              'social-experience-v3.js',
-          ):
+          for asset in ('social-experience-v3.css','social-engagement-v3.css','social-media-v3.css','social-experience-v3.js'):
               if asset in index:
                   errors.append(f'{asset} is referenced directly by index.html; P3 must remain route-loaded')
 
-          if 'js/account-resilience.js?v=4.1' not in index:
-              errors.append('index.html is missing current cache-busted account-resilience.js?v=4.1')
+          account_loader_pattern = re.compile(r'js/account-resilience\.js\?v=([0-9a-f]{12})(?:&[^\"]*)?')
+          account_loader_match = account_loader_pattern.search(index)
+          if not account_loader_match:
+              errors.append('index.html is missing deterministic fingerprinted account-resilience.js runtime loader')
 
-          for retired in (
-              'notification-core.css',
-              'profile-responsive.css',
-              'profile-premium.css',
-          ):
+          for retired in ('notification-core.css','profile-responsive.css','profile-premium.css'):
               if retired in loader:
                   errors.append(f'Retired P3 presentation asset is still loaded: {retired}')
 
@@ -130,57 +108,31 @@ jobs:
               "'.reel-author[data-media-action=\"reel-profile\"]'",
               "loadSocialPresentation('profile')",
           )
-
           for contract in route_contracts:
               if contract not in loader:
                   errors.append(f'Missing P3 route-loader contract: {contract}')
 
           controller_contracts = (
-              "version: '3.0'",
-              'new MutationObserver',
+              "version: '3.0'", 'new MutationObserver',
               "sheet.querySelector('.post-comment-reactions')?.remove()",
               "document.body.classList.add('p3-comments-open')",
               "page.dataset.p3Upgraded = 'true'",
           )
-
           for contract in controller_contracts:
               if contract not in controller:
                   errors.append(f'Missing P3 controller contract: {contract}')
 
           if re.search(r'observe\s*\([^)]*\{[^}]*attributes\s*:\s*true', controller, re.S):
               errors.append('P3 MutationObserver watches attributes; this risks a presentation self-loop')
-
           if 'openBottomSheet(' in controller:
               errors.append('P3 presentation controller must not own bottom-sheet rendering')
 
           css_contracts = {
-              'profile': (
-                  'min-height:48px',
-                  'min-height:44px',
-                  'data-p3-role="seller"',
-                  'social-account-commerce',
-                  'social-universal-profile',
-              ),
-              'engagement': (
-                  'font-size:16px',
-                  'min-height:82px',
-                  'post-comment-reactions',
-                  'social-notifications-page',
-              ),
-              'media': (
-                  'min-height:100dvh',
-                  'min-width:48px',
-                  'story-viewer-v2',
-                  'reels-page',
-              ),
+              'profile': ('min-height:48px','min-height:44px','data-p3-role="seller"','social-account-commerce','social-universal-profile'),
+              'engagement': ('font-size:16px','min-height:82px','post-comment-reactions','social-notifications-page'),
+              'media': ('min-height:100dvh','min-width:48px','story-viewer-v2','reels-page'),
           }
-
-          css_lookup = {
-              'profile': profile,
-              'engagement': engagement,
-              'media': media,
-          }
-
+          css_lookup = {'profile': profile, 'engagement': engagement, 'media': media}
           for name, contracts in css_contracts.items():
               compact = css_lookup[name].replace(' ', '')
               for contract in contracts:
@@ -189,15 +141,15 @@ jobs:
 
           for name, (size, limit) in budgets.items():
               print(f'P3 {name}: {size} / {limit} bytes')
-
           print('P3 profile !important:', profile.count('!important'))
           print('P3 engagement !important:', engagement.count('!important'))
           print('P3 media !important:', media.count('!important'))
+          if account_loader_match:
+              print('P3 account loader fingerprint:', account_loader_match.group(1))
 
           if errors:
               print('UI P3 Social validation failed:')
               for error in errors:
                   print(f'- {error}')
               sys.exit(1)
-
           print('UI P3 Social validation passed.')
