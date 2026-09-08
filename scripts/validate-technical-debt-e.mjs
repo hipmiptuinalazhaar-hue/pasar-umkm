@@ -56,8 +56,9 @@ if (!failures.length) {
     if (index.includes(path)) fail(`index masih mereferensikan retired artifact: ${path}`);
   }
 
-  if (!index.includes('js/chat-single-render-v6.js?v=7.1')) {
-    fail('index tidak memuat compatibility bootstrap Chat V7 cache boundary 7.1');
+  const chatBootstrapPattern = /js\/chat-single-render-v6\.js\?v=[0-9a-f]{12}/;
+  if (!chatBootstrapPattern.test(index)) {
+    fail('index tidak memuat compatibility bootstrap Chat V7 dengan fingerprint runtime deterministik');
   }
 
   if (!p4.includes('HISTORICAL / ARCHIVED')) {
