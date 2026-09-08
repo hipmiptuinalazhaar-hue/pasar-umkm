@@ -1,7 +1,15 @@
 {
   "release": "2026-09-08-v1-completion",
   "product": "Pasar UMKM",
-  "status": "candidate",
+  "status": "technical-certified",
+  "certification_scope": "production-engineering",
+  "launch_hardening": {
+    "legal_trust_v1": true,
+    "customer_support_v1": true,
+    "checkout_production_verified": true,
+    "auth_v2_production_verified": true,
+    "mobile_chat_freeze_fix_verified": true
+  },
   "milestones": {
     "p1_auth_security": true,
     "p2_social_commerce": true,
