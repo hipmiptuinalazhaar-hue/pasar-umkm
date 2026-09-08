@@ -92,7 +92,7 @@ if (!process.exitCode) {
     ['p.store_id = ${storeId}::uuid', 'seller store ownership query'],
     ['p.is_active = TRUE', 'active product enforcement'],
     ['sql.transaction([insertPost, ...tagQueries])', 'atomic post and tag create'],
-    ["'product_tags'", 'public shoppable read model'],
+    ['AS product_tags', 'public shoppable read model'],
     ['pr.store_id = p.store_id', 'read model same-store guard'],
     ['replacePostProducts', 'post tag replacement path'],
     ['request.method === "PUT"', 'post tag update method']
