@@ -1,139 +1,20 @@
 'use strict';
-
-(() => {
-  if (window.__PUMKM_CHAT_V7_BOOTSTRAP__) return;
-  window.__PUMKM_CHAT_V7_BOOTSTRAP__ = true;
-
-  let loadPromise = null;
-  let actionPromise = null;
-  let commercePromise = null;
-
-  function ensureStyle() {
-    const found = document.querySelector('link[data-chat-v7-style="true"]');
-    if (found) return Promise.resolve(found);
-    return new Promise((resolve, reject) => {
-      const node = document.createElement('link');
-      node.rel = 'stylesheet';
-      node.href = 'css/chat-experience-v7.css?v=7.0';
-      node.dataset.chatV7Style = 'true';
-      node.onload = () => resolve(node);
-      node.onerror = () => reject(new Error('Chat V7 CSS gagal dimuat.'));
-      document.head.appendChild(node);
-    });
-  }
-
-  function waitReady(test, label, timeout = 5000) {
-    return new Promise((resolve, reject) => {
-      const started = Date.now();
-      const timer = setInterval(() => {
-        const value = test();
-        if (value) {
-          clearInterval(timer);
-          resolve(value);
-        } else if (Date.now() - started > timeout) {
-          clearInterval(timer);
-          reject(new Error(`${label} belum siap.`));
-        }
-      }, 40);
-    });
-  }
-
-  function ensureScript() {
-    if (window.PasarChatV7?.version === '7.0') return Promise.resolve(window.PasarChatV7);
-    let node = document.querySelector('script[data-chat-v7-module="true"]');
-    if (!node) {
-      node = document.createElement('script');
-      node.src = 'js/chat-experience-v7.js?v=7.0';
-      node.async = true;
-      node.dataset.chatV7Module = 'true';
-      document.body.appendChild(node);
-    }
-    return waitReady(() => window.PasarChatV7?.version === '7.0' && window.PasarChatV7, 'Chat V7');
-  }
-
-  function ensureConversationActions() {
-    if (window.PasarChatConversationActions?.version === '1.0') return Promise.resolve(window.PasarChatConversationActions);
-    if (actionPromise) return actionPromise;
-    let node = document.querySelector('script[data-chat-v7-conversation-actions="true"]');
-    if (!node) {
-      node = document.createElement('script');
-      node.src = 'js/chat-conversation-actions-v7.js?v=1.0';
-      node.async = true;
-      node.dataset.chatV7ConversationActions = 'true';
-      document.body.appendChild(node);
-    }
-    actionPromise = waitReady(
-      () => window.PasarChatConversationActions?.version === '1.0' && window.PasarChatConversationActions,
-      'Aksi percakapan'
-    ).catch(error => { actionPromise = null; throw error; });
-    return actionPromise;
-  }
-
-  function ensureCommerceChat() {
-    if (window.PasarChatCommerceV8?.version === '8.0') return Promise.resolve(window.PasarChatCommerceV8);
-    if (commercePromise) return commercePromise;
-    let node = document.querySelector('script[data-chat-commerce-v8="true"]');
-    if (!node) {
-      node = document.createElement('script');
-      node.src = 'js/chat-commerce-v8.js?v=1.0';
-      node.async = true;
-      node.dataset.chatCommerceV8 = 'true';
-      document.body.appendChild(node);
-    }
-    commercePromise = waitReady(
-      () => window.PasarChatCommerceV8?.version === '8.0' && window.PasarChatCommerceV8,
-      'Commerce Chat V8'
-    ).catch(error => { commercePromise = null; throw error; });
-    return commercePromise;
-  }
-
-  function ensureV7() {
-    if (loadPromise) return loadPromise;
-    loadPromise = Promise.all([ensureStyle(), ensureScript()])
-      .then(async ([, module]) => {
-        await Promise.all([ensureConversationActions(), ensureCommerceChat()]);
-        return module;
-      })
-      .catch(error => { loadPromise = null; throw error; });
-    return loadPromise;
-  }
-
-  const selector = [
-    '[data-action="messages"]',
-    '[data-social-action="message-user"]',
-    '[data-social-action="open-conversation"]'
-  ].join(',');
-
-  document.addEventListener('pointerdown', event => {
-    if (event.target?.closest?.(selector)) ensureV7().catch(() => null);
-  }, { capture: true, passive: true });
-
-  document.addEventListener('click', event => {
-    const target = event.target?.closest?.(selector);
-    if (!target) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    ensureV7().then(chat => {
-      if (target.matches('[data-social-action="message-user"]')) {
-        return chat.openWithUser(target.dataset.userId);
-      }
-      if (target.matches('[data-social-action="open-conversation"]')) {
-        return chat.openConversation(target.dataset.conversationId);
-      }
-      return chat.openList();
-    }).catch(error => {
-      console.error('[Pasar UMKM] Chat bootstrap error:', error);
-      window.showToast?.('Pesan belum dapat dibuka.');
-    });
-  }, true);
-
-  window.ensurePasarChatV7 = ensureV7;
-  window.__PUMKM_CHAT_V6_DIAGNOSTICS__ = {
-    version: 'retired',
-    renderer: 'chat-v7-bootstrap',
-    legacyThreadPollSuppressed: true,
-    mutationObserver: false,
-    conversationLongPress: 'chat-conversation-actions-v7',
-    commerceBridge: 'chat-commerce-v8'
-  };
+(()=>{
+if(window.__PUMKM_CHAT_V7_BOOTSTRAP__)return;window.__PUMKM_CHAT_V7_BOOTSTRAP__=true;
+let loadPromise=null,actionPromise=null,commercePromise=null,mountGuard=0;
+const live=id=>{const n=document.getElementById(id);return n?.isConnected?n:null};
+function reconcile(){const feed=live('feed');if(!feed)throw Error();if(typeof DOM!=='undefined'){DOM.feed=feed;DOM.storiesSection=live('storiesSection');DOM.homeDiscovery=live('homeDiscovery')}return feed}
+function recover(){clearTimeout(mountGuard);document.body.classList.remove('chat-v7-body');document.documentElement.style.removeProperty('--chat7-height');const d=live('homeDiscovery');if(d)d.hidden=false;if(typeof renderStories==='function')renderStories();if(typeof STATE!=='undefined')STATE.activeNav='home';if(typeof updateNavigation==='function')updateNavigation();window.showToast?.('Pesan belum dapat dibuka.')}
+function guard(feed){clearTimeout(mountGuard);const check=()=>{if(document.body.classList.contains('chat-v7-body')&&!feed?.querySelector('.chat-v7-page'))recover()};queueMicrotask(check);mountGuard=setTimeout(check,1200)}
+function style(){const f=document.querySelector('link[data-chat-v7-style="true"]');if(f)return Promise.resolve(f);return new Promise((ok,no)=>{const n=document.createElement('link');n.rel='stylesheet';n.href='css/chat-experience-v7.css?v=7.0';n.dataset.chatV7Style='true';n.onload=()=>ok(n);n.onerror=no;document.head.appendChild(n)})}
+function wait(test,label,timeout=5000){return new Promise((ok,no)=>{const start=Date.now(),timer=setInterval(()=>{const value=test();if(value){clearInterval(timer);ok(value)}else if(Date.now()-start>timeout){clearInterval(timer);no(Error(`${label} belum siap.`))}},40)})}
+function script(){if(window.PasarChatV7?.version==='7.0')return Promise.resolve(window.PasarChatV7);let n=document.querySelector('script[data-chat-v7-module="true"]');if(!n){n=document.createElement('script');n.src='js/chat-experience-v7.js?v=7.0';n.async=true;n.dataset.chatV7Module='true';document.body.appendChild(n)}return wait(()=>window.PasarChatV7?.version==='7.0'&&window.PasarChatV7,'Chat V7')}
+function ensureConversationActions(){if(window.PasarChatConversationActions?.version==='1.0')return Promise.resolve(window.PasarChatConversationActions);if(actionPromise)return actionPromise;let n=document.querySelector('script[data-chat-v7-conversation-actions="true"]');if(!n){n=document.createElement('script');n.src='js/chat-conversation-actions-v7.js?v=1.0';n.async=true;n.dataset.chatV7ConversationActions='true';document.body.appendChild(n)}actionPromise=wait(()=>window.PasarChatConversationActions?.version==='1.0'&&window.PasarChatConversationActions,'Aksi percakapan').catch(e=>{actionPromise=null;throw e});return actionPromise}
+function ensureCommerceChat(){if(window.PasarChatCommerceV8?.version === '8.0')return Promise.resolve(window.PasarChatCommerceV8);if(commercePromise)return commercePromise;let n=document.querySelector('script[data-chat-commerce-v8="true"]');if(!n){n=document.createElement('script');n.src='js/chat-commerce-v8.js?v=1.0';n.async=true;n.dataset.chatCommerceV8='true';document.body.appendChild(n)}commercePromise=wait(()=>window.PasarChatCommerceV8?.version==='8.0'&&window.PasarChatCommerceV8,'Commerce Chat V8').catch(e=>{commercePromise=null;throw e});return commercePromise}
+function ensureV7(){if(loadPromise)return loadPromise;loadPromise=Promise.all([style(),script()]).then(async([,chat])=>{await Promise.all([ensureConversationActions(),ensureCommerceChat()]);return chat}).catch(e=>{loadPromise=null;throw e});return loadPromise}
+const selector=['[data-action="messages"]','[data-social-action="message-user"]','[data-social-action="open-conversation"]'].join(',');
+document.addEventListener('pointerdown',event=>{if(event.target?.closest?.(selector))ensureV7().catch(()=>null)},{capture:true,passive:true});
+document.addEventListener('click',event=>{const target=event.target?.closest?.(selector);if(!target)return;event.preventDefault();event.stopImmediatePropagation();let feed;try{feed=reconcile()}catch(e){console.error('[Pasar UMKM] Chat mount error:',e);recover();return}ensureV7().then(chat=>{let opening;if(target.matches('[data-social-action="message-user"]'))opening=chat.openWithUser(target.dataset.userId);else if(target.matches('[data-social-action="open-conversation"]'))opening=chat.openConversation(target.dataset.conversationId);else opening=chat.openList();guard(feed);return opening}).catch(e=>{console.error('[Pasar UMKM] Chat bootstrap error:',e);if(document.body.classList.contains('chat-v7-body')&&!document.querySelector('.chat-v7-page'))recover();else window.showToast?.('Pesan belum dapat dibuka.')})},true);
+window.ensurePasarChatV7 = ensureV7;
+window.__PUMKM_CHAT_V6_DIAGNOSTICS__={version:'retired',renderer:'chat-v7-bootstrap',legacyThreadPollSuppressed:true,mutationObserver:false,conversationLongPress: 'chat-conversation-actions-v7',commerceBridge:'chat-commerce-v8'};
 })();

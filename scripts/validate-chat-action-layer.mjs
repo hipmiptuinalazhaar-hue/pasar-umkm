@@ -5,6 +5,7 @@ const index = read('index.html');
 const runtimeCss = read('css/style.runtime.css');
 const chatCss = read('css/chat-experience-v7.css');
 const chatJs = read('js/chat-experience-v7.js');
+const bootstrap = read('js/chat-single-render-v6.js');
 const gestures = read('js/chat-conversation-actions-v7.js');
 
 const failures = [];
@@ -17,9 +18,7 @@ if (!pageRule) {
   const match = pageRule[1].match(/z-index\s*:\s*(\d+)/);
   const z = match ? Number(match[1]) : NaN;
   if (!Number.isFinite(z)) fail('Chat V7 page tidak memiliki z-index eksplisit');
-  if (Number.isFinite(z) && z >= 490) {
-    fail(`Chat V7 page z-index ${z} menutupi modal/sheet layer 490+`);
-  }
+  if (Number.isFinite(z) && z >= 490) fail(`Chat V7 page z-index ${z} menutupi modal/sheet layer 490+`);
   if (z !== 240) fail(`Chat V7 page layer contract harus 240, ditemukan ${String(z)}`);
 }
 
@@ -43,6 +42,31 @@ for (const marker of [
 }
 
 for (const marker of [
+  "document.getElementById(id)",
+  "n?.isConnected",
+  "function reconcile()",
+  "DOM.feed=feed",
+  "DOM.storiesSection=live('storiesSection')",
+  "DOM.homeDiscovery=live('homeDiscovery')",
+  "function guard(feed)",
+  "feed?.querySelector('.chat-v7-page')",
+  "document.body.classList.remove('chat-v7-body')",
+  "document.documentElement.style.removeProperty('--chat7-height')"
+]) {
+  if (!bootstrap.includes(marker)) fail(`Chat mobile mount guard kehilangan contract: ${marker}`);
+}
+
+const reconcilePosition = bootstrap.indexOf('feed=reconcile()');
+const openPosition = bootstrap.indexOf('opening=chat.openList()');
+if (reconcilePosition < 0 || openPosition < 0 || reconcilePosition > openPosition) {
+  fail('Live DOM reconciliation wajib berjalan sebelum Chat V7 membuka conversation list');
+}
+
+if (Buffer.byteLength(bootstrap) > 5000) {
+  fail(`Chat bootstrap ${Buffer.byteLength(bootstrap)}B melebihi budget 5000B`);
+}
+
+for (const marker of [
   '[data-chat-v7-row]',
   '[data-chat-v7-action="conversation-menu"][data-conversation-id]',
   'menu.click()',
@@ -62,3 +86,4 @@ if (failures.length) {
 }
 
 console.log('Chat action layer validation PASS: chat 240 < sheet 490/500 < toast 700, action ownership preserved.');
+console.log('Mobile mount guard PASS: live DOM reconciliation + partial-shell recovery enforced within bootstrap budget.');
