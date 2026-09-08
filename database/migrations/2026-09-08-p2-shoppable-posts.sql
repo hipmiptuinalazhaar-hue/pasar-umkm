@@ -7,32 +7,23 @@ ALTER TABLE post_products
     ADD COLUMN IF NOT EXISTS anchor_y NUMERIC(5,4),
     ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
 
-DO $$
-BEGIN
-    ALTER TABLE post_products
-        ADD CONSTRAINT post_products_tag_order_range
-        CHECK (tag_order >= 0 AND tag_order < 5);
-EXCEPTION
-    WHEN duplicate_object THEN NULL;
-END $$;
+ALTER TABLE post_products
+    DROP CONSTRAINT IF EXISTS post_products_tag_order_range;
+ALTER TABLE post_products
+    ADD CONSTRAINT post_products_tag_order_range
+    CHECK (tag_order >= 0 AND tag_order < 5);
 
-DO $$
-BEGIN
-    ALTER TABLE post_products
-        ADD CONSTRAINT post_products_anchor_x_range
-        CHECK (anchor_x IS NULL OR (anchor_x >= 0 AND anchor_x <= 1));
-EXCEPTION
-    WHEN duplicate_object THEN NULL;
-END $$;
+ALTER TABLE post_products
+    DROP CONSTRAINT IF EXISTS post_products_anchor_x_range;
+ALTER TABLE post_products
+    ADD CONSTRAINT post_products_anchor_x_range
+    CHECK (anchor_x IS NULL OR (anchor_x >= 0 AND anchor_x <= 1));
 
-DO $$
-BEGIN
-    ALTER TABLE post_products
-        ADD CONSTRAINT post_products_anchor_y_range
-        CHECK (anchor_y IS NULL OR (anchor_y >= 0 AND anchor_y <= 1));
-EXCEPTION
-    WHEN duplicate_object THEN NULL;
-END $$;
+ALTER TABLE post_products
+    DROP CONSTRAINT IF EXISTS post_products_anchor_y_range;
+ALTER TABLE post_products
+    ADD CONSTRAINT post_products_anchor_y_range
+    CHECK (anchor_y IS NULL OR (anchor_y >= 0 AND anchor_y <= 1));
 
 CREATE INDEX IF NOT EXISTS idx_post_products_product
     ON post_products(product_id, post_id);
@@ -43,7 +34,7 @@ CREATE INDEX IF NOT EXISTS idx_post_products_post_order
 CREATE OR REPLACE FUNCTION enforce_post_product_scope()
 RETURNS TRIGGER
 LANGUAGE plpgsql
-AS $$
+AS $function$
 DECLARE
     post_store UUID;
     product_store UUID;
@@ -87,7 +78,7 @@ BEGIN
 
     RETURN NEW;
 END;
-$$;
+$function$;
 
 DROP TRIGGER IF EXISTS trg_post_products_scope ON post_products;
 CREATE TRIGGER trg_post_products_scope
