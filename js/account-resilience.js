@@ -5,6 +5,18 @@
   const warmPaths = new Set(['/api/categories','/api/stores','/api/products','/api/posts']);
   const responseCache = new Map();
   const PUBLIC_CACHE_TTL_MS = 20_000;
+  let warmCount = 0;
+
+  function networkCapability() {
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection || null;
+    const effectiveType = String(connection?.effectiveType || '').toLowerCase();
+    const saveData = Boolean(connection?.saveData);
+    return Object.freeze({
+      effectiveType,
+      saveData,
+      constrained: saveData || ['slow-2g','2g'].includes(effectiveType)
+    });
+  }
 
   function publicKey(input, init) {
     try {
@@ -36,10 +48,25 @@
   };
 
   function warmPublicBootstrap() {
+    const network = networkCapability();
+    const paths = network.constrained ? ['/api/categories'] : [...warmPaths];
     const init = { method:'GET', credentials:'include', headers:{Accept:'application/json'}, cache:'no-store' };
-    for (const path of warmPaths) window.fetch(path, init).catch(() => null);
+    for (const path of paths) {
+      warmCount += 1;
+      window.fetch(path, init).catch(() => null);
+    }
   }
   warmPublicBootstrap();
+
+  window.PasarP2Performance = Object.freeze({
+    version: '1.0',
+    networkCapability,
+    getDiagnostics: () => Object.freeze({
+      warm_requests: warmCount,
+      cache_entries: responseCache.size,
+      network: networkCapability()
+    })
+  });
 
   if (typeof openAccount !== 'function') return;
 
@@ -173,6 +200,10 @@
       const target = event.target?.closest?.(selector);
       if (target && !ready()) loader().catch(() => null);
     }, {capture:true, passive:true});
+    document.addEventListener('focusin', event => {
+      const target = event.target?.closest?.(selector);
+      if (target && !ready()) loader().catch(() => null);
+    }, true);
     document.addEventListener('click', async event => {
       const target = event.target?.closest?.(selector);
       if (!target || ready() || replaying.has(target)) return;
@@ -197,6 +228,12 @@
   }
   function schedulePostRenderWarmup() {
     const start = () => {
+      const network = networkCapability();
+      if (document.visibilityState === 'hidden' || network.constrained) return;
+      if (network.effectiveType === '3g') {
+        setTimeout(() => runIdle(() => ensureCoreEnhancements().catch(() => null),3000),900);
+        return;
+      }
       runIdle(() => ensurePremiumExperience().catch(() => null),1200);
       setTimeout(() => runIdle(() => {
         ensureCoreEnhancements().then(() => runIdle(() => ensureMediaEnhancements().catch(() => null),5000)).catch(() => null);
