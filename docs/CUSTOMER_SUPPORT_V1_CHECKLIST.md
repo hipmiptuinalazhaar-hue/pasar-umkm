@@ -1,6 +1,6 @@
 # Customer Support V1 release checklist
 
-- [x] Production database support schema installed
+- [ ] Production database support schema installed
 - [x] User support API implemented
 - [x] Admin support API implemented
 - [x] RBAC permissions wired
