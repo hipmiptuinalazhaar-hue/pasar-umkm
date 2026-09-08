@@ -1,0 +1,40 @@
+name: P2 Social-Commerce Performance Validation
+
+on:
+  pull_request:
+    paths:
+      - 'js/p2-social-commerce.js'
+      - 'css/p2-social-commerce.css'
+      - 'js/p8-commerce-integration.js'
+      - 'scripts/validate-p2-social-commerce.mjs'
+      - '.github/workflows/p2-social-commerce-validate.yml'
+      - 'index.html'
+  push:
+    branches:
+      - p2/social-commerce-performance-v3
+
+permissions:
+  contents: read
+
+jobs:
+  validate-p2-social-commerce:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+
+      - name: Validate JavaScript syntax
+        run: |
+          node --check js/p2-social-commerce.js
+          node --check js/p8-commerce-integration.js
+          node --check scripts/validate-p2-social-commerce.mjs
+
+      - name: Validate P2 social-commerce architecture
+        run: node scripts/validate-p2-social-commerce.mjs
