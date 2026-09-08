@@ -217,9 +217,9 @@
   }
 
   function loadCartCheckoutHotfix() {
-    if (window.PasarCartCheckoutHotfix?.version === '1.1' || doc.querySelector('script[data-cart-checkout-hotfix="true"]')) return;
+    if (window.PasarCartCheckoutHotfix?.version === '1.2' || doc.querySelector('script[data-cart-checkout-hotfix="true"]')) return;
     const script = doc.createElement('script');
-    script.src = 'js/cart-checkout-hotfix-v1.js?v=1.1';
+    script.src = 'js/cart-checkout-hotfix-v1.js?v=1.2';
     script.async = true;
     script.dataset.cartCheckoutHotfix = 'true';
     body.appendChild(script);

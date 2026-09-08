@@ -28,12 +28,33 @@ forbid(api,/DELETE FROM cart_items WHERE cart_id=\$1::uuid["'`)]/,'whole-cart de
 forbid(api,/VALUES\([^\n]*'pending'[^\n]*\$4,0,\$4/,'hard-coded zero delivery total');
 need(boundary,'handleCartCheckoutV2Api','V2 commerce boundary');
 
-for(const text of ['pasar_cart_selection_v2','data-cart-v2-item','data-cart-v2-store','data-cart-v2-all','Checkout (','setSelection([String(productId)])','css/cart-checkout-v2.css?v=1.0','js/profile-address-v2.js?v=1.0',"window.PasarP8Commerce=Object.freeze({version:'1.2'",'[data-cart-v2-checkout]',"const target='/checkout/index.html'","location[replace?'replace':'assign'](target)"])need(cart,text,'selective cart UI / checkout ownership');
+for(const text of ['pasar_cart_selection_v2','data-cart-v2-item','data-cart-v2-store','data-cart-v2-all','Checkout (','setSelection([String(productId)])','css/cart-checkout-v2.css?v=1.0','js/profile-address-v2.js?v=1.0',"window.PasarP8Commerce=Object.freeze({version:'1.2'",'[data-cart-v2-checkout]',"const target='/checkout/index.html'","location[replace?'replace':'assign'](target)"])need(cart,text,'selective cart state / checkout ownership');
 forbid(cart,/location\.pathname==='\/checkout\/'\s*\|\|\s*location\.pathname==='\/checkout'/,'legacy checkout pathname no-op');
-for(const text of ['data-cart-v2-checkout','CHECKOUT_SELECTOR','prepareSelection','sessionStorage.setItem(SELECTION_KEY','location.assign(\'/checkout/index.html\')','window.addEventListener(\'click\'','stopImmediatePropagation','PasarCartCheckoutHotfix','version: \'1.1\''])need(hotfix,text,'cart checkout click ownership / selection repair');
+
+for(const text of [
+  "version === '1.2'",
+  'commerce-cart-v2-toolbar',
+  'data-cart-v2-item',
+  'data-cart-v2-store',
+  'data-cart-v2-all',
+  'Pilih semua',
+  'produk dipilih',
+  'changeSelection',
+  'prepareSelection',
+  'sessionStorage.setItem(SELECTION_KEY',
+  "css/cart-checkout-v2.css?v=1.1",
+  "location.assign('/checkout/index.html')",
+  "window.addEventListener('change'",
+  "window.addEventListener('click'",
+  'stopImmediatePropagation',
+  'PasarCartCheckoutHotfix',
+  "version: '1.2'"
+])need(hotfix,text,'visible selective cart checkout owner');
 forbid(hotfix,/location\.assign\(['"]\/checkout\/['"]\)/,'legacy directory checkout fallback');
-for(const text of ['js/cart-checkout-hotfix-v1.js?v=1.1','loadCartCheckoutHotfix()',"window.PasarCartCheckoutHotfix?.version === '1.1'","window.PasarP8Commerce?.version === '1.2'","js/p8-commerce-integration.js?v=1.2"])need(p3,text,'cart hotfix/P8 loader');
-for(const text of ['min-width:24px','min-height:52px',':focus-visible'])need(cartCss,text,'cart accessibility styling');
+forbid(hotfix,/\bfetch\s*\(/,'duplicate cart API ownership in selection UI');
+
+for(const text of ['js/cart-checkout-hotfix-v1.js?v=1.2','loadCartCheckoutHotfix()',"window.PasarCartCheckoutHotfix?.version === '1.2'","window.PasarP8Commerce?.version === '1.2'","js/p8-commerce-integration.js?v=1.2"])need(p3,text,'cart selection/P8 loader');
+for(const text of ['min-width:24px','min-height:52px',':focus-visible','commerce-cart-v2-store-check-wrap','touch-action:manipulation'])need(cartCss,text,'cart accessibility styling');
 
 for(const text of ['/api/commerce/cart','/api/commerce/address-book','/api/commerce/fulfillment/stores/','/api/commerce/checkout/preferences','/api/commerce/checkout-v2','pasar_cart_selection_v2','navigator.geolocation','https://www.google.com/maps?q=','selected_product_ids','notes_by_store','sessionStorage.removeItem'])need(checkout,text,'Checkout V2 state flow');
 forbid(checkout,/MutationObserver/,'MutationObserver checkout state engine');
@@ -45,10 +66,10 @@ for(const text of ['min-height:54px','position:fixed','accent-color:var(--c-prim
 for(const text of ['/api/commerce/address-book','navigator.geolocation','https://www.google.com/maps?q=','Simpan alamat utama','profileAddressV2'])need(profile,text,'profile address/location');
 for(const text of ['delivery_latitude','delivery_longitude','delivery_landmark','https://www.google.com/maps?q=','Navigasi ke pembeli'])need(seller,text,'seller delivery navigation');
 
-const budgets=[['src/cart-checkout-v2-api.js',api,26000],['js/p8-commerce-integration.js',cart,16000],['js/cart-checkout-hotfix-v1.js',hotfix,5000],['js/checkout-v2.js',checkout,26000],['js/profile-address-v2.js',profile,14000],['js/seller-center-order-p8.js',seller,14000],['css/checkout-v2.css',checkoutCss,18000],['css/cart-checkout-v2.css',cartCss,7000]];
+const budgets=[['src/cart-checkout-v2-api.js',api,26000],['js/p8-commerce-integration.js',cart,16000],['js/cart-checkout-hotfix-v1.js',hotfix,12000],['js/checkout-v2.js',checkout,26000],['js/profile-address-v2.js',profile,14000],['js/seller-center-order-p8.js',seller,14000],['css/checkout-v2.css',checkoutCss,18000],['css/cart-checkout-v2.css',cartCss,7500]];
 for(const [path,source,max] of budgets){const bytes=Buffer.byteLength(source);if(bytes>max)throw new Error(`${path} too large: ${bytes}/${max}`)}
 
 if(pkg.scripts?.['test:cart-checkout-v2']!=='node scripts/validate-cart-checkout-v2.mjs')throw new Error('package.json missing test:cart-checkout-v2');
 if(!String(pkg.scripts?.validate||'').includes('npm run test:cart-checkout-v2'))throw new Error('canonical validate must include Cart Checkout V2');
 
-console.log('Cart + Checkout V2 contract PASS: deterministic cart selection repair, isolated checkout click ownership, exact Checkout V2 navigation, selective cart, server-authoritative fulfillment/payment/fees, address/GPS snapshot, seller navigation, and selected-only deletion are intact.');
+console.log('Cart + Checkout V2 contract PASS: visible per-product/store/select-all controls, selected-only totals, deterministic selection persistence, exact Checkout V2 navigation, and server-authoritative selected-only order creation are intact.');
