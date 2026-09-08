@@ -17,6 +17,10 @@ function requireAbsent(label, content, matcher) {
   (ok ? passes : failures).push(label);
 }
 
+function requireCondition(label, condition) {
+  (condition ? passes : failures).push(label);
+}
+
 function syntax(file) {
   const result = spawnSync(process.execPath, ['--check', path.join(root, file)], { encoding: 'utf8' });
   if (result.status === 0) passes.push(`syntax:${file}`);
@@ -24,31 +28,46 @@ function syntax(file) {
 }
 
 const api = read('src/public-auth-api.js');
+const v2 = read('src/public-auth-security-v2-api.js');
+const shared = read('src/auth-security-v2-shared.js');
 const email = read('src/auth-email.js');
 const limiter = read('src/rate-limit.js');
 const migration = read('database/migrations/2026-09-08-auth-security-v2.sql');
 const frontend = read('js/auth-security-v2.js');
 const runtimeLoader = read('js/p8-commerce-integration.js');
 const css = read('css/auth-security-v2.css');
+const authAll = [api, v2, shared].join('\n');
 
-for (const file of ['src/public-auth-api.js', 'src/auth-email.js', 'src/rate-limit.js', 'js/auth-security-v2.js', 'js/p8-commerce-integration.js']) syntax(file);
+for (const file of [
+  'src/public-auth-api.js',
+  'src/public-auth-security-v2-api.js',
+  'src/auth-security-v2-shared.js',
+  'src/auth-email.js',
+  'src/rate-limit.js',
+  'js/auth-security-v2.js',
+  'js/p8-commerce-integration.js'
+]) syntax(file);
 
-requireMatch('register-start-route', api, '/api/auth/register');
-requireMatch('register-verify-route', api, '/api/auth/register/verify');
-requireMatch('register-resend-route', api, '/api/auth/register/resend');
-requireMatch('forgot-route', api, '/api/auth/password/forgot');
-requireMatch('password-verify-route', api, '/api/auth/password/verify');
-requireMatch('password-reset-route', api, '/api/auth/password/reset');
-requireMatch('otp-hmac-pepper', api, /HMAC[\s\S]*AUTH_OTP_PEPPER|AUTH_OTP_PEPPER[\s\S]*HMAC/);
-requireMatch('constant-time-compare', api, 'constantTimeEqual');
-requireMatch('secure-otp-generator', api, 'crypto.getRandomValues');
-requireMatch('otp-expiry', api, "INTERVAL '10 minutes'");
-requireMatch('attempt-limit', api, 'OTP_MAX_ATTEMPTS');
-requireMatch('session-revocation', api, /DELETE FROM sessions WHERE user_id/);
+requireMatch('core-register-route', api, '/api/auth/register');
+requireMatch('v2-delegation', api, 'handlePublicAuthSecurityV2Api');
+requireCondition('focused-public-auth-budget', Buffer.byteLength(api, 'utf8') <= 12_000);
+requireMatch('register-verify-route', v2, '/api/auth/register/verify');
+requireMatch('register-resend-route', v2, '/api/auth/register/resend');
+requireMatch('forgot-route', v2, '/api/auth/password/forgot');
+requireMatch('password-verify-route', v2, '/api/auth/password/verify');
+requireMatch('password-reset-route', v2, '/api/auth/password/reset');
+requireMatch('otp-hmac-pepper', shared, /HMAC[\s\S]*AUTH_OTP_PEPPER|AUTH_OTP_PEPPER[\s\S]*HMAC/);
+requireMatch('constant-time-compare', shared, 'constantTimeEqual');
+requireMatch('secure-otp-generator', shared, 'crypto.getRandomValues');
+requireMatch('otp-expiry', authAll, "INTERVAL '10 minutes'");
+requireMatch('attempt-limit', authAll, 'OTP_MAX_ATTEMPTS');
+requireMatch('session-revocation', v2, /DELETE FROM sessions WHERE user_id/);
 requireMatch('verified-login-only', api, /email_verified = TRUE/);
-requireMatch('generic-recovery-response', api, 'Jika email tersebut terdaftar, kode pemulihan telah dikirim.');
-requireMatch('audit-events', api, 'user_auth_audit_events');
-requireAbsent('no-otp-console-log', api, /console\.(log|info|debug)\([^\n]*(code|otp)/i);
+requireMatch('generic-recovery-response', shared, 'Jika email tersebut terdaftar, kode pemulihan telah dikirim.');
+requireMatch('audit-events', shared, 'user_auth_audit_events');
+requireMatch('registration-pending-bcrypt', api, "gen_salt('bf', 12)");
+requireMatch('login-bcrypt-verification', api, 'password_hash = crypt(${password}, password_hash)');
+requireAbsent('no-otp-console-log', authAll, /console\.(log|info|debug)\([^\n]*(code|otp)/i);
 
 requireMatch('resend-endpoint', email, 'https://api.resend.com/emails');
 requireMatch('resend-bearer-auth', email, 'Authorization: `Bearer ${env.RESEND_API_KEY}`');
