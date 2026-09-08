@@ -1,0 +1,46 @@
+/* Pasar UMKM P5 - Trust & Conversion Intelligence */
+.p5-product-trust,.p5-trust-chips{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.p5-product-trust{margin-top:8px}
+.p5-trust-chip{min-height:28px;display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border:1px solid rgba(21,47,36,.12);border-radius:999px;background:#f8faf9;color:#34483f;font-size:10px;line-height:1.25;font-weight:700;white-space:nowrap}
+.p5-trust-chip i{font-size:14px;color:#356a53}
+.p5-trust-chip small{font:inherit;color:#62746b}
+.p5-trust-chip.is-verified{border-color:rgba(13,105,65,.18);background:#edf7f1;color:#145d3d}
+.p5-trust-chip.is-verified i{color:#0d6941}
+
+.p5-trust-panel,.p5-product-detail-trust{margin-top:14px;padding:14px;border:1px solid rgba(21,47,36,.11);border-radius:16px;background:#fff;color:#1d2c25;box-shadow:0 6px 20px rgba(23,43,34,.05)}
+.p5-trust-panel.is-compact{margin:0 0 14px;padding:12px}
+.p5-trust-head{display:flex;align-items:flex-start;gap:10px}
+.p5-trust-head>span:last-child{min-width:0;display:flex;flex-direction:column;gap:2px}
+.p5-trust-head strong{font-size:13px;line-height:1.35;font-weight:800;color:#1b3026}
+.p5-trust-head small{font-size:10px;line-height:1.45;font-weight:600;color:#6b7a73}
+.p5-trust-icon{width:36px;height:36px;flex:0 0 36px;display:inline-flex;align-items:center;justify-content:center;border-radius:11px;background:#eff6f2;color:#16623f}
+.p5-trust-icon i{font-size:19px}
+.p5-trust-panel .p5-trust-chips,.p5-product-detail-trust .p5-trust-chips{margin-top:11px}
+
+.p5-trust-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.p5-trust-stats>span{min-width:0;padding:10px;border:1px solid rgba(21,47,36,.08);border-radius:12px;background:#fafbfa}
+.p5-trust-stats strong{display:block;font-size:15px;line-height:1.2;font-weight:850;color:#163b2a;font-variant-numeric:tabular-nums}
+.p5-trust-stats small{display:block;margin-top:3px;font-size:10px;line-height:1.35;font-weight:650;color:#6a7971}
+
+.p5-trust-method{margin-top:11px;border-top:1px solid rgba(21,47,36,.08);padding-top:9px;color:#637168}
+.p5-trust-method summary{min-height:36px;display:flex;align-items:center;gap:6px;cursor:pointer;font-size:10px;line-height:1.3;font-weight:750;color:#52645a;list-style:none;-webkit-tap-highlight-color:transparent}
+.p5-trust-method summary::-webkit-details-marker{display:none}
+.p5-trust-method summary::after{content:'+';margin-left:auto;font-size:16px;line-height:1;color:#718078}
+.p5-trust-method[open] summary::after{content:'−'}
+.p5-trust-method p{margin:2px 0 2px;font-size:10px;line-height:1.55;color:#6b7971}
+.p5-trust-method summary:focus-visible{outline:3px solid rgba(18,104,65,.17);outline-offset:3px;border-radius:7px}
+
+.p5-product-detail-trust{margin-top:18px;background:#fbfdfc}
+.commerce-content>.p5-trust-panel.is-compact:first-child{margin-top:0}
+.social-profile-copy>.p5-trust-panel,.social-account-bio>.p5-trust-panel{width:100%;margin-top:14px}
+
+@media (min-width:768px){
+  .p5-trust-panel,.p5-product-detail-trust{padding:16px;border-radius:18px}
+  .p5-trust-stats{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .p5-trust-head strong{font-size:14px}
+  .p5-trust-chip{min-height:30px;padding-inline:9px;font-size:11px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .p5-trust-method summary,.p5-trust-chip{scroll-behavior:auto;transition:none!important}
+}
