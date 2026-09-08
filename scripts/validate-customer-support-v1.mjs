@@ -40,9 +40,6 @@ for (const [key, relative] of Object.entries(files)) {
 function has(key, token, message = `${files[key]} missing ${token}`) {
   must(data[key].includes(token), message);
 }
-function matches(key, regex, message = `${files[key]} missing ${regex}`) {
-  must(regex.test(data[key]), message);
-}
 function budget(key, limit) {
   const size = Buffer.byteLength(data[key]);
   must(size <= limit, `${files[key]} ${size}B exceeds ${limit}B budget`);
@@ -61,8 +58,7 @@ for (const token of [
   'ensureSupportInfrastructure','Cache-Control','no-store'
 ]) has('api', token);
 has('api', 'o.buyer_id = ${userId} OR s.owner_id = ${userId}', 'order context must be limited to buyer or seller owner');
-has('api', 'support_internal_notes', 'public support module should not expose internal notes');
-must(!/SELECT[\s\S]{0,500}support_internal_notes/i.test(data.api), 'public support API must never query internal admin notes');
+must(!data.api.includes('support_internal_notes'), 'public support API must never reference internal admin notes');
 must(!/UPDATE\s+(orders|products|stores)|INSERT\s+INTO\s+(payments|wallets)|DELETE\s+FROM\s+(orders|products)/i.test(data.api), 'public support API must not mutate commerce or money state');
 
 // Admin support requires explicit permissions and audit logging.
