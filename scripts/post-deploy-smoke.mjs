@@ -112,7 +112,7 @@ await check('support shell', async () => {
 await check('admin shell', async () => {
   const { response, text } = await request('/admin/', { headers: { Accept: 'text/html' } });
   assert(response.status === 200, `HTTP ${response.status}`);
-  assert(/Control Center/i.test(text), 'Control Center marker missing');
+  assert(/Admin\s+Console|Control\s+Center/i.test(text), 'Admin Console marker missing');
   assert((response.headers.get('x-frame-options') || '').toUpperCase() === 'DENY', 'admin frame denial missing');
   return 'no-store admin surface';
 });
