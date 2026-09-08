@@ -1,6 +1,7 @@
 name: Auth Security V2
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - 'src/public-auth-api.js'
