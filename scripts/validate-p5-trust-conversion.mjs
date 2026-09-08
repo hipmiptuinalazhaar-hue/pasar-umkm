@@ -70,8 +70,8 @@ if (!errors.length) {
 
   const frontendContracts = [
     "version: '1.0'",
-    "const MAX_IDS = 100",
-    "const REFRESH_TTL = 30_000",
+    'const MAX_IDS = 100',
+    'const REFRESH_TTL = 30_000',
     '/api/ratings/summaries?',
     "method: 'GET'",
     "credentials: 'include'",
@@ -87,7 +87,7 @@ if (!errors.length) {
     'data-p5-store-panel',
     'data-p5-product-detail-trust',
     'data-p5-checkout-trust',
-    'data.p5EvidenceKey',
+    'node.dataset.p5EvidenceKey',
     'replaceStable',
     "observer.observe(doc.body, { childList: true, subtree: true })"
   ];
@@ -126,7 +126,7 @@ if (!errors.length) {
   }
 
   const loaderContracts = [
-    "js/p5-trust-conversion.js?v=1.0",
+    'js/p5-trust-conversion.js?v=1.0',
     "'p5-trust'",
     'window.__PUMKM_P5_INTENT__',
     '.post-card.is-product-post',
