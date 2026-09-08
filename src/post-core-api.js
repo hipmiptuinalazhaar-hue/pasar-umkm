@@ -1,4 +1,10 @@
 import { neon } from "@neondatabase/serverless";
+import {
+  normalizeProductTags,
+  productTagInsertQueries,
+  publicProductTag,
+  validateOwnedProducts
+} from "./post-product-tags.js";
 
 const SESSION_COOKIE = "__Host-pasar_umkm_session";
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -55,7 +61,41 @@ async function listPosts(sql) {
         SELECT COUNT(*)::int
         FROM post_comments pc
         WHERE pc.post_id = p.id AND pc.is_active = TRUE
-      ) AS comments_count
+      ) AS comments_count,
+      COALESCE(
+        (
+          SELECT jsonb_agg(
+            jsonb_build_object(
+              'product_id', pr.id,
+              'name', pr.name,
+              'price', pr.price,
+              'stock', pr.stock,
+              'unit', pr.unit,
+              'image_url', COALESCE(
+                pr.thumbnail_url,
+                (
+                  SELECT pi.image_url
+                  FROM product_images pi
+                  WHERE pi.product_id = pr.id
+                  ORDER BY pi.sort_order ASC, pi.created_at ASC
+                  LIMIT 1
+                )
+              ),
+              'tag_order', pp.tag_order,
+              'anchor_x', pp.anchor_x,
+              'anchor_y', pp.anchor_y
+            )
+            ORDER BY pp.tag_order ASC, pp.created_at ASC
+          )
+          FROM post_products pp
+          JOIN products pr ON pr.id = pp.product_id
+          WHERE
+            pp.post_id = p.id
+            AND pr.store_id = p.store_id
+            AND pr.is_active = TRUE
+        ),
+        '[]'::jsonb
+      ) AS product_tags
     FROM posts p
     JOIN stores s ON s.id = p.store_id
     WHERE p.is_active = TRUE AND s.is_active = TRUE
@@ -107,7 +147,9 @@ async function createPost(sql, request) {
 
   const caption = String(body.caption || "").trim();
   const imageUrl = String(body.image_url || "").trim();
+  const normalized = normalizeProductTags(body);
 
+  if (normalized.error) return json({ ok: false, error: normalized.error }, 400);
   if (!caption) return json({ ok: false, error: "Caption postingan wajib diisi." }, 400);
   if (caption.length > 1000) {
     return json({ ok: false, error: "Caption maksimal 1000 karakter." }, 400);
@@ -117,9 +159,13 @@ async function createPost(sql, request) {
     return json({ ok: false, error: "URL foto postingan tidak valid." }, 400);
   }
 
-  const posts = await sql`
-    INSERT INTO posts (store_id, caption, image_url, is_active)
-    VALUES (${context.store.id}, ${caption}, ${imageUrl}, TRUE)
+  const owned = await validateOwnedProducts(sql, context.store.id, normalized.tags);
+  if (owned.error) return json({ ok: false, error: owned.error }, 400);
+
+  const postId = crypto.randomUUID();
+  const insertPost = sql`
+    INSERT INTO posts (id, store_id, caption, image_url, is_active)
+    VALUES (${postId}::uuid, ${context.store.id}, ${caption}, ${imageUrl}, TRUE)
     RETURNING
       id,
       store_id,
@@ -130,14 +176,70 @@ async function createPost(sql, request) {
       updated_at
   `;
 
+  const tagQueries = productTagInsertQueries(sql, postId, owned.products);
+  const results = await sql.transaction([insertPost, ...tagQueries]);
+  const post = results[0]?.[0];
+
   return json(
     {
       ok: true,
-      message: "Postingan berhasil dipublikasikan.",
-      post: posts[0]
+      message: owned.products.length
+        ? "Postingan dan produk tertaut berhasil dipublikasikan."
+        : "Postingan berhasil dipublikasikan.",
+      post: {
+        ...post,
+        product_tags: owned.products.map(publicProductTag)
+      }
     },
     201
   );
+}
+
+async function replacePostProducts(sql, request, postId) {
+  const context = await sellerContext(sql, request);
+  if (context.response) return context.response;
+
+  const body = await request.json().catch(() => null);
+  if (!body) return json({ ok: false, error: "Data produk tertaut tidak valid." }, 400);
+
+  const normalized = normalizeProductTags(body);
+  if (normalized.error) return json({ ok: false, error: normalized.error }, 400);
+
+  const posts = await sql`
+    SELECT id
+    FROM posts
+    WHERE
+      id = ${postId}::uuid
+      AND store_id = ${context.store.id}
+      AND is_active = TRUE
+    LIMIT 1
+  `;
+  if (!posts[0]) return json({ ok: false, error: "Postingan tidak ditemukan." }, 404);
+
+  const owned = await validateOwnedProducts(sql, context.store.id, normalized.tags);
+  if (owned.error) return json({ ok: false, error: owned.error }, 400);
+
+  const inserts = productTagInsertQueries(sql, postId, owned.products);
+  const results = await sql.transaction([
+    sql`DELETE FROM post_products WHERE post_id = ${postId}::uuid`,
+    ...inserts,
+    sql`
+      UPDATE posts
+      SET updated_at = NOW()
+      WHERE id = ${postId}::uuid
+      RETURNING id, updated_at
+    `
+  ]);
+  const updated = results[results.length - 1]?.[0];
+
+  return json({
+    ok: true,
+    message: "Produk tertaut berhasil diperbarui.",
+    post: {
+      ...updated,
+      product_tags: owned.products.map(publicProductTag)
+    }
+  });
 }
 
 async function deletePost(sql, request, postId) {
@@ -182,6 +284,14 @@ function resolveRoute(request) {
   if (url.pathname === "/api/posts" && request.method === "GET") return { action: "list" };
   if (url.pathname === "/api/posts" && request.method === "POST") return { action: "create" };
 
+  const productMatch = url.pathname.match(/^\/api\/posts\/([^/]+)\/products$/);
+  if (productMatch && request.method === "PUT") {
+    return {
+      action: "replace-products",
+      id: String(productMatch[1] || "").trim().toLowerCase()
+    };
+  }
+
   const match = url.pathname.match(/^\/api\/posts\/([^/]+)$/);
   if (match && request.method === "DELETE") {
     return { action: "delete", id: String(match[1] || "").trim().toLowerCase() };
@@ -201,6 +311,9 @@ export async function handlePostCoreApi(request, env) {
     const sql = neon(env.DATABASE_URL);
     if (route.action === "list") return await listPosts(sql);
     if (route.action === "create") return await createPost(sql, request);
+    if (route.action === "replace-products") {
+      return await replacePostProducts(sql, request, route.id);
+    }
     return await deletePost(sql, request, route.id);
   } catch (error) {
     console.error(`Post core ${route.action} error:`, error);
@@ -211,7 +324,9 @@ export async function handlePostCoreApi(request, env) {
           ? "Gagal memuat postingan."
           : route.action === "create"
             ? "Gagal membuat postingan."
-            : "Gagal menghapus postingan."
+            : route.action === "replace-products"
+              ? "Gagal memperbarui produk tertaut."
+              : "Gagal menghapus postingan."
       },
       500
     );
