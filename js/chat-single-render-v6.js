@@ -48,7 +48,6 @@
       node.dataset.chatV7Module = 'true';
       document.body.appendChild(node);
     }
-    node.onerror = () => {};
     return waitReady(() => window.PasarChatV7?.version === '7.0' && window.PasarChatV7, 'Chat V7');
   }
 
@@ -108,10 +107,6 @@
   document.addEventListener('pointerdown', event => {
     if (event.target?.closest?.(selector)) ensureV7().catch(() => null);
   }, { capture: true, passive: true });
-
-  document.addEventListener('focusin', event => {
-    if (event.target?.closest?.(selector)) ensureV7().catch(() => null);
-  }, true);
 
   document.addEventListener('click', event => {
     const target = event.target?.closest?.(selector);
