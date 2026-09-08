@@ -5,6 +5,8 @@ on:
   pull_request:
     paths:
       - 'src/public-auth-api.js'
+      - 'src/public-auth-security-v2-api.js'
+      - 'src/auth-security-v2-shared.js'
       - 'src/auth-email.js'
       - 'src/rate-limit.js'
       - 'js/auth-security-v2.js'
@@ -18,6 +20,8 @@ on:
       - 'feature/auth-security-v2'
     paths:
       - 'src/public-auth-api.js'
+      - 'src/public-auth-security-v2-api.js'
+      - 'src/auth-security-v2-shared.js'
       - 'src/auth-email.js'
       - 'src/rate-limit.js'
       - 'js/auth-security-v2.js'
