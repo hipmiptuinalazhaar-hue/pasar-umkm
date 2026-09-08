@@ -1,13 +1,12 @@
-/* Pasar UMKM P3 Premium Product Experience
+/* Pasar UMKM P3 Premium Product Experience V2
    Additive presentation layer: premium polish, accessibility, resilience and responsive UX.
    Core commerce behavior stays owned by existing modules. */
 
 :root {
-  --p3-glass: rgba(255,255,255,.88);
-  --p3-glass-strong: rgba(255,255,255,.96);
+  --p3-glass: rgba(255,255,255,.94);
+  --p3-glass-strong: rgba(255,255,255,.985);
   --p3-hairline: rgba(17,22,18,.08);
   --p3-elevated: 0 14px 42px rgba(7,31,20,.09);
-  --p3-elevated-hover: 0 18px 54px rgba(7,31,20,.13);
   --p3-ring: 0 0 0 3px rgba(36,145,94,.22);
   --p3-ring-contrast: 0 0 0 3px rgba(8,55,37,.32);
 }
@@ -25,7 +24,6 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Keyboard users should never have to play “where did my focus go?”. */
 .p3-skip-link {
   position: fixed;
   top: calc(8px + var(--safe-top, 0px));
@@ -44,9 +42,7 @@ body {
   box-shadow: var(--shadow-lg);
 }
 
-.p3-skip-link:focus {
-  transform: translateY(0);
-}
+.p3-skip-link:focus { transform: translateY(0); }
 
 :where(button, a, input, textarea, select, [role="button"], [tabindex]):focus-visible {
   outline: 2px solid var(--forest-600, #17784d);
@@ -58,24 +54,19 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-:where(button, [role="button"]):not([disabled]) {
-  touch-action: manipulation;
-}
+:where(button, [role="button"]):not([disabled]) { touch-action: manipulation; }
 
-/* Header and bottom navigation: calmer, sharper, easier to read over content. */
 html body .app-header {
   background: var(--p3-glass-strong);
   border-color: var(--p3-hairline);
   box-shadow: 0 1px 0 rgba(17,22,18,.04);
 }
 
-@supports ((-webkit-backdrop-filter: blur(16px)) or (backdrop-filter: blur(16px))) {
-  html body .app-header,
-  html body .app-navigation {
-    -webkit-backdrop-filter: saturate(145%) blur(18px);
-    backdrop-filter: saturate(145%) blur(18px);
-    background: var(--p3-glass);
-  }
+html body .app-navigation {
+  background: var(--p3-glass-strong);
+  border-top: 1px solid var(--p3-hairline);
+  box-shadow: 0 -8px 28px rgba(7,31,20,.05);
+  padding-bottom: max(4px, var(--safe-bottom, 0px));
 }
 
 html body .header-icon-button,
@@ -99,21 +90,13 @@ html body .header-search:hover {
   background: #fff;
 }
 
-html body .app-navigation {
-  border-top: 1px solid var(--p3-hairline);
-  box-shadow: 0 -8px 28px rgba(7,31,20,.055);
-  padding-bottom: max(4px, var(--safe-bottom, 0px));
-}
-
 html body .nav-item {
   position: relative;
   transition: color var(--duration-fast,140ms) ease,
               transform var(--duration-fast,140ms) ease;
 }
 
-html body .nav-item:active {
-  transform: translateY(1px) scale(.97);
-}
+html body .nav-item:active { transform: translateY(1px) scale(.97); }
 
 html body .nav-item.active::after,
 html body .nav-item[aria-current="page"]::after {
@@ -128,14 +111,11 @@ html body .nav-item[aria-current="page"]::after {
   transform: translateX(-50%);
 }
 
-/* Hero polish. Premium means restraint, not twelve gradients and a chandelier. */
 html body #homeDiscovery .market-hero {
   isolation: isolate;
   border-color: rgba(255,255,255,.10);
-  background:
-    radial-gradient(circle at 92% 8%, rgba(237,189,93,.14), transparent 31%),
-    linear-gradient(145deg, #083725 0%, #0a402b 58%, #06291d 100%);
-  box-shadow: 0 18px 50px rgba(6,41,29,.15);
+  background: #083725;
+  box-shadow: 0 16px 42px rgba(6,41,29,.13);
 }
 
 html body #homeDiscovery .market-hero::after {
@@ -158,9 +138,7 @@ html body #homeDiscovery .market-hero-secondary {
               box-shadow var(--duration-fast,140ms) ease;
 }
 
-html body #homeDiscovery .market-hero-primary:hover {
-  box-shadow: 0 8px 24px rgba(4,26,17,.22);
-}
+html body #homeDiscovery .market-hero-primary:hover { box-shadow: 0 8px 24px rgba(4,26,17,.22); }
 
 html body #homeDiscovery .market-hero-secondary:hover {
   background: rgba(255,255,255,.07);
@@ -179,7 +157,6 @@ html body #homeDiscovery .quick-category:hover .quick-category-icon {
   background: #f7f3e9 !important;
 }
 
-/* Long feeds get cheaper to render without changing their semantics. */
 html body #feed > .post-card {
   content-visibility: auto;
   contain-intrinsic-size: 620px;
@@ -193,26 +170,16 @@ html body #feed > .post-card {
   }
 }
 
-/* Overlays, sheets and search get one coherent surface language. */
 html body .side-menu-overlay,
 html body .search-overlay,
-html body .sheet-overlay {
-  background: rgba(6,25,17,.48);
-}
+html body .sheet-overlay { background: rgba(6,25,17,.48); }
 
 html body .side-menu-panel,
 html body .search-shell,
-html body .bottom-sheet {
-  background: rgba(255,255,255,.985);
-}
+html body .bottom-sheet { background: rgba(255,255,255,.99); }
 
-html body .side-menu-panel {
-  box-shadow: 24px 0 70px rgba(5,28,18,.18);
-}
-
-html body .bottom-sheet {
-  box-shadow: 0 -24px 70px rgba(5,28,18,.18);
-}
+html body .side-menu-panel { box-shadow: 24px 0 70px rgba(5,28,18,.18); }
+html body .bottom-sheet { box-shadow: 0 -24px 70px rgba(5,28,18,.18); }
 
 html body .search-box {
   min-height: 46px;
@@ -228,12 +195,7 @@ html body .search-box:focus-within {
   background: #fff;
 }
 
-/* Loading should feel intentional rather than like the page has been arrested. */
-html body .app-loading {
-  background: rgba(250,249,245,.72);
-  -webkit-backdrop-filter: blur(5px);
-  backdrop-filter: blur(5px);
-}
+html body .app-loading { background: rgba(250,249,245,.94); }
 
 html body .loading-spinner {
   width: 38px;
@@ -255,7 +217,7 @@ html body .loading-spinner {
   padding: 9px 13px;
   border: 1px solid rgba(255,255,255,.12);
   border-radius: 999px;
-  background: rgba(17,22,18,.94);
+  background: rgba(17,22,18,.96);
   color: #fff;
   font-size: 12px;
   line-height: 1.35;
@@ -273,9 +235,7 @@ html body .loading-spinner {
   opacity: 1;
 }
 
-.p3-connectivity[data-state="online"] {
-  background: rgba(8,55,37,.96);
-}
+.p3-connectivity[data-state="online"] { background: rgba(8,55,37,.98); }
 
 .p3-connectivity-dot {
   width: 8px;
@@ -291,7 +251,8 @@ html body .loading-spinner {
   box-shadow: 0 0 0 3px rgba(185,224,201,.14);
 }
 
-.p3-sr-only {
+.p3-sr-only,
+.p3-route-status {
   position: absolute !important;
   width: 1px !important;
   height: 1px !important;
@@ -303,16 +264,19 @@ html body .loading-spinner {
   border: 0 !important;
 }
 
-/* Tablet and desktop become a deliberate workspace, not a stretched phone. */
+@media (max-width: 767px) {
+  html body #homeDiscovery .market-hero { box-shadow: 0 10px 28px rgba(6,41,29,.11); }
+  html body .side-menu-panel { box-shadow: 16px 0 44px rgba(5,28,18,.15); }
+  html body .bottom-sheet { box-shadow: 0 -16px 44px rgba(5,28,18,.15); }
+}
+
 @media (min-width: 768px) {
   html body #homeDiscovery .market-hero {
     padding: clamp(30px,4vw,46px);
     border-radius: 28px;
   }
 
-  html body #homeDiscovery .market-hero-content {
-    max-width: 520px;
-  }
+  html body #homeDiscovery .market-hero-content { max-width: 520px; }
 
   html body #homeDiscovery .market-hero-title {
     max-width: 500px;
@@ -324,9 +288,7 @@ html body .loading-spinner {
     font-size: 14px;
   }
 
-  html body #homeDiscovery .quick-categories {
-    grid-template-columns: repeat(8,minmax(0,1fr));
-  }
+  html body #homeDiscovery .quick-categories { grid-template-columns: repeat(8,minmax(0,1fr)); }
 
   html body #feed > .post-card {
     border: 1px solid var(--border-subtle,rgba(24,29,25,.07)) !important;
@@ -341,9 +303,7 @@ html body .loading-spinner {
     }
   }
 
-  .p3-connectivity {
-    bottom: 24px;
-  }
+  .p3-connectivity { bottom: 24px; }
 }
 
 @media (min-width: 1180px) {
@@ -355,7 +315,6 @@ html body .loading-spinner {
   }
 }
 
-/* Accessibility modes must override the decorative layer, not fight it. */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto !important; }
   *, *::before, *::after {
@@ -365,9 +324,16 @@ html body .loading-spinner {
     transition-duration: .001ms !important;
   }
   html body #feed > .post-card,
-  html body #homeDiscovery .quick-category:hover .quick-category-icon {
-    transform: none !important;
-  }
+  html body #homeDiscovery .quick-category:hover .quick-category-icon { transform: none !important; }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  html body .app-header,
+  html body .app-navigation,
+  html body .side-menu-panel,
+  html body .search-shell,
+  html body .bottom-sheet,
+  html body .app-loading { background: #fff; }
 }
 
 @media (prefers-contrast: more) {
@@ -377,18 +343,12 @@ html body .loading-spinner {
   }
   html body .header-search,
   html body .search-box,
-  html body #feed > .post-card {
-    border-color: rgba(17,22,18,.28) !important;
-  }
+  html body #feed > .post-card { border-color: rgba(17,22,18,.28) !important; }
 }
 
 @media (forced-colors: active) {
   .p3-connectivity,
-  html body #homeDiscovery .market-hero {
-    forced-color-adjust: auto;
-  }
+  html body #homeDiscovery .market-hero { forced-color-adjust: auto; }
   html body .nav-item.active::after,
-  html body .nav-item[aria-current="page"]::after {
-    background: Highlight;
-  }
+  html body .nav-item[aria-current="page"]::after { background: Highlight; }
 }

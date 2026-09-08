@@ -31,23 +31,33 @@ expect(initialStyles === 5, `critical shell keeps exactly five first-party style
 expect(stat('index.html').size <= 18_000, 'critical HTML stays within 18 KB P6+commerce budget');
 expect(stat('js/account-resilience.js').size <= 18_000, 'P6 loader stays within 18 KB budget after premium gate');
 
+expect(js.includes("revision: '2.0'"), 'P3 v2 controller revision is declared');
+expect(js.includes('function trapFocus('), 'dialog focus trap exists');
+expect(js.includes("event.key !== 'Tab'"), 'focus trap is Tab-specific');
+expect(js.includes("event.key === 'Escape'"), 'Escape closes active dialog surfaces');
+expect(js.includes("setAttribute('aria-modal', 'true')"), 'dialog surfaces expose aria-modal');
+expect(js.includes("setAttribute('aria-controls'"), 'dialog openers expose aria-controls');
+expect(js.includes("setAttribute('aria-current', 'page')"), 'active navigation state is synchronized to aria-current');
+expect(js.includes("className = 'p3-route-status p3-sr-only'"), 'route announcement live region exists');
+expect(js.includes('Halaman ${activeLabel} dibuka.'), 'route changes are announced');
+expect(js.includes("setAttribute('aria-busy'"), 'loading semantics expose aria-busy');
+expect(js.includes("window.addEventListener('offline'"), 'offline event is handled');
+expect(js.includes("window.addEventListener('online'"), 'online recovery event is handled');
+expect(js.includes("className = 'p3-skip-link'"), 'skip-link enhancement exists');
+expect(js.includes('getClientRects().length > 0'), 'focus trap filters hidden controls');
+
 expect(css.includes(':focus-visible'), 'keyboard focus-visible contract exists');
 expect(css.includes('min-height: 44px') || css.includes('min-height:44px'), '44px touch target contract exists');
 expect(css.includes('prefers-reduced-motion'), 'reduced-motion accessibility is supported');
+expect(css.includes('prefers-reduced-transparency'), 'reduced-transparency preference is supported');
 expect(css.includes('prefers-contrast: more'), 'increased contrast preference is supported');
 expect(css.includes('forced-colors: active'), 'forced-colors/high-contrast mode is supported');
 expect(css.includes('safe-bottom'), 'safe-area bottom handling is preserved');
 expect(css.includes('content-visibility: auto'), 'long-feed render optimization exists');
 expect(css.includes('.p3-connectivity'), 'connectivity status presentation exists');
-
-expect(js.includes("window.addEventListener('offline'"), 'offline event is handled');
-expect(js.includes("window.addEventListener('online'"), 'online recovery event is handled');
-expect(js.includes("event.key !== 'Escape'"), 'Escape closes search surface');
-expect(js.includes("setAttribute('aria-current', 'page')"), 'active navigation state is synchronized to aria-current');
-expect(js.includes("setAttribute('aria-expanded'"), 'overlay opener state is synchronized to aria-expanded');
-expect(js.includes("setAttribute('aria-controls'"), 'overlay controls are linked with aria-controls');
-expect(js.includes("role', 'status'"), 'loading/connectivity status semantics exist');
-expect(js.includes("className = 'p3-skip-link'"), 'skip-link enhancement exists');
+expect(css.includes('.p3-route-status'), 'route status helper is visually hidden');
+expect(!css.includes('backdrop-filter:'), 'premium v2 avoids backdrop-filter on low-end devices');
+expect(!css.includes('-webkit-backdrop-filter:'), 'premium v2 avoids prefixed backdrop-filter on low-end devices');
 
 for (const forbidden of ['eval(', 'new Function(', 'document.write(']) {
   expect(!js.includes(forbidden), `premium controller avoids ${forbidden}`);
@@ -60,4 +70,4 @@ expect(cssBytes <= 18_000, 'premium CSS stays within 18 KB source budget');
 expect(jsBytes <= 12_000, 'premium JS stays within 12 KB source budget');
 
 if (process.exitCode) process.exit(process.exitCode);
-console.log('P3 premium product experience contract: PASS');
+console.log('P3 premium product experience v2 contract: PASS');
