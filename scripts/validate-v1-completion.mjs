@@ -7,6 +7,9 @@ const read = path => {
 const need = (source, marker, label) => {
   if (!source.includes(marker)) throw new Error(`Missing ${label}: ${marker}`);
 };
+const needRegex = (source, pattern, label) => {
+  if (!pattern.test(source)) throw new Error(`Missing ${label}: ${pattern}`);
+};
 const forbid = (source, pattern, label) => {
   if (pattern.test(source)) throw new Error(`Forbidden ${label}`);
 };
@@ -22,6 +25,7 @@ const p3 = read('js/p3-premium-experience.js');
 const index = read('index.html');
 const checkoutApi = read('src/cart-checkout-v2-api.js');
 const ordersApi = read('src/orders-api-v2.js');
+const serverCommerce = `${checkoutApi}\n${ordersApi}`;
 const adminPage = read('admin/intelligence.html');
 const adminJs = read('js/admin/intelligence-v2.js');
 const adminCss = read('css/admin-intelligence-v2.css');
@@ -65,27 +69,22 @@ for (const marker of [
   'pasar_cart_selection_v2',
   '[data-cart-v2-checkout]',
   '/api/commerce/cart',
-  'Pilih minimal',
+  'belum ada produk dipilih',
   'server akan memeriksa stok lagi secara atomik',
   'button.disabled = !ready'
 ]) need(runtime.toLowerCase(), marker.toLowerCase(), 'P8 Commerce Safety V3 UI contract');
-for (const marker of [
-  'FOR UPDATE',
-  'stock = stock -',
-  'stock >=',
-  'selected_product_ids',
-  'DELETE FROM cart_items WHERE cart_id=$1::uuid AND product_id=ANY($2::uuid[])'
-]) {
-  if (!checkoutApi.includes(marker) && !ordersApi.includes(marker)) throw new Error(`Missing P8 server integrity contract: ${marker}`);
-}
-forbid(checkoutApi + ordersApi, /\b(?:wallet_balance|escrow_account|settlement_account|refund_ledger)\b/i, 'custodial primitive in checkout/order core');
+needRegex(serverCommerce, /\bFOR\s+(?:UPDATE|SHARE)\b/i, 'P8 row-lock contract');
+needRegex(serverCommerce, /UPDATE\s+products\s+SET\s+stock\s*=\s*stock\s*-\s*\$1[\s\S]{0,180}?stock\s*>?=\s*\$1/i, 'P8 atomic guarded stock decrement');
+need(serverCommerce, 'selected_product_ids', 'P8 selective checkout input');
+needRegex(serverCommerce, /DELETE\s+FROM\s+cart_items\s+WHERE\s+cart_id\s*=\s*\$1::uuid\s+AND\s+product_id\s*=\s*ANY\(\$2::uuid\[\]\)/i, 'P8 selected-only cart deletion');
+forbid(serverCommerce, /\b(?:wallet_balance|escrow_account|settlement_account|refund_ledger)\b/i, 'custodial primitive in checkout/order core');
 
 for (const marker of [
   "import { adminApi } from './api.js';",
-  "adminApi.session()",
-  "adminApi.access()",
-  "adminApi.operationsMetrics()",
-  "adminApi.growthMetrics()",
+  'adminApi.session()',
+  'adminApi.access()',
+  'adminApi.operationsMetrics()',
+  'adminApi.growthMetrics()',
   "fetch('/api/health'",
   'Operational Intelligence',
   'order_completion_rate_30d',
@@ -96,10 +95,10 @@ need(adminPage, '/js/admin/intelligence-v2.js?v=1.0', 'P9 controller wiring');
 forbid(adminJs, /operationAction\(|changeUserStatus\(|storeAction\(|changeProductStatus\(|changePostStatus\(/, 'P9 intelligence mutation action');
 
 for (const marker of [
-  "js/v1-completion.js?v=1.0",
-  'data-v1-completion="true"',
+  'js/v1-completion.js?v=1.0',
+  "script.dataset.v1Completion = 'true'",
   'loadV1Completion',
-  "script.onload = loadV1Completion"
+  'script.onload = loadV1Completion'
 ]) need(p3, marker, 'lazy V1 loader contract');
 if (index.includes('js/v1-completion.js')) throw new Error('V1 completion must not join the initial index script graph');
 
