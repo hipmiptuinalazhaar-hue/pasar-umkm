@@ -118,7 +118,14 @@
 
   function hotspotMarkup(tags) {
     return tags
-      .filter(tag => Number.isFinite(Number(tag.anchor_x)) && Number.isFinite(Number(tag.anchor_y)))
+      .filter(tag => (
+        tag.anchor_x !== null &&
+        tag.anchor_x !== undefined &&
+        tag.anchor_y !== null &&
+        tag.anchor_y !== undefined &&
+        Number.isFinite(Number(tag.anchor_x)) &&
+        Number.isFinite(Number(tag.anchor_y))
+      ))
       .map((tag, index) => `
         <button
           type="button"
