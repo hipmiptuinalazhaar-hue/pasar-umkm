@@ -1,3 +1,4 @@
+import { Client } from "@neondatabase/serverless";
 import { requireAdminPermission } from "./admin-authorization.js";
 import { ensureSupportInfrastructure, supportPolicy, supportTicketCode } from "./support-store.js";
 
@@ -99,6 +100,29 @@ async function authorize(request, env, permission) {
     throw error;
   }
   return result;
+}
+
+async function withTransaction(env, work) {
+  const client = new Client({ connectionString: env.DATABASE_URL });
+  let started = false;
+  try {
+    await client.connect();
+    await client.query("BEGIN");
+    started = true;
+    const result = await work(client);
+    await client.query("COMMIT");
+    started = false;
+    return result;
+  } catch (error) {
+    if (started) {
+      try { await client.query("ROLLBACK"); } catch (rollbackError) {
+        console.error("Admin support rollback failed:", rollbackError);
+      }
+    }
+    throw error;
+  } finally {
+    try { await client.end(); } catch {}
+  }
 }
 
 function serialize(row) {
@@ -253,36 +277,47 @@ async function reply(request, env, ticketId) {
   const message = normalize(parsed.body.message, supportPolicy.max_message_chars);
   if (!message) return fail("Balasan tidak boleh kosong.", 400, "INVALID_MESSAGE");
 
-  const tickets = await authz.sql`
-    SELECT id,status,assigned_admin_id FROM support_tickets
-    WHERE id=${ticketId}::uuid
-    FOR UPDATE
-  `;
-  const ticket = tickets[0];
-  if (!ticket) return fail("Tiket tidak ditemukan.", 404, "SUPPORT_TICKET_NOT_FOUND");
-  if (ticket.status === "closed") return fail("Tiket sudah ditutup. Buka kembali sebelum membalas.", 409, "SUPPORT_TICKET_CLOSED");
+  const outcome = await withTransaction(env, async client => {
+    const locked = await client.query(
+      `SELECT id,status,assigned_admin_id FROM support_tickets WHERE id=$1 FOR UPDATE`,
+      [ticketId]
+    );
+    const ticket = locked.rows[0];
+    if (!ticket) return { error: "missing" };
+    if (ticket.status === "closed") return { error: "closed" };
 
-  await authz.sql`
-    INSERT INTO support_messages (ticket_id,sender_type,admin_account_id,message)
-    VALUES (${ticketId}::uuid,'admin',${authz.session.id},${message})
-  `;
-  const before = ticket.status;
-  await authz.sql`
-    UPDATE support_tickets SET
-      status='waiting_user',
-      assigned_admin_id=COALESCE(assigned_admin_id,${authz.session.id}),
-      last_admin_message_at=NOW(), admin_last_read_at=NOW(),
-      resolved_at=NULL, updated_at=NOW()
-    WHERE id=${ticketId}::uuid
-  `;
-  if (before !== "waiting_user") {
-    await authz.sql`
-      INSERT INTO support_ticket_events
-        (ticket_id,actor_type,admin_account_id,event_type,from_value,to_value)
-      VALUES (${ticketId}::uuid,'admin',${authz.session.id},'status.changed',${before},'waiting_user')
-    `;
-  }
-  await audit(authz.sql, request, authz.session, "support.reply", ticketId, { from_status: before, to_status: "waiting_user" });
+    const before = ticket.status;
+    await client.query(
+      `INSERT INTO support_messages (ticket_id,sender_type,admin_account_id,message)
+       VALUES ($1,'admin',$2,$3)`,
+      [ticketId, authz.session.id, message]
+    );
+    await client.query(
+      `UPDATE support_tickets SET
+        status='waiting_user',
+        assigned_admin_id=COALESCE(assigned_admin_id,$1),
+        last_admin_message_at=NOW(), admin_last_read_at=NOW(),
+        resolved_at=NULL, updated_at=NOW()
+       WHERE id=$2`,
+      [authz.session.id, ticketId]
+    );
+    if (before !== "waiting_user") {
+      await client.query(
+        `INSERT INTO support_ticket_events
+          (ticket_id,actor_type,admin_account_id,event_type,from_value,to_value)
+         VALUES ($1,'admin',$2,'status.changed',$3,'waiting_user')`,
+        [ticketId, authz.session.id, before]
+      );
+    }
+    return { before };
+  });
+
+  if (outcome.error === "missing") return fail("Tiket tidak ditemukan.", 404, "SUPPORT_TICKET_NOT_FOUND");
+  if (outcome.error === "closed") return fail("Tiket sudah ditutup. Buka kembali sebelum membalas.", 409, "SUPPORT_TICKET_CLOSED");
+  await audit(authz.sql, request, authz.session, "support.reply", ticketId, {
+    from_status: outcome.before,
+    to_status: "waiting_user"
+  });
   return json({ ok: true, status: "waiting_user" }, 201);
 }
 
@@ -298,54 +333,82 @@ async function updateTicket(request, env, ticketId) {
   const assignment = parsed.body.assignment == null ? "keep" : normalize(parsed.body.assignment, 16);
   if (nextStatus && !supportPolicy.statuses.includes(nextStatus)) return fail("Status tidak valid.", 400, "INVALID_STATUS");
   if (nextPriority && !supportPolicy.priorities.includes(nextPriority)) return fail("Prioritas tidak valid.", 400, "INVALID_PRIORITY");
-  if (!['keep','self','unassigned'].includes(assignment)) return fail("Penugasan tidak valid.", 400, "INVALID_ASSIGNMENT");
+  if (!["keep","self","unassigned"].includes(assignment)) return fail("Penugasan tidak valid.", 400, "INVALID_ASSIGNMENT");
 
-  const rows = await authz.sql`
-    SELECT id,status,priority,assigned_admin_id FROM support_tickets
-    WHERE id=${ticketId}::uuid
-    FOR UPDATE
-  `;
-  const ticket = rows[0];
-  if (!ticket) return fail("Tiket tidak ditemukan.", 404, "SUPPORT_TICKET_NOT_FOUND");
-  const status = nextStatus || ticket.status;
-  const priority = nextPriority || ticket.priority;
-  const assignee = assignment === 'self' ? authz.session.id : assignment === 'unassigned' ? null : ticket.assigned_admin_id;
+  const outcome = await withTransaction(env, async client => {
+    const locked = await client.query(
+      `SELECT id,status,priority,assigned_admin_id FROM support_tickets WHERE id=$1 FOR UPDATE`,
+      [ticketId]
+    );
+    const ticket = locked.rows[0];
+    if (!ticket) return { error: "missing" };
 
-  await authz.sql`
-    UPDATE support_tickets SET
-      status=${status}, priority=${priority}, assigned_admin_id=${assignee},
-      resolved_at=CASE WHEN ${status}='resolved' THEN COALESCE(resolved_at,NOW()) ELSE NULL END,
-      closed_at=CASE WHEN ${status}='closed' THEN COALESCE(closed_at,NOW()) ELSE NULL END,
-      updated_at=NOW()
-    WHERE id=${ticketId}::uuid
-  `;
-  if (status !== ticket.status) {
-    await authz.sql`
-      INSERT INTO support_ticket_events
-        (ticket_id,actor_type,admin_account_id,event_type,from_value,to_value)
-      VALUES (${ticketId}::uuid,'admin',${authz.session.id},'status.changed',${ticket.status},${status})
-    `;
-  }
-  if (priority !== ticket.priority) {
-    await authz.sql`
-      INSERT INTO support_ticket_events
-        (ticket_id,actor_type,admin_account_id,event_type,from_value,to_value)
-      VALUES (${ticketId}::uuid,'admin',${authz.session.id},'priority.changed',${ticket.priority},${priority})
-    `;
-  }
-  if (String(assignee || '') !== String(ticket.assigned_admin_id || '')) {
-    await authz.sql`
-      INSERT INTO support_ticket_events
-        (ticket_id,actor_type,admin_account_id,event_type,from_value,to_value)
-      VALUES (${ticketId}::uuid,'admin',${authz.session.id},'assignment.changed',${ticket.assigned_admin_id || null},${assignee || null})
-    `;
-  }
-  await audit(authz.sql, request, authz.session, "support.manage", ticketId, {
-    status, priority, assignment,
-    previous_status: ticket.status,
-    previous_priority: ticket.priority
+    const status = nextStatus || ticket.status;
+    const priority = nextPriority || ticket.priority;
+    const assignee = assignment === "self"
+      ? authz.session.id
+      : assignment === "unassigned"
+        ? null
+        : ticket.assigned_admin_id;
+
+    await client.query(
+      `UPDATE support_tickets SET
+        status=$1, priority=$2, assigned_admin_id=$3,
+        resolved_at=CASE WHEN $1='resolved' THEN COALESCE(resolved_at,NOW()) ELSE NULL END,
+        closed_at=CASE WHEN $1='closed' THEN COALESCE(closed_at,NOW()) ELSE NULL END,
+        updated_at=NOW()
+       WHERE id=$4`,
+      [status, priority, assignee, ticketId]
+    );
+
+    if (status !== ticket.status) {
+      await client.query(
+        `INSERT INTO support_ticket_events
+          (ticket_id,actor_type,admin_account_id,event_type,from_value,to_value)
+         VALUES ($1,'admin',$2,'status.changed',$3,$4)`,
+        [ticketId, authz.session.id, ticket.status, status]
+      );
+    }
+    if (priority !== ticket.priority) {
+      await client.query(
+        `INSERT INTO support_ticket_events
+          (ticket_id,actor_type,admin_account_id,event_type,from_value,to_value)
+         VALUES ($1,'admin',$2,'priority.changed',$3,$4)`,
+        [ticketId, authz.session.id, ticket.priority, priority]
+      );
+    }
+    if (String(assignee || "") !== String(ticket.assigned_admin_id || "")) {
+      await client.query(
+        `INSERT INTO support_ticket_events
+          (ticket_id,actor_type,admin_account_id,event_type,from_value,to_value)
+         VALUES ($1,'admin',$2,'assignment.changed',$3,$4)`,
+        [ticketId, authz.session.id, ticket.assigned_admin_id || null, assignee || null]
+      );
+    }
+
+    return {
+      status,
+      priority,
+      assignee,
+      previousStatus: ticket.status,
+      previousPriority: ticket.priority
+    };
   });
-  return json({ ok: true, status, priority, assigned_admin_id: assignee });
+
+  if (outcome.error === "missing") return fail("Tiket tidak ditemukan.", 404, "SUPPORT_TICKET_NOT_FOUND");
+  await audit(authz.sql, request, authz.session, "support.manage", ticketId, {
+    status: outcome.status,
+    priority: outcome.priority,
+    assignment,
+    previous_status: outcome.previousStatus,
+    previous_priority: outcome.previousPriority
+  });
+  return json({
+    ok: true,
+    status: outcome.status,
+    priority: outcome.priority,
+    assigned_admin_id: outcome.assignee
+  });
 }
 
 async function addNote(request, env, ticketId) {
