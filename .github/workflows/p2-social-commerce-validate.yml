@@ -10,6 +10,7 @@ on:
       - 'js/p8-commerce-integration.js'
       - 'js/account-resilience.js'
       - 'src/post-core-api.js'
+      - 'src/post-product-tags.js'
       - 'database/migrations/2026-09-08-p2-shoppable-posts.sql'
       - 'scripts/validate-p2-social-commerce.mjs'
       - 'scripts/validate-p2-shoppable.mjs'
@@ -43,6 +44,7 @@ jobs:
           node --check js/p8-commerce-integration.js
           node --check js/account-resilience.js
           node --check src/post-core-api.js
+          node --check src/post-product-tags.js
           node --check scripts/validate-p2-social-commerce.mjs
           node --check scripts/validate-p2-shoppable.mjs
 
