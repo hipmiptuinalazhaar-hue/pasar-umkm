@@ -176,7 +176,6 @@
     setSelection(selected);
     return selected;
   }
-
   function rupiah(value){return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(value||0))}
 
   function selectionSummary(rows,selected){
@@ -254,11 +253,11 @@
   function selectedProductIds(){return [...normalizedSelection()]}
 
   function openCheckout(replace=false){
-    if(location.pathname==='/checkout/'||location.pathname==='/checkout')return;
     const rows=cartRows();
-    if(rows.length&&selectedProductIds().length===0){window.showToast?.('Pilih minimal satu produk untuk checkout.');return}
-    if(replace)location.replace('/checkout/');
-    else location.href='/checkout/';
+    if(rows.length&&!selectedProductIds().length){window.showToast?.('Pilih minimal satu produk untuk checkout.');return}
+    const target='/checkout/index.html';
+    if(location.pathname===target)return;
+    location[replace?'replace':'assign'](target);
   }
 
   async function buyNow(productId,target){
@@ -332,7 +331,7 @@
       return;
     }
 
-    const checkout=event.target?.closest?.('[data-action="checkout"],[data-function-action="checkout-open"],[data-commerce-action="checkout"]');
+    const checkout=event.target?.closest?.('[data-cart-v2-checkout],[data-action="checkout"],[data-function-action="checkout-open"],[data-commerce-action="checkout"]');
     if(checkout){
       event.preventDefault();event.stopImmediatePropagation();
       openCheckout();
