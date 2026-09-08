@@ -5,6 +5,7 @@ const index = read('index.html');
 const runtimeCss = read('css/style.runtime.css');
 const chatCss = read('css/chat-experience-v7.css');
 const chatJs = read('js/chat-experience-v7.js');
+const bootstrap = read('js/chat-single-render-v6.js');
 const gestures = read('js/chat-conversation-actions-v7.js');
 
 const failures = [];
@@ -42,6 +43,32 @@ for (const marker of [
   if (!chatJs.includes(marker)) fail(`Chat V7 action owner kehilangan contract: ${marker}`);
 }
 
+// Regression contract for the mobile freeze reported from the header Chat button.
+// A partial transition may never hide the app shell unless a connected Chat V7
+// page has actually mounted inside the live #feed node.
+for (const marker of [
+  "document.getElementById(id)",
+  "node?.isConnected",
+  "reconcileChatMount",
+  "DOM.feed = feed",
+  "DOM.storiesSection = liveNode('storiesSection')",
+  "DOM.homeDiscovery = liveNode('homeDiscovery')",
+  "guardMountedChat(feed)",
+  "feed.querySelector('.chat-v7-page')",
+  "document.body.classList.remove('chat-v7-body')",
+  "document.documentElement.style.removeProperty('--chat7-height')",
+  "mobileMountGuard: true",
+  "liveDomReconciliation: true"
+]) {
+  if (!bootstrap.includes(marker)) fail(`Chat mobile mount guard kehilangan contract: ${marker}`);
+}
+
+const reconcilePosition = bootstrap.indexOf('feed = reconcileChatMount()');
+const openPosition = bootstrap.indexOf('opening = chat.openList()');
+if (reconcilePosition < 0 || openPosition < 0 || reconcilePosition > openPosition) {
+  fail('Live DOM reconciliation wajib berjalan sebelum Chat V7 membuka conversation list');
+}
+
 for (const marker of [
   '[data-chat-v7-row]',
   '[data-chat-v7-action="conversation-menu"][data-conversation-id]',
@@ -62,3 +89,4 @@ if (failures.length) {
 }
 
 console.log('Chat action layer validation PASS: chat 240 < sheet 490/500 < toast 700, action ownership preserved.');
+console.log('Mobile mount guard PASS: live DOM reconciliation + partial-shell recovery enforced.');
