@@ -1,0 +1,35 @@
+{
+  "release": "2026-09-08-v1-completion",
+  "product": "Pasar UMKM",
+  "status": "candidate",
+  "milestones": {
+    "p1_auth_security": true,
+    "p2_social_commerce": true,
+    "p3_premium_experience": true,
+    "p4_commerce_chat": true,
+    "p5_trust_conversion": true,
+    "p6_seller_operations_v2": true,
+    "p7_discovery_recommendation_v2": true,
+    "p8_commerce_safety_v3": true,
+    "p9_operational_intelligence_v2": true,
+    "p10_launch_certification": true
+  },
+  "production_boundaries": {
+    "custodial_wallet": false,
+    "escrow": false,
+    "automated_refund_ledger": false,
+    "platform_generated_qris": false,
+    "opaque_trust_score": false,
+    "recommendation_paid_boost_in_v2_layer": false
+  },
+  "release_requirements": [
+    "canonical_validation",
+    "runtime_assets_reproducible",
+    "supply_chain_pinned",
+    "platform_hardening",
+    "real_chrome_viewport_matrix",
+    "exact_cloudflare_sha",
+    "production_smoke"
+  ],
+  "supported_viewports": [360, 390, 430, 768, 1024, 1280, 1366, 1600]
+}
