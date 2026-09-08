@@ -125,6 +125,46 @@ const RULES = [
     edgeBinding: "EDGE_AUTH_LIMITER"
   },
   {
+    name: "auth-register-verify",
+    match: (request, url) => request.method === "POST" && url.pathname === "/api/auth/register/verify",
+    limit: 10,
+    windowMs: 10 * 60 * 1000,
+    includeAccount: true,
+    edgeBinding: "EDGE_AUTH_LIMITER"
+  },
+  {
+    name: "auth-register-resend",
+    match: (request, url) => request.method === "POST" && url.pathname === "/api/auth/register/resend",
+    limit: 5,
+    windowMs: 10 * 60 * 1000,
+    includeAccount: true,
+    edgeBinding: "EDGE_AUTH_LIMITER"
+  },
+  {
+    name: "auth-password-forgot",
+    match: (request, url) => request.method === "POST" && url.pathname === "/api/auth/password/forgot",
+    limit: 5,
+    windowMs: 15 * 60 * 1000,
+    includeAccount: true,
+    edgeBinding: "EDGE_AUTH_LIMITER"
+  },
+  {
+    name: "auth-password-verify",
+    match: (request, url) => request.method === "POST" && url.pathname === "/api/auth/password/verify",
+    limit: 10,
+    windowMs: 10 * 60 * 1000,
+    includeAccount: true,
+    edgeBinding: "EDGE_AUTH_LIMITER"
+  },
+  {
+    name: "auth-password-reset",
+    match: (request, url) => request.method === "POST" && url.pathname === "/api/auth/password/reset",
+    limit: 5,
+    windowMs: 15 * 60 * 1000,
+    includeAccount: true,
+    edgeBinding: "EDGE_AUTH_LIMITER"
+  },
+  {
     name: "public-catalog",
     match: (request, url) => request.method === "GET" && (
       url.pathname === "/api/products" ||
@@ -197,7 +237,13 @@ async function digestKey(value) {
 async function accountHint(request) {
   try {
     const body = await request.clone().json();
-    const raw = String(body?.email || body?.phone || body?.username || "").trim().toLowerCase().slice(0, 180);
+    const raw = String(
+      body?.email ||
+      body?.challenge_id ||
+      body?.phone ||
+      body?.username ||
+      ""
+    ).trim().toLowerCase().slice(0, 180);
     return raw ? digestKey(raw) : null;
   } catch {
     return null;
@@ -292,8 +338,6 @@ async function enforceEdgeLimit(rule, env, keys) {
       if (result?.success === false) return edgeLimited(rule);
     }
   } catch {
-    // Keep the existing local limiter available if the platform binding is
-    // temporarily unavailable. Authentication still has its own DB lockouts.
     console.warn("Edge rate limiter unavailable", rule.name);
   }
 
