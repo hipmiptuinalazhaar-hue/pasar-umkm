@@ -29,13 +29,6 @@
     doc.head.appendChild(link);
   }
 
-  function esc(value) {
-    if (typeof window.escapeHTML === 'function') return window.escapeHTML(String(value ?? ''));
-    const span = doc.createElement('span');
-    span.textContent = String(value ?? '');
-    return span.innerHTML;
-  }
-
   function number(value) {
     const parsed = Number(value || 0);
     return Number.isFinite(parsed) ? parsed : 0;
@@ -61,11 +54,6 @@
   function postById(postId) {
     if (typeof DATA === 'undefined' || !Array.isArray(DATA.posts)) return null;
     return DATA.posts.find(post => id(post?.id) === id(postId)) || null;
-  }
-
-  function postByProductId(productId) {
-    if (typeof DATA === 'undefined' || !Array.isArray(DATA.posts)) return null;
-    return DATA.posts.find(post => id(post?.product?.id) === id(productId)) || null;
   }
 
   function adoptIntent(source = window.__PUMKM_P5_INTENT__) {
@@ -133,6 +121,46 @@
     return `${[...ids.productIds].sort().join(',')}|${[...ids.storeIds].sort().join(',')}`;
   }
 
+  function evidenceKey(summary) {
+    if (!summary) return 'none';
+    return [
+      id(summary.product_id || summary.store_id),
+      summary.is_verified === true ? 1 : 0,
+      id(summary.verification_status),
+      formatRating(summary.average_rating),
+      integer(summary.verified_rating_count),
+      integer(summary.verified_review_count),
+      integer(summary.completed_orders),
+      integer(summary.cancelled_orders),
+      integer(summary.terminal_orders),
+      integer(summary.sold_count),
+      summary.completion_rate_eligible === true ? integer(summary.completion_rate) : 'na'
+    ].join(':');
+  }
+
+  function combinedKey(...summaries) {
+    return summaries.map(evidenceKey).join('|');
+  }
+
+  function setStableMarkup(node, key, markup) {
+    if (!node || node.dataset.p5EvidenceKey === key) return false;
+    node.dataset.p5EvidenceKey = key;
+    node.innerHTML = markup;
+    return true;
+  }
+
+  function replaceStable(node, key, markup, insert) {
+    if (node?.dataset?.p5EvidenceKey === key) return node;
+    const holder = doc.createElement('div');
+    holder.innerHTML = markup.trim();
+    const next = holder.firstElementChild;
+    if (!next) return node || null;
+    next.dataset.p5EvidenceKey = key;
+    if (node) node.replaceWith(next);
+    else insert(next);
+    return next;
+  }
+
   async function fetchEvidence(ids) {
     const params = new URLSearchParams();
     if (ids.productIds.length) params.set('product_ids', ids.productIds.join(','));
@@ -185,13 +213,11 @@
   }
 
   function productForCard(card) {
-    const post = postById(card?.dataset?.postId);
-    return post?.product || null;
+    return postById(card?.dataset?.postId)?.product || null;
   }
 
   function storeForCard(card) {
-    const post = postById(card?.dataset?.postId);
-    return post?.store || null;
+    return postById(card?.dataset?.postId)?.store || null;
   }
 
   function decorateProductCards() {
@@ -215,9 +241,10 @@
         if (info) anchor ? info.insertBefore(line, anchor) : info.appendChild(line);
       }
       if (!line) return;
-      line.innerHTML = [verificationChip(storeSummary), ratingChip(productSummary), soldChip(productSummary)]
+      const markup = [verificationChip(storeSummary), ratingChip(productSummary), soldChip(productSummary)]
         .filter(Boolean)
         .join('');
+      setStableMarkup(line, combinedKey(productSummary, storeSummary), markup);
     });
   }
 
@@ -230,7 +257,7 @@
     `;
   }
 
-  function storePanelMarkup(summary, compact = false) {
+  function storePanelMarkup(summary, compact = false, attr = 'data-p5-store-panel') {
     if (!summary) return '';
     const completed = integer(summary.completed_orders);
     const sold = integer(summary.sold_count);
@@ -240,7 +267,7 @@
     const evidence = storeHasEvidence(summary);
 
     return `
-      <section class="p5-trust-panel ${compact ? 'is-compact' : ''}" data-p5-store-panel>
+      <section class="p5-trust-panel ${compact ? 'is-compact' : ''}" ${attr}>
         <div class="p5-trust-head">
           <span class="p5-trust-icon"><i class="ph ph-shield-check" aria-hidden="true"></i></span>
           <span><strong>Indikator kepercayaan</strong><small>${evidence ? 'Berdasarkan aktivitas nyata di Pasar UMKM' : 'Riwayat transaksi masih terbatas'}</small></span>
@@ -263,31 +290,23 @@
   function upsertStorePanel(root, storeId) {
     if (!root || !storeId) return;
     const summary = TRUST.stores.get(id(storeId));
-    let panel = root.querySelector(':scope > [data-p5-store-panel]');
+    const panel = root.querySelector(':scope > [data-p5-store-panel]');
     if (!summary) {
       panel?.remove();
       return;
     }
-    const markup = storePanelMarkup(summary);
-    if (panel) {
-      const holder = doc.createElement('div');
-      holder.innerHTML = markup.trim();
-      panel.replaceWith(holder.firstElementChild);
-    } else {
-      root.insertAdjacentHTML('beforeend', markup);
-    }
+    const key = evidenceKey(summary);
+    replaceStable(panel, key, storePanelMarkup(summary), next => root.appendChild(next));
   }
 
   function decorateStoreProfiles() {
     doc.querySelectorAll('.social-universal-profile[data-store-id]').forEach(page => {
-      const host = page.querySelector('.social-profile-copy');
-      upsertStorePanel(host, page.dataset.storeId);
+      upsertStorePanel(page.querySelector('.social-profile-copy'), page.dataset.storeId);
     });
 
     if (typeof STATE !== 'undefined' && STATE.currentStore?.id) {
       const page = doc.querySelector('.social-account-page:not(.public-seller-profile)');
-      const host = page?.querySelector('.social-account-bio');
-      upsertStorePanel(host, STATE.currentStore.id);
+      upsertStorePanel(page?.querySelector('.social-account-bio'), STATE.currentStore.id);
     }
   }
 
@@ -304,7 +323,7 @@
     const body = doc.querySelector('.commerce-page .commerce-detail-body');
     if (!body) return;
     const current = currentProductSummary();
-    let panel = body.querySelector('[data-p5-product-detail-trust]');
+    const panel = body.querySelector('[data-p5-product-detail-trust]');
     if (!current || !productHasEvidence(current.product, current.store)) {
       panel?.remove();
       return;
@@ -319,8 +338,8 @@
         ${current.store ? methodologyMarkup() : ''}
       </section>
     `;
-    if (panel) panel.outerHTML = markup;
-    else body.insertAdjacentHTML('beforeend', markup);
+    const key = combinedKey(current.product, current.store);
+    replaceStable(panel, key, markup, next => body.appendChild(next));
   }
 
   function checkoutStoreSummary() {
@@ -334,7 +353,7 @@
     if (!form) return;
     const content = form.closest('.commerce-content') || form.parentElement;
     if (!content) return;
-    let panel = content.querySelector('[data-p5-checkout-trust]');
+    const panel = content.querySelector('[data-p5-checkout-trust]');
     const storeIds = cartStoreIds();
     const single = checkoutStoreSummary();
     const verifiedCount = storeIds.reduce(
@@ -342,7 +361,7 @@
       0
     );
     const markup = single
-      ? storePanelMarkup(single, true).replace('data-p5-store-panel', 'data-p5-checkout-trust')
+      ? storePanelMarkup(single, true, 'data-p5-checkout-trust')
       : `
         <section class="p5-trust-panel is-compact" data-p5-checkout-trust>
           <div class="p5-trust-head"><span class="p5-trust-icon"><i class="ph ph-shield-check" aria-hidden="true"></i></span><span><strong>Bukti sebelum checkout</strong><small>Data reputasi berasal dari transaksi yang tercatat di Pasar UMKM</small></span></div>
@@ -350,8 +369,10 @@
           ${methodologyMarkup()}
         </section>
       `;
-    if (panel) panel.outerHTML = markup;
-    else content.insertAdjacentHTML('afterbegin', markup);
+    const key = single
+      ? `single:${evidenceKey(single)}`
+      : `multi:${[...storeIds].sort().join(',')}:${verifiedCount}`;
+    replaceStable(panel, key, markup, next => content.insertBefore(next, content.firstChild));
   }
 
   function decorate() {
