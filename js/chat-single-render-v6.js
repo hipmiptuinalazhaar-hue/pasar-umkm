@@ -112,7 +112,6 @@
     const target = event.target?.closest?.(selector);
     if (!target) return;
     event.preventDefault();
-    event.stopPropagation();
     event.stopImmediatePropagation();
     ensureV7().then(chat => {
       if (target.matches('[data-social-action="message-user"]')) {
