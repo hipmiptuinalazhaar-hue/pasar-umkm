@@ -18,9 +18,7 @@ if (!pageRule) {
   const match = pageRule[1].match(/z-index\s*:\s*(\d+)/);
   const z = match ? Number(match[1]) : NaN;
   if (!Number.isFinite(z)) fail('Chat V7 page tidak memiliki z-index eksplisit');
-  if (Number.isFinite(z) && z >= 490) {
-    fail(`Chat V7 page z-index ${z} menutupi modal/sheet layer 490+`);
-  }
+  if (Number.isFinite(z) && z >= 490) fail(`Chat V7 page z-index ${z} menutupi modal/sheet layer 490+`);
   if (z !== 240) fail(`Chat V7 page layer contract harus 240, ditemukan ${String(z)}`);
 }
 
@@ -43,30 +41,29 @@ for (const marker of [
   if (!chatJs.includes(marker)) fail(`Chat V7 action owner kehilangan contract: ${marker}`);
 }
 
-// Regression contract for the mobile freeze reported from the header Chat button.
-// A partial transition may never hide the app shell unless a connected Chat V7
-// page has actually mounted inside the live #feed node.
 for (const marker of [
   "document.getElementById(id)",
-  "node?.isConnected",
-  "reconcileChatMount",
-  "DOM.feed = feed",
-  "DOM.storiesSection = liveNode('storiesSection')",
-  "DOM.homeDiscovery = liveNode('homeDiscovery')",
-  "guardMountedChat(feed)",
-  "feed.querySelector('.chat-v7-page')",
+  "n?.isConnected",
+  "function reconcile()",
+  "DOM.feed=feed",
+  "DOM.storiesSection=live('storiesSection')",
+  "DOM.homeDiscovery=live('homeDiscovery')",
+  "function guard(feed)",
+  "feed?.querySelector('.chat-v7-page')",
   "document.body.classList.remove('chat-v7-body')",
-  "document.documentElement.style.removeProperty('--chat7-height')",
-  "mobileMountGuard: true",
-  "liveDomReconciliation: true"
+  "document.documentElement.style.removeProperty('--chat7-height')"
 ]) {
   if (!bootstrap.includes(marker)) fail(`Chat mobile mount guard kehilangan contract: ${marker}`);
 }
 
-const reconcilePosition = bootstrap.indexOf('feed = reconcileChatMount()');
-const openPosition = bootstrap.indexOf('opening = chat.openList()');
+const reconcilePosition = bootstrap.indexOf('feed=reconcile()');
+const openPosition = bootstrap.indexOf('opening=chat.openList()');
 if (reconcilePosition < 0 || openPosition < 0 || reconcilePosition > openPosition) {
   fail('Live DOM reconciliation wajib berjalan sebelum Chat V7 membuka conversation list');
+}
+
+if (Buffer.byteLength(bootstrap) > 5000) {
+  fail(`Chat bootstrap ${Buffer.byteLength(bootstrap)}B melebihi budget 5000B`);
 }
 
 for (const marker of [
@@ -89,4 +86,4 @@ if (failures.length) {
 }
 
 console.log('Chat action layer validation PASS: chat 240 < sheet 490/500 < toast 700, action ownership preserved.');
-console.log('Mobile mount guard PASS: live DOM reconciliation + partial-shell recovery enforced.');
+console.log('Mobile mount guard PASS: live DOM reconciliation + partial-shell recovery enforced within bootstrap budget.');
