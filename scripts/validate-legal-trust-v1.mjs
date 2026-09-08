@@ -65,8 +65,9 @@ for (const token of ['Checkout hanya memproses produk yang dipilih','tidak menyi
 for (const token of ['Narkotika','Senjata api','Barang palsu','database pribadi','perjudian','Transaksi palsu']) has('prohibited', token);
 for (const token of ['hipmiptuinalazhaar@gmail.com','Permintaan Data Pribadi','Nomor pesanan','tidak meminta OTP/password']) has('complaints', token);
 
-has('about', "version === '2.1'", 'About module must guard V2.1');
-has('about', "version: '2.1'", 'About module public version must be 2.1');
+has('about', "version === '2.0'", 'About module must preserve V2 compatibility');
+has('about', "version: '2.0'", 'About module public version must remain V2 compatible');
+has('about', "revision: '2.1'", 'About module must expose Legal & Trust revision 2.1');
 has('about', 'Penyelenggara platform');
 has('about', '/legal/index.html');
 has('about', '/legal/privasi.html');
