@@ -1,0 +1,19 @@
+/* Pasar UMKM P4 — Commerce Chat V8 bridge */
+.chat-commerce-context{flex:0 0 auto;min-height:58px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px;border-bottom:1px solid var(--chat7-line);background:#fff;color:var(--chat7-ink)}
+.chat-commerce-context-copy{min-width:0;display:flex;flex-direction:column;gap:2px}
+.chat-commerce-kicker{color:var(--chat7-muted);font-size:10px;line-height:1.2;font-weight:700;letter-spacing:.02em;text-transform:uppercase}
+.chat-commerce-context-copy strong{max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;line-height:1.3;font-weight:800}
+.chat-commerce-context-actions{display:flex;align-items:center;gap:6px}
+.chat-commerce-context-actions button{min-height:42px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 11px;border:1px solid rgba(15,87,58,.14);border-radius:12px;background:#fff;color:var(--chat7-brand);font-size:11px;font-weight:750;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.chat-commerce-context-actions button i{font-size:17px}
+.chat-commerce-context-actions button:focus-visible,.chat-commerce-replies button:focus-visible{outline:3px solid rgba(15,87,58,.16);outline-offset:2px}
+.chat-commerce-context-actions button:active,.chat-commerce-replies button:active{background:var(--chat7-brand-soft)}
+.chat-commerce-replies{flex:0 0 auto;display:flex;gap:7px;overflow-x:auto;padding:7px 10px 5px;background:#fff;scrollbar-width:none;overscroll-behavior-inline:contain}
+.chat-commerce-replies::-webkit-scrollbar{display:none}
+.chat-commerce-replies button{min-height:36px;flex:0 0 auto;padding:0 12px;border:1px solid rgba(23,32,27,.10);border-radius:999px;background:#fff;color:#344039;font-size:11px;line-height:1.2;font-weight:700;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.chat-commerce-network{flex:0 0 auto;min-height:34px;display:flex;align-items:center;justify-content:center;gap:7px;padding:6px 12px;border-top:1px solid rgba(23,32,27,.06);border-bottom:1px solid rgba(23,32,27,.06);background:#fff8e8;color:#74520b;font-size:11px;line-height:1.35;font-weight:650;text-align:center}
+.chat-commerce-network[data-state="reconnected"]{background:#eef8f1;color:#185d3d}
+.chat-commerce-network[hidden]{display:none}
+.chat-commerce-network i{font-size:16px;flex:0 0 auto}
+@media(max-width:390px){.chat-commerce-context{padding-inline:10px}.chat-commerce-context-copy strong{max-width:150px}.chat-commerce-context-actions button{padding-inline:9px}.chat-commerce-context-actions button span{display:none}}
+@media(prefers-reduced-motion:reduce){.chat-commerce-context-actions button,.chat-commerce-replies button{transition:none!important}}

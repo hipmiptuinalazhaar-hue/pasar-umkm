@@ -1,0 +1,114 @@
+name: UI P4 Commerce Chat V8 Validation
+
+on:
+  pull_request:
+    paths:
+      - 'js/chat-commerce-v8.js'
+      - 'css/chat-commerce-v8.css'
+      - 'js/chat-single-render-v6.js'
+      - '.github/workflows/ui-p4-commerce-chat-v8-validate.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'js/chat-commerce-v8.js'
+      - 'css/chat-commerce-v8.css'
+      - 'js/chat-single-render-v6.js'
+      - '.github/workflows/ui-p4-commerce-chat-v8-validate.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  commerce-chat-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: JavaScript syntax
+        run: |
+          node --check js/chat-commerce-v8.js
+          node --check js/chat-single-render-v6.js
+
+      - name: Validate P4 Commerce Chat architecture
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          import sys
+
+          errors=[]
+          bridge=Path('js/chat-commerce-v8.js')
+          style=Path('css/chat-commerce-v8.css')
+          bootstrap=Path('js/chat-single-render-v6.js')
+          index=Path('index.html')
+          for p in (bridge,style,bootstrap,index):
+              if not p.exists(): errors.append(f'Missing P4 asset: {p}')
+          if errors:
+              print('\n'.join(errors));sys.exit(1)
+
+          js=bridge.read_text(encoding='utf-8')
+          css=style.read_text(encoding='utf-8')
+          boot=bootstrap.read_text(encoding='utf-8')
+          html=index.read_text(encoding='utf-8')
+
+          budgets={
+              'Commerce Chat JS':(bridge.stat().st_size,12_000),
+              'Commerce Chat CSS':(style.stat().st_size,6_000),
+              'Chat bootstrap':(bootstrap.stat().st_size,5_500),
+          }
+          for name,(size,limit) in budgets.items():
+              print(f'{name}: {size} / {limit} bytes')
+              if size>limit: errors.append(f'{name} exceeds budget: {size} > {limit}')
+
+          required=(
+              "version: '8.0'",
+              "DRAFT_PREFIX = 'pasar_chat_draft_v1:'",
+              'sessionStorage.setItem',
+              'sessionStorage.removeItem',
+              'data-chat-commerce-action="reply"',
+              'data-chat-commerce-action="orders"',
+              'data-chat-commerce-action="store"',
+              "event.target?.id !== 'chatV7Composer'",
+              '!navigator.onLine',
+              "window.addEventListener('offline'",
+              "window.addEventListener('online'",
+              'singleMessageOwner: window.__PUMKM_CHAT_RENDER_OWNER === \'v7\'',
+              "observer.observe(doc.body, { childList: true, subtree: true })",
+          )
+          for contract in required:
+              if contract not in js: errors.append(f'Missing Commerce Chat contract: {contract}')
+
+          loader=(
+              "js/chat-commerce-v8.js?v=1.0",
+              "window.PasarChatCommerceV8?.version === '8.0'",
+              'ensureCommerceChat()',
+              '[data-action="messages"]',
+              '[data-social-action="message-user"]',
+              '[data-social-action="open-conversation"]',
+          )
+          for contract in loader:
+              if contract not in boot: errors.append(f'Missing P4 lazy loader contract: {contract}')
+
+          if 'chat-commerce-v8.js' in html or 'chat-commerce-v8.css' in html:
+              errors.append('Commerce Chat must remain lazy and absent from initial HTML')
+          if re.search(r'\bfetch\s*\(', js) or '/api/' in js:
+              errors.append('Commerce Chat bridge must not become a Chat API owner')
+          if 'localStorage' in js:
+              errors.append('Chat drafts must be tab-scoped sessionStorage, not persistent localStorage')
+          if re.search(r'observe\s*\([^)]*\{[^}]*attributes\s*:\s*true',js,re.S):
+              errors.append('Commerce Chat MutationObserver must not watch attributes')
+          if 'linear-gradient(' in css or 'radial-gradient(' in css or 'backdrop-filter:' in css:
+              errors.append('Commerce Chat contains decorative/heavy visual effects')
+          tiny=[float(x) for x in re.findall(r'font-size\s*:\s*([0-9.]+)px',css) if float(x)<10]
+          if tiny: errors.append(f'Commerce Chat contains font below 10px: {tiny}')
+          compact=css.replace(' ','')
+          for contract in ('min-height:42px',':focus-visible','prefers-reduced-motion:reduce','.chat-commerce-context','.chat-commerce-replies','.chat-commerce-network'):
+              if contract.replace(' ','') not in compact: errors.append(f'Missing Commerce Chat CSS contract: {contract}')
+
+          if errors:
+              print('P4 Commerce Chat V8 validation failed:')
+              for err in errors: print(f'- {err}')
+              sys.exit(1)
+          print('P4 Commerce Chat V8 PASS: lazy single-owner bridge, session draft safety, offline-safe composer, commerce shortcuts, and restrained mobile UX are intact.')
