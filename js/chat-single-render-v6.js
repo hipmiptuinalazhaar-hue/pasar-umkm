@@ -6,6 +6,7 @@
 
   let loadPromise = null;
   let actionPromise = null;
+  let commercePromise = null;
 
   function ensureStyle() {
     const found = document.querySelector('link[data-chat-v7-style="true"]');
@@ -21,71 +22,77 @@
     });
   }
 
-  function ensureScript() {
-    if (window.PasarChatV7?.version === '7.0') return Promise.resolve(window.PasarChatV7);
-    const found = document.querySelector('script[data-chat-v7-module="true"]');
-    if (found) {
-      return new Promise((resolve, reject) => {
-        const started = Date.now();
-        const timer = setInterval(() => {
-          if (window.PasarChatV7?.version === '7.0') {
-            clearInterval(timer); resolve(window.PasarChatV7);
-          } else if (Date.now() - started > 5000) {
-            clearInterval(timer); reject(new Error('Chat V7 belum siap.'));
-          }
-        }, 40);
-      });
-    }
+  function waitReady(test, label, timeout = 5000) {
     return new Promise((resolve, reject) => {
-      const node = document.createElement('script');
-      node.src = 'js/chat-experience-v7.js?v=7.0';
-      node.async = true;
-      node.dataset.chatV7Module = 'true';
-      node.onload = () => window.PasarChatV7?.version === '7.0'
-        ? resolve(window.PasarChatV7)
-        : reject(new Error('Chat V7 tidak terinisialisasi.'));
-      node.onerror = () => reject(new Error('Chat V7 gagal dimuat.'));
-      document.body.appendChild(node);
+      const started = Date.now();
+      const timer = setInterval(() => {
+        const value = test();
+        if (value) {
+          clearInterval(timer);
+          resolve(value);
+        } else if (Date.now() - started > timeout) {
+          clearInterval(timer);
+          reject(new Error(`${label} belum siap.`));
+        }
+      }, 40);
     });
   }
 
-  function ensureConversationActions() {
-    if (window.PasarChatConversationActions?.version === '1.0') {
-      return Promise.resolve(window.PasarChatConversationActions);
+  function ensureScript() {
+    if (window.PasarChatV7?.version === '7.0') return Promise.resolve(window.PasarChatV7);
+    let node = document.querySelector('script[data-chat-v7-module="true"]');
+    if (!node) {
+      node = document.createElement('script');
+      node.src = 'js/chat-experience-v7.js?v=7.0';
+      node.async = true;
+      node.dataset.chatV7Module = 'true';
+      document.body.appendChild(node);
     }
+    node.onerror = () => {};
+    return waitReady(() => window.PasarChatV7?.version === '7.0' && window.PasarChatV7, 'Chat V7');
+  }
+
+  function ensureConversationActions() {
+    if (window.PasarChatConversationActions?.version === '1.0') return Promise.resolve(window.PasarChatConversationActions);
     if (actionPromise) return actionPromise;
-    actionPromise = new Promise((resolve, reject) => {
-      let node = document.querySelector('script[data-chat-v7-conversation-actions="true"]');
-      if (!node) {
-        node = document.createElement('script');
-        node.src = 'js/chat-conversation-actions-v7.js?v=1.0';
-        node.async = true;
-        node.dataset.chatV7ConversationActions = 'true';
-        document.body.appendChild(node);
-      }
-      const started = Date.now();
-      const timer = setInterval(() => {
-        if (window.PasarChatConversationActions?.version === '1.0') {
-          clearInterval(timer); resolve(window.PasarChatConversationActions);
-        } else if (Date.now() - started > 5000) {
-          clearInterval(timer); reject(new Error('Aksi percakapan belum siap.'));
-        }
-      }, 40);
-      node.onerror = () => {
-        clearInterval(timer); reject(new Error('Aksi percakapan gagal dimuat.'));
-      };
-    }).catch(error => { actionPromise = null; throw error; });
+    let node = document.querySelector('script[data-chat-v7-conversation-actions="true"]');
+    if (!node) {
+      node = document.createElement('script');
+      node.src = 'js/chat-conversation-actions-v7.js?v=1.0';
+      node.async = true;
+      node.dataset.chatV7ConversationActions = 'true';
+      document.body.appendChild(node);
+    }
+    actionPromise = waitReady(
+      () => window.PasarChatConversationActions?.version === '1.0' && window.PasarChatConversationActions,
+      'Aksi percakapan'
+    ).catch(error => { actionPromise = null; throw error; });
     return actionPromise;
   }
 
-  function ensureV7() {
-    if (window.PasarChatV7?.version === '7.0') {
-      return ensureConversationActions().then(() => window.PasarChatV7);
+  function ensureCommerceChat() {
+    if (window.PasarChatCommerceV8?.version === '8.0') return Promise.resolve(window.PasarChatCommerceV8);
+    if (commercePromise) return commercePromise;
+    let node = document.querySelector('script[data-chat-commerce-v8="true"]');
+    if (!node) {
+      node = document.createElement('script');
+      node.src = 'js/chat-commerce-v8.js?v=1.0';
+      node.async = true;
+      node.dataset.chatCommerceV8 = 'true';
+      document.body.appendChild(node);
     }
+    commercePromise = waitReady(
+      () => window.PasarChatCommerceV8?.version === '8.0' && window.PasarChatCommerceV8,
+      'Commerce Chat V8'
+    ).catch(error => { commercePromise = null; throw error; });
+    return commercePromise;
+  }
+
+  function ensureV7() {
     if (loadPromise) return loadPromise;
     loadPromise = Promise.all([ensureStyle(), ensureScript()])
       .then(async ([, module]) => {
-        await ensureConversationActions();
+        await Promise.all([ensureConversationActions(), ensureCommerceChat()]);
         return module;
       })
       .catch(error => { loadPromise = null; throw error; });
@@ -102,6 +109,10 @@
     if (event.target?.closest?.(selector)) ensureV7().catch(() => null);
   }, { capture: true, passive: true });
 
+  document.addEventListener('focusin', event => {
+    if (event.target?.closest?.(selector)) ensureV7().catch(() => null);
+  }, true);
+
   document.addEventListener('click', event => {
     const target = event.target?.closest?.(selector);
     if (!target) return;
@@ -117,7 +128,7 @@
       }
       return chat.openList();
     }).catch(error => {
-      console.error('[Pasar UMKM] Chat V7 bootstrap error:', error);
+      console.error('[Pasar UMKM] Chat bootstrap error:', error);
       window.showToast?.('Pesan belum dapat dibuka.');
     });
   }, true);
@@ -128,6 +139,7 @@
     renderer: 'chat-v7-bootstrap',
     legacyThreadPollSuppressed: true,
     mutationObserver: false,
-    conversationLongPress: 'chat-conversation-actions-v7'
+    conversationLongPress: 'chat-conversation-actions-v7',
+    commerceBridge: 'chat-commerce-v8'
   };
 })();
