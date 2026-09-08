@@ -58,19 +58,24 @@ for (const marker of [
   '/api/ratings/summaries?',
   'rankingScore',
   'UMKM terverifikasi',
-  'Rekomendasi marketplace',
-  'Mengapa produk ini muncul?',
+  'Rekomendasi untuk kamu',
+  'Mengapa produk ini direkomendasikan?',
+  'data-commerce-action="product-detail"',
+  'data-commerce-action="add-cart"',
+  'data-commerce-action="buy-now"',
   'saveData',
-  "['slow-2g','2g']"
+  "['slow-2g', '2g']"
 ]) need(runtime, marker, 'P7 Discovery & Recommendation V2 contract');
 forbid(runtime, /\bpaid\s*boost\s*=\s*true\b/i, 'opaque paid recommendation boost');
+forbid(runtime, />\s*P(?:[1-9]|10)\s*[·:–-]/i, 'milestone label leaked into user-facing runtime markup');
+forbid(runtime, /href=["']\/share\/product\//i, 'static share page used as recommendation commerce destination');
 
 for (const marker of [
   'pasar_cart_selection_v2',
   '[data-cart-v2-checkout]',
   '/api/commerce/cart',
   'belum ada produk dipilih',
-  'server akan memeriksa stok lagi secara atomik',
+  'stok akan diperiksa sekali lagi saat pesanan dibuat',
   'button.disabled = !ready'
 ]) need(runtime.toLowerCase(), marker.toLowerCase(), 'P8 Commerce Safety V3 UI contract');
 needRegex(serverCommerce, /\bFOR\s+(?:UPDATE|SHARE)\b/i, 'P8 row-lock contract');
@@ -122,8 +127,9 @@ if (!Array.isArray(manifest.supported_viewports) || manifest.supported_viewports
 for (const source of [css, adminCss]) {
   forbid(source, /linear-gradient\(|radial-gradient\(|backdrop-filter\s*:/i, 'GPU-heavy decorative styling in completion layer');
 }
+need(css, '.p5-trust-panel .p5-trust-stats:has(>span:nth-child(3):last-child)', 'three-metric trust mobile row');
 
 if (pkg.scripts?.['test:v1-completion'] !== 'node scripts/validate-v1-completion.mjs') throw new Error('package.json missing test:v1-completion');
 if (!String(pkg.scripts?.validate || '').includes('npm run test:v1-completion')) throw new Error('Canonical validate must include P10 V1 certification');
 
-console.log('P6-P10 V1 completion certification PASS: seller operations, evidence-ranked discovery, cart safety, operational intelligence, non-custodial boundaries, lazy performance, and launch manifest are intact.');
+console.log('P6-P10 V1 completion certification PASS: seller operations, commerce-native recommendations, cart safety, operational intelligence, human-facing UI hygiene, non-custodial boundaries, lazy performance, and launch manifest are intact.');
