@@ -19,9 +19,9 @@ function healthRows(health) {
   const schema = health?.schema || {};
   return [
     ['Core schema', schema.core_ready],
-    ['Operational P6', schema.operational_ready],
-    ['Launch/Growth P7', schema.launch_ready],
-    ['Commerce P8', schema.commerce_ready],
+    ['Operasional marketplace', schema.operational_ready],
+    ['Pertumbuhan & peluncuran', schema.launch_ready],
+    ['Commerce', schema.commerce_ready],
     ['Payment profile', schema.payment_profile_ready]
   ];
 }
@@ -36,7 +36,7 @@ function render({ session, access, health, operations, growth }) {
 
   root.innerHTML = `
     <header class="oi-header">
-      <div class="oi-brand"><img src="/assets/logo.webp" alt="" width="44" height="44"><div><span>INTERNAL · P9</span><h1>Operational Intelligence</h1><p>Health, marketplace operations, funnel, dan launch signals dalam satu ruang kerja.</p></div></div>
+      <div class="oi-brand"><img src="/assets/logo.webp" alt="" width="44" height="44"><div><span>INTERNAL</span><h1>Operational Intelligence</h1><p>Health, marketplace operations, funnel, dan launch signals dalam satu ruang kerja.</p></div></div>
       <div class="oi-header-actions"><a href="/admin/">Control Center</a><button type="button" data-oi-refresh>Refresh</button></div>
     </header>
 
@@ -88,7 +88,7 @@ function render({ session, access, health, operations, growth }) {
       </section>
 
       <section class="oi-panel oi-launch">
-        <div class="oi-panel-head"><div><span>P10 INPUT</span><h2>Launch signal</h2></div></div>
+        <div class="oi-panel-head"><div><span>LAUNCH READINESS</span><h2>Launch signal</h2></div></div>
         <div class="oi-launch-score"><strong>${readyCount === readiness.length && health?.ok ? 'READY' : 'REVIEW'}</strong><span>${readyCount}/${readiness.length} platform domains ready</span></div>
         <ul>
           <li>${n(op.active_products)} produk aktif</li>
@@ -98,7 +98,7 @@ function render({ session, access, health, operations, growth }) {
         </ul>
       </section>
     </div>
-    <footer>Operational Intelligence V2 · data no-store · internal only · tidak melakukan financial action.</footer>`;
+    <footer>Operational Intelligence · data no-store · internal only · tidak melakukan financial action.</footer>`;
 
   root.querySelector('[data-oi-refresh]')?.addEventListener('click', load);
 }
