@@ -4,8 +4,9 @@
   const doc = document;
   const root = doc.documentElement;
   const body = doc.body;
+  const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
-  root.dataset.p3Experience = '1';
+  root.dataset.p3Experience = '2';
 
   function byId(id) {
     return doc.getElementById(id);
@@ -20,16 +21,60 @@
     return Boolean(node && !node.hidden && node.getAttribute('aria-hidden') !== 'true');
   }
 
+  function visibleFocusable(surface) {
+    if (!surface) return [];
+    return [...surface.querySelectorAll(FOCUSABLE)].filter(node => {
+      if (node.hidden || node.getAttribute('aria-hidden') === 'true') return false;
+      return node.getClientRects().length > 0;
+    });
+  }
+
+  function trapFocus(event, surface) {
+    if (event.key !== 'Tab' || !isOpen(surface)) return;
+    const nodes = visibleFocusable(surface);
+    if (!nodes.length) {
+      event.preventDefault();
+      surface.focus?.({ preventScroll: true });
+      return;
+    }
+    const first = nodes[0];
+    const last = nodes[nodes.length - 1];
+    if (event.shiftKey && doc.activeElement === first) {
+      event.preventDefault();
+      last.focus({ preventScroll: true });
+    } else if (!event.shiftKey && doc.activeElement === last) {
+      event.preventDefault();
+      first.focus({ preventScroll: true });
+    }
+  }
+
   function installNavigationA11y() {
     const nav = byId('appNavigation');
     if (!nav) return;
 
+    let lastLabel = '';
+    const announcer = doc.createElement('div');
+    announcer.className = 'p3-route-status p3-sr-only';
+    announcer.setAttribute('role', 'status');
+    announcer.setAttribute('aria-live', 'polite');
+    announcer.setAttribute('aria-atomic', 'true');
+    body.appendChild(announcer);
+
     const sync = () => {
       const items = nav.querySelectorAll('.nav-item[data-nav]');
+      let activeLabel = '';
       for (const item of items) {
         const active = item.classList.contains('active');
-        if (active) item.setAttribute('aria-current', 'page');
-        else item.removeAttribute('aria-current');
+        if (active) {
+          item.setAttribute('aria-current', 'page');
+          activeLabel = String(item.getAttribute('aria-label') || item.textContent || '').replace(/\s+/g, ' ').trim();
+        } else item.removeAttribute('aria-current');
+      }
+      if (activeLabel && activeLabel !== lastLabel) {
+        lastLabel = activeLabel;
+        window.setTimeout(() => {
+          announcer.textContent = `Halaman ${activeLabel} dibuka.`;
+        }, 40);
       }
     };
 
@@ -41,55 +86,26 @@
     });
   }
 
-  function installMenuA11y() {
-    const overlay = byId('sideMenu');
-    const opener = byId('menuButton');
-    const closer = byId('closeMenuButton');
+  function installDialogA11y({ overlayId, openerId, closerId, initialFocusId, label }) {
+    const overlay = byId(overlayId);
+    const opener = byId(openerId);
+    const closer = byId(closerId);
+    const initial = initialFocusId ? byId(initialFocusId) : closer;
     if (!overlay || !opener) return;
 
-    opener.setAttribute('aria-controls', 'sideMenu');
+    opener.setAttribute('aria-controls', overlayId);
     opener.setAttribute('aria-haspopup', 'dialog');
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
+    if (label) overlay.setAttribute('aria-label', label);
+    if (!overlay.hasAttribute('tabindex')) overlay.setAttribute('tabindex', '-1');
 
     let wasOpen = false;
     const sync = () => {
       const open = isOpen(overlay);
       setExpanded(opener, open);
       if (open && !wasOpen) {
-        requestAnimationFrame(() => closer?.focus({ preventScroll: true }));
-      } else if (!open && wasOpen && doc.activeElement && overlay.contains(doc.activeElement)) {
-        opener.focus({ preventScroll: true });
-      }
-      wasOpen = open;
-    };
-
-    sync();
-    new MutationObserver(sync).observe(overlay, {
-      attributes: true,
-      attributeFilter: ['hidden', 'aria-hidden']
-    });
-  }
-
-  function installSearchA11y() {
-    const overlay = byId('searchOverlay');
-    const opener = byId('headerSearchButton');
-    const closer = byId('closeSearchButton');
-    const input = byId('searchInput');
-    if (!overlay || !opener) return;
-
-    opener.setAttribute('aria-controls', 'searchOverlay');
-    opener.setAttribute('aria-haspopup', 'dialog');
-    overlay.setAttribute('role', 'dialog');
-    overlay.setAttribute('aria-modal', 'true');
-    overlay.setAttribute('aria-label', 'Pencarian Pasar UMKM');
-
-    let wasOpen = false;
-    const sync = () => {
-      const open = isOpen(overlay);
-      setExpanded(opener, open);
-      if (open && !wasOpen) {
-        requestAnimationFrame(() => input?.focus({ preventScroll: true }));
+        requestAnimationFrame(() => (initial || visibleFocusable(overlay)[0] || overlay).focus?.({ preventScroll: true }));
       } else if (!open && wasOpen && doc.activeElement && overlay.contains(doc.activeElement)) {
         opener.focus({ preventScroll: true });
       }
@@ -103,12 +119,18 @@
     });
 
     doc.addEventListener('keydown', event => {
-      if (event.key !== 'Escape' || !isOpen(overlay)) return;
-      closer?.click();
+      if (!isOpen(overlay)) return;
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closer?.click();
+        return;
+      }
+      trapFocus(event, overlay);
     });
   }
 
   function installConnectivityStatus() {
+    if (doc.querySelector('.p3-connectivity')) return;
     const status = doc.createElement('div');
     status.className = 'p3-connectivity';
     status.setAttribute('role', 'status');
@@ -138,11 +160,7 @@
       }
     };
 
-    const offline = () => show(
-      'Koneksi terputus. Konten yang sudah dimuat tetap dapat dilihat.',
-      'offline',
-      true
-    );
+    const offline = () => show('Koneksi terputus. Konten yang sudah dimuat tetap dapat dilihat.', 'offline', true);
     const online = () => show('Koneksi kembali aktif.', 'online');
 
     window.addEventListener('offline', offline, { passive: true });
@@ -155,6 +173,7 @@
     if (!loading) return;
     loading.setAttribute('role', 'status');
     loading.setAttribute('aria-live', 'polite');
+    loading.setAttribute('aria-busy', loading.hidden ? 'false' : 'true');
 
     let label = loading.querySelector('.p3-sr-only');
     if (!label) {
@@ -164,12 +183,12 @@
       loading.appendChild(label);
     }
 
-    const sync = () => loading.setAttribute('aria-hidden', loading.hidden ? 'true' : 'false');
+    const sync = () => {
+      loading.setAttribute('aria-hidden', loading.hidden ? 'true' : 'false');
+      loading.setAttribute('aria-busy', loading.hidden ? 'false' : 'true');
+    };
     sync();
-    new MutationObserver(sync).observe(loading, {
-      attributes: true,
-      attributeFilter: ['hidden']
-    });
+    new MutationObserver(sync).observe(loading, { attributes: true, attributeFilter: ['hidden'] });
   }
 
   function installSkipLink() {
@@ -182,23 +201,17 @@
     link.className = 'p3-skip-link';
     link.href = `#${main.id}`;
     link.textContent = 'Lewati ke konten utama';
-    link.addEventListener('click', () => {
-      requestAnimationFrame(() => main.focus({ preventScroll: true }));
-    });
+    link.addEventListener('click', () => requestAnimationFrame(() => main.focus({ preventScroll: true })));
     body.insertBefore(link, body.firstChild);
   }
 
   function installPointerIntent() {
     doc.addEventListener('pointerdown', event => {
       const target = event.target?.closest?.('button,[role="button"],a');
-      if (!target) return;
-      target.dataset.p3Pressed = 'true';
+      if (target) target.dataset.p3Pressed = 'true';
     }, { passive: true, capture: true });
 
-    const clear = event => {
-      const target = event.target?.closest?.('[data-p3-pressed="true"]');
-      target?.removeAttribute('data-p3-pressed');
-    };
+    const clear = event => event.target?.closest?.('[data-p3-pressed="true"]')?.removeAttribute('data-p3-pressed');
     doc.addEventListener('pointerup', clear, { passive: true, capture: true });
     doc.addEventListener('pointercancel', clear, { passive: true, capture: true });
   }
@@ -244,8 +257,8 @@
   function init() {
     installSkipLink();
     installNavigationA11y();
-    installMenuA11y();
-    installSearchA11y();
+    installDialogA11y({ overlayId: 'sideMenu', openerId: 'menuButton', closerId: 'closeMenuButton', label: 'Menu utama Pasar UMKM' });
+    installDialogA11y({ overlayId: 'searchOverlay', openerId: 'headerSearchButton', closerId: 'closeSearchButton', initialFocusId: 'searchInput', label: 'Pencarian Pasar UMKM' });
     installConnectivityStatus();
     installLoadingSemantics();
     installPointerIntent();
@@ -260,6 +273,7 @@
 
   window.PasarP3Experience = Object.freeze({
     version: '1.0',
+    revision: '2.0',
     ready: () => root.dataset.p3Ready === 'true'
   });
 })();
