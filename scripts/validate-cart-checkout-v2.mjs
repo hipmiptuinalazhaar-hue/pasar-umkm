@@ -30,8 +30,9 @@ need(boundary,'handleCartCheckoutV2Api','V2 commerce boundary');
 
 for(const text of ['pasar_cart_selection_v2','data-cart-v2-item','data-cart-v2-store','data-cart-v2-all','Checkout (','setSelection([String(productId)])','css/cart-checkout-v2.css?v=1.0','js/profile-address-v2.js?v=1.0',"window.PasarP8Commerce=Object.freeze({version:'1.2'",'[data-cart-v2-checkout]',"const target='/checkout/index.html'","location[replace?'replace':'assign'](target)"])need(cart,text,'selective cart UI / checkout ownership');
 forbid(cart,/location\.pathname==='\/checkout\/'\s*\|\|\s*location\.pathname==='\/checkout'/,'legacy checkout pathname no-op');
-for(const text of ['data-cart-v2-checkout','removeAttribute(\'data-commerce-action\')','PasarP8Commerce?.openCheckout',"location.assign('/checkout/')",'stopImmediatePropagation','PasarCartCheckoutHotfix'])need(hotfix,text,'cart checkout click ownership');
-for(const text of ['js/cart-checkout-hotfix-v1.js?v=1.0','loadCartCheckoutHotfix()',"window.PasarP8Commerce?.version === '1.2'","js/p8-commerce-integration.js?v=1.2"])need(p3,text,'cart hotfix/P8 loader');
+for(const text of ['data-cart-v2-checkout','CHECKOUT_SELECTOR','prepareSelection','sessionStorage.setItem(SELECTION_KEY','location.assign(\'/checkout/index.html\')','window.addEventListener(\'click\'','stopImmediatePropagation','PasarCartCheckoutHotfix','version: \'1.1\''])need(hotfix,text,'cart checkout click ownership / selection repair');
+forbid(hotfix,/location\.assign\(['"]\/checkout\/['"]\)/,'legacy directory checkout fallback');
+for(const text of ['js/cart-checkout-hotfix-v1.js?v=1.1','loadCartCheckoutHotfix()',"window.PasarCartCheckoutHotfix?.version === '1.1'","window.PasarP8Commerce?.version === '1.2'","js/p8-commerce-integration.js?v=1.2"])need(p3,text,'cart hotfix/P8 loader');
 for(const text of ['min-width:24px','min-height:52px',':focus-visible'])need(cartCss,text,'cart accessibility styling');
 
 for(const text of ['/api/commerce/cart','/api/commerce/address-book','/api/commerce/fulfillment/stores/','/api/commerce/checkout/preferences','/api/commerce/checkout-v2','pasar_cart_selection_v2','navigator.geolocation','https://www.google.com/maps?q=','selected_product_ids','notes_by_store','sessionStorage.removeItem'])need(checkout,text,'Checkout V2 state flow');
@@ -50,4 +51,4 @@ for(const [path,source,max] of budgets){const bytes=Buffer.byteLength(source);if
 if(pkg.scripts?.['test:cart-checkout-v2']!=='node scripts/validate-cart-checkout-v2.mjs')throw new Error('package.json missing test:cart-checkout-v2');
 if(!String(pkg.scripts?.validate||'').includes('npm run test:cart-checkout-v2'))throw new Error('canonical validate must include Cart Checkout V2');
 
-console.log('Cart + Checkout V2 contract PASS: isolated checkout click ownership, exact Checkout V2 navigation, selective cart, server-authoritative fulfillment/payment/fees, address/GPS snapshot, seller navigation, and selected-only deletion are intact.');
+console.log('Cart + Checkout V2 contract PASS: deterministic cart selection repair, isolated checkout click ownership, exact Checkout V2 navigation, selective cart, server-authoritative fulfillment/payment/fees, address/GPS snapshot, seller navigation, and selected-only deletion are intact.');
