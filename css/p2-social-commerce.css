@@ -1,0 +1,118 @@
+.post-card.is-product-post[data-p2-commerce-enhanced="true"] {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 680px;
+}
+
+.ig-product-media[data-p2-product-detail] {
+  position: relative;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ig-product-media[data-p2-product-detail]:focus-visible {
+  outline: 3px solid #0f573a;
+  outline-offset: -3px;
+}
+
+.p2-commerce-context {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 2px;
+}
+
+.p2-commerce-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 9px;
+  border: 1px solid #d9e4de;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #42534b;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.p2-commerce-chip--local {
+  border-color: #cde2d7;
+  color: #0f573a;
+}
+
+.p2-commerce-chip--verified {
+  border-color: #bcd6c8;
+  background: #f5faf7;
+  color: #0b4f35;
+}
+
+.p2-commerce-chip--low-stock {
+  border-color: #ead6ad;
+  background: #fffaf0;
+  color: #7a5412;
+}
+
+.p2-commerce-chip--soldout {
+  border-color: #e5c6c6;
+  background: #fff7f7;
+  color: #8a2d2d;
+}
+
+.post-card.is-product-post[data-p2-commerce-enhanced="true"] .ig-product-buttons button {
+  min-height: 48px;
+}
+
+.post-card.is-product-post[data-p2-commerce-enhanced="true"] [data-p2-commerce-cta="buy"] {
+  font-weight: 800;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ig-product-media[data-p2-product-detail]::after {
+    content: "Lihat detail";
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 7px 11px;
+    border: 1px solid rgba(15, 87, 58, .18);
+    border-radius: 999px;
+    background: #ffffff;
+    color: #0f573a;
+    box-shadow: 0 5px 18px rgba(8, 55, 37, .12);
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 140ms ease, transform 140ms ease;
+    pointer-events: none;
+  }
+
+  .ig-product-media[data-p2-product-detail]:hover::after,
+  .ig-product-media[data-p2-product-detail]:focus-visible::after {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 420px) {
+  .p2-commerce-context {
+    gap: 5px;
+  }
+
+  .p2-commerce-chip {
+    min-height: 26px;
+    padding-inline: 8px;
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-product-media[data-p2-product-detail]::after {
+    transition: none;
+  }
+}
