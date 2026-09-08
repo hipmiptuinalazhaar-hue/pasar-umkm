@@ -49,6 +49,7 @@ function budget(key, limit) {
 for (const token of ['support_tickets','support_messages','support_internal_notes','support_ticket_events']) has('migration', token);
 for (const token of ["'support.view'", "'support.reply'", "'support.manage'", "'super_admin'", "'support'"]) has('migration', token);
 has('migration', "'2026-09-09-customer-support-v1'");
+must(/\('support\.manage'[\s\S]{0,260}?TRUE\s*,\s*TRUE\)/i.test(data.migration), 'support.manage must remain a sensitive permission requiring admin step-up authentication');
 must(!/ALTER\s+TABLE\s+(?:orders|users|stores|products|direct_messages|direct_conversations)/i.test(data.migration), 'support migration must remain additive to existing marketplace tables');
 
 // Public support API boundaries.
@@ -61,9 +62,10 @@ has('api', 'o.buyer_id = ${userId} OR s.owner_id = ${userId}', 'order context mu
 must(!data.api.includes('support_internal_notes'), 'public support API must never reference internal admin notes');
 must(!/UPDATE\s+(orders|products|stores)|INSERT\s+INTO\s+(payments|wallets)|DELETE\s+FROM\s+(orders|products)/i.test(data.api), 'public support API must not mutate commerce or money state');
 
-// Admin support requires explicit permissions and audit logging.
+// Admin support requires explicit permissions, transactional row locking, and audit logging.
 for (const permission of ['support.view','support.reply','support.manage']) has('adminApi', permission);
 for (const token of ['admin_audit_logs','support.reply','support.manage','support.note','support_internal_notes']) has('adminApi', token);
+for (const token of ['Client','withTransaction','BEGIN','COMMIT','ROLLBACK','FOR UPDATE']) has('adminApi', token);
 must(!/UPDATE\s+(orders|products|stores)|DELETE\s+FROM\s+(orders|products)|INSERT\s+INTO\s+(payments|wallets)/i.test(data.adminApi), 'admin support API must not mutate commerce or money state');
 
 // Runtime owns the support endpoints and exposes a fail-closed health contract.
@@ -110,7 +112,7 @@ has('smoke', 'support_ready');
 budget('migration', 14000);
 budget('store', 7000);
 budget('api', 26000);
-budget('adminApi', 26000);
+budget('adminApi', 28000);
 budget('userHtml', 5000);
 budget('userJs', 24000);
 budget('userCss', 18000);
@@ -132,6 +134,8 @@ if (errors.length) {
 console.log('Customer Support V1 validation passed');
 console.log(' - private user-to-platform ticket channel');
 console.log(' - explicit support RBAC + admin audit trail');
+console.log(' - support.manage step-up MFA invariant');
+console.log(' - transactional admin support mutations with row locking');
 console.log(' - order ownership and same-origin write boundaries');
 console.log(' - admin inbox, replies, assignment, priority, notes');
 console.log(' - no commerce/money mutation capability');
