@@ -6,11 +6,15 @@ on:
       - main
     paths:
       - 'index.html'
+      - 'js/performance-v10-a.js'
       - 'js/account-resilience.js'
       - 'js/profile-saved.js'
       - 'js/profile-edit.js'
       - 'css/profile-edit.css'
       - 'css/rating-form-v3.css'
+      - 'scripts/validate-edge-hardening-b.mjs'
+      - 'scripts/validate-public-experience-v9.mjs'
+      - 'scripts/validate-p8-real-commerce.mjs'
       - '.github/workflows/p2-validate.yml'
       - '.github/workflows/ui-p2-commerce-validate.yml'
       - '.github/workflows/ui-p3-social-validate.yml'
@@ -37,7 +41,7 @@ jobs:
         run: |
           set -euo pipefail
           git fetch origin main --depth=1
-          allowed='^(index\.html|js/account-resilience\.js|js/profile-saved\.js|js/commerce-experience-v2\.js|js/profile-edit\.js|src/functionality-api\.js|scripts/validate-edge-hardening-b\.mjs|docs/ERROR_EDGE_HARDENING_B\.md|css/profile-edit\.css|css/rating-form-v3\.css|\.github/workflows/edge-hardening-b-validate\.yml|\.github/workflows/p2-validate\.yml|\.github/workflows/ui-p2-commerce-validate\.yml|\.github/workflows/ui-p3-social-validate\.yml|\.github/workflows/ui-p5-tablet-desktop-validate\.yml|\.github/workflows/ui-p6-polish-performance-validate\.yml)$'
+          allowed='^(index\.html|js/performance-v10-a\.js|js/account-resilience\.js|js/profile-saved\.js|js/commerce-experience-v2\.js|js/profile-edit\.js|src/functionality-api\.js|scripts/validate-edge-hardening-b\.mjs|scripts/validate-public-experience-v9\.mjs|scripts/validate-p8-real-commerce\.mjs|docs/ERROR_EDGE_HARDENING_B\.md|css/profile-edit\.css|css/rating-form-v3\.css|\.github/workflows/edge-hardening-b-validate\.yml|\.github/workflows/p2-validate\.yml|\.github/workflows/ui-p2-commerce-validate\.yml|\.github/workflows/ui-p3-social-validate\.yml|\.github/workflows/ui-p5-tablet-desktop-validate\.yml|\.github/workflows/ui-p6-polish-performance-validate\.yml)$'
           changed="$(git diff --name-only origin/main...HEAD)"
           printf '%s\n' "$changed"
           bad="$(printf '%s\n' "$changed" | grep -Ev "$allowed" || true)"
@@ -49,6 +53,7 @@ jobs:
 
       - name: Validate JavaScript syntax
         run: |
+          node --check js/performance-v10-a.js
           node --check js/account-resilience.js
           node --check js/profile-saved.js
           node --check js/profile-edit.js
@@ -61,12 +66,14 @@ jobs:
           import sys
 
           index_path = Path('index.html')
+          v10_path = Path('js/performance-v10-a.js')
           loader_path = Path('js/account-resilience.js')
           carrier_path = Path('js/profile-saved.js')
           profile_path = Path('js/profile-edit.js')
           profile_css_path = Path('css/profile-edit.css')
           rating_css_path = Path('css/rating-form-v3.css')
           index = index_path.read_text(encoding='utf-8')
+          v10 = v10_path.read_text(encoding='utf-8')
           loader = loader_path.read_text(encoding='utf-8')
           carrier = carrier_path.read_text(encoding='utf-8')
           profile = profile_path.read_text(encoding='utf-8')
@@ -74,9 +81,9 @@ jobs:
           rating_css = rating_css_path.read_text(encoding='utf-8')
           errors = []
 
-          # Guard current production baseline with small headroom instead of stale pre-fingerprint budgets.
           budgets = {
               'critical HTML': (index_path.stat().st_size, 16_500),
+              'V10 adaptive bootstrap': (v10_path.stat().st_size, 12_000),
               'P6 loader': (loader_path.stat().st_size, 18_000),
               'Commerce carrier': (carrier_path.stat().st_size, 11_000),
               'Profile editor': (profile_path.stat().st_size, 26_000),
@@ -118,32 +125,45 @@ jobs:
           if 'rel="preload" href="assets/logo.webp?v=2.0"' not in index:
               errors.append('Brand image preload contract missing')
 
-          account_loader_pattern = re.compile(r'js/account-resilience\.js\?v=([0-9a-f]{12})(?:&[^\"]*)?')
-          carrier_pattern = re.compile(r'js/profile-saved\.js\?v=([0-9a-f]{12})')
-          account_loader_match = account_loader_pattern.search(index)
-          carrier_match = carrier_pattern.search(index)
+          v10_index_match = re.search(r'js/performance-v10-a\.js\?v=([0-9a-f]{12})', index)
+          account_loader_match = re.search(r"account:\s*'js/account-resilience\.js\?v=([0-9a-f]{12})(?:&[^']*)?'", v10)
+          carrier_match = re.search(r"saved:\s*'js/profile-saved\.js\?v=([0-9a-f]{12})'", v10)
+          commerce_match = re.search(r"commerce:\s*'js/p8-commerce-integration\.js\?v=([0-9a-f]{12})'", v10)
+          if not v10_index_match:
+              errors.append('V10 deterministic bootstrap fingerprint missing from index')
           if not account_loader_match:
-              errors.append('Current account loader deterministic fingerprint missing')
+              errors.append('Current account loader deterministic fingerprint missing from V10 graph')
           if not carrier_match:
-              errors.append('P6 Commerce carrier deterministic fingerprint missing')
+              errors.append('P6 Commerce carrier deterministic fingerprint missing from V10 graph')
+          if not commerce_match:
+              errors.append('P8 deterministic router fingerprint missing from V10 graph')
 
           first_party_scripts = re.findall(r'<script[^>]+src="js/[^\"]+"', index)
-          first_party_styles = re.findall(r'<link[^>]+href="css/[^\"]+"', index)
-          print(f'Initial first-party script requests: {len(first_party_scripts)} / 5')
-          print(f'Initial first-party stylesheet requests: {len(first_party_styles)} / 5')
-          if len(first_party_scripts) > 5:
-              errors.append(f'Initial JS request budget exceeded: {len(first_party_scripts)} > 5')
-          if len(first_party_styles) > 5:
-              errors.append(f'Initial CSS request budget exceeded: {len(first_party_styles)} > 5')
+          direct_first_party_styles = re.findall(r'<link\s+rel="stylesheet"[^>]+href="css/[^\"]+"', index)
+          print(f'Initial first-party script requests: {len(first_party_scripts)} / 2')
+          print(f'Direct first-party stylesheet requests: {len(direct_first_party_styles)} / 5')
+          if len(first_party_scripts) != 2:
+              errors.append(f'V10 critical JS owner count drifted: {len(first_party_scripts)} != 2')
+          if len(direct_first_party_styles) != 5:
+              errors.append(f'Direct CSS owner count drifted: {len(direct_first_party_styles)} != 5')
+          if not re.search(r'<link\s+rel="preload"\s+href="css/public-experience-v9\.css\?v=[0-9a-f]{12}"\s+as="style">', index):
+              errors.append('V9 early stylesheet discovery preload is missing or unfingerprinted')
 
           for contract in (
-              'warmPublicBootstrap()','ensureCoreEnhancements','ensureProfileEnhancements','ensureMediaEnhancements',
-              'ensureBusinessEnhancements','schedulePostRenderWarmup','requestIdleCallback',"version: '1.0'",
+              "version === '10.1'", 'warmPublicBootstrap()','PUBLIC_CACHE_TTL_MS','hardwareConcurrency',
+              'deviceMemory','saveData','installIntentGate','event.stopImmediatePropagation()','target.click()',
+          ):
+              if contract not in v10:
+                  errors.append(f'Missing V10 delivery contract: {contract}')
+
+          for contract in (
+              'ensureCoreEnhancements','ensureProfileEnhancements','ensureMediaEnhancements',
+              'ensureBusinessEnhancements','schedulePostRenderWarmup','requestIdleCallback',
               "loadSocialPresentation('profile')",'css/profile-edit.css?v=4.0','js/profile-edit.js?v=4.0',
-              'css/rating-form-v3.css?v=3.0',
+              'css/rating-form-v3.css?v=3.0',"version: '1.1'",
           ):
               if contract not in loader:
-                  errors.append(f'Missing loader contract: {contract}')
+                  errors.append(f'Missing P6 loader contract: {contract}')
 
           for marker in (
               'loadDeferredEnhancements','chat-experience.css','chat-layout-v2.css','chat-whatsapp-v3.css',
@@ -182,10 +202,14 @@ jobs:
               if contract not in carrier:
                   errors.append(f'Commerce lazy contract lost during P6: {contract}')
 
+          if v10_index_match:
+              print('V10 bootstrap fingerprint:', v10_index_match.group(1))
           if account_loader_match:
               print('Account loader fingerprint:', account_loader_match.group(1))
           if carrier_match:
               print('Commerce carrier fingerprint:', carrier_match.group(1))
+          if commerce_match:
+              print('P8 router fingerprint:', commerce_match.group(1))
 
           if errors:
               print('UI P6 Polish/Performance validation failed:')
