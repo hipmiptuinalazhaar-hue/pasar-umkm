@@ -1,0 +1,53 @@
+name: Reels V4 Source Autofix
+
+on:
+  push:
+    branches:
+      - feat/reels-commerce-v4-r1-r11
+    paths:
+      - '.github/workflows/reels-v4-source-autofix.yml'
+      - 'js/reels-commerce-v4.js'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: feat/reels-commerce-v4-r1-r11
+
+      - name: Repair malformed save icon template
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('js/reels-commerce-v4.js')
+          source = path.read_text()
+          old = "${actionButton('save',`${saved?'ph-fill':'ph'} ph-bookmark-simple',reel.saves_count||0,'Simpan',saved?'saved':'')}"
+          new = "${actionButton('save',`${saved?'ph-fill':'ph'} ph-bookmark-simple`,reel.saves_count||0,'Simpan',saved?'saved':'')}"
+          if old in source:
+              source = source.replace(old, new, 1)
+              path.write_text(source)
+          elif new not in source:
+              raise SystemExit('Expected Reels save action pattern not found; refusing blind rewrite.')
+          PY
+          node --check js/reels-commerce-v4.js
+
+      - name: Commit repair when needed
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- js/reels-commerce-v4.js; then
+            echo 'Source already repaired.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add js/reels-commerce-v4.js
+          git commit -m 'fix(reels): repair save action template syntax'
+          git push origin HEAD:feat/reels-commerce-v4-r1-r11
