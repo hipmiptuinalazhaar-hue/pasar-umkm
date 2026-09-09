@@ -56,6 +56,7 @@ contract('R10 copyright-safe audio library', has('advanced', 'Audio library aman
 contract('R10 templates/remix metadata', match('api', /template_of_reel_id|remix_of_reel_id/i) && match('migration', /template_of_reel_id|remix_of_reel_id/i));
 contract('R11 advanced metadata endpoint', has('advancedApi', '/api/reels/v4/advanced/metadata', 'audio-library'));
 contract('R11 cold-bootstrap preserves active Reels shell', match('app', /function renderApplication\(\)\s*\{[\s\S]*?STATE\.activeNav\s*!==\s*['"]reels['"][\s\S]*?renderFeed\(\)/));
+contract('R11 early pre-router Reels intent handed to canonical router', has('app', "document.querySelector('[data-v10-lazy=reels]')&&navigate('reels')"));
 contract('V4 compatibility bridge', has('bridge', '/api/reels-v4', '/api/reels/v4') && match('mediaBridge', /legacy|handleMediaSocial/i));
 contract('V4 schema migration markers', has('migration', '2026-09-09-reels-commerce-v4') && has('advancedMigration', '2026-09-09-reels-advanced-creator-v4'));
 contract('Reduced-motion coverage', match('css', /prefers-reduced-motion/i) && match('advancedCss', /prefers-reduced-motion/i));
