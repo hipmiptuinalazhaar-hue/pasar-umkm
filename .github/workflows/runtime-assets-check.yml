@@ -5,12 +5,100 @@ on:
   push:
     branches:
       - main
+      - feat/reels-commerce-v4-r1-r11
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
+  repair-reels-window-gate:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/feat/reels-commerce-v4-r1-r11'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: feat/reels-commerce-v4-r1-r11
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Repair Reels navigation boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('js/performance-v10-a.js')
+          s=p.read_text()
+          if 'function installWindowIntentGate' not in s:
+              old="""  installIntentGate({
+    selector: '[data-nav=\"reels\"]',
+    ready: () => window.PasarReelsV4?.version === '4.0',
+    loader: loaders.reels,
+    label: 'reels'
+  });
+
+"""
+              new="""  function installWindowIntentGate({ selector, ready, loader, label }) {
+    const prewarm = event => {
+      const target = event.target?.closest?.(selector);
+      if (target && !ready()) loader().catch(() => null);
+    };
+    window.addEventListener('pointerdown', prewarm, { capture: true, passive: true });
+    window.addEventListener('click', async event => {
+      const target = event.target?.closest?.(selector);
+      if (!target || ready() || replaying.has(target)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      target.setAttribute('aria-busy', 'true');
+      try {
+        await withIntentTimeout(loader(), label);
+        replayCount += 1;
+        replaying.add(target);
+        target.click();
+        queueMicrotask(() => replaying.delete(target));
+      } catch (error) {
+        console.error(`[Pasar UMKM] V10 ${label} bootstrap error:`, error);
+        window.showToast?.('Reels belum dapat dibuka. Coba lagi.');
+      } finally {
+        target.removeAttribute('aria-busy');
+      }
+    }, true);
+  }
+
+  installWindowIntentGate({
+    selector: '[data-nav=\"reels\"]',
+    ready: () => window.PasarReelsV4?.version === '4.0',
+    loader: loaders.reels,
+    label: 'reels'
+  });
+
+"""
+              if old not in s:
+                  raise SystemExit('Reels document gate anchor not found')
+              p.write_text(s.replace(old,new,1))
+          PY
+          node --check js/performance-v10-a.js
+          npm run build:runtime
+          npm run validate
+      - name: Commit deterministic repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add js/performance-v10-a.js index.html js/reels-v4-entry.js js/reel-profile-separation.js css/tokens.css js/app.runtime.js css/style.runtime.css .assetsignore
+          if git diff --cached --quiet; then
+            echo 'No runtime repair changes remain.'
+            exit 0
+          fi
+          git commit -m 'fix(reels): intercept Reels intent at window capture boundary'
+          git push origin HEAD:feat/reels-commerce-v4-r1-r11
+
   verify-runtime-assets:
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     uses: ./.github/workflows/runtime-assets.yml
     with:
       write_changes: false
