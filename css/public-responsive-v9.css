@@ -1,0 +1,5 @@
+/* Public Experience V9 responsive entry.
+   Keep the critical HTML stylesheet count stable while preserving cascade order:
+   compatibility responsive rules first, V9 final ownership second. */
+@import url("./tablet-desktop-v2.css?v=fa75b460a5ee") screen and (min-width: 768px);
+@import url("./public-experience-v9.css?v=9.0.0");
