@@ -1,8 +1,7 @@
 import { readFile } from "node:fs/promises";
 
-const [index, entry, css] = await Promise.all([
+const [index, css] = await Promise.all([
   readFile("index.html", "utf8"),
-  readFile("css/public-responsive-v9.css", "utf8"),
   readFile("css/public-experience-v9.css", "utf8")
 ]);
 
@@ -10,20 +9,21 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
+const v9Entry = '<style id="publicExperienceV9Entry">';
+const responsiveLink = /<link\s+rel="stylesheet"\s+href="css\/tablet-desktop-v2\.css\?v=([0-9a-f]{12})"\s+media="screen and \(min-width: 768px\)">/;
+
+assert(index.includes(v9Entry), "Public Experience V9 inline cascade entry is missing.");
 assert(
-  index.includes('href="css/public-responsive-v9.css?v='),
-  "Public Experience V9 responsive entry is not loaded by index.html."
+  index.includes('@import url("css/public-experience-v9.css?v=9.0.0");'),
+  "Public Experience V9 CSS is not imported by the final cascade entry."
 );
+assert(responsiveLink.test(index), "Responsive V2 must remain direct-linked with its deterministic fingerprint.");
 assert(
-  entry.includes('./tablet-desktop-v2.css?v=') && entry.includes('./public-experience-v9.css?v='),
-  "V9 responsive entry must load compatibility rules before the final V9 owner."
-);
-assert(
-  entry.indexOf("tablet-desktop-v2.css") < entry.indexOf("public-experience-v9.css"),
-  "V9 responsive entry cascade order is invalid."
+  index.indexOf(v9Entry) > index.search(responsiveLink),
+  "V9 final cascade entry must load after Responsive V2."
 );
 
-const firstPartyStyles = [...index.matchAll(/<link\s+rel="stylesheet"\s+href="css\//g)];
+const firstPartyStyles = [...index.matchAll(/<link[^>]+href="css\//g)];
 assert(
   firstPartyStyles.length === 5,
   `Critical shell must keep exactly five first-party stylesheets (${firstPartyStyles.length}).`
