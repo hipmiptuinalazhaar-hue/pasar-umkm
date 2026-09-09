@@ -23,11 +23,11 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Verify Reels window capture boundary
+      - name: Verify Reels intent gate
         shell: bash
         run: |
           set -euo pipefail
-          grep -Fq "root: window" js/performance-v10-a.js
+          grep -Fq "selector: '[data-nav=\"reels\"]'" js/performance-v10-a.js
           node --check js/performance-v10-a.js
       - name: Regenerate deterministic runtime assets
         run: |
