@@ -2,6 +2,7 @@ import { access, readFile, stat } from 'node:fs/promises';
 
 const files = {
   index: 'index.html',
+  performanceBoot: 'js/performance-v10-a.js',
   chatBootstrap: 'js/chat-single-render-v6.js',
   chatGestures: 'js/chat-conversation-actions-v7.js',
   chatOwner: 'js/chat-experience-v7.js',
@@ -24,6 +25,7 @@ for (const path of Object.values(files)) {
 if (!errors.length) {
   const [
     index,
+    performanceBoot,
     chatBootstrap,
     chatGestures,
     chatOwner,
@@ -34,9 +36,9 @@ if (!errors.length) {
     aboutCss,
   ] = await Promise.all(Object.values(files).map(path => readFile(path, 'utf8')));
 
-  // Keep a tight ceiling around the current fingerprinted production shell.
   const budgets = {
     'critical HTML': [files.index, 16_500],
+    'V10 performance bootstrap': [files.performanceBoot, 12_000],
     'Chat bootstrap': [files.chatBootstrap, 5_000],
     'Chat gesture adapter': [files.chatGestures, 5_000],
     'Rating Core': [files.rating, 19_000],
@@ -51,16 +53,29 @@ if (!errors.length) {
     if (size > limit) errors.push(`${name} exceeds source budget: ${size} > ${limit}`);
   }
 
-  const initialScripts = [...index.matchAll(/<script[^>]+src="js\//g)].length;
-  if (initialScripts > 5) {
-    errors.push(`Initial first-party script budget exceeded: ${initialScripts} > 5`);
+  const initialScripts = [...index.matchAll(/<script\s+[^>]*src=["']js\//g)].length;
+  if (initialScripts !== 2) {
+    errors.push(`V10 initial first-party script contract requires exactly 2 scripts, found ${initialScripts}`);
   }
 
-  const chatFingerprint = index.match(/js\/chat-single-render-v6\.js\?v=([0-9a-f]{12})/);
+  if (index.includes('src="js/chat-single-render-v6.js') || index.includes("src='js/chat-single-render-v6.js")) {
+    errors.push('Chat bootstrap must remain outside the initial HTML script graph');
+  }
+
+  const chatFingerprint = performanceBoot.match(/js\/chat-single-render-v6\.js\?v=([0-9a-f]{12})/);
   if (!chatFingerprint) {
-    errors.push('Missing deterministic Chat bootstrap fingerprint in index');
+    errors.push('Missing deterministic Chat bootstrap fingerprint in V10 adaptive graph');
   } else {
-    console.log(`Chat bootstrap fingerprint: ${chatFingerprint[1]}`);
+    console.log(`Chat V10 bootstrap fingerprint: ${chatFingerprint[1]}`);
+  }
+
+  for (const contract of [
+    '[data-action="messages"]',
+    'stopImmediatePropagation',
+    'target.click()',
+    "loaders.chat",
+  ]) {
+    if (!performanceBoot.includes(contract)) errors.push(`Missing Chat intent-loading contract in V10: ${contract}`);
   }
 
   for (const contract of [
@@ -162,4 +177,4 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log('Post-release UX recovery validation passed.');
+console.log('Post-release UX recovery + V10 intent-loading validation passed.');
