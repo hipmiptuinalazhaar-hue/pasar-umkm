@@ -159,14 +159,14 @@
     ]).finally(() => clearTimeout(timer));
   }
 
-  function installIntentGate({ selector, ready, loader, label, fallback }) {
+  function installIntentGate({ selector, ready, loader, label, fallback, root = doc }) {
     const prewarm = event => {
       const target = event.target?.closest?.(selector);
       if (target && !ready()) loader().catch(() => null);
     };
-    doc.addEventListener('pointerdown', prewarm, { capture: true, passive: true });
-    doc.addEventListener('focusin', prewarm, true);
-    doc.addEventListener('click', async event => {
+    root.addEventListener('pointerdown', prewarm, { capture: true, passive: true });
+    root.addEventListener('focusin', prewarm, true);
+    root.addEventListener('click', async event => {
       const target = event.target?.closest?.(selector);
       if (!target || ready() || replaying.has(target)) return;
       event.preventDefault();
@@ -182,33 +182,6 @@
         console.error(`[Pasar UMKM] V10 ${label} bootstrap error:`, error);
         if (typeof fallback === 'function' && fallback(target, error) === true) return;
         window.showToast?.('Fitur belum dapat dibuka. Coba lagi.');
-      } finally {
-        target.removeAttribute('aria-busy');
-      }
-    }, true);
-  }
-
-  function installWindowIntentGate({ selector, ready, loader, label }) {
-    const prewarm = event => {
-      const target = event.target?.closest?.(selector);
-      if (target && !ready()) loader().catch(() => null);
-    };
-    window.addEventListener('pointerdown', prewarm, { capture: true, passive: true });
-    window.addEventListener('click', async event => {
-      const target = event.target?.closest?.(selector);
-      if (!target || ready() || replaying.has(target)) return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      target.setAttribute('aria-busy', 'true');
-      try {
-        await withIntentTimeout(loader(), label);
-        replayCount += 1;
-        replaying.add(target);
-        target.click();
-        queueMicrotask(() => replaying.delete(target));
-      } catch (error) {
-        console.error(`[Pasar UMKM] V10 ${label} bootstrap error:`, error);
-        window.showToast?.('Reels belum dapat dibuka. Coba lagi.');
       } finally {
         target.removeAttribute('aria-busy');
       }
@@ -249,11 +222,12 @@
     }
   });
 
-  installWindowIntentGate({
+  installIntentGate({
     selector: '[data-nav="reels"]',
     ready: () => window.PasarReelsV4?.version === '4.0',
     loader: loaders.reels,
-    label: 'reels'
+    label: 'reels',
+    root: window
   });
 
   installIntentGate({
