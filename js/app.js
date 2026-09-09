@@ -133,9 +133,8 @@ document.addEventListener('DOMContentLoaded', initializeApp);
 
 
 async function initializeApp() {
-  cacheDOM();
-  restoreLocalState();
-  bindEvents();
+  cacheDOM();restoreLocalState();bindEvents();
+document.querySelector('[data-v10-lazy=reels]')&&navigate('reels');
 
   setupSplash();
   setLoading(true);
@@ -1100,10 +1099,7 @@ async function apiRequest(endpoint, options = {}) {
    11. APPLICATION RENDER
    ========================================================= */
 
-function renderApplication(){
-  if(STATE.activeNav!=='reels'){renderStories();renderQuickCategories();renderFeed();}
-  renderSidebar();renderAccount();updateNavigation();updateHeaderBadges();updateCartBadge();
-}
+function renderApplication(){if(STATE.activeNav!=='reels'){renderStories();renderQuickCategories();renderFeed()}renderSidebar();renderAccount();updateNavigation();updateHeaderBadges();updateCartBadge()}
 
 
 /* =========================================================
