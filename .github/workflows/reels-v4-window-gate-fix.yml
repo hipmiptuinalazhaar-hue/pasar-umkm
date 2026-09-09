@@ -1,0 +1,92 @@
+name: Reels V4 Window Gate Fix
+
+on:
+  push:
+    branches:
+      - feat/reels-commerce-v4-r1-r11
+    paths:
+      - '.github/workflows/reels-v4-window-gate-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: feat/reels-commerce-v4-r1-r11
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Move Reels intent interception to window capture
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('js/performance-v10-a.js')
+          s=p.read_text()
+          old="""  installIntentGate({
+    selector: '[data-nav=\"reels\"]',
+    ready: () => window.PasarReelsV4?.version === '4.0',
+    loader: loaders.reels,
+    label: 'reels'
+  });
+
+"""
+          new="""  function installWindowIntentGate({ selector, ready, loader, label }) {
+    const prewarm = event => {
+      const target = event.target?.closest?.(selector);
+      if (target && !ready()) loader().catch(() => null);
+    };
+    window.addEventListener('pointerdown', prewarm, { capture: true, passive: true });
+    window.addEventListener('click', async event => {
+      const target = event.target?.closest?.(selector);
+      if (!target || ready() || replaying.has(target)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      target.setAttribute('aria-busy', 'true');
+      try {
+        await withIntentTimeout(loader(), label);
+        replayCount += 1;
+        replaying.add(target);
+        target.click();
+        queueMicrotask(() => replaying.delete(target));
+      } catch (error) {
+        console.error(`[Pasar UMKM] V10 ${label} bootstrap error:`, error);
+        window.showToast?.('Reels belum dapat dibuka. Coba lagi.');
+      } finally {
+        target.removeAttribute('aria-busy');
+      }
+    }, true);
+  }
+
+  installWindowIntentGate({
+    selector: '[data-nav=\"reels\"]',
+    ready: () => window.PasarReelsV4?.version === '4.0',
+    loader: loaders.reels,
+    label: 'reels'
+  });
+
+"""
+          if old not in s:
+              raise SystemExit('Reels document intent gate anchor not found')
+          p.write_text(s.replace(old,new,1))
+          PY
+          node --check js/performance-v10-a.js
+      - name: Build and validate
+        run: |
+          npm run build:runtime
+          npm run validate
+      - name: Commit final gate and generated assets
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add js/performance-v10-a.js index.html js/reels-v4-entry.js js/reel-profile-separation.js css/tokens.css js/app.runtime.js css/style.runtime.css .assetsignore
+          git commit -m 'fix(reels): intercept Reels intent at window capture boundary'
+          git push origin HEAD:feat/reels-commerce-v4-r1-r11
