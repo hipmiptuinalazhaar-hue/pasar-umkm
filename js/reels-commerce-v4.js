@@ -77,7 +77,7 @@
         ${actionButton('comments','ph ph-chat-circle',reel.comments_count||0,'Komentar')}
         ${actionButton('repost','ph ph-arrows-clockwise',reel.reposts_count||0,'Repost',reposted?'reposted':'')}
         ${actionButton('share','ph ph-paper-plane-tilt','Bagikan','Bagikan')}
-        ${actionButton('save',`${saved?'ph-fill':'ph'} ph-bookmark-simple',reel.saves_count||0,'Simpan',saved?'saved':'')}
+        ${actionButton('save',`${saved?'ph-fill':'ph'} ph-bookmark-simple`,reel.saves_count||0,'Simpan',saved?'saved':'')}
         ${actionButton('more','ph ph-dots-three','Lainnya','Opsi lainnya')}
       </div>
     </article>`;
