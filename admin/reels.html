@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f6f8f6">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>Pasar UMKM · Moderasi Reels</title>
+  <link rel="icon" href="/assets/logo.webp" type="image/webp">
+  <link rel="stylesheet" href="/css/admin-reels-moderation-v4.css?v=4.0">
+</head>
+<body>
+  <main class="reels-admin">
+    <header class="reels-admin-head">
+      <div class="reels-admin-brand">
+        <img src="/assets/logo.webp" width="42" height="42" alt="Pasar UMKM">
+        <div>
+          <h1>Moderasi Reels</h1>
+          <p>Trust & Safety workspace untuk laporan konten video Pasar UMKM.</p>
+        </div>
+      </div>
+      <div class="reels-admin-actions">
+        <a class="reels-admin-button" href="/admin/">Kembali ke Admin Console</a>
+        <select class="reels-admin-select" id="reportStatus" aria-label="Filter status laporan">
+          <option value="open">Terbuka</option>
+          <option value="reviewing">Ditinjau</option>
+          <option value="resolved">Selesai</option>
+          <option value="dismissed">Ditolak</option>
+        </select>
+        <button class="reels-admin-button primary" id="refreshReports" type="button">Muat ulang</button>
+      </div>
+    </header>
+
+    <section id="reelsModerationRoot" aria-live="polite">
+      <div class="reels-admin-empty"><strong>Memeriksa session admin…</strong></div>
+    </section>
+  </main>
+
+  <dialog class="reels-admin-dialog" id="reportActionDialog">
+    <form method="dialog">
+      <h2>Tindak laporan</h2>
+      <p data-dialog-copy></p>
+      <div class="reels-admin-field">
+        <label for="reportResolutionNote">Catatan penyelesaian</label>
+        <textarea id="reportResolutionNote" maxlength="500" placeholder="Tuliskan dasar tindakan moderasi" required></textarea>
+      </div>
+      <p class="reels-admin-alert" data-action-error hidden></p>
+      <div class="reels-admin-dialog-actions">
+        <button class="reels-admin-button" type="button" data-cancel-action>Batal</button>
+        <button class="reels-admin-button primary" type="submit">Konfirmasi</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="reels-admin-dialog" id="reelsStepUpDialog">
+    <form method="dialog">
+      <h2>Verifikasi tindakan sensitif</h2>
+      <p>Masukkan kode MFA admin sebelum tindakan moderasi berisiko tinggi dijalankan.</p>
+      <div class="reels-admin-field">
+        <label for="reelsStepMethod">Metode</label>
+        <select id="reelsStepMethod" name="method">
+          <option value="totp">Authenticator</option>
+          <option value="recovery">Recovery code</option>
+        </select>
+      </div>
+      <div class="reels-admin-field">
+        <label for="reelsStepCode">Kode</label>
+        <input id="reelsStepCode" name="code" maxlength="32" autocomplete="one-time-code" required>
+      </div>
+      <p class="reels-admin-alert" data-step-error hidden></p>
+      <div class="reels-admin-dialog-actions">
+        <button class="reels-admin-button" type="button" data-step-cancel>Batal</button>
+        <button class="reels-admin-button primary" type="submit">Verifikasi</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="/js/admin/reels-moderation-v4.js?v=4.0"></script>
+</body>
+</html>

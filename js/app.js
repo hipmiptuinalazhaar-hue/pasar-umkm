@@ -2835,10 +2835,6 @@ function runMenuAction(action) {
 }
 
 
-/* =========================================================
-   29. MAIN NAVIGATION
-   ========================================================= */
-
 function navigate(target) {
   if (
     target !== 'account' &&
@@ -2865,6 +2861,10 @@ function navigate(target) {
 
     case 'categories':
       openAllCategories();
+      break;
+
+    case 'reels':
+      window.PasarPerformanceV10?.openReels?.();
       break;
 
     case 'sell':

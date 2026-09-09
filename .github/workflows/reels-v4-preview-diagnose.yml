@@ -1,0 +1,61 @@
+name: Reels V4 Preview Diagnose
+
+on:
+  push:
+    branches:
+      - feat/reels-commerce-v4-r1-r11
+    paths:
+      - '.github/workflows/reels-v4-preview-diagnose.yml'
+
+permissions:
+  contents: read
+  checks: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+
+      - name: Wait for exact Cloudflare deployment
+        id: deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLOUDFLARE_SHA: ${{ github.sha }}
+          CLOUDFLARE_WAIT_TIMEOUT_MS: '420000'
+          CLOUDFLARE_WAIT_POLL_MS: '5000'
+        run: node scripts/wait-cloudflare-deploy.mjs
+
+      - name: Probe deployed Reels asset chain
+        env:
+          PREVIEW_URL: ${{ steps.deploy.outputs.preview_url }}
+        run: |
+          node --input-type=module <<'NODE'
+          const base = process.env.PREVIEW_URL;
+          if (!base) throw new Error('Preview URL missing');
+          const probe = async url => {
+            const response = await fetch(url, { cache: 'no-store' });
+            const text = await response.text();
+            console.log(JSON.stringify({ url, status: response.status, type: response.headers.get('content-type'), length: text.length, sample: text.slice(0, 180) }));
+            return text;
+          };
+          const html = await probe(base + '/');
+          const bootPath = html.match(/js\/performance-v10-a\.js\?v=[0-9a-f]{12}/)?.[0];
+          if (!bootPath) throw new Error('V10 bootstrap reference missing from deployed index');
+          const boot = await probe(new URL(bootPath, base + '/').href);
+          const reelLoaderPath = boot.match(/js\/reel-profile-separation\.js\?v=[0-9a-f]{12}/)?.[0];
+          if (!reelLoaderPath) throw new Error('Reels loader reference missing from deployed V10 bootstrap');
+          const reelLoader = await probe(new URL(reelLoaderPath, base + '/').href);
+          const corePath = reelLoader.match(/js\/reels-commerce-v4\.js\?v=[0-9a-f]{12}/)?.[0];
+          if (!corePath) throw new Error('Reels core reference missing from deployed loader');
+          await probe(new URL(corePath, base + '/').href);
+          const cssPath = reelLoader.match(/css\/reels-commerce-v4\.css\?v=[0-9a-f]{12}/)?.[0];
+          if (cssPath) await probe(new URL(cssPath, base + '/').href);
+          NODE

@@ -1,0 +1,165 @@
+name: Reels Commerce V4 Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'index.html'
+      - 'admin/**'
+      - 'css/reels-*.css'
+      - 'css/admin-reels-*.css'
+      - 'js/app.js'
+      - 'js/app.runtime.js'
+      - 'js/performance-v10-a.js'
+      - 'js/reels-*.js'
+      - 'js/reel-profile-separation.js'
+      - 'js/admin/reels-*.js'
+      - 'src/reels-*.js'
+      - 'src/business-agency-api*.js'
+      - 'src/media-social-api*.js'
+      - 'migrations/*reels*.sql'
+      - 'scripts/validate-reels-commerce-v4.mjs'
+      - 'scripts/browser-reels-v4-smoke.mjs'
+      - 'scripts/build-runtime.mjs'
+      - 'scripts/wait-cloudflare-deploy.mjs'
+      - 'package.json'
+      - '.github/workflows/reels-v4-validate.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'index.html'
+      - 'admin/**'
+      - 'css/reels-*.css'
+      - 'css/admin-reels-*.css'
+      - 'js/app.js'
+      - 'js/app.runtime.js'
+      - 'js/performance-v10-a.js'
+      - 'js/reels-*.js'
+      - 'js/reel-profile-separation.js'
+      - 'js/admin/reels-*.js'
+      - 'src/reels-*.js'
+      - 'src/business-agency-api*.js'
+      - 'src/media-social-api*.js'
+      - 'migrations/*reels*.sql'
+      - 'scripts/validate-reels-commerce-v4.mjs'
+      - 'scripts/browser-reels-v4-smoke.mjs'
+      - 'scripts/build-runtime.mjs'
+      - 'scripts/wait-cloudflare-deploy.mjs'
+      - 'package.json'
+      - '.github/workflows/reels-v4-validate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: read
+
+concurrency:
+  group: reels-v4-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install exact locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Syntax check Reels V4
+        run: |
+          node --check js/reels-commerce-v4.js
+          node --check js/reels-advanced-creator-v4.js
+          node --check js/admin/reels-moderation-v4.js
+          node --check js/admin/reels-nav-v4.js
+          node --check src/reels-commerce-v4-api.js
+          node --check src/reels-advanced-v4-api.js
+          node --check scripts/browser-reels-v4-smoke.mjs
+          node --check scripts/validate-reels-commerce-v4.mjs
+
+      - name: Validate router-owned Reels bootstrap
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq "case 'reels':" js/app.js
+          grep -Fq "PasarPerformanceV10?.openReels?.()" js/app.js
+          grep -Fq "openReels: () => loaders.reels()" js/performance-v10-a.js
+          if grep -Fq "selector: '[data-nav=\"reels\"]'" js/performance-v10-a.js; then
+            echo 'Legacy Reels click interception must stay retired.'
+            exit 1
+          fi
+
+      - name: Validate synchronous advanced-layer contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq "renderCardAdvanced(card, metadataCache.get(id) || { text_overlays: [] })" js/reels-advanced-creator-v4.js
+          if grep -Fq "if (!metadataCache.has(id)) continue;" js/reels-advanced-creator-v4.js; then
+            echo 'Advanced Reels layer must mount before metadata settles.'
+            exit 1
+          fi
+
+      - name: Validate R1-R11 contracts
+        run: npm run test:reels-v4
+
+      - name: Canonical validation
+        run: npm run validate
+
+      - name: Reproducible runtime build
+        run: |
+          npm run build:runtime
+          git diff --exit-code
+
+  reels-browser:
+    needs: contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+
+      - name: Wait for exact Cloudflare deployment
+        id: deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLOUDFLARE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          CLOUDFLARE_WAIT_TIMEOUT_MS: '420000'
+          CLOUDFLARE_WAIT_POLL_MS: '5000'
+        run: node scripts/wait-cloudflare-deploy.mjs
+
+      - name: Resolve exact browser target
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PREVIEW_URL: ${{ steps.deploy.outputs.preview_url }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            test -n "$PREVIEW_URL" || { echo "Cloudflare PR preview URL missing."; exit 1; }
+            echo "REELS_V4_BASE_URL=$PREVIEW_URL" >> "$GITHUB_ENV"
+          else
+            echo "REELS_V4_BASE_URL=https://pasar-umkm.hipmiptuinalazhaar.workers.dev/" >> "$GITHUB_ENV"
+          fi
+
+      - name: Verify Chrome
+        run: google-chrome --version
+
+      - name: Real-browser Reels R11 matrix
+        env:
+          REELS_V4_BROWSER_TIMEOUT_MS: '30000'
+        run: npm run smoke:browser:reels-v4

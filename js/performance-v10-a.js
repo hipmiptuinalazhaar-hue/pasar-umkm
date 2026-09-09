@@ -23,8 +23,9 @@
     stability: 'js/performance-v10-c.js?v=e289ccfe89b5',
     chat: 'js/chat-single-render-v6.js?v=ef079b1c35ef',
     commerce: 'js/p8-commerce-integration.js?v=fc3dcbac9b78',
-    account: 'js/account-resilience.js?v=cc7573b68dc0&seller=1',
-    saved: 'js/profile-saved.js?v=fbf14ea3f0cd'
+    account: 'js/account-resilience.js?v=05a13489b947&seller=1',
+    saved: 'js/profile-saved.js?v=fbf14ea3f0cd',
+    reels: 'js/reels-v4-entry.js?v=5277c6ed5d67'
   });
 
   function capability() {
@@ -113,13 +114,36 @@
     return job;
   }
 
+  function waitForReady(ready, label, timeout = 4000) {
+    const initial = ready();
+    if (initial) return Promise.resolve(initial);
+    return new Promise((resolve, reject) => {
+      const deadline = Date.now() + timeout;
+      const poll = () => {
+        const value = ready();
+        if (value) {
+          resolve(value);
+          return;
+        }
+        if (Date.now() >= deadline) {
+          reject(new Error(`${label} runtime timeout.`));
+          return;
+        }
+        setTimeout(poll, 50);
+      };
+      poll();
+    });
+  }
+
   const loaders = Object.freeze({
     efficiency: () => loadScript('efficiency', () => window.PasarPerformanceV10B?.version === '10.2'),
     stability: () => loadScript('stability', () => window.PasarPerformanceV10C?.version === '10.3'),
     chat: () => loadScript('chat', () => typeof window.ensurePasarChatV7 === 'function'),
     commerce: () => loadScript('commerce', () => window.PasarP8Commerce?.version === '1.2'),
     account: () => loadScript('account', () => window.PasarP6Loader?.version === '1.1'),
-    saved: () => loadScript('saved', () => typeof window.hydratePersistentSaved === 'function')
+    saved: () => loadScript('saved', () => typeof window.hydratePersistentSaved === 'function'),
+    reels: () => loadScript('reels', () => window.PasarReelsV4?.version === '4.0')
+      .then(() => waitForReady(() => window.PasarReelsV4?.version === '4.0' ? window.PasarReelsV4 : null, 'reels'))
   });
 
   function withIntentTimeout(promise, label) {
@@ -135,14 +159,14 @@
     ]).finally(() => clearTimeout(timer));
   }
 
-  function installIntentGate({ selector, ready, loader, label, fallback }) {
+  function installIntentGate({ selector, ready, loader, label, fallback, root = doc }) {
     const prewarm = event => {
       const target = event.target?.closest?.(selector);
       if (target && !ready()) loader().catch(() => null);
     };
-    doc.addEventListener('pointerdown', prewarm, { capture: true, passive: true });
-    doc.addEventListener('focusin', prewarm, true);
-    doc.addEventListener('click', async event => {
+    root.addEventListener('pointerdown', prewarm, { capture: true, passive: true });
+    root.addEventListener('focusin', prewarm, true);
+    root.addEventListener('click', async event => {
       const target = event.target?.closest?.(selector);
       if (!target || ready() || replaying.has(target)) return;
       event.preventDefault();
@@ -163,6 +187,8 @@
       }
     }, true);
   }
+
+  doc.addEventListener('click',e=>e.target.closest('[data-nav=reels]')&&loaders.reels(),true);
 
   installIntentGate({
     selector: '[data-action="messages"],[data-social-action="message-user"],[data-social-action="open-conversation"]',
@@ -208,7 +234,6 @@
       '[data-action="save"]',
       '[data-action="seller-profile"]',
       '[data-menu-action="favorites"]',
-      '[data-nav="reels"]',
       '[data-action="open-story"]',
       '[data-action="add-story"]',
       '[data-menu-action="business-agency"]',
@@ -291,6 +316,10 @@
   window.PasarPerformanceV10 = Object.freeze({
     version: '10.1',
     capability,
+    openReels: () => loaders.reels().then(reels => reels.open()).catch(error => {
+      console.error('[Pasar UMKM] Reels navigation error:', error);
+      window.showToast?.('Reels belum dapat dibuka. Coba lagi.');
+    }),
     load: name => loaders[name]?.() || Promise.reject(new Error(`Unknown V10 feature: ${name}`)),
     getDiagnostics: () => Object.freeze({
       capability: capability(),
