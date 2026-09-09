@@ -1,6 +1,5 @@
 name: Reels Commerce V4 Validation
 
-# P0 release verification trigger: direct Reels navigation gate synchronized.
 on:
   pull_request:
     branches:
@@ -10,6 +9,8 @@ on:
       - 'admin/**'
       - 'css/reels-*.css'
       - 'css/admin-reels-*.css'
+      - 'js/app.js'
+      - 'js/app.runtime.js'
       - 'js/performance-v10-a.js'
       - 'js/reels-*.js'
       - 'js/reel-profile-separation.js'
@@ -32,6 +33,8 @@ on:
       - 'admin/**'
       - 'css/reels-*.css'
       - 'css/admin-reels-*.css'
+      - 'js/app.js'
+      - 'js/app.runtime.js'
       - 'js/performance-v10-a.js'
       - 'js/reels-*.js'
       - 'js/reel-profile-separation.js'
