@@ -33,74 +33,62 @@ jobs:
 
           app_path = Path('js/app.js')
           app = app_path.read_text()
-
           old_signature = "function navigate(target) {"
+          new_signature = "async function navigate(target) {"
           if old_signature in app:
-              app = app.replace(old_signature, "async function navigate(target) {", 1)
-          elif "async function navigate(target) {" not in app:
+              app = app.replace(old_signature, new_signature, 1)
+          elif new_signature not in app:
               raise SystemExit('navigate() signature marker not found')
 
-          anchor = """    case 'categories':
-      openAllCategories();
-      break;
-
-    case 'sell':
-"""
-          replacement = """    case 'categories':
-      openAllCategories();
-      break;
-
-    case 'reels':
-      try {
-        const reelsRuntime =
-          await window.PasarPerformanceV10?.load?.('reels');
-
-        const reels =
-          window.PasarReelsV4?.version === '4.0'
-            ? window.PasarReelsV4
-            : reelsRuntime;
-
-        if (!reels?.open) {
-          throw new Error(
-            'Runtime Reels V4 tidak tersedia.'
-          );
-        }
-
-        await reels.open();
-      } catch (error) {
-        console.error(
-          '[Pasar UMKM] Reels navigation error:',
-          error
-        );
-
-        STATE.activeNav = 'home';
-
-        window.showToast?.(
-          'Reels belum dapat dibuka. Coba lagi.'
-        );
-      }
-      break;
-
-    case 'sell':
-"""
+          anchor = "    case 'categories':\n      openAllCategories();\n      break;\n\n    case 'sell':\n"
+          replacement = (
+              "    case 'categories':\n"
+              "      openAllCategories();\n"
+              "      break;\n\n"
+              "    case 'reels':\n"
+              "      try {\n"
+              "        const reelsRuntime =\n"
+              "          await window.PasarPerformanceV10?.load?.('reels');\n\n"
+              "        const reels =\n"
+              "          window.PasarReelsV4?.version === '4.0'\n"
+              "            ? window.PasarReelsV4\n"
+              "            : reelsRuntime;\n\n"
+              "        if (!reels?.open) {\n"
+              "          throw new Error(\n"
+              "            'Runtime Reels V4 tidak tersedia.'\n"
+              "          );\n"
+              "        }\n\n"
+              "        await reels.open();\n"
+              "      } catch (error) {\n"
+              "        console.error(\n"
+              "          '[Pasar UMKM] Reels navigation error:',\n"
+              "          error\n"
+              "        );\n\n"
+              "        STATE.activeNav = 'home';\n\n"
+              "        window.showToast?.(\n"
+              "          'Reels belum dapat dibuka. Coba lagi.'\n"
+              "        );\n"
+              "      }\n"
+              "      break;\n\n"
+              "    case 'sell':\n"
+          )
           if "case 'reels':" not in app:
               if anchor not in app:
                   raise SystemExit('navigate() insertion anchor not found')
               app = app.replace(anchor, replacement, 1)
-
           app_path.write_text(app)
 
           boot_path = Path('js/performance-v10-a.js')
           boot = boot_path.read_text()
-          gate = """  installIntentGate({
-    selector: '[data-nav=\"reels\"]',
-    ready: () => window.PasarReelsV4?.version === '4.0',
-    loader: loaders.reels,
-    label: 'reels',
-    root: doc.querySelector('[data-nav=\"reels\"]') || doc
-  });
-
-"""
+          gate = (
+              "  installIntentGate({\n"
+              "    selector: '[data-nav=\"reels\"]',\n"
+              "    ready: () => window.PasarReelsV4?.version === '4.0',\n"
+              "    loader: loaders.reels,\n"
+              "    label: 'reels',\n"
+              "    root: doc.querySelector('[data-nav=\"reels\"]') || doc\n"
+              "  });\n\n"
+          )
           if gate in boot:
               boot = boot.replace(gate, '', 1)
           boot_path.write_text(boot)
