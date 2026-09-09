@@ -127,7 +127,6 @@
     }
     for (const card of cards) {
       const id = String(card.dataset.reelId);
-      if (!metadataCache.has(id)) continue;
       renderCardAdvanced(card, metadataCache.get(id) || { text_overlays: [] });
     }
   }
