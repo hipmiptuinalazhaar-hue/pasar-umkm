@@ -3,6 +3,7 @@ import { ensureRatingInfrastructure } from "./rating-store.js";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MIN_COMPLETION_SAMPLE = 5;
+const MAX_RECOMMENDATION_CANDIDATES = 12;
 
 function json(data, status = 200) {
   return Response.json(data, {
@@ -160,16 +161,75 @@ async function storeEvidence(sql, storeIds) {
   `;
 }
 
+async function recommendationCandidates(sql, limit) {
+  return sql`
+    SELECT
+      p.id, p.store_id, p.category_id, p.name, p.slug, p.description, p.price, p.stock, p.unit,
+      COALESCE(NULLIF(p.thumbnail_url, ''), first_image.image_url) AS image_url,
+      p.is_featured, p.created_at,
+      s.name AS store_name, s.logo_url AS store_logo_url, s.district AS store_district,
+      s.city AS store_city, s.verification_status::text AS store_verification_status,
+      c.name AS category_name,
+      CASE WHEN EXISTS (
+        SELECT 1 FROM marketplace_promotions mp
+        WHERE mp.subject_type='product' AND mp.subject_id=p.id AND mp.status='active'
+          AND (mp.starts_at IS NULL OR mp.starts_at <= NOW())
+          AND (mp.ends_at IS NULL OR mp.ends_at > NOW())
+          AND mp.placement IN ('home_featured','search_boost')
+      ) THEN 0 ELSE 1 END AS promotion_rank
+    FROM products p
+    JOIN stores s ON s.id=p.store_id AND s.is_active=TRUE
+    LEFT JOIN categories c ON c.id=p.category_id
+    LEFT JOIN LATERAL (
+      SELECT pi.image_url FROM product_images pi
+      WHERE pi.product_id=p.id
+      ORDER BY pi.sort_order ASC, pi.created_at ASC, pi.id ASC
+      LIMIT 1
+    ) first_image ON TRUE
+    WHERE p.is_active=TRUE AND p.stock > 0
+    ORDER BY promotion_rank ASC, p.is_featured DESC, p.created_at DESC, p.id DESC
+    LIMIT ${limit}
+  `;
+}
+
+async function recommendationBundle(sql, url) {
+  const requested = Number.parseInt(url.searchParams.get("limit") || "8", 10) || 8;
+  const limit = Math.min(MAX_RECOMMENDATION_CANDIDATES, Math.max(1, requested));
+  const products = await recommendationCandidates(sql, limit);
+  const productIds = products.map(item => String(item.id)).filter(Boolean);
+  const storeIds = [...new Set(products.map(item => String(item.store_id)).filter(Boolean))];
+  const [productSummaries, storeSummaries] = await Promise.all([
+    productEvidence(sql, productIds),
+    storeEvidence(sql, storeIds)
+  ]);
+  return {
+    ok: true,
+    evidence_version: "p5-v1",
+    recommendation_version: "v10-b-1",
+    products,
+    evidence: {
+      products: productSummaries,
+      stores: storeSummaries
+    }
+  };
+}
+
 export async function handleRatingSummaryV2(request, env) {
   const url = new URL(request.url);
+  const isSummaries = url.pathname === "/api/ratings/summaries";
+  const isRecommendations = url.pathname === "/api/recommendations";
 
-  if (url.pathname !== "/api/ratings/summaries" || request.method !== "GET") {
+  if ((!isSummaries && !isRecommendations) || request.method !== "GET") {
     return null;
   }
 
   try {
     const sql = neon(env.DATABASE_URL);
     await ensureRatingInfrastructure(sql);
+
+    if (isRecommendations) {
+      return json(await recommendationBundle(sql, url));
+    }
 
     const productIds = parseUuidList(url.searchParams.get("product_ids"));
     const storeIds = parseUuidList(url.searchParams.get("store_ids"));
