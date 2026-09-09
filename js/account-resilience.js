@@ -227,19 +227,11 @@
     else setTimeout(task,450);
   }
   function schedulePostRenderWarmup() {
-    let waitingForVisibility = false;
     const start = () => {
       if (document.visibilityState === 'hidden') {
-        if (!waitingForVisibility) {
-          waitingForVisibility = true;
-          document.addEventListener('visibilitychange', () => {
-            waitingForVisibility = false;
-            if (document.visibilityState === 'visible') start();
-          }, { once: true });
-        }
+        document.addEventListener('visibilitychange', start, { once:true });
         return;
       }
-
       const network = networkCapability();
       if (network.constrained) {
         setTimeout(() => runIdle(() => ensurePremiumExperience().catch(() => null),3000),900);
@@ -273,7 +265,7 @@
     if (found) { document.head.appendChild(found); return Promise.resolve(found); }
     return new Promise((resolve,reject) => {
       const link = document.createElement('link');
-      link.rel='stylesheet'; link.href=route.href; link.dataset.socialP3Style=kind;
+      link.rel='stylesheet'; link.href=route.href; link.dataset[key] = 'true';
       link.onload=() => resolve(link); link.onerror=() => reject(new Error('Social CSS gagal dimuat'));
       document.head.appendChild(link);
     });
