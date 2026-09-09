@@ -59,7 +59,8 @@ requireText(adminClient, "operationsMetrics", "admin client missing P6 metrics")
 requireText(adminClient, "operationAction", "admin client missing P6 case mutation helper");
 requireText(adminControl, 'key: "operations"', "Control Center missing Operations navigation");
 requireText(adminControl, 'import("./operations.js?v=6.1.0")', "Control Center does not lazy-load P6 Operations UI");
-for (const label of ["Store verification","Moderation reports","Order disputes","Audit trail aktif"]) requireText(adminOperations, label, `Operations UI missing: ${label}`);
+for (const marker of ["store-verification","moderation-reports","order-disputes"]) requireText(adminOperations, `data-ops-section="${marker}"`, `Operations UI missing stable section marker: ${marker}`);
+requireText(adminOperations, "Audit trail aktif", "Operations UI missing audit trail disclosure");
 requireText(adminOperations, "Keputusan sengketa tidak memindahkan dana", "Operations UI must disclose no-fund-movement boundary");
 requireText(adminOperations, "permissionSet.has(\"stores.verify\")", "Operations UI must permission-gate verification actions");
 requireText(adminOperations, "permissionSet.has(\"reports.resolve\")", "Operations UI must permission-gate report actions");
