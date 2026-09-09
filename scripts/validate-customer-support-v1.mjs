@@ -91,14 +91,16 @@ for (const token of ['supportTickets','supportTicket','supportReply','supportUpd
 for (const token of ['Customer Support','Antrean tiket','Catatan internal','support.reply','support.manage']) has('adminJs', token);
 must(!/gradient\s*\(|backdrop-filter/i.test(data.adminCss), 'support admin CSS must avoid gradient/backdrop-filter effects');
 
-// Discovery + legal support path, without touching critical first-paint index ownership.
+// Discovery + legal support path, without touching critical first-paint ownership.
 has('complaints', '/support/');
 has('complaints', 'Chat Customer Service');
 has('about', '/support/');
 has('about', 'Customer Service Pasar UMKM');
 must(!/support-center-v1\.js|admin\/support\.js|src\/support-api\.js/.test(data.index), 'support must not add a direct initial script owner to index.html');
 const initialScripts = [...data.index.matchAll(/<script\s+src=/g)].length;
-must(initialScripts === 5, `index.html initial external script count changed: ${initialScripts}, expected 5`);
+must(initialScripts === 2, `index.html V10 initial external script count changed: ${initialScripts}, expected 2`);
+has('index', 'js/performance-v10-a.js?v=', 'V10 adaptive bootstrap must remain a critical owner');
+has('index', 'js/app.runtime.js?v=', 'app.runtime.js must remain the only critical application implementation');
 
 // Canonical release verification includes support checks.
 has('package', 'test:customer-support');
@@ -139,5 +141,5 @@ console.log(' - transactional admin support mutations with row locking');
 console.log(' - order ownership and same-origin write boundaries');
 console.log(' - admin inbox, replies, assignment, priority, notes');
 console.log(' - no commerce/money mutation capability');
-console.log(' - no first-paint index ownership added');
+console.log(' - no support first-paint ownership added under V10');
 console.log(' - production smoke contract includes support');
