@@ -99,6 +99,16 @@ jobs:
             exit 1
           fi
 
+      - name: Validate synchronous advanced-layer contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq "renderCardAdvanced(card, metadataCache.get(id) || { text_overlays: [] })" js/reels-advanced-creator-v4.js
+          if grep -Fq "if (!metadataCache.has(id)) continue;" js/reels-advanced-creator-v4.js; then
+            echo 'Advanced Reels layer must mount before metadata settles.'
+            exit 1
+          fi
+
       - name: Validate R1-R11 contracts
         run: npm run test:reels-v4
 
