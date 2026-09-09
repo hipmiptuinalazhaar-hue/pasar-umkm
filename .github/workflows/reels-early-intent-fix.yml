@@ -64,7 +64,10 @@ jobs:
       - name: Build generated runtime
         run: npm run build:runtime
 
-      - name: Validate full release contract
+      - name: Stage candidate snapshot
+        run: git add js/app.js js/app.runtime.js index.html
+
+      - name: Validate full release contract and reproducibility
         run: |
           node --check js/app.js
           node --check js/app.runtime.js
@@ -74,15 +77,11 @@ jobs:
           npm run build:runtime
           git diff --exit-code
 
-      - name: Commit canonical and generated runtime
+      - name: Commit canonical runtime and remove one-time fixer
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add js/app.js js/app.runtime.js index.html
-          if git diff --cached --quiet; then
-            echo 'No runtime changes to commit.'
-            exit 0
-          fi
+          git rm .github/workflows/reels-early-intent-fix.yml
           git commit -m 'fix(reels): hand off pre-router cold-start intent'
           git push origin HEAD:main
