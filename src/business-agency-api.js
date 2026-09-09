@@ -1,5 +1,6 @@
 import { handleBusinessAgencyApiLegacy } from "./business-agency-api-legacy.js";
 import { handleReelsCommerceV4Api } from "./reels-commerce-v4-api.js";
+import { handleReelsAdvancedV4Api } from "./reels-advanced-v4-api.js";
 
 function bridgeReelsV4Request(request) {
   const url = new URL(request.url);
@@ -10,13 +11,20 @@ function bridgeReelsV4Request(request) {
 
 export async function handleBusinessAgencyApi(request, env) {
   const url = new URL(request.url);
+  const bridged = bridgeReelsV4Request(request);
+  const bridgedUrl = new URL(bridged.url);
+
+  if (bridgedUrl.pathname.startsWith("/api/reels/v4/advanced")) {
+    return handleReelsAdvancedV4Api(bridged, env);
+  }
 
   if (
     url.pathname.startsWith("/api/reels-v4") ||
+    url.pathname.startsWith("/api/reels/v4") ||
     url.pathname.startsWith("/api/admin/reels/v4") ||
     /^\/r\/[0-9a-f-]{36}$/i.test(url.pathname)
   ) {
-    return handleReelsCommerceV4Api(bridgeReelsV4Request(request), env);
+    return handleReelsCommerceV4Api(bridged, env);
   }
 
   return handleBusinessAgencyApiLegacy(request, env);
