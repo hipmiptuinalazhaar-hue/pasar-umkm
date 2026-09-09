@@ -22,6 +22,7 @@ const budget = (path, max) => {
 const runtime = read('js/v1-completion.js');
 const css = read('css/v1-completion.css');
 const p3 = read('js/p3-premium-experience.js');
+const resilience = read('js/account-resilience.js');
 const index = read('index.html');
 const checkoutApi = read('src/cart-checkout-v2-api.js');
 const ordersApi = read('src/orders-api-v2.js');
@@ -35,6 +36,7 @@ const pkg = JSON.parse(read('package.json'));
 budget('js/v1-completion.js', 24000);
 budget('css/v1-completion.css', 9000);
 budget('js/p3-premium-experience.js', 12000);
+budget('js/account-resilience.js', 24000);
 budget('js/admin/intelligence-v2.js', 14000);
 budget('css/admin-intelligence-v2.css', 9000);
 budget('admin/intelligence.html', 3000);
@@ -54,18 +56,21 @@ for (const marker of [
 ]) need(runtime, marker, 'P6 Seller Operations V2 contract');
 
 for (const marker of [
-  '/api/discover?kind=products&sort=relevance&limit=16',
+  '/api/discover?kind=products&sort=relevance&limit=${candidateLimit}',
   '/api/ratings/summaries?',
   'rankingScore',
   'UMKM terverifikasi',
-  'Rekomendasi untuk kamu',
-  'Mengapa produk ini direkomendasikan?',
+  'Rekomendasi marketplace',
+  'Mengapa produk ini muncul?',
+  'candidateLimit = constrained ? 6 : 16',
+  'recommendationLimit = constrained ? 4 : 8',
   'data-commerce-action="product-detail"',
   'data-commerce-action="add-cart"',
   'data-commerce-action="buy-now"',
   'saveData',
   "['slow-2g', '2g']"
 ]) need(runtime, marker, 'P7 Discovery & Recommendation V2 contract');
+forbid(runtime, /cache\.recommendationsLoading\s*\|\|\s*networkConstrained\(\)/, 'recommendations disabled entirely on constrained networks');
 forbid(runtime, /\bpaid\s*boost\s*=\s*true\b/i, 'opaque paid recommendation boost');
 forbid(runtime, />\s*P(?:[1-9]|10)\s*[·:–-]/i, 'milestone label leaked into user-facing runtime markup');
 forbid(runtime, /href=["']\/share\/product\//i, 'static share page used as recommendation commerce destination');
@@ -100,12 +105,22 @@ need(adminPage, '/js/admin/intelligence-v2.js?v=1.0', 'P9 controller wiring');
 forbid(adminJs, /operationAction\(|changeUserStatus\(|storeAction\(|changeProductStatus\(|changePostStatus\(/, 'P9 intelligence mutation action');
 
 for (const marker of [
-  'js/v1-completion.js?v=1.0',
+  'js/v1-completion.js?v=1.1',
+  'css/p7-launch-growth.css?v=1.1',
   "script.dataset.v1Completion = 'true'",
   'loadV1Completion',
   'script.onload = loadV1Completion'
-]) need(p3, marker, 'lazy V1 loader contract');
+]) need(p3, marker, 'lazy V1/P7 loader contract');
 if (index.includes('js/v1-completion.js')) throw new Error('V1 completion must not join the initial index script graph');
+
+for (const marker of [
+  'js/p3-premium-experience.js?v=1.1',
+  'if (network.constrained)',
+  'ensurePremiumExperience().catch(() => null)',
+  "document.addEventListener('visibilitychange'"
+]) need(resilience, marker, 'adaptive functional warmup contract');
+forbid(resilience, /document\.visibilityState\s*===\s*['"]hidden['"]\s*\|\|\s*network\.constrained\)\s*return/, 'functional warmup permanently skipped for hidden/constrained clients');
+needRegex(resilience, /if\s*\(network\.constrained\)[\s\S]{0,220}?ensurePremiumExperience/, 'constrained clients still receive P3 functional chain');
 
 if (manifest.release !== '2026-09-08-v1-completion') throw new Error('Unexpected P10 release manifest version');
 for (const key of [
@@ -132,4 +147,4 @@ need(css, '.p5-trust-panel .p5-trust-stats:has(>span:nth-child(3):last-child)', 
 if (pkg.scripts?.['test:v1-completion'] !== 'node scripts/validate-v1-completion.mjs') throw new Error('package.json missing test:v1-completion');
 if (!String(pkg.scripts?.validate || '').includes('npm run test:v1-completion')) throw new Error('Canonical validate must include P10 V1 certification');
 
-console.log('P6-P10 V1 completion certification PASS: seller operations, commerce-native recommendations, cart safety, operational intelligence, human-facing UI hygiene, non-custodial boundaries, lazy performance, and launch manifest are intact.');
+console.log('P6-P10 V1 completion certification PASS: seller operations, commerce-native recommendations, adaptive feature resilience, cart safety, operational intelligence, human-facing UI hygiene, non-custodial boundaries, lazy performance, and launch manifest are intact.');
