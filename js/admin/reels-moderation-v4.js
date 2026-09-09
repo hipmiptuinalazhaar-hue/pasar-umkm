@@ -71,7 +71,7 @@ function reportCard(report) {
       </div>
       <div class="reels-report-card-actions">
         <a class="reels-admin-button" href="/r/${encodeURIComponent(report.reel_id)}" target="_blank" rel="noopener">Lihat Reels</a>
-        ${canResolve ? `<button class="reels-admin-button primary" data-report-action="resolve" data-report-id="${esc(report.id)}">Selesaikan</button><button class="reels-admin-button" data-report-action="dismiss" data-report-id="${esc(report.id)}">Tolak laporan</button><button class="reels-admin-button danger" data-report-action="deactivate" data-report-id="${esc(report.id)}">Nonaktifkan Reels</button>` : ''}
+        ${canResolve ? `<button type="button" class="reels-admin-button primary" data-report-action="resolve" data-report-id="${esc(report.id)}">Selesaikan</button><button type="button" class="reels-admin-button" data-report-action="dismiss" data-report-id="${esc(report.id)}">Tolak laporan</button><button type="button" class="reels-admin-button danger" data-report-action="deactivate" data-report-id="${esc(report.id)}">Nonaktifkan Reels</button>` : ''}
       </div>
     </article>`;
 }
