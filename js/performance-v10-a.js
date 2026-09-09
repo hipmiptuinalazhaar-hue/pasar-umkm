@@ -25,7 +25,7 @@
     commerce: 'js/p8-commerce-integration.js?v=fc3dcbac9b78',
     account: 'js/account-resilience.js?v=05a13489b947&seller=1',
     saved: 'js/profile-saved.js?v=fbf14ea3f0cd',
-    reels: 'js/reels-v4-entry.js?v=4.0'
+    reels: 'js/reels-v4-entry.js?v=4d2164a3b197'
   });
 
   function capability() {

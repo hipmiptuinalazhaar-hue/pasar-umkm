@@ -47,11 +47,11 @@
 
   const ready = (async () => {
     await Promise.all([
-      loadStyle('core', 'css/reels-commerce-v4.css?v=4.0'),
-      loadStyle('advanced', 'css/reels-advanced-creator-v4.css?v=4.0')
+      loadStyle('core', 'css/reels-commerce-v4.css?v=745d6c5c0ee8'),
+      loadStyle('advanced', 'css/reels-advanced-creator-v4.css?v=adb3c840d989')
     ]);
-    await loadScript('core', 'js/reels-commerce-v4.js?v=4.0', () => window.PasarReelsV4?.version === '4.0');
-    await loadScript('advanced', 'js/reels-advanced-creator-v4.js?v=4.0', () => window.PasarReelsAdvancedV4?.version === '4.0');
+    await loadScript('core', 'js/reels-commerce-v4.js?v=a9072a74975a', () => window.PasarReelsV4?.version === '4.0');
+    await loadScript('advanced', 'js/reels-advanced-creator-v4.js?v=a4641116a5da', () => window.PasarReelsAdvancedV4?.version === '4.0');
     return window.PasarReelsV4;
   })().catch(error => {
     console.error('[Pasar UMKM] Reels V4 entry error:', error);
