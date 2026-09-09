@@ -1,5 +1,6 @@
 name: Reels Commerce V4 Validation
 
+# P0 release verification trigger: canonical assets synchronized.
 on:
   pull_request:
     branches:
