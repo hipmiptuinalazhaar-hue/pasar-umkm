@@ -84,8 +84,13 @@
     }
   </style>
 
-  <!-- One responsive entry preserves the critical stylesheet budget. -->
-  <link rel="stylesheet" href="css/public-responsive-v9.css?v=9.0.0">
+  <!-- Compatibility owner remains directly fingerprinted for the release contract. -->
+  <link rel="stylesheet" href="css/tablet-desktop-v2.css?v=fa75b460a5ee" media="screen and (min-width: 768px)">
+
+  <!-- V9 is the final cascade owner without increasing the five-link critical CSS budget. -->
+  <style id="publicExperienceV9Entry">
+    @import url("css/public-experience-v9.css?v=9.0.0");
+  </style>
 </head>
 
 <body>
