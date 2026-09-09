@@ -11,6 +11,7 @@ const ASSETS_IGNORE = ".assetsignore";
 const TOKENS = "css/tokens.css";
 const V10_BOOT = "js/performance-v10-a.js";
 const REELS_BOOT = "js/reel-profile-separation.js";
+const REELS_ENTRY = "js/reels-v4-entry.js";
 
 const CRITICAL_ASSETS = [
   TOKENS,
@@ -26,11 +27,18 @@ const CRITICAL_ASSETS = [
 const LAZY_BOOT_ASSETS = [
   "js/performance-v10-b.js",
   "js/performance-v10-c.js",
-  REELS_BOOT,
+  REELS_ENTRY,
   "js/chat-single-render-v6.js",
   "js/p8-commerce-integration.js",
   "js/account-resilience.js",
   "js/profile-saved.js"
+];
+
+const REELS_GRAPH_ASSETS = [
+  "css/reels-commerce-v4.css",
+  "css/reels-advanced-creator-v4.css",
+  "js/reels-commerce-v4.js",
+  "js/reels-advanced-creator-v4.js"
 ];
 
 async function sha12(path) {
@@ -73,19 +81,14 @@ async function stampTokenImports() {
   await writeFile(TOKENS, tokens, "utf8");
 }
 
-async function stampReelsBootGraph() {
-  let boot = await readFile(REELS_BOOT, "utf8");
-  for (const assetPath of [
-    "css/reels-commerce-v4.css",
-    "css/reels-advanced-creator-v4.css",
-    "js/reels-commerce-v4.js",
-    "js/reels-advanced-creator-v4.js"
-  ]) {
+async function stampReelsGraph(path, label) {
+  let boot = await readFile(path, "utf8");
+  for (const assetPath of REELS_GRAPH_ASSETS) {
     const version = await sha12(assetPath);
     boot = stampVersion(boot, assetPath, version);
-    console.log(`reels-cache-key ${assetPath}=${version}`);
+    console.log(`${label}-cache-key ${assetPath}=${version}`);
   }
-  await writeFile(REELS_BOOT, boot, "utf8");
+  await writeFile(path, boot, "utf8");
 }
 
 async function stampLazyBootGraph() {
@@ -122,7 +125,8 @@ await assertReduction(CSS_SOURCE, CSS_RUNTIME, 0.15);
 
 // Fingerprint nested dependencies before hashing their parent entrypoints.
 await stampTokenImports();
-await stampReelsBootGraph();
+await stampReelsGraph(REELS_BOOT, "reels-profile");
+await stampReelsGraph(REELS_ENTRY, "reels-entry");
 await stampLazyBootGraph();
 
 let index = await readFile(INDEX, "utf8");
@@ -137,6 +141,7 @@ if (cssMatches.length !== 1 || jsMatches.length !== 1) {
 for (const forbidden of [
   "js/performance-v10-b.js",
   "js/performance-v10-c.js",
+  "js/reels-v4-entry.js",
   "js/chat-single-render-v6.js",
   "js/p8-commerce-integration.js",
   "js/account-resilience.js",
