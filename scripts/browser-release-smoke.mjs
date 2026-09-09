@@ -206,7 +206,7 @@ function assertProbe(probe, viewport) {
   expect(probe.primaryVisible, 'primary hero CTA is not visible');
   expect(probe.searchVisible, 'search entry point is not visible');
   expect(probe.categoryCount > 0, 'categories did not hydrate');
-  expect(probe.heroText.includes('Produk lokal'), `hero copy missing: ${probe.heroText}`);
+  expect(probe.heroText.includes('UMKM Lubuklinggau'), `V9 hero copy missing: ${probe.heroText}`);
   expect(probe.overflowX <= 3, `horizontal overflow ${probe.overflowX}px`);
   expect((probe.primaryRect?.height || 0) >= 44, `primary CTA touch target ${probe.primaryRect?.height || 0}px`);
   expect(probe.jsErrors.length === 0, `runtime JS errors: ${probe.jsErrors.join(' | ')}`);
@@ -216,22 +216,21 @@ function assertProbe(probe, viewport) {
   const hero = probe.heroRect || {};
   const feed = probe.feedRect || {};
 
-  expect(Math.abs((nav.bottom || 0) - viewport.height) <= 24, `navigation must be bottom anchored: bottom=${nav.bottom}`);
-  expect((nav.height || 0) >= 56 && (nav.height || 0) <= 110, `bottom navigation height is invalid: ${nav.height}`);
-
   if (viewport.width < 768) {
+    expect(Math.abs((nav.bottom || 0) - viewport.height) <= 24, `mobile navigation must be bottom anchored: bottom=${nav.bottom}`);
+    expect((nav.height || 0) >= 56 && (nav.height || 0) <= 110, `mobile navigation height is invalid: ${nav.height}`);
     expect((nav.width || 0) <= viewport.width + 2, `mobile nav wider than viewport: ${nav.width}`);
-  } else if (viewport.width < 1024) {
-    expect((nav.width || 0) <= 600, `tablet dock too wide: ${nav.width}`);
-    expect((header.width || 0) >= viewport.width * .90, `tablet header collapsed: ${header.width}px of ${viewport.width}px`);
-    expect((hero.width || 0) >= viewport.width * .70, `tablet hero collapsed: ${hero.width}px of ${viewport.width}px`);
+    expect((hero.width || 0) >= viewport.width * .86, `mobile hero collapsed: ${hero.width}px of ${viewport.width}px`);
   } else {
-    expect((nav.width || 0) >= 520 && (nav.width || 0) <= 820, `desktop dock width must stay compact: ${nav.width}`);
-    expect(Math.abs(((nav.left || 0) + (nav.width || 0) / 2) - viewport.width / 2) <= 4, `desktop dock is not centered: left=${nav.left} width=${nav.width}`);
-    expect((header.width || 0) >= viewport.width * .96, `desktop header collapsed: ${header.width}px of ${viewport.width}px`);
-    expect((hero.width || 0) >= Math.min(900, viewport.width * .72), `desktop hero too narrow: ${hero.width}px of ${viewport.width}px`);
-    expect((hero.top || 0) >= (header.bottom || 0) + 8, `hero overlaps fixed header: heroTop=${hero.top} headerBottom=${header.bottom}`);
-    expect((feed.width || 0) >= (hero.width || 0) * .68, `desktop feed too narrow versus hero: feed=${feed.width}px hero=${hero.width}px`);
+    expect(probe.headerPosition === 'fixed', `tablet/desktop header must be fixed, got ${probe.headerPosition}`);
+    expect(probe.navPosition === 'fixed', `tablet/desktop navigation must be fixed, got ${probe.navPosition}`);
+    expect((header.width || 0) >= viewport.width * .96, `tablet/desktop header collapsed: ${header.width}px of ${viewport.width}px`);
+    expect((nav.width || 0) >= viewport.width * .96, `tablet/desktop navigation must span the marketplace shell: ${nav.width}px of ${viewport.width}px`);
+    expect((nav.height || 0) >= 36 && (nav.height || 0) <= 60, `tablet/desktop top navigation height is invalid: ${nav.height}`);
+    expect(Math.abs((nav.top || 0) - (header.bottom || 0)) <= 4, `top navigation must sit below header: navTop=${nav.top} headerBottom=${header.bottom}`);
+    expect((hero.top || 0) >= (nav.bottom || 0) + 8, `hero overlaps marketplace top shell: heroTop=${hero.top} navBottom=${nav.bottom}`);
+    expect((hero.width || 0) >= viewport.width * .70, `tablet/desktop hero collapsed: ${hero.width}px of ${viewport.width}px`);
+    expect((feed.width || 0) >= (hero.width || 0) * .68, `tablet/desktop feed too narrow versus hero: feed=${feed.width}px hero=${hero.width}px`);
 
     const categoryRects = probe.categoryRects || [];
     const categoriesRect = probe.categoriesRect || {};
@@ -239,7 +238,7 @@ function assertProbe(probe, viewport) {
       const left = Math.min(...categoryRects.map(item => item.left));
       const right = Math.max(...categoryRects.map(item => item.right));
       const used = right - left;
-      expect(used >= categoriesRect.width * .72, `desktop categories cluster too narrowly: used=${used}px container=${categoriesRect.width}px`);
+      expect(used >= categoriesRect.width * .72, `categories cluster too narrowly: used=${used}px container=${categoriesRect.width}px`);
     }
   }
 
