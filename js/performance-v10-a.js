@@ -17,10 +17,10 @@
   let longTasks = 0;
 
   const ASSETS = Object.freeze({
-    chat: 'js/chat-single-render-v6.js?v=LAZY_CHAT_HASH',
-    commerce: 'js/p8-commerce-integration.js?v=LAZY_COMMERCE_HASH',
-    account: 'js/account-resilience.js?v=LAZY_ACCOUNT_HASH&seller=1',
-    saved: 'js/profile-saved.js?v=LAZY_SAVED_HASH'
+    chat: 'js/chat-single-render-v6.js?v=ef079b1c35ef',
+    commerce: 'js/p8-commerce-integration.js?v=fc3dcbac9b78',
+    account: 'js/account-resilience.js?v=4383988aa048&seller=1',
+    saved: 'js/profile-saved.js?v=fbf14ea3f0cd'
   });
 
   function capability() {
