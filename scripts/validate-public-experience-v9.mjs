@@ -69,7 +69,7 @@ assert(!/radial-gradient\s*\(/i.test(css), "V9 must not use decorative radial gr
 assert(!/filter\s*:\s*blur\s*\(/i.test(css), "V9 must not use blur effects.");
 
 const backdropValues = [...css.matchAll(/(?:-webkit-)?backdrop-filter\s*:\s*([^;}{]+)/gi)]
-  .map(match => match[1].trim().toLowerCase());
+  .map(match => match[1].replace(/\s*!important\s*$/i, "").trim().toLowerCase());
 const safeBackdropValues = new Set(["none", "initial", "unset"]);
 assert(
   backdropValues.every(value => safeBackdropValues.has(value)),
