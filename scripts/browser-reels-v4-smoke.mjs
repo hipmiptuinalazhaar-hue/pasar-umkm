@@ -98,7 +98,18 @@ async function waitFor(client, expression, label, duration = timeoutMs) {
 
 async function setViewport(client, width, height, mobile = false) {
   await client.send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile });
-  await sleep(120);
+  const minShellWidth = Math.min(width * 0.7, 300);
+  const minShellHeight = height * 0.72;
+  await waitFor(client, `(() => {
+    const shell = document.querySelector('.reels-v4-shell');
+    const scroller = document.querySelector('.reels-v4-scroller');
+    if (!shell || !scroller) return false;
+    const rect = shell.getBoundingClientRect();
+    return rect.width >= ${minShellWidth} &&
+      rect.height >= ${minShellHeight} &&
+      String(getComputedStyle(scroller).scrollSnapType).includes('y');
+  })()`, `stable Reels layout at ${width}x${height}`, Math.min(timeoutMs, 10000));
+  await evaluate(client, `new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))`);
   const probe = await evaluate(client, `(() => {
     const shell = document.querySelector('.reels-v4-shell');
     const scroller = document.querySelector('.reels-v4-scroller');
@@ -115,8 +126,8 @@ async function setViewport(client, width, height, mobile = false) {
     };
   })()`);
   if (probe.overflow > 2) throw new Error(`horizontal overflow ${probe.overflow}px at ${width}x${height}`);
-  if (probe.shellWidth < Math.min(width * 0.7, 300)) throw new Error(`Reels shell too narrow at ${width}x${height}`);
-  if (probe.shellHeight < height * 0.72) throw new Error(`Reels shell too short at ${width}x${height}`);
+  if (probe.shellWidth < minShellWidth) throw new Error(`Reels shell too narrow at ${width}x${height}: ${probe.shellWidth}px`);
+  if (probe.shellHeight < minShellHeight) throw new Error(`Reels shell too short at ${width}x${height}: ${probe.shellHeight}px`);
   if (!String(probe.snap).includes('y')) throw new Error(`vertical snap missing at ${width}x${height}`);
   return probe;
 }
