@@ -233,7 +233,10 @@
         return;
       }
       const device = capability();
-      if (device.constrained || device.lowEnd) return;
+      if (device.constrained || device.lowEnd) {
+        runIdle(() => ensurePremiumExperience().catch(() => null), 8000);
+        return;
+      }
       if (device.effectiveType === '3g') {
         runIdle(() => ensurePremiumExperience().catch(() => null), 3000);
         return;
