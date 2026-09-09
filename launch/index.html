@@ -3,29 +3,37 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#083725">
-  <meta name="description" content="Pusat peluncuran penjual Pasar UMKM Lubuklinggau: daftar UMKM, tambah produk, verifikasi usaha, dan kelola sengketa.">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="Pusat Penjual Pasar UMKM Lubuklinggau untuk menyiapkan toko, produk, verifikasi usaha, dan penanganan kasus pesanan.">
   <meta name="robots" content="index,follow">
   <link rel="canonical" href="/launch/">
-  <title>Mulai Jual | Pasar UMKM Lubuklinggau</title>
+  <title>Pusat Penjual | Pasar UMKM Lubuklinggau</title>
   <link rel="icon" href="/assets/logo.webp" type="image/webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/p7-launch.css?v=1.0">
 </head>
 <body>
-  <div class="shell">
-    <header class="topbar">
-      <a class="brand" href="/"><img src="/assets/logo.webp" width="46" height="46" alt="Pasar UMKM"><span><strong>Pasar UMKM</strong><span>Seller Launch Center</span></span></a>
-      <a class="back" href="/">Kembali ke Pasar</a>
-    </header>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="brand" href="/" aria-label="Kembali ke Pasar UMKM">
+        <img src="/assets/logo.webp" width="38" height="38" alt="">
+        <span><strong>Pasar UMKM</strong><small>Pusat Penjual</small></span>
+      </a>
+      <a class="back" href="/" aria-label="Kembali ke marketplace">Kembali ke pasar</a>
+    </div>
+  </header>
 
-    <section class="hero">
-      <p class="eyebrow">Launch · Grow · Verify</p>
-      <h1>Bangun etalase UMKM-mu sampai siap ditemukan pembeli.</h1>
-      <p>Alur terarah dari akun, toko, profil, produk, hingga verifikasi UMKM. Status di halaman ini berasal dari database platform, bukan checklist pajangan yang tersenyum palsu.</p>
+  <div class="shell">
+    <section class="hero" aria-labelledby="sellerCenterTitle">
+      <p class="eyebrow">Pusat Penjual</p>
+      <h1 id="sellerCenterTitle">Kelola kesiapan toko dan operasional UMKM.</h1>
+      <p>Lengkapi profil usaha, kelola produk, ajukan verifikasi, dan tangani kasus pesanan dari satu tempat.</p>
     </section>
 
     <main id="launchRoot" aria-live="polite">
-      <section class="guest"><div class="card"><h2>Menyiapkan Launch Center…</h2><p>Memeriksa status akun dan UMKM.</p></div></section>
+      <section class="guest"><div class="card"><h2>Menyiapkan Pusat Penjual…</h2><p>Memeriksa status akun dan UMKM.</p></div></section>
     </main>
   </div>
   <div id="launchToast" class="toast" role="status" aria-live="polite"></div>
