@@ -313,12 +313,16 @@
 
   async function enhanceDiscovery() {
     const home = doc.getElementById('homeDiscovery');
-    if (!home || home.hidden || home.querySelector('[data-v1-recommendations]') || cache.recommendationsLoading || networkConstrained()) return;
+    if (!home || home.hidden || home.querySelector('[data-v1-recommendations]') || cache.recommendationsLoading) return;
     if (Date.now() - cache.recommendationsAt < 30000) return;
+
+    const constrained = networkConstrained();
+    const candidateLimit = constrained ? 6 : 16;
+    const recommendationLimit = constrained ? 4 : 8;
 
     cache.recommendationsLoading = true;
     try {
-      const discovery = await api('/api/discover?kind=products&sort=relevance&limit=16');
+      const discovery = await api(`/api/discover?kind=products&sort=relevance&limit=${candidateLimit}`);
       const candidates = Array.isArray(discovery.products)
         ? discovery.products.filter(item => number(item.stock) > 0)
         : [];
@@ -339,7 +343,7 @@
           score: rankingScore(item, products.get(String(item.id)), stores.get(String(item.store_id)))
         }))
         .sort((a, b) => b.score - a.score || String(a.item.name).localeCompare(String(b.item.name), 'id'))
-        .slice(0, 8);
+        .slice(0, recommendationLimit);
 
       if (!ranked.length || !doc.contains(home)) return;
 
@@ -349,8 +353,8 @@
       section.innerHTML = `
         <div class="v1-rec-head">
           <div>
-            <h2>Rekomendasi untuk kamu</h2>
-            <p>Produk pilihan dari UMKM aktif berdasarkan ketersediaan, transaksi, dan ulasan pembeli.</p>
+            <h2>Rekomendasi marketplace</h2>
+            <p>Diranking dari verifikasi, transaksi selesai, rating pembelian, dan ketersediaan produk.</p>
           </div>
           <button type="button" data-action="search" aria-label="Cari produk lain">
             <i class="ph ph-magnifying-glass"></i>
@@ -364,7 +368,7 @@
           )).join('')}
         </div>
         <details class="v1-ranking-method">
-          <summary>Mengapa produk ini direkomendasikan?</summary>
+          <summary>Mengapa produk ini muncul?</summary>
           <p>Urutan mempertimbangkan status UMKM, penjualan selesai, rating pembeli, produk unggulan, produk baru, dan stok yang masih tersedia.</p>
         </details>`;
 
@@ -467,7 +471,7 @@
 
   window.PasarV1Completion = Object.freeze({
     version: '1.0',
-    revision: '1.1',
+    revision: '1.2',
     refreshSeller: () => {
       cache.sellerAt = 0;
       return enhanceSellerCenter();
