@@ -20,7 +20,7 @@
 
   const ASSETS = Object.freeze({
     efficiency: 'js/performance-v10-b.js?v=d1c1c336d07e',
-    stability: 'js/performance-v10-c.js?v=10.3',
+    stability: 'js/performance-v10-c.js?v=e289ccfe89b5',
     chat: 'js/chat-single-render-v6.js?v=ef079b1c35ef',
     commerce: 'js/p8-commerce-integration.js?v=fc3dcbac9b78',
     account: 'js/account-resilience.js?v=cc7573b68dc0&seller=1',
