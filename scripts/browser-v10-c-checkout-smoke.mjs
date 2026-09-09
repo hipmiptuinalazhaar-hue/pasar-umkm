@@ -114,8 +114,6 @@ async function waitFor(client, expression, label, duration = timeoutMs) {
     try {
       if (await evaluate(client, expression)) return;
     } catch (error) {
-      // Navigation briefly removes the default execution context. Treat that
-      // as a transient browser lifecycle state, not a product failure.
       lastError = error;
     }
     await sleep(120);
@@ -168,6 +166,17 @@ try {
     sessionStorage.setItem('pasar_cart_selection_v2', '[]');
     sessionStorage.removeItem('pasar_cart_selection_v10c_ids');
 
+    // Keep the synthetic CTA stable while V10-C repairs legacy state. The
+    // original adaptive loader is restored before the real click phase.
+    window.__V10CTestOriginalPerformance = window.PasarPerformanceV10;
+    const original = window.__V10CTestOriginalPerformance;
+    window.PasarPerformanceV10 = Object.freeze({
+      version: original.version,
+      capability: original.capability,
+      getDiagnostics: original.getDiagnostics,
+      load: name => name === 'commerce' ? Promise.resolve(true) : original.load(name)
+    });
+
     const feed = document.getElementById('feed');
     if (!feed) return { error: 'feed missing' };
     feed.innerHTML = \`
@@ -191,16 +200,17 @@ try {
     await new Promise(resolve => setTimeout(resolve, 900));
     const button = document.querySelector('[data-commerce-action="checkout"]');
     return {
+      exists: Boolean(button),
       disabled: Boolean(button?.disabled),
-      ariaDisabled: button?.getAttribute('aria-disabled'),
+      ariaDisabled: button?.getAttribute('aria-disabled') ?? null,
       selection: JSON.parse(sessionStorage.getItem('pasar_cart_selection_v2') || 'null'),
       cartIds: JSON.parse(sessionStorage.getItem('pasar_cart_selection_v10c_ids') || 'null'),
-      checkoutReady: button?.dataset.v10cCheckoutReady || '',
-      commerceReady: window.PasarP8Commerce?.version || ''
+      checkoutReady: button?.dataset.v10cCheckoutReady || ''
     };
   })()`);
 
   if (probe?.error) throw new Error(probe.error);
+  if (!probe?.exists) throw new Error('synthetic checkout CTA disappeared before repair assertion');
   if (probe?.disabled) throw new Error('checkout CTA remained disabled after stale-state migration');
   if (probe?.ariaDisabled !== 'false') throw new Error(`checkout aria-disabled remained ${probe?.ariaDisabled}`);
   if (!Array.isArray(probe?.selection) || !probe.selection.includes('v10c-test-product')) {
@@ -211,15 +221,19 @@ try {
   }
   if (probe?.checkoutReady !== 'true') throw new Error('checkout CTA was not marked runtime-ready');
 
-  // Click in a separate CDP evaluation. The click is expected to destroy the
-  // old JS execution context as the browser navigates, so never await the new
-  // page from inside the old page's promise.
-  await evaluate(client, `(() => {
+  // Restore the real adaptive loader, then click. V10-A must load P8, replay
+  // the intent, and the real commerce owner must navigate to checkout.
+  const clickAccepted = await evaluate(client, `(() => {
+    if (window.__V10CTestOriginalPerformance) {
+      window.PasarPerformanceV10 = window.__V10CTestOriginalPerformance;
+      delete window.__V10CTestOriginalPerformance;
+    }
     const button = document.querySelector('[data-commerce-action="checkout"]');
     if (!button || button.disabled) return false;
     button.click();
     return true;
   })()`);
+  if (!clickAccepted) throw new Error('checkout CTA was not clickable before intent replay');
 
   const pathname = await waitForPathname(client, '/checkout/index.html');
   await waitFor(client, "document.readyState === 'complete'", 'checkout document readiness');
