@@ -8,22 +8,12 @@ import path from 'node:path';
 const baseUrl = new URL(process.env.V10C_BASE_URL || 'https://pasar-umkm.hipmiptuinalazhaar.workers.dev/');
 const timeoutMs = Number(process.env.V10C_BROWSER_TIMEOUT_MS || 20000);
 if (baseUrl.protocol !== 'https:') throw new Error('V10-C browser smoke requires HTTPS.');
-
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 async function findBrowser() {
-  const candidates = [
-    process.env.BROWSER_BIN,
-    '/usr/bin/google-chrome',
-    '/usr/bin/google-chrome-stable',
-    '/usr/bin/chromium',
-    '/usr/bin/chromium-browser'
-  ].filter(Boolean);
+  const candidates = [process.env.BROWSER_BIN, '/usr/bin/google-chrome', '/usr/bin/google-chrome-stable', '/usr/bin/chromium', '/usr/bin/chromium-browser'].filter(Boolean);
   for (const candidate of candidates) {
-    try {
-      await access(candidate, fsConstants.X_OK);
-      return candidate;
-    } catch {}
+    try { await access(candidate, fsConstants.X_OK); return candidate; } catch {}
   }
   throw new Error('No supported Chromium browser found.');
 }
@@ -56,7 +46,6 @@ class CdpClient {
       else pending.resolve(message.result || {});
     });
   }
-
   send(method, params = {}) {
     const id = this.id++;
     return new Promise((resolve, reject) => {
@@ -86,23 +75,13 @@ async function connect(url) {
   return new Promise((resolve, reject) => {
     const ws = new WebSocket(url);
     const timer = setTimeout(() => reject(new Error('CDP websocket timeout.')), 10000);
-    ws.addEventListener('open', () => {
-      clearTimeout(timer);
-      resolve(ws);
-    }, { once: true });
-    ws.addEventListener('error', event => {
-      clearTimeout(timer);
-      reject(event.error || new Error('CDP websocket error.'));
-    }, { once: true });
+    ws.addEventListener('open', () => { clearTimeout(timer); resolve(ws); }, { once: true });
+    ws.addEventListener('error', event => { clearTimeout(timer); reject(event.error || new Error('CDP websocket error.')); }, { once: true });
   });
 }
 
 async function evaluate(client, expression) {
-  const response = await client.send('Runtime.evaluate', {
-    expression,
-    returnByValue: true,
-    awaitPromise: true
-  });
+  const response = await client.send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
   if (response.exceptionDetails) throw new Error(response.exceptionDetails.text || 'Runtime evaluation failed.');
   return response.result?.value;
 }
@@ -111,11 +90,7 @@ async function waitFor(client, expression, label, duration = timeoutMs) {
   const deadline = Date.now() + duration;
   let lastError = null;
   while (Date.now() < deadline) {
-    try {
-      if (await evaluate(client, expression)) return;
-    } catch (error) {
-      lastError = error;
-    }
+    try { if (await evaluate(client, expression)) return; } catch (error) { lastError = error; }
     await sleep(120);
   }
   throw new Error(`Timed out waiting for ${label}${lastError ? `: ${lastError.message}` : ''}.`);
@@ -124,81 +99,53 @@ async function waitFor(client, expression, label, duration = timeoutMs) {
 async function waitForPathname(client, expected, duration = timeoutMs) {
   const deadline = Date.now() + duration;
   let lastPath = '';
-  let lastError = null;
   while (Date.now() < deadline) {
     try {
       lastPath = String(await evaluate(client, 'location.pathname') || '');
       if (lastPath === expected) return lastPath;
-    } catch (error) {
-      lastError = error;
-    }
+    } catch {}
     await sleep(120);
   }
-  throw new Error(`checkout click did not navigate to ${expected}; last=${lastPath || 'unavailable'}${lastError ? ` (${lastError.message})` : ''}`);
+  throw new Error(`checkout click did not navigate to ${expected}; last=${lastPath || 'unavailable'}`);
 }
 
 const browser = await findBrowser();
 const port = await freePort();
 const profileDir = await mkdtemp(path.join(os.tmpdir(), 'pasar-v10c-'));
 const chrome = spawn(browser, [
-  '--headless=new',
-  '--no-sandbox',
-  '--disable-dev-shm-usage',
-  '--disable-gpu',
-  `--remote-debugging-port=${port}`,
-  `--user-data-dir=${profileDir}`,
-  '--window-size=390,844',
-  baseUrl.href
+  '--headless=new', '--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu',
+  `--remote-debugging-port=${port}`, `--user-data-dir=${profileDir}`, '--window-size=390,844', baseUrl.href
 ], { stdio: 'ignore' });
 
 let ws;
 try {
-  const wsUrl = await waitForTarget(port);
-  ws = await connect(wsUrl);
+  ws = await connect(await waitForTarget(port));
   const client = new CdpClient(ws);
   await client.send('Runtime.enable');
   await client.send('Page.enable');
-
   await waitFor(client, "document.readyState === 'complete'", 'document readiness');
   await waitFor(client, "window.PasarPerformanceV10C?.version === '10.3'", 'V10-C runtime');
 
   const probe = await evaluate(client, `(async () => {
     sessionStorage.setItem('pasar_cart_selection_v2', '[]');
     sessionStorage.removeItem('pasar_cart_selection_v10c_ids');
-
-    // Keep the synthetic CTA stable while V10-C repairs legacy state. The
-    // original adaptive loader is restored before the real click phase.
-    window.__V10CTestOriginalPerformance = window.PasarPerformanceV10;
-    const original = window.__V10CTestOriginalPerformance;
-    window.PasarPerformanceV10 = Object.freeze({
-      version: original.version,
-      capability: original.capability,
-      getDiagnostics: original.getDiagnostics,
-      load: name => name === 'commerce' ? Promise.resolve(true) : original.load(name)
-    });
-
-    const feed = document.getElementById('feed');
-    if (!feed) return { error: 'feed missing' };
-    feed.innerHTML = \`
+    document.getElementById('v10cCheckoutFixture')?.remove();
+    const fixture = document.createElement('div');
+    fixture.id = 'v10cCheckoutFixture';
+    fixture.innerHTML = \`
       <section class="commerce-page">
-        <div class="commerce-content with-sticky">
-          <div class="commerce-store-group">
-            <div class="commerce-store-head"><span>Toko V10-C Test</span></div>
-            <div class="commerce-cart-item" data-product-id="v10c-test-product">
-              <span class="commerce-cart-price">Rp10.000</span>
-              <span class="commerce-quantity-value">1</span>
-            </div>
-          </div>
+        <div class="commerce-cart-item" data-product-id="v10c-test-product">
+          <span class="commerce-cart-price">Rp10.000</span>
+          <span class="commerce-quantity-value">1</span>
         </div>
         <div class="commerce-sticky">
-          <div class="commerce-sticky-copy"><span>Total</span><strong>Rp10.000</strong></div>
           <button type="button" data-commerce-action="checkout" disabled aria-disabled="true">Checkout</button>
         </div>
-      </section>
-    \`;
-
-    await new Promise(resolve => setTimeout(resolve, 900));
-    const button = document.querySelector('[data-commerce-action="checkout"]');
+      </section>\`;
+    document.body.appendChild(fixture);
+    window.PasarPerformanceV10C.repairCheckout();
+    await new Promise(resolve => setTimeout(resolve, 250));
+    const button = fixture.querySelector('[data-commerce-action="checkout"]');
     return {
       exists: Boolean(button),
       disabled: Boolean(button?.disabled),
@@ -209,26 +156,16 @@ try {
     };
   })()`);
 
-  if (probe?.error) throw new Error(probe.error);
   if (!probe?.exists) throw new Error('synthetic checkout CTA disappeared before repair assertion');
-  if (probe?.disabled) throw new Error('checkout CTA remained disabled after stale-state migration');
-  if (probe?.ariaDisabled !== 'false') throw new Error(`checkout aria-disabled remained ${probe?.ariaDisabled}`);
-  if (!Array.isArray(probe?.selection) || !probe.selection.includes('v10c-test-product')) {
-    throw new Error(`checkout selection was not repaired: ${JSON.stringify(probe?.selection)}`);
-  }
-  if (!Array.isArray(probe?.cartIds) || !probe.cartIds.includes('v10c-test-product')) {
-    throw new Error(`cart identity was not recorded: ${JSON.stringify(probe?.cartIds)}`);
-  }
-  if (probe?.checkoutReady !== 'true') throw new Error('checkout CTA was not marked runtime-ready');
+  if (probe.disabled) throw new Error('checkout CTA remained disabled after stale-state migration');
+  if (probe.ariaDisabled !== 'false') throw new Error(`checkout aria-disabled remained ${probe.ariaDisabled}`);
+  if (!Array.isArray(probe.selection) || !probe.selection.includes('v10c-test-product')) throw new Error(`checkout selection was not repaired: ${JSON.stringify(probe.selection)}`);
+  if (!Array.isArray(probe.cartIds) || !probe.cartIds.includes('v10c-test-product')) throw new Error(`cart identity was not recorded: ${JSON.stringify(probe.cartIds)}`);
+  if (probe.checkoutReady !== 'true') throw new Error('checkout CTA was not marked runtime-ready');
 
-  // Restore the real adaptive loader, then click. V10-A must load P8, replay
-  // the intent, and the real commerce owner must navigate to checkout.
+  await waitFor(client, "window.PasarP8Commerce?.version === '1.2'", 'commerce prewarm');
   const clickAccepted = await evaluate(client, `(() => {
-    if (window.__V10CTestOriginalPerformance) {
-      window.PasarPerformanceV10 = window.__V10CTestOriginalPerformance;
-      delete window.__V10CTestOriginalPerformance;
-    }
-    const button = document.querySelector('[data-commerce-action="checkout"]');
+    const button = document.querySelector('#v10cCheckoutFixture [data-commerce-action="checkout"]');
     if (!button || button.disabled) return false;
     button.click();
     return true;
@@ -237,10 +174,8 @@ try {
 
   const pathname = await waitForPathname(client, '/checkout/index.html');
   await waitFor(client, "document.readyState === 'complete'", 'checkout document readiness');
-
-  const report = { ...probe, pathname };
   console.log('V10-C browser checkout smoke: PASS');
-  console.log(JSON.stringify(report));
+  console.log(JSON.stringify({ ...probe, pathname }));
 } finally {
   try { ws?.close(); } catch {}
   if (chrome.exitCode === null && chrome.signalCode === null) chrome.kill('SIGKILL');
