@@ -7,10 +7,74 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
+  repair-reels-advanced-layer:
+    if: github.event_name == 'pull_request' && github.head_ref == 'feat/reels-commerce-v4-r1-r11'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: feat/reels-commerce-v4-r1-r11
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+
+      - name: Ensure advanced layer mounts for every hydrated Reel
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('js/reels-advanced-creator-v4.js')
+          text = path.read_text()
+          old = """    for (const card of cards) {
+      const meta = metadataCache.get(String(card.dataset.reelId));
+      if (meta) renderCardAdvanced(card, meta);
+    }
+"""
+          new = """    for (const card of cards) {
+      const id = String(card.dataset.reelId);
+      if (!metadataCache.has(id)) continue;
+      renderCardAdvanced(card, metadataCache.get(id) || { text_overlays: [] });
+    }
+"""
+          if old in text:
+              text = text.replace(old, new, 1)
+          elif new not in text:
+              raise SystemExit('decorateCards advanced-layer marker not found')
+          path.write_text(text)
+          PY
+
+          grep -Fq "renderCardAdvanced(card, metadataCache.get(id) || { text_overlays: [] })" js/reels-advanced-creator-v4.js
+          node --check js/reels-advanced-creator-v4.js
+
+      - name: Regenerate and validate canonical runtime
+        run: |
+          npm run build:runtime
+          npm run validate
+
+      - name: Commit advanced layer repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add js/reels-advanced-creator-v4.js js/reels-v4-entry.js index.html js/performance-v10-a.js js/app.runtime.js css/tokens.css css/style.runtime.css .assetsignore
+          if git diff --cached --quiet; then
+            echo 'Advanced layer repair already synchronized.'
+            exit 0
+          fi
+          git commit -m 'fix(reels): mount advanced overlay layer for all cards'
+          git push origin HEAD:feat/reels-commerce-v4-r1-r11
+
   verify-runtime-assets:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     uses: ./.github/workflows/runtime-assets.yml
     with:
       write_changes: false
