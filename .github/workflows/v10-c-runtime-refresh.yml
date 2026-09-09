@@ -1,0 +1,22 @@
+name: V10-C Runtime Refresh
+
+on:
+  push:
+    branches:
+      - performance/v10-c-interaction-runtime
+    paths:
+      - 'js/performance-v10-a.js'
+      - 'js/performance-v10-c.js'
+      - 'scripts/build-runtime.mjs'
+      - '.github/workflows/v10-c-runtime-refresh.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    uses: ./.github/workflows/runtime-assets.yml
+    with:
+      write_changes: true
+    permissions:
+      contents: write
