@@ -1,0 +1,95 @@
+name: Reels Bootstrap Race Fix
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/reels-bootstrap-race-fix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Guard canonical renderer from overwriting active Reels
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const path = 'js/app.js';
+          let source = fs.readFileSync(path, 'utf8');
+          const before = `function renderApplication() {
+            renderStories();
+            renderQuickCategories();
+            renderFeed();
+            renderSidebar();
+            renderAccount();
+            updateNavigation();
+            updateHeaderBadges();
+            updateCartBadge();
+          }`;
+          const after = `function renderApplication() {
+            const reelsRouteActive = STATE.activeNav === 'reels';
+
+            // Reels owns DOM.feed while its route is active. A late cold-bootstrap
+            // render must never replace the mounted Reels shell with the home feed.
+            if (!reelsRouteActive) {
+              renderStories();
+              renderQuickCategories();
+              renderFeed();
+            }
+
+            renderSidebar();
+            renderAccount();
+            updateNavigation();
+            updateHeaderBadges();
+            updateCartBadge();
+          }`;
+          if (!source.includes(before)) {
+            throw new Error('Canonical renderApplication block did not match expected source.');
+          }
+          source = source.replace(before, after);
+          fs.writeFileSync(path, source);
+          NODE
+
+      - name: Build generated runtime
+        run: npm run build:runtime
+
+      - name: Validate fix
+        run: |
+          node --check js/app.js
+          node --check js/app.runtime.js
+          node scripts/validate-reels-commerce-v4.mjs
+          node scripts/validate-performance-v10-a.mjs
+          npm run validate
+
+      - name: Commit canonical and generated runtime
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add js/app.js js/app.runtime.js index.html
+          if git diff --cached --quiet; then
+            echo 'No runtime changes to commit.'
+            exit 0
+          fi
+          git commit -m 'fix(reels): preserve active shell across cold bootstrap'
+          git push origin HEAD:main
