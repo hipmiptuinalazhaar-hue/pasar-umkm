@@ -1,21 +1,23 @@
 import { neon } from "@neondatabase/serverless";
 
-const CATEGORY_CACHE_TTL_SECONDS = 30;
+const CATEGORY_EDGE_TTL_SECONDS = 30;
 
-function json(data, status = 200, { cacheable = false } = {}) {
+function json(data, status = 200) {
   return Response.json(data, {
     status,
-    headers: {
-      "Cache-Control": cacheable
-        ? `public, max-age=${CATEGORY_CACHE_TTL_SECONDS}`
-        : "no-store"
-    }
+    headers: { "Cache-Control": "no-store" }
   });
 }
 
 function categoryCacheKey(request) {
   const url = new URL(request.url);
   return new Request(`${url.origin}/api/categories`, { method: "GET" });
+}
+
+function clientResponseFromCached(cached) {
+  const response = new Response(cached.body, cached);
+  response.headers.set("Cache-Control", "no-store");
+  return response;
 }
 
 export async function handleCategoryApi(request, env) {
@@ -30,7 +32,7 @@ export async function handleCategoryApi(request, env) {
   if (edgeCache) {
     try {
       const cached = await edgeCache.match(cacheKey);
-      if (cached) return cached;
+      if (cached) return clientResponseFromCached(cached);
     } catch (error) {
       console.warn("Categories edge cache read error:", error);
     }
@@ -55,11 +57,16 @@ export async function handleCategoryApi(request, env) {
       ok: true,
       count: categories.length,
       categories
-    }, 200, { cacheable: true });
+    });
 
     if (edgeCache) {
       try {
-        await edgeCache.put(cacheKey, response.clone());
+        const cachedCopy = response.clone();
+        cachedCopy.headers.set(
+          "Cache-Control",
+          `public, max-age=${CATEGORY_EDGE_TTL_SECONDS}`
+        );
+        await edgeCache.put(cacheKey, cachedCopy);
       } catch (error) {
         console.warn("Categories edge cache write error:", error);
       }
