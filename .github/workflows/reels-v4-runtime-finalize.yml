@@ -62,7 +62,22 @@ jobs:
               build = build.replace(lazy_anchor, lazy_anchor + '  REELS_BOOT,\n', 1)
 
           function_anchor = 'async function stampLazyBootGraph() {\n'
-          nested_helper = "async function stampReelsBootGraph() {\n  let boot = await readFile(REELS_BOOT, \\\"utf8\\\");\n  for (const assetPath of [\n    \\\"css/reels-commerce-v4.css\\\",\n    \\\"css/reels-advanced-creator-v4.css\\\",\n    \\\"js/reels-commerce-v4.js\\\",\n    \\\"js/reels-advanced-creator-v4.js\\\"\n  ]) {\n    const version = await sha12(assetPath);\n    boot = stampVersion(boot, assetPath, version);\n    console.log(`reels-cache-key ${assetPath}=${version}`);\n  }\n  await writeFile(REELS_BOOT, boot, \\\"utf8\\\");\n}\n\n"
+          nested_helper = (
+              'async function stampReelsBootGraph() {\n'
+              '  let boot = await readFile(REELS_BOOT, "utf8");\n'
+              '  for (const assetPath of [\n'
+              '    "css/reels-commerce-v4.css",\n'
+              '    "css/reels-advanced-creator-v4.css",\n'
+              '    "js/reels-commerce-v4.js",\n'
+              '    "js/reels-advanced-creator-v4.js"\n'
+              '  ]) {\n'
+              '    const version = await sha12(assetPath);\n'
+              '    boot = stampVersion(boot, assetPath, version);\n'
+              '    console.log(`reels-cache-key ${assetPath}=${version}`);\n'
+              '  }\n'
+              '  await writeFile(REELS_BOOT, boot, "utf8");\n'
+              '}\n\n'
+          )
           if 'async function stampReelsBootGraph()' not in build:
               if function_anchor not in build:
                   raise SystemExit('Lazy boot function anchor not found')
