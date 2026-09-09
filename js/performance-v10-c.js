@@ -19,7 +19,6 @@
   let interactionObserver = null;
   let migratedSelections = 0;
   let checkoutRepairs = 0;
-  let checkoutFallbacks = 0;
   let deferredCards = 0;
   let pausedVideos = 0;
   let maxInteractionMs = 0;
@@ -80,6 +79,8 @@
     const knownIds = readArray(CART_IDS_KEY);
     const currentSet = new Set(currentIds);
 
+    // Old V10-A/B could leave [] in sessionStorage with no cart identity.
+    // Treat that as stale migration state, not an intentional deselection.
     if (knownIds === null || storedSelection === null) {
       migratedSelections += 1;
       return writeSelection(currentIds, currentIds);
@@ -93,10 +94,12 @@
       return writeSelection(storedSelection.filter(id => currentSet.has(id)), currentIds);
     }
 
+    // Once V10-C owns cart identity, an explicit empty choice is respected.
     if (storedSelection.length === 0) {
       return writeSelection([], currentIds);
     }
 
+    // Keep selected existing rows and select newly-added products by default.
     const selectedSet = new Set(storedSelection);
     const next = currentIds.filter(id => selectedSet.has(id) || !knownSet.has(id));
     return writeSelection(next, currentIds);
@@ -159,33 +162,14 @@
       if (selectedCount > 0) button.dataset.v10cCheckoutReady = 'true';
     }
 
+    // Prime P8 only when checkout is actually rendered. This removes the
+    // click-time script race without putting commerce back in the first paint.
     if (
       doc.querySelector(CHECKOUT_SELECTOR) &&
       window.PasarP8Commerce?.version !== '1.2'
     ) {
       window.PasarPerformanceV10?.load?.('commerce').catch(() => null);
     }
-  }
-
-  function installCheckoutClickFallback() {
-    doc.addEventListener('click', event => {
-      const target = event.target?.closest?.(CHECKOUT_SELECTOR);
-      if (!target || !target.closest('.commerce-page, #feed, .sheet-content')) return;
-
-      const ids = currentCartIds();
-      const explicit = selectionFromControls(ids);
-      const selected = explicit === null ? migrateSelection(ids) : new Set(explicit);
-      if (ids.length && selected.size === 0) return;
-
-      const before = `${location.pathname}${location.search}${location.hash}`;
-      setTimeout(() => {
-        if (location.pathname === '/checkout/index.html') return;
-        const current = `${location.pathname}${location.search}${location.hash}`;
-        if (current !== before) return;
-        checkoutFallbacks += 1;
-        location.assign('/checkout/index.html');
-      }, 180);
-    }, true);
   }
 
   function installRenderContainment() {
@@ -347,7 +331,6 @@
     installRenderContainment();
     installScopedMutationObserver();
     installInteractionObserver();
-    installCheckoutClickFallback();
     doc.addEventListener('change', persistExplicitSelection, true);
     doc.addEventListener('visibilitychange', pauseBackgroundWork, { passive: true });
     window.addEventListener('pageshow', scheduleReconcile, { passive: true });
@@ -366,7 +349,6 @@
     getDiagnostics: () => Object.freeze({
       migrated_selections: migratedSelections,
       checkout_repairs: checkoutRepairs,
-      checkout_fallbacks: checkoutFallbacks,
       deferred_cards: deferredCards,
       paused_videos: pausedVideos,
       interaction_count: interactionCount,
