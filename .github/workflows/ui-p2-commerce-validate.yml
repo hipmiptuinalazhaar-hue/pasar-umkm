@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'index.html'
+      - 'js/performance-v10-a.js'
       - 'js/commerce-experience-v2.js'
       - 'css/commerce-experience-v2.css'
       - 'js/profile-saved.js'
@@ -26,6 +27,7 @@ jobs:
 
       - name: Validate JavaScript syntax
         run: |
+          node --check js/performance-v10-a.js
           node --check js/commerce-experience-v2.js
           node --check js/profile-saved.js
           node --check js/store-management-core.js
@@ -40,12 +42,13 @@ jobs:
           css_path = Path('css/commerce-experience-v2.css')
           js_path = Path('js/commerce-experience-v2.js')
           loader_path = Path('js/profile-saved.js')
+          boot_path = Path('js/performance-v10-a.js')
           legacy_store_path = Path('js/store-management-core.js')
           index_path = Path('index.html')
 
           errors = []
 
-          for path in (css_path, js_path, loader_path, legacy_store_path, index_path):
+          for path in (css_path, js_path, loader_path, boot_path, legacy_store_path, index_path):
               if not path.exists():
                   errors.append(f'Missing required file: {path}')
 
@@ -56,6 +59,7 @@ jobs:
           css = css_path.read_text(encoding='utf-8')
           js = js_path.read_text(encoding='utf-8')
           loader = loader_path.read_text(encoding='utf-8')
+          boot = boot_path.read_text(encoding='utf-8')
           legacy_store = legacy_store_path.read_text(encoding='utf-8')
           index = index_path.read_text(encoding='utf-8')
 
@@ -87,10 +91,13 @@ jobs:
               if asset in index:
                   errors.append(f'{asset} is referenced directly by index.html; commerce must remain lazy-loaded')
 
+          if 'src="js/profile-saved.js' in index or "src='js/profile-saved.js" in index:
+              errors.append('profile-saved.js must not be part of the initial HTML script graph under V10-A')
+
           carrier_pattern = re.compile(r'js/profile-saved\.js\?v=([0-9a-f]{12})')
-          carrier_match = carrier_pattern.search(index)
+          carrier_match = carrier_pattern.search(boot)
           if not carrier_match:
-              errors.append('index.html must reference profile-saved.js with a 12-character deterministic runtime fingerprint')
+              errors.append('V10 bootstrap must reference profile-saved.js with a 12-character deterministic runtime fingerprint')
 
           loader_contracts = (
               'window.__PASAR_COMMERCE_V2__ = true',
@@ -145,7 +152,7 @@ jobs:
           print(f'Commerce !important migration debt: {important_count} / 20')
           print(f'Commerce bottom-sheet calls: {sheet_count} / 2')
           if carrier_match:
-              print(f'Commerce carrier fingerprint: {carrier_match.group(1)}')
+              print(f'Commerce V10 carrier fingerprint: {carrier_match.group(1)}')
 
           if errors:
               print('UI P2 Commerce validation failed:')
