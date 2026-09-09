@@ -73,7 +73,7 @@ need(index,'js/performance-v10-a.js?v=','V10 critical adaptive router');
 forbid(index,/<script[^>]+src="js\/p8-commerce-integration\.js\?v=/,'eager P8 checkout router in critical HTML');
 need(v10,"commerce: 'js/p8-commerce-integration.js?v=",'V10 fingerprinted lazy checkout router');
 need(v10,'[data-nav="cart"]','V10 cart intent gate');
-need(v10,'[data-commerce-action]','V10 commerce intent gate');
+need(v10,'[data-commerce-action="checkout"]','V10 checkout intent gate');
 need(v10,'event.stopImmediatePropagation()','V10 protected intent interception');
 need(v10,'target.click()','V10 checkout intent replay after owner load');
 
