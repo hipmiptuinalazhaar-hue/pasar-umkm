@@ -24,7 +24,7 @@ assert(directScripts.length === 2, `initial first-party script harus tepat 2, di
 assert(/^js\/performance-v10-a\.js\?v=/.test(directScripts[0]), 'V10 bootstrap harus dieksekusi sebelum app runtime.');
 assert(/^js\/app\.runtime\.js\?v=/.test(directScripts[1]), 'app.runtime harus menjadi satu-satunya runtime aplikasi initial setelah V10 bootstrap.');
 
-for (const forbidden of ['chat-single-render-v6.js', 'p8-commerce-integration.js', 'account-resilience.js', 'profile-saved.js']) {
+for (const forbidden of ['performance-v10-b.js', 'chat-single-render-v6.js', 'p8-commerce-integration.js', 'account-resilience.js', 'profile-saved.js']) {
   assert(!directScripts.some(src => src.includes(forbidden)), `${forbidden} tidak boleh berada di initial JS graph.`);
 }
 
@@ -58,11 +58,13 @@ for (const marker of [
   "largest-contentful-paint",
   "layout-shift",
   "longtask",
+  'scheduleEfficiency',
   "window.PasarP2Performance",
   "window.PasarPerformanceV10"
 ]) assert(boot.includes(marker), `performance bootstrap kehilangan contract ${marker}.`);
 
 for (const asset of [
+  'js/performance-v10-b.js',
   'js/chat-single-render-v6.js',
   'js/p8-commerce-integration.js',
   'js/account-resilience.js',
