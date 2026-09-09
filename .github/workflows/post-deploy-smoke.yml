@@ -10,6 +10,7 @@ on:
       - 'admin/**'
       - 'css/**'
       - 'js/**'
+      - 'legal/**'
       - 'src/**'
       - 'wrangler.jsonc'
       - 'database/migrations/**'
