@@ -68,9 +68,9 @@
         <label for="reelsStepCode">Kode</label>
         <input id="reelsStepCode" name="code" maxlength="32" autocomplete="one-time-code" required>
       </div>
-      <p class="reels-admin-alert" data-step-error></p>
+      <p class="reels-admin-alert" data-step-error hidden></p>
       <div class="reels-admin-dialog-actions">
-        <button class="reels-admin-button" type="button" onclick="this.closest('dialog').close()">Batal</button>
+        <button class="reels-admin-button" type="button" data-step-cancel>Batal</button>
         <button class="reels-admin-button primary" type="submit">Verifikasi</button>
       </div>
     </form>
