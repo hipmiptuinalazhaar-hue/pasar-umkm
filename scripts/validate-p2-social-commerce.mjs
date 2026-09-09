@@ -16,9 +16,10 @@ const jsPath = 'js/p2-social-commerce.js';
 const cssPath = 'css/p2-social-commerce.css';
 const p8Path = 'js/p8-commerce-integration.js';
 const resiliencePath = 'js/account-resilience.js';
+const performancePath = 'js/performance-v10-a.js';
 const indexPath = 'index.html';
 
-for (const path of [jsPath, cssPath, p8Path, resiliencePath, indexPath]) {
+for (const path of [jsPath, cssPath, p8Path, resiliencePath, performancePath, indexPath]) {
   if (!fs.existsSync(path)) fail(`required file does not exist: ${path}`);
 }
 
@@ -27,17 +28,21 @@ if (!process.exitCode) {
   const css = read(cssPath);
   const p8 = read(p8Path);
   const resilience = read(resiliencePath);
+  const performance = read(performancePath);
   const index = read(indexPath);
 
   const jsBytes = fs.statSync(jsPath).size;
   const cssBytes = fs.statSync(cssPath).size;
   const resilienceBytes = fs.statSync(resiliencePath).size;
+  const performanceBytes = fs.statSync(performancePath).size;
   console.log(`P2 social-commerce JS: ${jsBytes} / 12000 bytes`);
   console.log(`P2 social-commerce CSS: ${cssBytes} / 8000 bytes`);
   console.log(`Account resilience loader: ${resilienceBytes} / 18000 bytes`);
+  console.log(`V10 performance bootstrap: ${performanceBytes} / 12000 bytes`);
   if (jsBytes > 12_000) fail(`JS budget exceeded: ${jsBytes} > 12000`);
   if (cssBytes > 8_000) fail(`CSS budget exceeded: ${cssBytes} > 8000`);
   if (resilienceBytes > 18_000) fail(`account-resilience budget exceeded: ${resilienceBytes} > 18000`);
+  if (performanceBytes > 12_000) fail(`performance bootstrap budget exceeded: ${performanceBytes} > 12000`);
 
   for (const [marker, label] of [
     ["version: '1.0'", 'P2 public version'],
@@ -53,9 +58,7 @@ if (!process.exitCode) {
     ['getDiagnostics', 'client diagnostics surface']
   ]) requireText(js, marker, label);
 
-  for (const marker of ['/api/', 'fetch(']) {
-    forbidText(js, marker, 'network ownership in presentation-only P2 module');
-  }
+  for (const marker of ['/api/', 'fetch(']) forbidText(js, marker, 'network ownership in presentation-only P2 module');
 
   for (const [marker, label] of [
     ['content-visibility: auto', 'offscreen rendering optimization'],
@@ -85,28 +88,34 @@ if (!process.exitCode) {
 
   for (const [marker, label] of [
     ['window.PasarP2Performance', 'P2 performance diagnostics surface'],
-    ['function networkCapability()', 'adaptive bootstrap capability detector'],
-    ["network.constrained ? ['/api/categories'] : [...warmPaths]", 'constrained bootstrap request reduction'],
+    ['function capability()', 'adaptive bootstrap capability detector'],
+    ["? ['/api/categories']", 'constrained bootstrap request reduction'],
+    ["network.effectiveType === '3g'", '3G reduced bootstrap path'],
+    ["['slow-2g', '2g'].includes(effectiveType)", '2G constrained-network contract'],
+    ['hardwareConcurrency', 'CPU capability contract'],
+    ['deviceMemory', 'memory capability contract'],
+    ['PUBLIC_CACHE_TTL_MS = 20_000', 'public response coalescing TTL'],
+    ['installIntentGate', 'intent-gated lazy delivery'],
+    ['stopImmediatePropagation', 'safe legacy-action interception'],
+    ['replaying', 'post-load action replay guard']
+  ]) requireText(performance, marker, label);
+
+  for (const [marker, label] of [
     ["document.visibilityState === 'hidden'", 'hidden-tab warmup guard'],
-    ["network.effectiveType === '3g'", '3G reduced warmup path'],
-    ["['slow-2g','2g'].includes(effectiveType)", '2G constrained-network contract'],
-    ["document.addEventListener('focusin'", 'keyboard intent loading in core loader'],
-    ['requestIdleCallback', 'idle warmup scheduling'],
-    ['PUBLIC_CACHE_TTL_MS = 20_000', 'public response coalescing TTL']
+    ["device.effectiveType === '3g'", '3G reduced enhancement warmup'],
+    ['device.constrained || device.lowEnd', 'low-end enhancement suppression'],
+    ["window.PasarPerformanceV10.load('saved')", 'saved feature delegated to V10 graph'],
+    ['requestIdleCallback', 'idle enhancement scheduling']
   ]) requireText(resilience, marker, label);
 
-  for (const asset of ['js/p2-social-commerce.js', 'css/p2-social-commerce.css']) {
-    forbidText(index, asset, 'P2 asset in initial HTML payload');
+  for (const asset of ['js/p2-social-commerce.js', 'css/p2-social-commerce.css']) forbidText(index, asset, 'P2 asset in initial HTML payload');
+  for (const asset of ['js/p8-commerce-integration.js', 'js/account-resilience.js', 'js/profile-saved.js', 'js/chat-single-render-v6.js']) {
+    forbidText(index, `src="${asset}`, `${asset} in initial HTML payload`);
+    requireText(performance, asset, `${asset} V10 lazy ownership`);
   }
 
-  for (const [pattern, label] of [
-    [/js\/p8-commerce-integration\.js\?v=[0-9a-f]{12}/, 'P8 deterministic runtime fingerprint'],
-    [/js\/account-resilience\.js\?v=[0-9a-f]{12}/, 'account-resilience deterministic runtime fingerprint']
-  ]) {
-    if (!pattern.test(index)) fail(`missing ${label}`);
-  }
+  if (!/js\/performance-v10-a\.js\?v=[^"']+/.test(index)) fail('missing V10 deterministic runtime entry');
+  if (!/js\/app\.runtime\.js\?v=[0-9a-f]{12}/.test(index)) fail('missing app deterministic runtime fingerprint');
 }
 
-if (!process.exitCode) {
-  console.log('P2 Social-Commerce validation passed.');
-}
+if (!process.exitCode) console.log('P2 Social-Commerce validation passed.');
