@@ -90,3 +90,5 @@ jobs:
           git add js/performance-v10-a.js index.html js/reels-v4-entry.js js/reel-profile-separation.js css/tokens.css js/app.runtime.js css/style.runtime.css .assetsignore
           git commit -m 'fix(reels): intercept Reels intent at window capture boundary'
           git push origin HEAD:feat/reels-commerce-v4-r1-r11
+
+# Trigger marker: 2026-09-09 final gate
