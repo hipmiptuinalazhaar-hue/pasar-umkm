@@ -265,7 +265,7 @@
     if (found) { document.head.appendChild(found); return Promise.resolve(found); }
     return new Promise((resolve,reject) => {
       const link = document.createElement('link');
-      link.rel='stylesheet'; link.href=route.href; link.dataset[key] = 'true';
+      link.rel='stylesheet'; link.href=route.href; link.dataset.socialP3Style=kind;
       link.onload=() => resolve(link); link.onerror=() => reject(new Error('Social CSS gagal dimuat'));
       document.head.appendChild(link);
     });
