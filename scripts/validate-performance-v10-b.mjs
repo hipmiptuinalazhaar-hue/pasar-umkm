@@ -37,7 +37,7 @@ for (const marker of [
   "['/api/discover', 45_000]",
   "['/api/recommendations', 45_000]",
   "['/api/ratings/summaries', 60_000]",
-  "url.origin !== location.origin || method !== 'GET'",
+  "originalUrl.origin !== location.origin || method !== 'GET'",
   'bridgeRecommendations',
   'bridgedEvidence',
   'evidenceFromMemory',
