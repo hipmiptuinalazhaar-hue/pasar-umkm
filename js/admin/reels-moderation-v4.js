@@ -26,6 +26,12 @@ function statusLabel(value) {
   return ({ open: 'Terbuka', reviewing: 'Ditinjau', resolved: 'Selesai', dismissed: 'Ditolak' })[value] || value;
 }
 
+function setAlert(node, message = '') {
+  if (!node) return;
+  node.textContent = message;
+  node.hidden = !message;
+}
+
 function render() {
   if (!root) return;
   const open = reports.filter(item => item.status === 'open').length;
@@ -40,15 +46,15 @@ function render() {
       <div class="reels-admin-kpi"><b>${dismissed}</b><span>Ditolak</span></div>
     </section>
     <section class="reels-admin-list">
-      ${reports.length ? reports.map(reportCard).join('') : '<div class="reels-admin-empty"><strong>Tidak ada laporan pada filter ini.</strong><p>Semoga bukan karena semua orang terlalu sibuk membuat masalah di tempat lain.</p></div>'}
+      ${reports.length ? reports.map(reportCard).join('') : '<div class="reels-admin-empty"><strong>Tidak ada laporan pada filter ini.</strong><p>Antrean moderasi sedang bersih.</p></div>'}
     </section>`;
 }
 
 function reportCard(report) {
   const canResolve = permissionSet().has('reports.resolve') && ['open', 'reviewing'].includes(report.status);
   const poster = report.cover_url
-    ? `<img src="${esc(report.cover_url)}" alt="Cover Reels">`
-    : `<video src="${esc(report.video_url || '')}" muted playsinline preload="metadata"></video>`;
+    ? `<img src="${esc(report.cover_url)}" alt="Cover Reels" loading="lazy">`
+    : `<video src="${esc(report.video_url || '')}" muted playsinline preload="metadata" aria-label="Preview Reels"></video>`;
   return `
     <article class="reels-report-card" data-report-id="${esc(report.id)}">
       <div class="reels-report-media">${poster}</div>
@@ -57,10 +63,10 @@ function reportCard(report) {
         <p>${esc(report.caption || 'Reels tanpa caption')}</p>
         <p><strong>Laporan:</strong> ${esc(report.details || 'Tidak ada detail tambahan.')}</p>
         <div class="reels-report-meta">
-          <span class="reels-report-pill ${esc(report.status)}">${esc(statusLabel(report.status))}</span>
-          <span class="reels-report-pill">${esc(report.category)}</span>
+          <span class="reels-report-pill ${esc(report.status || 'open')}">${esc(statusLabel(report.status))}</span>
+          <span class="reels-report-pill">${esc(report.category || 'lainnya')}</span>
           <span class="reels-report-pill">Pelapor: ${esc(report.reporter_name || 'Pengguna')}</span>
-          <span class="reels-report-pill">${new Date(report.created_at).toLocaleString('id-ID')}</span>
+          <span class="reels-report-pill">${report.created_at ? new Date(report.created_at).toLocaleString('id-ID') : '-'}</span>
         </div>
       </div>
       <div class="reels-report-card-actions">
@@ -76,7 +82,7 @@ async function fetchJson(path, options = {}, allowStepUp = true) {
     headers: { Accept: 'application/json', ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...(options.headers || {}) }
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
+  if (!response.ok || data.ok === false) {
     if (allowStepUp && data.code === 'ADMIN_STEP_UP_REQUIRED') {
       const verified = await requestStepUp();
       if (verified) return fetchJson(path, options, false);
@@ -97,6 +103,10 @@ async function loadReports() {
     reports = Array.isArray(data.reports) ? data.reports : [];
     render();
   } catch (error) {
+    if (error.status === 401) {
+      location.replace('/admin/');
+      return;
+    }
     root.innerHTML = `<div class="reels-admin-alert">${esc(error.message || 'Laporan belum dapat dimuat.')}</div>`;
   } finally {
     refreshButton.disabled = false;
@@ -109,38 +119,45 @@ function requestStepUp() {
     const code = form.elements.code;
     const method = form.elements.method;
     const errorBox = stepUpDialog.querySelector('[data-step-error]');
-    errorBox.textContent = '';
+    const cancelButton = stepUpDialog.querySelector('[data-step-cancel]');
+    let settled = false;
+    setAlert(errorBox, '');
     code.value = '';
     stepUpDialog.showModal();
 
     const finish = value => {
+      if (settled) return;
+      settled = true;
       form.removeEventListener('submit', submit);
       stepUpDialog.removeEventListener('cancel', cancel);
+      cancelButton?.removeEventListener('click', cancelClick);
+      if (stepUpDialog.open) stepUpDialog.close();
       resolve(value);
     };
     const cancel = event => {
       event.preventDefault();
-      stepUpDialog.close();
       finish(false);
     };
+    const cancelClick = () => finish(false);
     const submit = async event => {
       event.preventDefault();
       const value = String(code.value || '').trim();
       if (!value) return;
       const button = form.querySelector('button[type="submit"]');
       button.disabled = true;
+      setAlert(errorBox, '');
       try {
         await adminApi.stepUp(value, method.value || 'totp');
-        stepUpDialog.close();
         finish(true);
       } catch (error) {
-        errorBox.textContent = error instanceof AdminApiError ? error.message : 'Verifikasi keamanan gagal.';
+        setAlert(errorBox, error instanceof AdminApiError ? error.message : 'Verifikasi keamanan gagal.');
       } finally {
         button.disabled = false;
       }
     };
     form.addEventListener('submit', submit);
     stepUpDialog.addEventListener('cancel', cancel);
+    cancelButton?.addEventListener('click', cancelClick);
   });
 }
 
@@ -156,6 +173,7 @@ function openAction(reportId, action) {
   actionDialog.querySelector('h2').textContent = config[0];
   actionDialog.querySelector('[data-dialog-copy]').textContent = config[1];
   actionDialog.querySelector('textarea').value = '';
+  setAlert(actionDialog.querySelector('[data-action-error]'), '');
   actionDialog.showModal();
 }
 
@@ -163,7 +181,9 @@ async function resolveReport(note) {
   const current = pendingAction;
   if (!current) return;
   const button = actionDialog.querySelector('button[type="submit"]');
+  const errorBox = actionDialog.querySelector('[data-action-error]');
   button.disabled = true;
+  setAlert(errorBox, '');
   try {
     await fetchJson(`/api/admin/reels/v4/reports/${encodeURIComponent(current.reportId)}/resolve`, {
       method: 'POST',
@@ -173,7 +193,7 @@ async function resolveReport(note) {
     pendingAction = null;
     await loadReports();
   } catch (error) {
-    actionDialog.querySelector('[data-action-error]').textContent = error.message || 'Tindakan moderasi gagal.';
+    setAlert(errorBox, error.message || 'Tindakan moderasi gagal.');
   } finally {
     button.disabled = false;
   }
@@ -205,9 +225,10 @@ document.addEventListener('click', event => {
 actionDialog.querySelector('form').addEventListener('submit', event => {
   event.preventDefault();
   const note = String(actionDialog.querySelector('textarea').value || '').trim();
-  actionDialog.querySelector('[data-action-error]').textContent = '';
+  const errorBox = actionDialog.querySelector('[data-action-error]');
+  setAlert(errorBox, '');
   if (note.length < 8) {
-    actionDialog.querySelector('[data-action-error]').textContent = 'Catatan penyelesaian minimal 8 karakter.';
+    setAlert(errorBox, 'Catatan penyelesaian minimal 8 karakter.');
     return;
   }
   resolveReport(note);
