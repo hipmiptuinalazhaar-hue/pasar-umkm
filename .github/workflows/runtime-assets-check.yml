@@ -33,17 +33,8 @@ jobs:
 
           path = Path('js/reels-advanced-creator-v4.js')
           text = path.read_text()
-          old = """    for (const card of cards) {
-      const meta = metadataCache.get(String(card.dataset.reelId));
-      if (meta) renderCardAdvanced(card, meta);
-    }
-"""
-          new = """    for (const card of cards) {
-      const id = String(card.dataset.reelId);
-      if (!metadataCache.has(id)) continue;
-      renderCardAdvanced(card, metadataCache.get(id) || { text_overlays: [] });
-    }
-"""
+          old = "    for (const card of cards) {\n      const meta = metadataCache.get(String(card.dataset.reelId));\n      if (meta) renderCardAdvanced(card, meta);\n    }\n"
+          new = "    for (const card of cards) {\n      const id = String(card.dataset.reelId);\n      if (!metadataCache.has(id)) continue;\n      renderCardAdvanced(card, metadataCache.get(id) || { text_overlays: [] });\n    }\n"
           if old in text:
               text = text.replace(old, new, 1)
           elif new not in text:
