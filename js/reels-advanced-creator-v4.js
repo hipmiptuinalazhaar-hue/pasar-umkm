@@ -126,8 +126,9 @@
       }, 40);
     }
     for (const card of cards) {
-      const meta = metadataCache.get(String(card.dataset.reelId));
-      if (meta) renderCardAdvanced(card, meta);
+      const id = String(card.dataset.reelId);
+      if (!metadataCache.has(id)) continue;
+      renderCardAdvanced(card, metadataCache.get(id) || { text_overlays: [] });
     }
   }
 
