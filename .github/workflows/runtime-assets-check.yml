@@ -5,14 +5,13 @@ on:
   push:
     branches:
       - main
-      - feat/reels-commerce-v4-r1-r11
 
 permissions:
   contents: write
 
 jobs:
   repair-reels-window-gate:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/feat/reels-commerce-v4-r1-r11'
+    if: github.event_name == 'pull_request' && github.head_ref == 'feat/reels-commerce-v4-r1-r11'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -98,7 +97,7 @@ jobs:
           git push origin HEAD:feat/reels-commerce-v4-r1-r11
 
   verify-runtime-assets:
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     uses: ./.github/workflows/runtime-assets.yml
     with:
       write_changes: false
