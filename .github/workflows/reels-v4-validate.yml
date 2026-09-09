@@ -1,0 +1,114 @@
+name: Reels Commerce V4 Validation
+
+on:
+  pull_request:
+    paths:
+      - 'admin/**'
+      - 'css/reels-*.css'
+      - 'css/admin-reels-*.css'
+      - 'js/reels-*.js'
+      - 'js/reel-profile-separation.js'
+      - 'js/admin/reels-*.js'
+      - 'src/reels-*.js'
+      - 'src/business-agency-api*.js'
+      - 'src/media-social-api*.js'
+      - 'migrations/*reels*.sql'
+      - 'scripts/validate-reels-commerce-v4.mjs'
+      - 'scripts/browser-reels-v4-smoke.mjs'
+      - 'scripts/build-runtime.mjs'
+      - 'package.json'
+      - '.github/workflows/reels-v4-validate.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'admin/**'
+      - 'css/reels-*.css'
+      - 'css/admin-reels-*.css'
+      - 'js/reels-*.js'
+      - 'js/reel-profile-separation.js'
+      - 'js/admin/reels-*.js'
+      - 'src/reels-*.js'
+      - 'src/business-agency-api*.js'
+      - 'src/media-social-api*.js'
+      - 'migrations/*reels*.sql'
+      - 'scripts/validate-reels-commerce-v4.mjs'
+      - 'scripts/browser-reels-v4-smoke.mjs'
+      - 'scripts/build-runtime.mjs'
+      - 'package.json'
+      - '.github/workflows/reels-v4-validate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: read
+
+concurrency:
+  group: reels-v4-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node 22
+        uses: actions/setup-node@1e60f620b9541d99b49c67b8b3e3b7a7c4a7c0b4 # v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Syntax check Reels V4
+        run: |
+          node --check js/reels-commerce-v4.js
+          node --check js/reels-advanced-creator-v4.js
+          node --check js/admin/reels-moderation-v4.js
+          node --check js/admin/reels-nav-v4.js
+          node --check src/reels-commerce-v4-api.js
+          node --check src/reels-advanced-v4-api.js
+          node --check scripts/browser-reels-v4-smoke.mjs
+          node --check scripts/validate-reels-commerce-v4.mjs
+
+      - name: Validate R1-R11 contracts
+        run: npm run test:reels-v4
+
+      - name: Canonical validation
+        run: npm run validate
+
+      - name: Reproducible runtime build
+        run: |
+          npm run build:runtime
+          git diff --exit-code
+
+  production-browser:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node 22
+        uses: actions/setup-node@1e60f620b9541d99b49c67b8b3e3b7a7c4a7c0b4 # v4
+        with:
+          node-version: '22'
+
+      - name: Wait for exact Cloudflare deployment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLOUDFLARE_WAIT_TIMEOUT_MS: '420000'
+          CLOUDFLARE_WAIT_POLL_MS: '5000'
+        run: node scripts/wait-cloudflare-deploy.mjs
+
+      - name: Real-browser Reels R11 matrix
+        env:
+          REELS_V4_BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev/
+          REELS_V4_BROWSER_TIMEOUT_MS: '30000'
+        run: npm run smoke:browser:reels-v4
