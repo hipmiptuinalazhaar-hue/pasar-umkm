@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  repair-reels-window-gate:
+  repair-reels-router-ownership:
     if: github.event_name == 'pull_request' && github.head_ref == 'feat/reels-commerce-v4-r1-r11'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
@@ -23,28 +23,116 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Verify Reels intent gate
+
+      - name: Move Reels ownership into canonical app router
         shell: bash
         run: |
           set -euo pipefail
-          grep -Fq "selector: '[data-nav=\"reels\"]'" js/performance-v10-a.js
+          python3 - <<'PY'
+          from pathlib import Path
+
+          app_path = Path('js/app.js')
+          app = app_path.read_text()
+
+          old_signature = "function navigate(target) {"
+          if old_signature in app:
+              app = app.replace(old_signature, "async function navigate(target) {", 1)
+          elif "async function navigate(target) {" not in app:
+              raise SystemExit('navigate() signature marker not found')
+
+          anchor = """    case 'categories':
+      openAllCategories();
+      break;
+
+    case 'sell':
+"""
+          replacement = """    case 'categories':
+      openAllCategories();
+      break;
+
+    case 'reels':
+      try {
+        const reelsRuntime =
+          await window.PasarPerformanceV10?.load?.('reels');
+
+        const reels =
+          window.PasarReelsV4?.version === '4.0'
+            ? window.PasarReelsV4
+            : reelsRuntime;
+
+        if (!reels?.open) {
+          throw new Error(
+            'Runtime Reels V4 tidak tersedia.'
+          );
+        }
+
+        await reels.open();
+      } catch (error) {
+        console.error(
+          '[Pasar UMKM] Reels navigation error:',
+          error
+        );
+
+        STATE.activeNav = 'home';
+
+        window.showToast?.(
+          'Reels belum dapat dibuka. Coba lagi.'
+        );
+      }
+      break;
+
+    case 'sell':
+"""
+          if "case 'reels':" not in app:
+              if anchor not in app:
+                  raise SystemExit('navigate() insertion anchor not found')
+              app = app.replace(anchor, replacement, 1)
+
+          app_path.write_text(app)
+
+          boot_path = Path('js/performance-v10-a.js')
+          boot = boot_path.read_text()
+          gate = """  installIntentGate({
+    selector: '[data-nav=\"reels\"]',
+    ready: () => window.PasarReelsV4?.version === '4.0',
+    loader: loaders.reels,
+    label: 'reels',
+    root: doc.querySelector('[data-nav=\"reels\"]') || doc
+  });
+
+"""
+          if gate in boot:
+              boot = boot.replace(gate, '', 1)
+          boot_path.write_text(boot)
+          PY
+
+          grep -Fq "async function navigate(target)" js/app.js
+          grep -Fq "case 'reels':" js/app.js
+          grep -Fq "PasarPerformanceV10?.load?.('reels')" js/app.js
+          if grep -Fq "selector: '[data-nav=\"reels\"]'" js/performance-v10-a.js; then
+            echo 'Legacy Reels click gate still present.'
+            exit 1
+          fi
+          node --check js/app.js
           node --check js/performance-v10-a.js
+
       - name: Regenerate deterministic runtime assets
         run: |
           npm run build:runtime
           npm run validate
-      - name: Commit deterministic runtime assets
+
+      - name: Commit router ownership and runtime assets
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add js/performance-v10-a.js index.html js/reels-v4-entry.js js/reel-profile-separation.js css/tokens.css js/app.runtime.js css/style.runtime.css .assetsignore
+          git add js/app.js js/performance-v10-a.js index.html js/reels-v4-entry.js js/reel-profile-separation.js css/tokens.css js/app.runtime.js css/style.runtime.css .assetsignore
           if git diff --cached --quiet; then
-            echo 'Runtime assets already reproducible.'
+            echo 'Reels router ownership and runtime assets already synchronized.'
             exit 0
           fi
-          git commit -m 'build(reels): synchronize deterministic runtime assets'
+          git commit -m 'fix(reels): make app router own lazy Reels navigation'
           git push origin HEAD:feat/reels-commerce-v4-r1-r11
 
   verify-runtime-assets:
