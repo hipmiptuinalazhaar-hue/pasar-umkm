@@ -7,64 +7,10 @@ on:
       - main
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  repair-reels-prewarm:
-    if: github.event_name == 'pull_request' && github.head_ref == 'feat/reels-commerce-v4-r1-r11'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: feat/reels-commerce-v4-r1-r11
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
-        with:
-          node-version: '22'
-          cache: npm
-      - run: npm ci --no-audit --no-fund
-
-      - name: Add budget-safe non-owning Reels capture prewarm
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          path = Path('js/performance-v10-a.js')
-          text = path.read_text()
-          marker = "  installIntentGate({\n    selector: '[data-action=\"messages\"],[data-social-action=\"message-user\"],[data-social-action=\"open-conversation\"]',\n"
-          line = "  doc.addEventListener('click',e=>e.target.closest('[data-nav=reels]')&&loaders.reels(),true);\n\n"
-          if line not in text:
-              if marker not in text:
-                  raise SystemExit('intent gate insertion marker not found')
-              text = text.replace(marker, line + marker, 1)
-          path.write_text(text)
-          PY
-          grep -Fq "doc.addEventListener('click',e=>e.target.closest('[data-nav=reels]')&&loaders.reels(),true);" js/performance-v10-a.js
-          node --check js/performance-v10-a.js
-          test "$(wc -c < js/performance-v10-a.js)" -le 12000
-
-      - name: Regenerate canonical runtime and validate
-        run: |
-          npm run build:runtime
-          npm run validate
-
-      - name: Commit Reels prewarm and fingerprints
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add js/performance-v10-a.js js/app.runtime.js index.html js/reels-v4-entry.js js/reel-profile-separation.js css/tokens.css css/style.runtime.css .assetsignore
-          if git diff --cached --quiet; then
-            echo 'Reels prewarm already synchronized.'
-            exit 0
-          fi
-          git commit -m 'fix(reels): prewarm lazy runtime before router dispatch'
-          git push origin HEAD:feat/reels-commerce-v4-r1-r11
-
   verify-runtime-assets:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     uses: ./.github/workflows/runtime-assets.yml
     with:
       write_changes: false
