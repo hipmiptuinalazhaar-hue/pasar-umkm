@@ -11,22 +11,25 @@ function assert(condition, message) {
 
 const v9Entry = '<style id="publicExperienceV9Entry">';
 const responsiveLink = /<link\s+rel="stylesheet"\s+href="css\/tablet-desktop-v2\.css\?v=([0-9a-f]{12})"\s+media="screen and \(min-width: 768px\)">/;
+const v9Import = /@import url\("css\/public-experience-v9\.css\?v=([0-9a-f]{12})"\);/;
+const v9Preload = /<link\s+rel="preload"\s+href="css\/public-experience-v9\.css\?v=([0-9a-f]{12})"\s+as="style">/;
 
 assert(index.includes(v9Entry), "Public Experience V9 inline cascade entry is missing.");
-assert(
-  index.includes('@import url("css/public-experience-v9.css?v=9.0.0");'),
-  "Public Experience V9 CSS is not imported by the final cascade entry."
-);
+const importMatch = index.match(v9Import);
+const preloadMatch = index.match(v9Preload);
+assert(importMatch, "Public Experience V9 CSS is not fingerprint-imported by the final cascade entry.");
+assert(preloadMatch, "Public Experience V9 CSS is not discovered early with a deterministic preload.");
+assert(importMatch[1] === preloadMatch[1], "V9 preload and final cascade import fingerprints must match.");
 assert(responsiveLink.test(index), "Responsive V2 must remain direct-linked with its deterministic fingerprint.");
 assert(
   index.indexOf(v9Entry) > index.search(responsiveLink),
   "V9 final cascade entry must load after Responsive V2."
 );
 
-const firstPartyStyles = [...index.matchAll(/<link[^>]+href="css\//g)];
+const directFirstPartyStyles = [...index.matchAll(/<link\s+rel="stylesheet"[^>]+href="css\//g)];
 assert(
-  firstPartyStyles.length === 5,
-  `Critical shell must keep exactly five first-party stylesheets (${firstPartyStyles.length}).`
+  directFirstPartyStyles.length === 5,
+  `Critical shell must keep exactly five direct first-party stylesheets (${directFirstPartyStyles.length}).`
 );
 
 assert(
@@ -87,4 +90,4 @@ assert(
   "V9 contains oversized decorative elevation."
 );
 
-console.log("Public Experience V9 responsive contract: PASS");
+console.log(`Public Experience V9 responsive contract: PASS (fingerprint ${importMatch[1]})`);

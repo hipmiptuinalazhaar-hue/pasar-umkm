@@ -18,6 +18,7 @@ const forbidText = (text, marker, label) => {
 const commercePath = 'js/commerce-experience-v2.js';
 const apiPath = 'src/functionality-api.js';
 const carrierPath = 'js/profile-saved.js';
+const v10Path = 'js/performance-v10-a.js';
 const indexPath = 'index.html';
 const p2Path = '.github/workflows/ui-p2-commerce-validate.yml';
 const p6Path = '.github/workflows/ui-p6-polish-performance-validate.yml';
@@ -25,6 +26,7 @@ const p6Path = '.github/workflows/ui-p6-polish-performance-validate.yml';
 const commerce = read(commercePath);
 const api = read(apiPath);
 const carrier = read(carrierPath);
+const v10 = read(v10Path);
 const index = read(indexPath);
 const p2 = read(p2Path);
 const p6 = read(p6Path);
@@ -80,12 +82,18 @@ for (const [marker, label] of [
   requireText(carrier, marker, label);
 }
 
-requirePattern(index, /js\/profile-saved\.js\?v=[0-9a-f]{12}/, 'deterministic Commerce carrier fingerprint');
-requireText(p2, 'carrier_pattern = re.compile', 'P2 deterministic carrier assertion');
-requireText(p2, 'js/profile-saved\\.js\\?v=([0-9a-f]{12})', 'P2 carrier fingerprint pattern');
+requirePattern(index, /js\/performance-v10-a\.js\?v=[0-9a-f]{12}/, 'deterministic V10 bootstrap fingerprint');
+requirePattern(v10, /account:\s*'js\/account-resilience\.js\?v=[0-9a-f]{12}(?:&[^']*)?'/, 'deterministic account carrier fingerprint in V10');
+requirePattern(v10, /saved:\s*'js\/profile-saved\.js\?v=[0-9a-f]{12}'/, 'deterministic Commerce carrier fingerprint in V10');
+requirePattern(v10, /commerce:\s*'js\/p8-commerce-integration\.js\?v=[0-9a-f]{12}'/, 'deterministic P8 router fingerprint in V10');
+requireText(v10, 'event.stopImmediatePropagation()', 'V10 protected intent interception');
+requireText(v10, 'target.click()', 'V10 protected intent replay');
+
+requireText(p2, 'js/performance-v10-a.js', 'P2 V10 validation source');
+requireText(p2, 'js/profile-saved.js', 'P2 saved carrier validation');
 requireText(p2, 'js/commerce-experience-v2.js?v=2.1', 'P2 Commerce cache assertion');
-requireText(p6, 'carrier_pattern = re.compile', 'P6 deterministic carrier assertion');
-requireText(p6, 'js/profile-saved\\.js\\?v=([0-9a-f]{12})', 'P6 carrier fingerprint pattern');
+requireText(p6, 'js/performance-v10-a.js', 'P6 V10 validation source');
+requireText(p6, 'js/profile-saved.js', 'P6 saved carrier validation');
 requireText(p6, 'js/commerce-experience-v2.js?v=2.1', 'P6 Commerce cache assertion');
 requireText(p6, 'scripts/validate-edge-hardening-b\\.mjs', 'P6 hardening scope guard');
 requireText(p6, 'src/functionality-api\\.js', 'P6 backend hardening scope guard');
@@ -97,5 +105,5 @@ if (commerceBytes > 80_000) {
 }
 
 if (!process.exitCode) {
-  console.log(`Edge Hardening B validation passed. Commerce JS: ${commerceBytes} / 80000 bytes.`);
+  console.log(`Edge Hardening B validation passed. Commerce JS: ${commerceBytes} / 80000 bytes. V10 lazy carrier ownership verified.`);
 }

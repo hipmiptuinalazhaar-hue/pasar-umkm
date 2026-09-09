@@ -16,6 +16,7 @@ const retired = [
 ];
 
 const required = [
+  'js/performance-v10-a.js',
   'js/chat-single-render-v6.js',
   'js/chat-experience-v7.js',
   'css/chat-experience-v7.css',
@@ -38,6 +39,7 @@ for (const path of required) {
 }
 
 if (!failures.length) {
+  const performanceBoot = read('js/performance-v10-a.js');
   const bootstrap = read('js/chat-single-render-v6.js');
   const index = read('index.html');
   const p4 = read('docs/P4_FINAL_AUDIT.md');
@@ -53,12 +55,15 @@ if (!failures.length) {
   }
 
   for (const path of retired) {
-    if (index.includes(path)) fail(`index masih mereferensikan retired artifact: ${path}`);
+    if (index.includes(path) || performanceBoot.includes(path)) fail(`runtime graph masih mereferensikan retired artifact: ${path}`);
   }
 
   const chatBootstrapPattern = /js\/chat-single-render-v6\.js\?v=[0-9a-f]{12}/;
-  if (!chatBootstrapPattern.test(index)) {
-    fail('index tidak memuat compatibility bootstrap Chat V7 dengan fingerprint runtime deterministik');
+  if (!chatBootstrapPattern.test(performanceBoot)) {
+    fail('V10 bootstrap tidak memuat compatibility bootstrap Chat V7 dengan fingerprint runtime deterministik');
+  }
+  if (index.includes('src="js/chat-single-render-v6.js')) {
+    fail('Chat V7 bootstrap kembali masuk initial HTML graph; V10-A mewajibkan intent-driven loading');
   }
 
   if (!p4.includes('HISTORICAL / ARCHIVED')) {
@@ -90,4 +95,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`Technical Debt E validation PASS: ${retired.length} retired artifacts absent, Chat V7 ownership preserved.`);
+console.log(`Technical Debt E validation PASS: ${retired.length} retired artifacts absent, Chat V7 ownership preserved through V10.`);

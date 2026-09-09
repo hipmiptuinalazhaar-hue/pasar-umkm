@@ -7,6 +7,7 @@ on:
       - 'css/social-engagement-v3.css'
       - 'css/social-media-v3.css'
       - 'js/social-experience-v3.js'
+      - 'js/performance-v10-a.js'
       - 'js/account-resilience.js'
       - 'index.html'
       - '.github/workflows/ui-p3-social-validate.yml'
@@ -27,6 +28,7 @@ jobs:
 
       - name: Validate JavaScript syntax
         run: |
+          node --check js/performance-v10-a.js
           node --check js/social-experience-v3.js
           node --check js/account-resilience.js
 
@@ -42,6 +44,7 @@ jobs:
               'engagement': Path('css/social-engagement-v3.css'),
               'media': Path('css/social-media-v3.css'),
               'controller': Path('js/social-experience-v3.js'),
+              'boot': Path('js/performance-v10-a.js'),
               'loader': Path('js/account-resilience.js'),
               'index': Path('index.html'),
           }
@@ -58,10 +61,10 @@ jobs:
           engagement = files['engagement'].read_text(encoding='utf-8')
           media = files['media'].read_text(encoding='utf-8')
           controller = files['controller'].read_text(encoding='utf-8')
+          boot = files['boot'].read_text(encoding='utf-8')
           loader = files['loader'].read_text(encoding='utf-8')
           index = files['index'].read_text(encoding='utf-8')
 
-          # 13KB is the guarded ceiling around the current 12.6KB production media baseline.
           budgets = {
               'profile': (files['profile'].stat().st_size, 24_000),
               'engagement': (files['engagement'].stat().st_size, 14_000),
@@ -91,10 +94,13 @@ jobs:
               if asset in index:
                   errors.append(f'{asset} is referenced directly by index.html; P3 must remain route-loaded')
 
-          account_loader_pattern = re.compile(r'js/account-resilience\.js\?v=([0-9a-f]{12})(?:&[^\"]*)?')
-          account_loader_match = account_loader_pattern.search(index)
+          if 'src="js/account-resilience.js' in index or "src='js/account-resilience.js" in index:
+              errors.append('account-resilience.js must not be part of the initial HTML script graph under V10-A')
+
+          account_loader_pattern = re.compile(r'js/account-resilience\.js\?v=([0-9a-f]{12})(?:&[^\"\']*)?')
+          account_loader_match = account_loader_pattern.search(boot)
           if not account_loader_match:
-              errors.append('index.html is missing deterministic fingerprinted account-resilience.js runtime loader')
+              errors.append('V10 bootstrap is missing deterministic fingerprinted account-resilience.js runtime loader')
 
           for retired in ('notification-core.css','profile-responsive.css','profile-premium.css'):
               if retired in loader:
@@ -104,7 +110,7 @@ jobs:
               "href: 'css/social-experience-v3.css?v=3.1'",
               "href: 'css/social-engagement-v3.css?v=3.0'",
               "href: 'css/social-media-v3.css?v=3.0'",
-              "script.src = 'js/social-experience-v3.js?v=3.0'",
+              "'js/social-experience-v3.js?v=3.0'",
               "'.reel-author[data-media-action=\"reel-profile\"]'",
               "loadSocialPresentation('profile')",
           )
@@ -145,7 +151,7 @@ jobs:
           print('P3 engagement !important:', engagement.count('!important'))
           print('P3 media !important:', media.count('!important'))
           if account_loader_match:
-              print('P3 account loader fingerprint:', account_loader_match.group(1))
+              print('P3 V10 account loader fingerprint:', account_loader_match.group(1))
 
           if errors:
               print('UI P3 Social validation failed:')

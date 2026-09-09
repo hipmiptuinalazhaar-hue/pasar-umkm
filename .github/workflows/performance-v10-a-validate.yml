@@ -1,0 +1,59 @@
+name: Performance V10-A Validation
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'js/performance-v10-a.js'
+      - 'js/app.js'
+      - 'js/app.runtime.js'
+      - 'js/account-resilience.js'
+      - 'js/chat-single-render-v6.js'
+      - 'js/p8-commerce-integration.js'
+      - 'js/profile-saved.js'
+      - 'css/public-experience-v9.css'
+      - 'scripts/build-runtime.mjs'
+      - 'scripts/validate-performance-v10-a.mjs'
+      - '_headers'
+      - '.github/workflows/performance-v10-a-validate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'js/performance-v10-a.js'
+      - 'js/app.js'
+      - 'js/app.runtime.js'
+      - 'js/account-resilience.js'
+      - 'css/public-experience-v9.css'
+      - 'scripts/build-runtime.mjs'
+      - 'scripts/validate-performance-v10-a.mjs'
+      - '_headers'
+
+permissions:
+  contents: read
+
+jobs:
+  performance-v10-a:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Setup Node 22
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Validate source performance contract
+        run: node scripts/validate-performance-v10-a.mjs
+      - name: Build optimized runtime
+        run: npm run build:runtime
+      - name: Validate built performance contract
+        run: node scripts/validate-performance-v10-a.mjs
+      - name: Syntax check adaptive boot graph
+        run: |
+          node --check js/performance-v10-a.js
+          node --check js/account-resilience.js
+          node --check scripts/build-runtime.mjs

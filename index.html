@@ -7,12 +7,10 @@
   <meta name="description" content="Pasar UMKM Lubuklinggau, platform digital untuk menemukan produk, layanan, dan usaha lokal.">
   <title>Pasar UMKM Lubuklinggau</title>
 
-  <!-- FONT: optional avoids a late layout swap on slow connections. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=optional" rel="stylesheet">
 
-  <!-- ICONS: Pasar UMKM uses only regular (.ph) and fill (.ph-fill). -->
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/style.css">
@@ -82,7 +80,8 @@
   </style>
 
   <link rel="stylesheet" href="css/tablet-desktop-v2.css?v=fa75b460a5ee" media="screen and (min-width: 768px)">
-  <style id="publicExperienceV9Entry">@import url("css/public-experience-v9.css?v=9.0.0");</style>
+  <link rel="preload" href="css/public-experience-v9.css?v=654bea569c48" as="style">
+  <style id="publicExperienceV9Entry">@import url("css/public-experience-v9.css?v=654bea569c48");</style>
 </head>
 
 <body>
@@ -363,11 +362,8 @@
     <div class="loading-spinner" aria-label="Memuat"></div>
   </div>
 
+  <script src="js/performance-v10-a.js?v=609088461349" defer></script>
   <script src="js/app.runtime.js?v=db001faea49e" defer></script>
-  <script src="js/chat-single-render-v6.js?v=ef079b1c35ef" defer></script>
-  <script src="js/p8-commerce-integration.js?v=fc3dcbac9b78" defer></script>
-  <script src="js/account-resilience.js?v=36e5490ff4f0&seller=1" defer></script>
-  <script src="js/profile-saved.js?v=fbf14ea3f0cd" defer></script>
   <script id="postReleaseUXBootstrap">(()=>{const j=new Map,l=(t,u,k)=>{if(j.has(u))return j.get(u);if(document.querySelector(`${t}[data-${k}]`))return Promise.resolve();const p=new Promise((r,x)=>{const n=document.createElement(t);t==='script'?n.src=u:(n.rel='stylesheet',n.href=u);n.dataset[k.replace(/-([a-z])/g,(_,c)=>c.toUpperCase())]='true';n.onload=r;n.onerror=x;document.head.appendChild(n)});j.set(u,p);return p},a=()=>Promise.all([l('link','css/about-experience-v2.css?v=2.0','about-v2-style'),l('script','js/about-experience-v2.js?v=2.0','about-v2-script')]),q=()=>l('script','js/rating-core.js?v=2.2','rating-core'),v=()=>l('script','js/p5-trust-conversion.js?v=1.0','p5-trust');document.addEventListener('pointerdown',e=>{const t=e.target;t.closest('[data-menu-action="about"]')&&a().catch(()=>0);t.closest('[data-nav="account"],[data-menu-action="orders"],[data-commerce-action="order-detail"],[data-commerce-route="buyer-orders"]')&&q().catch(()=>0);const z=t.closest('.post-card.is-product-post,[data-store-id],[data-nav="cart"],[data-commerce-action],[data-menu-action="stores"]');z&&(window.__PUMKM_P5_INTENT__={productId:z.dataset.productId,postId:z.closest('.post-card')?.dataset.postId},v().catch(()=>0))},{capture:true,passive:true});document.addEventListener('click',async e=>{const t=e.target.closest('[data-menu-action="about"]');if(!t)return;e.preventDefault();e.stopImmediatePropagation();try{await a();window.closeSideMenu?.();window.PasarAboutExperience.open()}catch{window.showToast?.('Tentang Pasar UMKM belum dapat dibuka.')}},true);window.PasarPostReleaseUX=Object.freeze({about:a,rating:q,trust:v})})();</script>
   <script id="chatV7ViewportAdapter">
     (() => {

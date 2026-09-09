@@ -18,6 +18,7 @@ const sellerBridge=read('js/seller-center-p8-bridge.js');
 const sellerOrderBridge=read('js/seller-center-order-p8.js');
 const nativeCommerce=read('js/commerce-experience-v2.js');
 const p3=read('js/p3-premium-experience.js');
+const v10=read('js/performance-v10-a.js');
 const checkout=read('checkout/index.html');
 const purchases=read('purchases/index.html');
 const seller=read('seller-orders/index.html');
@@ -68,10 +69,16 @@ need(sellerOrderBridge,'/api/commerce/orders?scope=seller','native seller order 
 need(sellerOrderBridge,'Navigasi ke pembeli','seller map navigation');
 need(p3,'js/p8-commerce-integration.js?v=1.2','deferred P8 loader compatibility key');
 need(p3,"window.PasarP8Commerce?.version === '1.2'",'P8 loader version contract');
-need(index,'js/p8-commerce-integration.js?v=','critical checkout router');
+need(index,'js/performance-v10-a.js?v=','V10 critical adaptive router');
+forbid(index,/<script[^>]+src="js\/p8-commerce-integration\.js\?v=/,'eager P8 checkout router in critical HTML');
+need(v10,"commerce: 'js/p8-commerce-integration.js?v=",'V10 fingerprinted lazy checkout router');
+need(v10,'[data-nav="cart"]','V10 cart intent gate');
+need(v10,'[data-commerce-action="checkout"]','V10 checkout intent gate');
+need(v10,'event.stopImmediatePropagation()','V10 protected intent interception');
+need(v10,'target.click()','V10 checkout intent replay after owner load');
 
 const budgets=[['src/commerce-fulfillment-api.js',api,30000],['src/checkout-commerce-preference-api.js',preferences,14000],['src/cart-checkout-v2-api.js',checkoutV2Api,24000],['js/p8-commerce-center.js',center,30000],['js/p8-commerce-integration.js',integration,16000],['js/checkout-v2.js',checkoutV2,26000],['js/seller-center-p8-bridge.js',sellerBridge,24000],['js/seller-center-order-p8.js',sellerOrderBridge,16000],['css/p8-commerce-center.css',css,16000],['css/checkout-v2.css',checkoutCss,18000]];
 for(const [path,source,max] of budgets){const bytes=Buffer.byteLength(source);if(bytes>max)fail(`${path} too large: ${bytes}/${max}`)}
 if(pkg.scripts?.['test:p8-commerce']!=='node scripts/validate-p8-real-commerce.mjs')fail('package.json missing test:p8-commerce');
 if(!String(pkg.scripts?.validate||'').includes('npm run test:p8-commerce'))fail('canonical validate must include P8');
-console.log('P8 real commerce contract PASS: seller fulfillment/payment, state-driven selective Checkout V2, native Seller Center, non-custodial boundary, ownership, and routing are intact.');
+console.log('P8 real commerce contract PASS: seller fulfillment/payment, state-driven selective Checkout V2, native Seller Center, non-custodial boundary, ownership, and V10 protected lazy checkout routing are intact.');

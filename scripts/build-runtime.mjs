@@ -9,6 +9,7 @@ const CSS_RUNTIME = "css/style.runtime.css";
 const INDEX = "index.html";
 const ASSETS_IGNORE = ".assetsignore";
 const TOKENS = "css/tokens.css";
+const V10_BOOT = "js/performance-v10-a.js";
 
 const CRITICAL_ASSETS = [
   TOKENS,
@@ -16,11 +17,16 @@ const CRITICAL_ASSETS = [
   "css/mobile-foundation-v2.css",
   "css/home-feed-v3.css",
   "css/tablet-desktop-v2.css",
-  JS_RUNTIME,
+  "css/public-experience-v9.css",
+  V10_BOOT,
+  JS_RUNTIME
+];
+
+const LAZY_BOOT_ASSETS = [
   "js/chat-single-render-v6.js",
+  "js/p8-commerce-integration.js",
   "js/account-resilience.js",
-  "js/profile-saved.js",
-  "js/p8-commerce-integration.js"
+  "js/profile-saved.js"
 ];
 
 async function sha12(path) {
@@ -36,18 +42,10 @@ async function assertReduction(source, runtime, minimum) {
   const sourceSize = await size(source);
   const runtimeSize = await size(runtime);
   const reduction = (sourceSize - runtimeSize) / sourceSize;
-
-  console.log(
-    `${source}: ${sourceSize} -> ${runtimeSize} bytes (${(reduction * 100).toFixed(1)}% smaller)`
-  );
-
-  if (runtimeSize >= sourceSize) {
-    throw new Error(`${runtime} tidak lebih kecil dari source.`);
-  }
+  console.log(`${source}: ${sourceSize} -> ${runtimeSize} bytes (${(reduction * 100).toFixed(1)}% smaller)`);
+  if (runtimeSize >= sourceSize) throw new Error(`${runtime} tidak lebih kecil dari source.`);
   if (reduction < minimum) {
-    throw new Error(
-      `${runtime} reduction ${(reduction * 100).toFixed(1)}% di bawah target ${(minimum * 100).toFixed(0)}%.`
-    );
+    throw new Error(`${runtime} reduction ${(reduction * 100).toFixed(1)}% di bawah target ${(minimum * 100).toFixed(0)}%.`);
   }
 }
 
@@ -69,6 +67,16 @@ async function stampTokenImports() {
     console.log(`asset-cache-key ${dependency}=${version}`);
   }
   await writeFile(TOKENS, tokens, "utf8");
+}
+
+async function stampLazyBootGraph() {
+  let boot = await readFile(V10_BOOT, "utf8");
+  for (const assetPath of LAZY_BOOT_ASSETS) {
+    const version = await sha12(assetPath);
+    boot = stampVersion(boot, assetPath, version);
+    console.log(`lazy-cache-key ${assetPath}=${version}`);
+  }
+  await writeFile(V10_BOOT, boot, "utf8");
 }
 
 await build({
@@ -93,49 +101,36 @@ await build({
 await assertReduction(JS_SOURCE, JS_RUNTIME, 0.20);
 await assertReduction(CSS_SOURCE, CSS_RUNTIME, 0.15);
 
-// Tokens imports are part of the critical visual graph. Fingerprint them first so
-// changing ui-polish/mobile-foundation also changes the final tokens fingerprint.
+// Fingerprint nested dependencies before hashing their parent entrypoints.
 await stampTokenImports();
+await stampLazyBootGraph();
 
 let index = await readFile(INDEX, "utf8");
-
 const cssPattern = /css\/style(?:\.runtime)?\.css\?v=[^"']+/g;
 const jsPattern = /js\/app(?:\.runtime)?\.js\?v=[^"']+/g;
 const cssMatches = index.match(cssPattern) || [];
 const jsMatches = index.match(jsPattern) || [];
-
 if (cssMatches.length !== 1 || jsMatches.length !== 1) {
-  throw new Error(
-    `Index runtime reference tidak unik: css=${cssMatches.length}, js=${jsMatches.length}.`
-  );
+  throw new Error(`Index runtime reference tidak unik: css=${cssMatches.length}, js=${jsMatches.length}.`);
+}
+
+for (const forbidden of [
+  "js/chat-single-render-v6.js",
+  "js/p8-commerce-integration.js",
+  "js/account-resilience.js",
+  "js/profile-saved.js"
+]) {
+  if (index.includes(`src=\"${forbidden}`)) throw new Error(`${forbidden} tidak boleh menjadi initial script V10-A.`);
 }
 
 const fingerprints = new Map();
-for (const assetPath of CRITICAL_ASSETS) {
-  fingerprints.set(assetPath, await sha12(assetPath));
-}
-
-// Checkout routing is core commerce behavior, not a cosmetic enhancement. It is
-// deployed as a critical deferred script so a stale lazy-loader can never route
-// buyers back into the legacy checkout flow.
-if (!index.includes('src="js/p8-commerce-integration.js?v=')) {
-  const anchor = '  <script src="js/account-resilience.js';
-  const p8Version = fingerprints.get("js/p8-commerce-integration.js");
-  index = index.replace(
-    anchor,
-    `  <script src="js/p8-commerce-integration.js?v=${p8Version}" defer></script>\n${anchor}`
-  );
-}
-
-for (const [assetPath, version] of fingerprints) {
-  index = stampVersion(index, assetPath, version);
-}
+for (const assetPath of CRITICAL_ASSETS) fingerprints.set(assetPath, await sha12(assetPath));
+for (const [assetPath, version] of fingerprints) index = stampVersion(index, assetPath, version);
 
 index = index.replace(
   '<script src="https://unpkg.com/@phosphor-icons/web"></script>',
   '<script src="https://unpkg.com/@phosphor-icons/web" defer></script>'
 );
-
 await writeFile(INDEX, index, "utf8");
 
 const ignoreText = await readFile(ASSETS_IGNORE, "utf8");
@@ -145,6 +140,4 @@ for (const required of [JS_SOURCE, CSS_SOURCE, "scripts/"]) {
 }
 await writeFile(ASSETS_IGNORE, `${ignoreLines.join("\n")}\n`, "utf8");
 
-for (const [assetPath, version] of fingerprints) {
-  console.log(`asset-cache-key ${assetPath}=${version}`);
-}
+for (const [assetPath, version] of fingerprints) console.log(`asset-cache-key ${assetPath}=${version}`);
