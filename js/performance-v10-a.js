@@ -24,7 +24,8 @@
     chat: 'js/chat-single-render-v6.js?v=ef079b1c35ef',
     commerce: 'js/p8-commerce-integration.js?v=fc3dcbac9b78',
     account: 'js/account-resilience.js?v=cc7573b68dc0&seller=1',
-    saved: 'js/profile-saved.js?v=fbf14ea3f0cd'
+    saved: 'js/profile-saved.js?v=fbf14ea3f0cd',
+    reels: 'js/reel-profile-separation.js?v=8063ac5eae10'
   });
 
   function capability() {
@@ -113,13 +114,36 @@
     return job;
   }
 
+  function waitForReady(ready, label, timeout = 4000) {
+    const initial = ready();
+    if (initial) return Promise.resolve(initial);
+    return new Promise((resolve, reject) => {
+      const deadline = Date.now() + timeout;
+      const poll = () => {
+        const value = ready();
+        if (value) {
+          resolve(value);
+          return;
+        }
+        if (Date.now() >= deadline) {
+          reject(new Error(`${label} runtime timeout.`));
+          return;
+        }
+        setTimeout(poll, 50);
+      };
+      poll();
+    });
+  }
+
   const loaders = Object.freeze({
     efficiency: () => loadScript('efficiency', () => window.PasarPerformanceV10B?.version === '10.2'),
     stability: () => loadScript('stability', () => window.PasarPerformanceV10C?.version === '10.3'),
     chat: () => loadScript('chat', () => typeof window.ensurePasarChatV7 === 'function'),
     commerce: () => loadScript('commerce', () => window.PasarP8Commerce?.version === '1.2'),
     account: () => loadScript('account', () => window.PasarP6Loader?.version === '1.1'),
-    saved: () => loadScript('saved', () => typeof window.hydratePersistentSaved === 'function')
+    saved: () => loadScript('saved', () => typeof window.hydratePersistentSaved === 'function'),
+    reels: () => loadScript('reels', () => window.PasarReelsV4?.version === '4.0')
+      .then(() => waitForReady(() => window.PasarReelsV4?.version === '4.0' ? window.PasarReelsV4 : null, 'reels'))
   });
 
   function withIntentTimeout(promise, label) {
@@ -199,6 +223,13 @@
   });
 
   installIntentGate({
+    selector: '[data-nav="reels"]',
+    ready: () => window.PasarReelsV4?.version === '4.0',
+    loader: loaders.reels,
+    label: 'reels'
+  });
+
+  installIntentGate({
     selector: [
       '[data-nav="account"]',
       '[data-action="account-edit"]',
@@ -208,7 +239,6 @@
       '[data-action="save"]',
       '[data-action="seller-profile"]',
       '[data-menu-action="favorites"]',
-      '[data-nav="reels"]',
       '[data-action="open-story"]',
       '[data-action="add-story"]',
       '[data-menu-action="business-agency"]',
