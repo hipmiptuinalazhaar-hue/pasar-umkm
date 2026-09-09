@@ -2,6 +2,8 @@ name: Reels Commerce V4 Validation
 
 on:
   pull_request:
+    branches:
+      - main
     paths:
       - 'admin/**'
       - 'css/reels-*.css'
@@ -16,6 +18,7 @@ on:
       - 'scripts/validate-reels-commerce-v4.mjs'
       - 'scripts/browser-reels-v4-smoke.mjs'
       - 'scripts/build-runtime.mjs'
+      - 'scripts/wait-cloudflare-deploy.mjs'
       - 'package.json'
       - '.github/workflows/reels-v4-validate.yml'
   push:
@@ -35,6 +38,7 @@ on:
       - 'scripts/validate-reels-commerce-v4.mjs'
       - 'scripts/browser-reels-v4-smoke.mjs'
       - 'scripts/build-runtime.mjs'
+      - 'scripts/wait-cloudflare-deploy.mjs'
       - 'package.json'
       - '.github/workflows/reels-v4-validate.yml'
   workflow_dispatch:
@@ -49,20 +53,20 @@ concurrency:
 
 jobs:
   contract:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Setup Node 22
-        uses: actions/setup-node@1e60f620b9541d99b49c67b8b3e3b7a7c4a7c0b4 # v4
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '22'
           cache: npm
 
-      - name: Install locked dependencies
-        run: npm ci --ignore-scripts
+      - name: Install exact locked dependencies
+        run: npm ci --no-audit --no-fund
 
       - name: Syntax check Reels V4
         run: |
@@ -86,29 +90,46 @@ jobs:
           npm run build:runtime
           git diff --exit-code
 
-  production-browser:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  reels-browser:
     needs: contract
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Setup Node 22
-        uses: actions/setup-node@1e60f620b9541d99b49c67b8b3e3b7a7c4a7c0b4 # v4
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: '22'
 
       - name: Wait for exact Cloudflare deployment
+        id: deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLOUDFLARE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
           CLOUDFLARE_WAIT_TIMEOUT_MS: '420000'
           CLOUDFLARE_WAIT_POLL_MS: '5000'
         run: node scripts/wait-cloudflare-deploy.mjs
 
+      - name: Resolve exact browser target
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PREVIEW_URL: ${{ steps.deploy.outputs.preview_url }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            test -n "$PREVIEW_URL" || { echo "Cloudflare PR preview URL missing."; exit 1; }
+            echo "REELS_V4_BASE_URL=$PREVIEW_URL" >> "$GITHUB_ENV"
+          else
+            echo "REELS_V4_BASE_URL=https://pasar-umkm.hipmiptuinalazhaar.workers.dev/" >> "$GITHUB_ENV"
+          fi
+
+      - name: Verify Chrome
+        run: google-chrome --version
+
       - name: Real-browser Reels R11 matrix
         env:
-          REELS_V4_BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev/
           REELS_V4_BROWSER_TIMEOUT_MS: '30000'
         run: npm run smoke:browser:reels-v4
