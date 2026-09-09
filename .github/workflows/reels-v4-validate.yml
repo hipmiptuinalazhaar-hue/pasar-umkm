@@ -5,9 +5,11 @@ on:
     branches:
       - main
     paths:
+      - 'index.html'
       - 'admin/**'
       - 'css/reels-*.css'
       - 'css/admin-reels-*.css'
+      - 'js/performance-v10-a.js'
       - 'js/reels-*.js'
       - 'js/reel-profile-separation.js'
       - 'js/admin/reels-*.js'
@@ -25,9 +27,11 @@ on:
     branches:
       - main
     paths:
+      - 'index.html'
       - 'admin/**'
       - 'css/reels-*.css'
       - 'css/admin-reels-*.css'
+      - 'js/performance-v10-a.js'
       - 'js/reels-*.js'
       - 'js/reel-profile-separation.js'
       - 'js/admin/reels-*.js'
