@@ -109,11 +109,34 @@ async function evaluate(client, expression) {
 
 async function waitFor(client, expression, label, duration = timeoutMs) {
   const deadline = Date.now() + duration;
+  let lastError = null;
   while (Date.now() < deadline) {
-    if (await evaluate(client, expression)) return;
+    try {
+      if (await evaluate(client, expression)) return;
+    } catch (error) {
+      // Navigation briefly removes the default execution context. Treat that
+      // as a transient browser lifecycle state, not a product failure.
+      lastError = error;
+    }
     await sleep(120);
   }
-  throw new Error(`Timed out waiting for ${label}.`);
+  throw new Error(`Timed out waiting for ${label}${lastError ? `: ${lastError.message}` : ''}.`);
+}
+
+async function waitForPathname(client, expected, duration = timeoutMs) {
+  const deadline = Date.now() + duration;
+  let lastPath = '';
+  let lastError = null;
+  while (Date.now() < deadline) {
+    try {
+      lastPath = String(await evaluate(client, 'location.pathname') || '');
+      if (lastPath === expected) return lastPath;
+    } catch (error) {
+      lastError = error;
+    }
+    await sleep(120);
+  }
+  throw new Error(`checkout click did not navigate to ${expected}; last=${lastPath || 'unavailable'}${lastError ? ` (${lastError.message})` : ''}`);
 }
 
 const browser = await findBrowser();
@@ -167,7 +190,7 @@ try {
 
     await new Promise(resolve => setTimeout(resolve, 900));
     const button = document.querySelector('[data-commerce-action="checkout"]');
-    const before = {
+    return {
       disabled: Boolean(button?.disabled),
       ariaDisabled: button?.getAttribute('aria-disabled'),
       selection: JSON.parse(sessionStorage.getItem('pasar_cart_selection_v2') || 'null'),
@@ -175,10 +198,6 @@ try {
       checkoutReady: button?.dataset.v10cCheckoutReady || '',
       commerceReady: window.PasarP8Commerce?.version || ''
     };
-
-    if (button && !button.disabled) button.click();
-    await new Promise(resolve => setTimeout(resolve, 1200));
-    return { ...before, pathname: location.pathname };
   })()`);
 
   if (probe?.error) throw new Error(probe.error);
@@ -191,12 +210,23 @@ try {
     throw new Error(`cart identity was not recorded: ${JSON.stringify(probe?.cartIds)}`);
   }
   if (probe?.checkoutReady !== 'true') throw new Error('checkout CTA was not marked runtime-ready');
-  if (probe?.pathname !== '/checkout/index.html') {
-    throw new Error(`checkout click did not navigate to canonical route: ${probe?.pathname}`);
-  }
 
+  // Click in a separate CDP evaluation. The click is expected to destroy the
+  // old JS execution context as the browser navigates, so never await the new
+  // page from inside the old page's promise.
+  await evaluate(client, `(() => {
+    const button = document.querySelector('[data-commerce-action="checkout"]');
+    if (!button || button.disabled) return false;
+    button.click();
+    return true;
+  })()`);
+
+  const pathname = await waitForPathname(client, '/checkout/index.html');
+  await waitFor(client, "document.readyState === 'complete'", 'checkout document readiness');
+
+  const report = { ...probe, pathname };
   console.log('V10-C browser checkout smoke: PASS');
-  console.log(JSON.stringify(probe));
+  console.log(JSON.stringify(report));
 } finally {
   try { ws?.close(); } catch {}
   if (chrome.exitCode === null && chrome.signalCode === null) chrome.kill('SIGKILL');
