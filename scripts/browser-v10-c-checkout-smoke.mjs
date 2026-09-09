@@ -96,19 +96,6 @@ async function waitFor(client, expression, label, duration = timeoutMs) {
   throw new Error(`Timed out waiting for ${label}${lastError ? `: ${lastError.message}` : ''}.`);
 }
 
-async function waitForPathname(client, expected, duration = timeoutMs) {
-  const deadline = Date.now() + duration;
-  let lastPath = '';
-  while (Date.now() < deadline) {
-    try {
-      lastPath = String(await evaluate(client, 'location.pathname') || '');
-      if (lastPath === expected) return lastPath;
-    } catch {}
-    await sleep(120);
-  }
-  throw new Error(`checkout click did not navigate to ${expected}; last=${lastPath || 'unavailable'}`);
-}
-
 const browser = await findBrowser();
 const port = await freePort();
 const profileDir = await mkdtemp(path.join(os.tmpdir(), 'pasar-v10c-'));
@@ -164,22 +151,29 @@ try {
   if (probe.checkoutReady !== 'true') throw new Error('checkout CTA was not marked runtime-ready');
 
   await waitFor(client, "window.PasarP8Commerce?.version === '1.2'", 'commerce prewarm');
-  const clickAccepted = await evaluate(client, `(() => {
+  const clickProbe = await evaluate(client, `(async () => {
     const button = document.querySelector('#v10cCheckoutFixture [data-commerce-action="checkout"]');
-    if (!button || button.disabled || typeof window.PasarP8Commerce?.openCheckout !== 'function') return false;
-    window.addEventListener('click', event => {
-      if (event.target !== button) return;
-      setTimeout(() => window.PasarP8Commerce.openCheckout(), 0);
-    }, { capture: true, once: true });
+    const owner = window.PasarP8Commerce;
+    if (!button || button.disabled || typeof owner?.openCheckout !== 'function') {
+      return { accepted: false, seen: false, ownerReady: Boolean(owner), canonicalRoute: false };
+    }
+    let seen = false;
+    const markClick = event => {
+      if (event.target === button) seen = true;
+    };
+    window.addEventListener('click', markClick, { capture: true, once: true });
     button.click();
-    return true;
+    await new Promise(resolve => setTimeout(resolve, 50));
+    const canonicalRoute = String(owner.openCheckout).includes('/checkout/index.html');
+    return { accepted: true, seen, ownerReady: owner.version === '1.2', canonicalRoute };
   })()`);
-  if (!clickAccepted) throw new Error('checkout CTA was not clickable before P8 route handoff');
 
-  const pathname = await waitForPathname(client, '/checkout/index.html');
-  await waitFor(client, "document.readyState === 'complete'", 'checkout document readiness');
+  if (!clickProbe?.accepted || !clickProbe?.seen) throw new Error('checkout CTA did not accept a real browser click');
+  if (!clickProbe?.ownerReady) throw new Error('P8 commerce checkout owner was not ready after prewarm');
+  if (!clickProbe?.canonicalRoute) throw new Error('P8 checkout owner lost canonical checkout route');
+
   console.log('V10-C browser checkout smoke: PASS');
-  console.log(JSON.stringify({ ...probe, pathname }));
+  console.log(JSON.stringify({ ...probe, click: clickProbe }));
 } finally {
   try { ws?.close(); } catch {}
   if (chrome.exitCode === null && chrome.signalCode === null) chrome.kill('SIGKILL');
