@@ -33,49 +33,16 @@ jobs:
 
           app_path = Path('js/app.js')
           app = app_path.read_text()
-          old_signature = "function navigate(target) {"
-          new_signature = "async function navigate(target) {"
-          if old_signature in app:
-              app = app.replace(old_signature, new_signature, 1)
-          elif new_signature not in app:
-              raise SystemExit('navigate() signature marker not found')
-
           anchor = "    case 'categories':\n      openAllCategories();\n      break;\n\n    case 'sell':\n"
-          replacement = (
-              "    case 'categories':\n"
-              "      openAllCategories();\n"
-              "      break;\n\n"
-              "    case 'reels':\n"
-              "      try {\n"
-              "        const reelsRuntime =\n"
-              "          await window.PasarPerformanceV10?.load?.('reels');\n\n"
-              "        const reels =\n"
-              "          window.PasarReelsV4?.version === '4.0'\n"
-              "            ? window.PasarReelsV4\n"
-              "            : reelsRuntime;\n\n"
-              "        if (!reels?.open) {\n"
-              "          throw new Error(\n"
-              "            'Runtime Reels V4 tidak tersedia.'\n"
-              "          );\n"
-              "        }\n\n"
-              "        await reels.open();\n"
-              "      } catch (error) {\n"
-              "        console.error(\n"
-              "          '[Pasar UMKM] Reels navigation error:',\n"
-              "          error\n"
-              "        );\n\n"
-              "        STATE.activeNav = 'home';\n\n"
-              "        window.showToast?.(\n"
-              "          'Reels belum dapat dibuka. Coba lagi.'\n"
-              "        );\n"
-              "      }\n"
-              "      break;\n\n"
-              "    case 'sell':\n"
-          )
+          replacement = "    case 'categories':\n      openAllCategories();\n      break;\n\n    case 'reels':\n      window.PasarPerformanceV10?.openReels?.();\n      break;\n\n    case 'sell':\n"
           if "case 'reels':" not in app:
               if anchor not in app:
                   raise SystemExit('navigate() insertion anchor not found')
               app = app.replace(anchor, replacement, 1)
+
+          legacy_heading = "\n/* =========================================================\n   29. MAIN NAVIGATION\n   ========================================================= */\n\n"
+          if legacy_heading in app:
+              app = app.replace(legacy_heading, '\n', 1)
           app_path.write_text(app)
 
           boot_path = Path('js/performance-v10-a.js')
@@ -91,12 +58,24 @@ jobs:
           )
           if gate in boot:
               boot = boot.replace(gate, '', 1)
+
+          load_marker = "    load: name => loaders[name]?.() || Promise.reject(new Error(`Unknown V10 feature: ${name}`)),\n"
+          open_reels = (
+              "    openReels: () => loaders.reels().then(reels => reels.open()).catch(error => {\n"
+              "      console.error('[Pasar UMKM] Reels navigation error:', error);\n"
+              "      window.showToast?.('Reels belum dapat dibuka. Coba lagi.');\n"
+              "    }),\n"
+          )
+          if "openReels: () => loaders.reels()" not in boot:
+              if load_marker not in boot:
+                  raise SystemExit('PasarPerformanceV10 load marker not found')
+              boot = boot.replace(load_marker, open_reels + load_marker, 1)
           boot_path.write_text(boot)
           PY
 
-          grep -Fq "async function navigate(target)" js/app.js
           grep -Fq "case 'reels':" js/app.js
-          grep -Fq "PasarPerformanceV10?.load?.('reels')" js/app.js
+          grep -Fq "PasarPerformanceV10?.openReels?.()" js/app.js
+          grep -Fq "openReels: () => loaders.reels()" js/performance-v10-a.js
           if grep -Fq "selector: '[data-nav=\"reels\"]'" js/performance-v10-a.js; then
             echo 'Legacy Reels click gate still present.'
             exit 1
