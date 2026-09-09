@@ -227,7 +227,7 @@
     ready: () => window.PasarReelsV4?.version === '4.0',
     loader: loaders.reels,
     label: 'reels',
-    root: window
+    root: doc.querySelector('[data-nav="reels"]') || doc
   });
 
   installIntentGate({
