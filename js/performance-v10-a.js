@@ -188,6 +188,33 @@
     }, true);
   }
 
+  function installWindowIntentGate({ selector, ready, loader, label }) {
+    const prewarm = event => {
+      const target = event.target?.closest?.(selector);
+      if (target && !ready()) loader().catch(() => null);
+    };
+    window.addEventListener('pointerdown', prewarm, { capture: true, passive: true });
+    window.addEventListener('click', async event => {
+      const target = event.target?.closest?.(selector);
+      if (!target || ready() || replaying.has(target)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      target.setAttribute('aria-busy', 'true');
+      try {
+        await withIntentTimeout(loader(), label);
+        replayCount += 1;
+        replaying.add(target);
+        target.click();
+        queueMicrotask(() => replaying.delete(target));
+      } catch (error) {
+        console.error(`[Pasar UMKM] V10 ${label} bootstrap error:`, error);
+        window.showToast?.('Reels belum dapat dibuka. Coba lagi.');
+      } finally {
+        target.removeAttribute('aria-busy');
+      }
+    }, true);
+  }
+
   installIntentGate({
     selector: '[data-action="messages"],[data-social-action="message-user"],[data-social-action="open-conversation"]',
     ready: () => typeof window.ensurePasarChatV7 === 'function',
@@ -222,7 +249,7 @@
     }
   });
 
-  installIntentGate({
+  installWindowIntentGate({
     selector: '[data-nav="reels"]',
     ready: () => window.PasarReelsV4?.version === '4.0',
     loader: loaders.reels,
