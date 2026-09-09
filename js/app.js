@@ -1100,15 +1100,9 @@ async function apiRequest(endpoint, options = {}) {
    11. APPLICATION RENDER
    ========================================================= */
 
-function renderApplication() {
-  renderStories();
-  renderQuickCategories();
-  renderFeed();
-  renderSidebar();
-  renderAccount();
-  updateNavigation();
-  updateHeaderBadges();
-  updateCartBadge();
+function renderApplication(){
+  if(STATE.activeNav!=='reels'){renderStories();renderQuickCategories();renderFeed();}
+  renderSidebar();renderAccount();updateNavigation();updateHeaderBadges();updateCartBadge();
 }
 
 
