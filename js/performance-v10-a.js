@@ -19,6 +19,7 @@
   const ASSETS = Object.freeze({
     chat: 'js/chat-single-render-v6.js?v=LAZY_CHAT_HASH',
     commerce: 'js/p8-commerce-integration.js?v=LAZY_COMMERCE_HASH',
+    account: 'js/account-resilience.js?v=LAZY_ACCOUNT_HASH&seller=1',
     saved: 'js/profile-saved.js?v=LAZY_SAVED_HASH'
   });
 
@@ -111,6 +112,7 @@
   const loaders = Object.freeze({
     chat: () => loadScript('chat', () => typeof window.ensurePasarChatV7 === 'function'),
     commerce: () => loadScript('commerce', () => window.PasarP8Commerce?.version === '1.2'),
+    account: () => loadScript('account', () => window.PasarP6Loader?.version === '1.1'),
     saved: () => loadScript('saved', () => typeof window.hydratePersistentSaved === 'function')
   });
 
@@ -166,6 +168,27 @@
     ready: () => window.PasarP8Commerce?.version === '1.2',
     loader: loaders.commerce,
     label: 'commerce'
+  });
+
+  installIntentGate({
+    selector: [
+      '[data-nav="account"]',
+      '[data-action="account-edit"]',
+      '[data-action="notifications"]',
+      '[data-action="comments"]',
+      '[data-action="like"]',
+      '[data-action="save"]',
+      '[data-action="seller-profile"]',
+      '[data-menu-action="favorites"]',
+      '[data-nav="reels"]',
+      '[data-action="open-story"]',
+      '[data-action="add-story"]',
+      '[data-menu-action="business-agency"]',
+      '[data-function-action="business-agency"]'
+    ].join(','),
+    ready: () => window.PasarP6Loader?.version === '1.1',
+    loader: loaders.account,
+    label: 'account'
   });
 
   installIntentGate({
