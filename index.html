@@ -17,16 +17,13 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/regular/style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/fill/style.css">
 
-  <!-- Shared brand image appears in both the splash and persistent header. -->
   <link rel="preload" href="assets/logo.webp?v=2.0" as="image" type="image/webp" fetchpriority="high">
 
-  <!-- CORE CSS -->
   <link rel="stylesheet" href="css/tokens.css?v=3a949b3d846e">
   <link rel="stylesheet" href="css/style.runtime.css?v=146850f0d385">
   <link rel="stylesheet" href="css/mobile-foundation-v2.css?v=5bdd01ea7cd7">
   <link rel="stylesheet" href="css/home-feed-v3.css?v=dd5477369fb1">
 
-  <!-- POST-P6 mobile shell invariants. Kept mobile-only so tablet/desktop owns its own shell. -->
   <style id="postP6MobileShellHotfix">
     @media (max-width: 767px) {
       html body .app.account-profile-active > .app-header,
@@ -84,17 +81,11 @@
     }
   </style>
 
-  <!-- Compatibility owner remains directly fingerprinted for the release contract. -->
   <link rel="stylesheet" href="css/tablet-desktop-v2.css?v=fa75b460a5ee" media="screen and (min-width: 768px)">
-
-  <!-- V9 is the final cascade owner without increasing the five-link critical CSS budget. -->
-  <style id="publicExperienceV9Entry">
-    @import url("css/public-experience-v9.css?v=9.0.0");
-  </style>
+  <style id="publicExperienceV9Entry">@import url("css/public-experience-v9.css?v=9.0.0");</style>
 </head>
 
 <body>
-  <!-- SPLASH -->
   <div id="splashIntro" class="splash-intro" aria-hidden="true">
     <div class="splash-content">
       <img
@@ -107,7 +98,6 @@
     </div>
   </div>
 
-  <!-- APP -->
   <div class="app">
     <header id="header" class="app-header">
       <button
@@ -264,7 +254,6 @@
     </nav>
   </div>
 
-  <!-- SIDE MENU -->
   <div id="sideMenu" class="side-menu-overlay" hidden aria-hidden="true">
     <aside class="side-menu-panel" aria-label="Menu Pasar UMKM">
       <div class="side-menu-head">
@@ -322,7 +311,6 @@
     </aside>
   </div>
 
-  <!-- SEARCH -->
   <div id="searchOverlay" class="search-overlay" hidden aria-hidden="true">
     <div class="search-shell">
       <header class="search-head">
@@ -375,7 +363,6 @@
     <div class="loading-spinner" aria-label="Memuat"></div>
   </div>
 
-  <!-- CORE JAVASCRIPT -->
   <script src="js/app.runtime.js?v=db001faea49e" defer></script>
   <script src="js/chat-single-render-v6.js?v=ef079b1c35ef" defer></script>
   <script src="js/p8-commerce-integration.js?v=fc3dcbac9b78" defer></script>
