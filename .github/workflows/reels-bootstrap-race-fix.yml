@@ -46,26 +46,11 @@ jobs:
             updateHeaderBadges();
             updateCartBadge();
           }`;
-          const after = `function renderApplication() {
-            const reelsRouteActive = STATE.activeNav === 'reels';
-
-            // Reels owns DOM.feed while its route is active. A late cold-bootstrap
-            // render must never replace the mounted Reels shell with the home feed.
-            if (!reelsRouteActive) {
-              renderStories();
-              renderQuickCategories();
-              renderFeed();
-            }
-
-            renderSidebar();
-            renderAccount();
-            updateNavigation();
-            updateHeaderBadges();
-            updateCartBadge();
+          const after = `function renderApplication(){
+            if(STATE.activeNav!=='reels'){renderStories();renderQuickCategories();renderFeed();}
+            renderSidebar();renderAccount();updateNavigation();updateHeaderBadges();updateCartBadge();
           }`;
-          if (!source.includes(before)) {
-            throw new Error('Canonical renderApplication block did not match expected source.');
-          }
+          if (!source.includes(before)) throw new Error('Canonical renderApplication block did not match expected source.');
           source = source.replace(before, after);
           fs.writeFileSync(path, source);
           NODE
