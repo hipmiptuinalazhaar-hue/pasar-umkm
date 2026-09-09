@@ -30,9 +30,9 @@ function showNotice(host, message, tone = "info") {
 async function copyCodes(codes, host) {
   try {
     await navigator.clipboard.writeText(codes.join("\n"));
-    showNotice(host, "Recovery codes tersalin. Simpan di tempat aman.", "success");
+    showNotice(host, "Recovery code tersalin. Simpan di tempat aman.", "success");
   } catch {
-    showNotice(host, "Clipboard tidak tersedia. Salin recovery codes secara manual.", "error");
+    showNotice(host, "Clipboard tidak tersedia. Salin recovery code secara manual.", "error");
   }
 }
 
@@ -50,7 +50,7 @@ function recoveryDisplay(host, codes) {
   const block = document.createElement("section");
   block.className = "security-card";
   block.innerHTML = `
-    <div class="security-warning"><strong>Recovery codes baru hanya ditampilkan sekarang.</strong><span>Kode lama sudah dicabut. Setiap kode baru hanya berlaku satu kali.</span></div>
+    <div class="security-warning"><strong>Recovery code baru hanya ditampilkan sekarang.</strong><span>Kode lama sudah dicabut. Setiap kode baru hanya berlaku satu kali.</span></div>
     <ul class="recovery-grid">${codes.map(code => `<li class="recovery-code">${escapeHtml(code)}</li>`).join("")}</ul>
     <div class="mfa-actions"><button class="button button-secondary" id="securityCopyRecovery" type="button">Salin semua</button><button class="button button-secondary" id="securityDownloadRecovery" type="button">Unduh .txt</button></div>
   `;
@@ -77,24 +77,25 @@ async function withStepUp(context, operation) {
 }
 
 function sessionRow(session) {
-  const state = session.revoked ? "Revoked" : session.current ? "Current" : "Active";
+  const state = session.revoked ? "Dicabut" : session.current ? "Sesi saat ini" : "Aktif";
   return `
     <li class="security-row">
       <div class="security-row-main">
-        <strong>${state} session</strong>
-        <span>Dibuat ${formatDate(session.created_at)} · terakhir dipakai ${formatDate(session.last_used_at)}</span>
-        <div class="security-event-meta"><span>${escapeHtml(session.auth_method || "password")}</span><span>${session.mfa_verified ? "MFA verified" : "No MFA"}</span><span>${session.step_up_fresh ? "Step-up fresh" : "Step-up stale"}</span></div>
+        <strong>${state}</strong>
+        <span>Dibuat ${formatDate(session.created_at)} · terakhir digunakan ${formatDate(session.last_used_at)}</span>
+        <div class="security-event-meta"><span>Metode: ${escapeHtml(session.auth_method || "password")}</span><span>${session.mfa_verified ? "MFA terverifikasi" : "Tanpa MFA"}</span><span>${session.step_up_fresh ? "Step-up masih fresh" : "Step-up perlu diperbarui"}</span></div>
       </div>
-      <div class="security-row-actions">${session.revoked ? `<span class="security-stat">${escapeHtml(session.revoke_reason || "revoked")}</span>` : `<button class="button button-secondary" type="button" data-revoke-session="${escapeHtml(session.id)}" data-current="${session.current}">${session.current ? "Akhiri session ini" : "Cabut session"}</button>`}</div>
+      <div class="security-row-actions">${session.revoked ? `<span class="security-stat">${escapeHtml(session.revoke_reason || "dicabut")}</span>` : `<button class="button button-secondary" type="button" data-revoke-session="${escapeHtml(session.id)}" data-current="${session.current}">${session.current ? "Akhiri sesi ini" : "Cabut sesi"}</button>`}</div>
     </li>
   `;
 }
 
 function eventRow(event) {
+  const outcomeLabel = event.outcome === "success" ? "Berhasil" : event.outcome === "failure" ? "Gagal" : event.outcome === "denied" ? "Ditolak" : event.outcome;
   return `
     <li class="security-row">
       <div class="security-row-main"><strong>${escapeHtml(event.action)}</strong><span>${escapeHtml(event.reason_code || "—")} · ${formatDate(event.created_at)}</span></div>
-      <div class="security-row-actions"><span class="security-stat">${escapeHtml(event.outcome)}</span></div>
+      <div class="security-row-actions"><span class="security-stat">${escapeHtml(outcomeLabel)}</span></div>
     </li>
   `;
 }
@@ -109,21 +110,21 @@ export async function renderSecurity(context) {
   const events = eventsPayload.events || [];
 
   context.host.innerHTML = `
-    <header class="view-header"><div><p class="eyebrow">Account Security</p><h1 class="view-title">Security</h1><p class="view-description">Kelola MFA, recovery, session aktif, dan jejak keamanan untuk identitas admin ini.</p></div></header>
+    <header class="view-header"><div><p class="eyebrow">Keamanan akun admin</p><h1 class="view-title">Keamanan</h1><p class="view-description">Kelola MFA, recovery code, sesi aktif, dan jejak keamanan untuk identitas administrator ini.</p></div></header>
     <div class="security-grid">
       <section class="security-card">
-        <div class="security-card-head"><div><h2>Multi-factor authentication</h2><p>TOTP terenkripsi dan recovery codes sekali pakai.</p></div><span class="security-stat">${mfa.totp_active ? "TOTP active" : "TOTP inactive"}</span></div>
+        <div class="security-card-head"><div><h2>Autentikasi multi-faktor</h2><p>TOTP terenkripsi dan recovery code sekali pakai untuk melindungi akses administratif.</p></div><span class="security-stat">${mfa.totp_active ? "TOTP aktif" : "TOTP nonaktif"}</span></div>
         <ul class="security-list">
-          <li class="security-row"><div class="security-row-main"><strong>Recovery codes</strong><span>${Number(mfa.recovery_codes_remaining || 0)} kode belum digunakan.</span></div><div class="security-row-actions"><button class="button button-secondary" id="regenerateRecovery" type="button">Regenerate</button></div></li>
-          <li class="security-row"><div class="security-row-main"><strong>Sensitive-action step-up</strong><span>Verifikasi MFA baru berlaku singkat sebelum permission sensitif dijalankan.</span></div><div class="security-row-actions"><span class="security-stat">${mfa.step_up_fresh ? "Fresh" : "Required on demand"}</span></div></li>
+          <li class="security-row"><div class="security-row-main"><strong>Recovery code</strong><span>${Number(mfa.recovery_codes_remaining || 0)} kode belum digunakan.</span></div><div class="security-row-actions"><button class="button button-secondary" id="regenerateRecovery" type="button">Buat ulang</button></div></li>
+          <li class="security-row"><div class="security-row-main"><strong>Step-up untuk tindakan sensitif</strong><span>Verifikasi MFA baru berlaku singkat sebelum permission sensitif dijalankan.</span></div><div class="security-row-actions"><span class="security-stat">${mfa.step_up_fresh ? "Masih fresh" : "Diminta saat diperlukan"}</span></div></li>
         </ul>
       </section>
       <section class="security-card">
-        <div class="security-card-head"><div><h2>Sessions</h2><p>Maksimum 50 session 30 hari terakhir. IP dan User-Agent mentah tidak ditampilkan.</p></div><button class="button button-secondary" id="revokeAllSessions" type="button">Cabut semua session</button></div>
-        <ul class="security-list" id="securitySessions">${sessions.map(sessionRow).join("") || `<li class="security-row"><div class="security-row-main"><strong>Tidak ada session.</strong></div></li>`}</ul>
+        <div class="security-card-head"><div><h2>Sesi administrator</h2><p>Maksimum 50 sesi dalam 30 hari terakhir. IP dan User-Agent mentah tidak ditampilkan.</p></div><button class="button button-secondary" id="revokeAllSessions" type="button">Cabut semua sesi</button></div>
+        <ul class="security-list" id="securitySessions">${sessions.map(sessionRow).join("") || `<li class="security-row"><div class="security-row-main"><strong>Tidak ada sesi.</strong></div></li>`}</ul>
       </section>
       <section class="security-card">
-        <div class="security-card-head"><div><h2>Security events</h2><p>30 event autentikasi terbaru tanpa mengekspos risk-hash mentah.</p></div></div>
+        <div class="security-card-head"><div><h2>Peristiwa keamanan</h2><p>30 event autentikasi terbaru tanpa mengekspos risk-hash mentah.</p></div></div>
         <ul class="security-list">${events.map(eventRow).join("") || `<li class="security-row"><div class="security-row-main"><strong>Belum ada event.</strong></div></li>`}</ul>
       </section>
     </div>
@@ -131,9 +132,9 @@ export async function renderSecurity(context) {
 
   context.host.querySelector("#regenerateRecovery")?.addEventListener("click", async event => {
     const confirmed = await context.confirmAction({
-      title: "Buat ulang recovery codes?",
+      title: "Buat ulang recovery code?",
       copy: "Semua recovery code lama akan langsung tidak berlaku. Kode baru hanya akan ditampilkan sekali.",
-      confirmLabel: "Regenerate codes",
+      confirmLabel: "Buat ulang kode",
       tone: "danger",
       requireReason: false
     });
@@ -146,7 +147,7 @@ export async function renderSecurity(context) {
       const result = await withStepUp(context, () => adminApi.regenerateRecoveryCodes());
       if (result?.recovery_codes) recoveryDisplay(context.host, result.recovery_codes);
     } catch (error) {
-      showNotice(context.host, error?.message || "Recovery codes gagal dibuat ulang.", "error");
+      showNotice(context.host, error?.message || "Recovery code gagal dibuat ulang.", "error");
     } finally {
       button.disabled = false;
       button.textContent = original;
@@ -155,8 +156,8 @@ export async function renderSecurity(context) {
 
   context.host.querySelector("#revokeAllSessions")?.addEventListener("click", async event => {
     const confirmed = await context.confirmAction({
-      title: "Cabut semua session?",
-      copy: "Semua session admin termasuk session ini akan langsung tidak berlaku.",
+      title: "Cabut semua sesi?",
+      copy: "Semua sesi admin termasuk sesi ini akan langsung tidak berlaku.",
       confirmLabel: "Cabut semua",
       tone: "danger",
       requireReason: false
@@ -169,16 +170,16 @@ export async function renderSecurity(context) {
       context.onSessionExpired();
     } catch (error) {
       button.disabled = false;
-      showNotice(context.host, error?.message || "Session gagal dicabut.", "error");
+      showNotice(context.host, error?.message || "Sesi gagal dicabut.", "error");
     }
   });
 
   context.host.querySelectorAll("[data-revoke-session]").forEach(button => button.addEventListener("click", async () => {
     const isCurrent = button.dataset.current === "true";
     const confirmed = await context.confirmAction({
-      title: isCurrent ? "Akhiri session ini?" : "Cabut session?",
-      copy: isCurrent ? "Kamu akan kembali ke halaman login." : "Session lain akan langsung kehilangan akses.",
-      confirmLabel: "Cabut session",
+      title: isCurrent ? "Akhiri sesi ini?" : "Cabut sesi?",
+      copy: isCurrent ? "Kamu akan kembali ke halaman login." : "Sesi lain akan langsung kehilangan akses.",
+      confirmLabel: "Cabut sesi",
       tone: "danger",
       requireReason: false
     });
@@ -190,7 +191,7 @@ export async function renderSecurity(context) {
       else if (result) await context.refresh();
     } catch (error) {
       button.disabled = false;
-      showNotice(context.host, error?.message || "Session gagal dicabut.", "error");
+      showNotice(context.host, error?.message || "Sesi gagal dicabut.", "error");
     }
   }));
 }

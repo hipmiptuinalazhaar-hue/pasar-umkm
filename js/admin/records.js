@@ -7,6 +7,23 @@ const currency = new Intl.NumberFormat("id-ID", {
   maximumFractionDigits: 0
 });
 
+const STATUS_LABELS = Object.freeze({
+  active: "Aktif",
+  inactive: "Nonaktif",
+  suspended: "Ditangguhkan",
+  pending: "Menunggu",
+  verified: "Terverifikasi",
+  rejected: "Ditolak",
+  confirmed: "Dikonfirmasi",
+  processing: "Diproses",
+  ready: "Siap",
+  completed: "Selesai",
+  cancelled: "Dibatalkan",
+  success: "Berhasil",
+  denied: "Ditolak",
+  failure: "Gagal"
+});
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -32,7 +49,9 @@ function statusClass(value) {
 }
 
 function badge(value, label = null) {
-  return `<span class="status ${statusClass(value)}">${escapeHtml(label ?? value ?? "—")}</span>`;
+  const normalized = String(value ?? "").toLowerCase();
+  const display = label ?? STATUS_LABELS[normalized] ?? value ?? "—";
+  return `<span class="status ${statusClass(value)}">${escapeHtml(display)}</span>`;
 }
 
 function routeParams() {
@@ -63,15 +82,15 @@ function allowed(context, permission) {
 
 function usersRow(item, context) {
   const actions = [];
-  if (item.is_active && allowed(context, "users.suspend")) actions.push(actionButton("user-suspend", item.id, "Suspend", "row-action-danger"));
-  if (!item.is_active && allowed(context, "users.reactivate")) actions.push(actionButton("user-reactivate", item.id, "Reactivate", "row-action-positive"));
+  if (item.is_active && allowed(context, "users.suspend")) actions.push(actionButton("user-suspend", item.id, "Tangguhkan", "row-action-danger"));
+  if (!item.is_active && allowed(context, "users.reactivate")) actions.push(actionButton("user-reactivate", item.id, "Aktifkan kembali", "row-action-positive"));
   return `<li class="data-row">
     <div class="data-primary"><p class="data-title">${escapeHtml(item.name)}</p><p class="data-subtitle">${escapeHtml(item.email)}</p></div>
     <div class="data-meta">
-      ${badge(item.is_active ? "active" : "suspended", item.is_active ? "Active" : "Suspended")}
-      <span>Role: ${escapeHtml(item.role)}</span>
-      <span>${item.email_verified ? "Email verified" : "Email belum verified"}</span>
-      <span>${item.has_store ? `Store: ${escapeHtml(item.store_name || "Ada")}` : "Tanpa store"}</span>
+      ${badge(item.is_active ? "active" : "suspended")}
+      <span>Peran: ${escapeHtml(item.role)}</span>
+      <span>${item.email_verified ? "Email terverifikasi" : "Email belum terverifikasi"}</span>
+      <span>${item.has_store ? `Toko: ${escapeHtml(item.store_name || "Ada")}` : "Belum memiliki toko"}</span>
       <span>Dibuat ${formatDate(item.created_at)}</span>
     </div>
     <div class="data-actions">${actions.join("")}</div>
@@ -80,15 +99,15 @@ function usersRow(item, context) {
 
 function storesRow(item, context) {
   const actions = [];
-  if (item.verification_status !== "verified" && allowed(context, "stores.verify")) actions.push(actionButton("store-verify", item.id, "Verify", "row-action-positive"));
-  if (item.is_active && allowed(context, "stores.suspend")) actions.push(actionButton("store-suspend", item.id, "Suspend", "row-action-danger"));
-  if (!item.is_active && allowed(context, "stores.reactivate")) actions.push(actionButton("store-reactivate", item.id, "Reactivate", "row-action-positive"));
+  if (item.verification_status !== "verified" && allowed(context, "stores.verify")) actions.push(actionButton("store-verify", item.id, "Verifikasi", "row-action-positive"));
+  if (item.is_active && allowed(context, "stores.suspend")) actions.push(actionButton("store-suspend", item.id, "Tangguhkan", "row-action-danger"));
+  if (!item.is_active && allowed(context, "stores.reactivate")) actions.push(actionButton("store-reactivate", item.id, "Aktifkan kembali", "row-action-positive"));
   return `<li class="data-row">
-    <div class="data-primary"><p class="data-title">${escapeHtml(item.name)}</p><p class="data-subtitle">Owner: ${escapeHtml(item.owner_name)} · ${escapeHtml(item.owner_email)}</p></div>
+    <div class="data-primary"><p class="data-title">${escapeHtml(item.name)}</p><p class="data-subtitle">Pemilik: ${escapeHtml(item.owner_name)} · ${escapeHtml(item.owner_email)}</p></div>
     <div class="data-meta">
-      ${badge(item.verification_status)} ${badge(item.is_active ? "active" : "inactive", item.is_active ? "Active" : "Inactive")}
+      ${badge(item.verification_status)} ${badge(item.is_active ? "active" : "inactive")}
       <span>${number.format(Number(item.product_count || 0))} produk</span>
-      <span>${number.format(Number(item.order_count || 0))} order</span>
+      <span>${number.format(Number(item.order_count || 0))} pesanan</span>
       <span>${escapeHtml([item.city, item.province].filter(Boolean).join(", ") || "Lokasi belum diisi")}</span>
     </div>
     <div class="data-actions">${actions.join("")}</div>
@@ -97,15 +116,15 @@ function storesRow(item, context) {
 
 function productsRow(item, context) {
   const actions = [];
-  if (item.is_active && allowed(context, "products.suspend")) actions.push(actionButton("product-suspend", item.id, "Suspend", "row-action-danger"));
-  if (!item.is_active && allowed(context, "products.restore")) actions.push(actionButton("product-restore", item.id, "Restore", "row-action-positive"));
+  if (item.is_active && allowed(context, "products.suspend")) actions.push(actionButton("product-suspend", item.id, "Nonaktifkan", "row-action-danger"));
+  if (!item.is_active && allowed(context, "products.restore")) actions.push(actionButton("product-restore", item.id, "Pulihkan", "row-action-positive"));
   return `<li class="data-row">
     <div class="data-primary"><p class="data-title">${escapeHtml(item.name)}</p><p class="data-subtitle">${escapeHtml(item.store_name)}</p></div>
     <div class="data-meta">
-      ${badge(item.is_active ? "active" : "inactive", item.is_active ? "Active" : "Inactive")}
+      ${badge(item.is_active ? "active" : "inactive")}
       <span>${currency.format(Number(item.price || 0))}</span>
       <span>Stok ${number.format(Number(item.stock || 0))} ${escapeHtml(item.unit || "")}</span>
-      ${item.is_featured ? "<span>Featured</span>" : ""}
+      ${item.is_featured ? "<span>Unggulan</span>" : ""}
     </div>
     <div class="data-actions">${actions.join("")}</div>
   </li>`;
@@ -113,11 +132,11 @@ function productsRow(item, context) {
 
 function postsRow(item, context) {
   const actions = [];
-  if (item.is_active && allowed(context, "posts.suspend")) actions.push(actionButton("post-suspend", item.id, "Suspend", "row-action-danger"));
-  if (!item.is_active && allowed(context, "posts.restore")) actions.push(actionButton("post-restore", item.id, "Restore", "row-action-positive"));
+  if (item.is_active && allowed(context, "posts.suspend")) actions.push(actionButton("post-suspend", item.id, "Nonaktifkan", "row-action-danger"));
+  if (!item.is_active && allowed(context, "posts.restore")) actions.push(actionButton("post-restore", item.id, "Pulihkan", "row-action-positive"));
   return `<li class="data-row">
     <div class="data-primary"><p class="data-title">${escapeHtml(item.store_name)}</p><p class="data-subtitle">${escapeHtml(item.caption || "Tanpa caption")}</p></div>
-    <div class="data-meta">${badge(item.is_active ? "active" : "inactive", item.is_active ? "Active" : "Inactive")}<span>${formatDate(item.created_at)}</span></div>
+    <div class="data-meta">${badge(item.is_active ? "active" : "inactive")}<span>${formatDate(item.created_at)}</span></div>
     <div class="data-actions">${actions.join("")}</div>
   </li>`;
 }
@@ -131,17 +150,18 @@ function ordersRow(item) {
 }
 
 function reviewsRow(item) {
+  const subjectLabel = item.subject_type === "store" ? "Toko" : item.subject_type === "product" ? "Produk" : item.subject_type;
   return `<li class="data-row">
     <div class="data-primary"><p class="data-title">${escapeHtml(item.subject_name)}</p><p class="data-subtitle">${escapeHtml(item.review || "Tanpa ulasan teks")}</p></div>
-    <div class="data-meta">${badge("info", `${number.format(Number(item.rating || 0))}/5`)}<span>${escapeHtml(item.subject_type)}</span><span>oleh ${escapeHtml(item.user_name)}</span><span>${formatDate(item.created_at)}</span></div>
+    <div class="data-meta">${badge("info", `${number.format(Number(item.rating || 0))}/5`)}<span>${escapeHtml(subjectLabel)}</span><span>oleh ${escapeHtml(item.user_name)}</span><span>${formatDate(item.created_at)}</span></div>
     <div class="data-actions"></div>
   </li>`;
 }
 
 function auditRow(item) {
   return `<li class="data-row">
-    <div class="data-primary"><p class="data-title">${escapeHtml(item.action)}</p><p class="data-subtitle">${escapeHtml(item.actor_name_snapshot || "System bootstrap")} · ${escapeHtml(item.actor_email_snapshot || "no actor email")}</p></div>
-    <div class="data-meta">${badge(item.outcome)}<span>${escapeHtml(item.resource_type || "—")}: ${escapeHtml(item.resource_id || "—")}</span><span>${escapeHtml(item.reason_code || "no_reason_code")}</span><span>${formatDate(item.created_at)}</span></div>
+    <div class="data-primary"><p class="data-title">${escapeHtml(item.action)}</p><p class="data-subtitle">${escapeHtml(item.actor_name_snapshot || "Bootstrap sistem")} · ${escapeHtml(item.actor_email_snapshot || "tanpa email aktor")}</p></div>
+    <div class="data-meta">${badge(item.outcome)}<span>${escapeHtml(item.resource_type || "—")}: ${escapeHtml(item.resource_id || "—")}</span><span>${escapeHtml(item.reason_code || "tanpa_kode_alasan")}</span><span>${formatDate(item.created_at)}</span></div>
     <div class="data-actions"></div>
   </li>`;
 }
@@ -149,28 +169,29 @@ function auditRow(item) {
 function adminsRow(item) {
   return `<li class="data-row">
     <div class="data-primary"><p class="data-title">${escapeHtml(item.name)}</p><p class="data-subtitle">${escapeHtml(item.email)}</p></div>
-    <div class="data-meta">${badge(item.status)}<span>${escapeHtml((item.roles || []).join(", ") || "No active role")}</span><span>${item.mfa_enrolled ? "MFA enrolled" : "MFA belum enrolled"}</span><span>${item.must_rotate_password ? "Password rotation required" : "Password rotated"}</span><span>Last login ${formatDate(item.last_login_at)}</span></div>
+    <div class="data-meta">${badge(item.status)}<span>${escapeHtml((item.roles || []).join(", ") || "Belum ada peran aktif")}</span><span>${item.mfa_enrolled ? "MFA aktif" : "MFA belum aktif"}</span><span>${item.must_rotate_password ? "Perlu mengganti kata sandi" : "Kata sandi sudah diperbarui"}</span><span>Login terakhir ${formatDate(item.last_login_at)}</span></div>
     <div class="data-actions"></div>
   </li>`;
 }
 
 const CONFIG = Object.freeze({
-  users: { title: "Users", description: "Akun marketplace publik. Suspend user langsung mencabut session publik aktif.", resource: "users", search: "Cari nama atau email", filter: { key: "state", options: [["all", "Semua"], ["active", "Active"], ["suspended", "Suspended"]] }, render: usersRow },
-  stores: { title: "Stores", description: "Status merchant, verifikasi UMKM, aktivitas toko, dan konteks owner.", resource: "stores", search: "Cari toko atau email owner", filter: { key: "verification", options: [["all", "Semua"], ["pending", "Pending"], ["verified", "Verified"], ["rejected", "Rejected"]] }, render: storesRow },
-  products: { title: "Products", description: "Katalog produk lintas toko dengan kontrol suspend/restore yang ter-audit.", resource: "products", search: "Cari produk atau toko", filter: { key: "state", options: [["all", "Semua"], ["active", "Active"], ["inactive", "Inactive"]] }, render: productsRow },
-  posts: { title: "Social Posts", description: "Konten social-commerce. Hanya tindakan yang benar-benar didukung backend yang ditampilkan.", resource: "posts", filter: { key: "state", options: [["all", "Semua"], ["active", "Active"], ["inactive", "Inactive"]] }, render: postsRow },
-  orders: { title: "Orders", description: "Konteks order tanpa mengekspos nomor telepon atau alamat pengiriman di list view.", resource: "orders", search: "Cari nomor order, buyer, atau toko", filter: { key: "status", options: [["all", "Semua"], ["pending", "Pending"], ["confirmed", "Confirmed"], ["processing", "Processing"], ["ready", "Ready"], ["completed", "Completed"], ["cancelled", "Cancelled"]] }, render: ordersRow },
-  reviews: { title: "Reviews", description: "Rating store dan produk dari data transaksi yang sudah tersedia.", resource: "reviews", filter: { key: "type", options: [["all", "Semua"], ["store", "Store"], ["product", "Product"]] }, render: reviewsRow },
-  audit: { title: "Audit Log", description: "Jejak tindakan privileged. IP hash dan User-Agent hash sengaja tidak diekspos di list UI.", resource: "audit", filter: { key: "outcome", options: [["all", "Semua"], ["success", "Success"], ["denied", "Denied"], ["failure", "Failure"]] }, render: auditRow },
-  access: { title: "Admin Access", description: "Identitas admin internal dan role aktif. Pembuatan admin/role assignment belum ditampilkan sebelum flow keamanan lanjutan siap.", resource: "admins", render: adminsRow }
+  users: { title: "Users", displayTitle: "Pengguna", description: "Kelola akun marketplace publik dan status aksesnya. Penangguhan pengguna langsung mencabut sesi publik aktif.", resource: "users", search: "Cari nama atau email", filter: { key: "state", options: [["all", "Semua"], ["active", "Aktif"], ["suspended", "Ditangguhkan"]] }, render: usersRow },
+  stores: { title: "Stores", displayTitle: "Toko", description: "Pantau merchant, status verifikasi UMKM, aktivitas toko, dan identitas pemilik yang relevan.", resource: "stores", search: "Cari toko atau email pemilik", filter: { key: "verification", options: [["all", "Semua"], ["pending", "Menunggu"], ["verified", "Terverifikasi"], ["rejected", "Ditolak"]] }, render: storesRow },
+  products: { title: "Products", displayTitle: "Produk", description: "Kelola katalog lintas toko dengan tindakan moderasi yang tercatat ke audit log.", resource: "products", search: "Cari produk atau toko", filter: { key: "state", options: [["all", "Semua"], ["active", "Aktif"], ["inactive", "Nonaktif"]] }, render: productsRow },
+  posts: { title: "Social Posts", displayTitle: "Konten", description: "Moderasi konten social-commerce dengan tindakan yang benar-benar didukung backend.", resource: "posts", filter: { key: "state", options: [["all", "Semua"], ["active", "Aktif"], ["inactive", "Nonaktif"]] }, render: postsRow },
+  orders: { title: "Orders", displayTitle: "Pesanan", description: "Pantau status dan nilai pesanan tanpa mengekspos nomor telepon atau alamat pengiriman pada daftar utama.", resource: "orders", search: "Cari nomor pesanan, pembeli, atau toko", filter: { key: "status", options: [["all", "Semua"], ["pending", "Menunggu"], ["confirmed", "Dikonfirmasi"], ["processing", "Diproses"], ["ready", "Siap"], ["completed", "Selesai"], ["cancelled", "Dibatalkan"]] }, render: ordersRow },
+  reviews: { title: "Reviews", displayTitle: "Ulasan", description: "Tinjau rating toko dan produk dari data transaksi yang tersedia.", resource: "reviews", filter: { key: "type", options: [["all", "Semua"], ["store", "Toko"], ["product", "Produk"]] }, render: reviewsRow },
+  audit: { title: "Audit Log", displayTitle: "Audit Log", description: "Jejak tindakan administratif. Hash IP dan User-Agent sengaja tidak diekspos pada daftar utama.", resource: "audit", filter: { key: "outcome", options: [["all", "Semua"], ["success", "Berhasil"], ["denied", "Ditolak"], ["failure", "Gagal"]] }, render: auditRow },
+  access: { title: "Admin Access", displayTitle: "Akses Admin", description: "Identitas administrator dan peran aktif. Pembuatan admin serta assignment role tetap dibatasi sampai alur keamanan terkait siap.", resource: "admins", render: adminsRow }
 });
 
 function toolbar(config, params) {
+  const displayTitle = config.displayTitle || config.title;
   const search = config.search
     ? `<form class="toolbar-search" id="recordSearchForm"><input class="field-input" id="recordSearch" type="search" inputmode="search" maxlength="80" value="${escapeHtml(params.get("q") || "")}" placeholder="${escapeHtml(config.search)}" aria-label="${escapeHtml(config.search)}"></form>`
     : "<div></div>";
   const filters = config.filter
-    ? `<div class="toolbar-filters" aria-label="Filter ${escapeHtml(config.title)}">${config.filter.options.map(([value, label]) => {
+    ? `<div class="toolbar-filters" aria-label="Filter ${escapeHtml(displayTitle)}">${config.filter.options.map(([value, label]) => {
         const active = (params.get(config.filter.key) || "all") === value;
         return `<button class="filter-button" type="button" data-filter-key="${config.filter.key}" data-filter-value="${value}" aria-pressed="${active}">${escapeHtml(label)}</button>`;
       }).join("")}</div>`
@@ -200,15 +221,15 @@ function showNotice(host, message, tone = "info") {
 }
 
 const ACTIONS = Object.freeze({
-  "user-suspend": { title: "Suspend pengguna?", copy: "Pengguna tidak dapat menggunakan akun sampai direaktivasi. Session publik aktif akan dicabut.", label: "Suspend user", tone: "danger", run: (id, reason) => adminApi.changeUserStatus(id, false, reason) },
-  "user-reactivate": { title: "Reactivate pengguna?", copy: "Pengguna akan kembali diizinkan menggunakan akun marketplace.", label: "Reactivate", tone: "positive", run: (id, reason) => adminApi.changeUserStatus(id, true, reason) },
-  "store-verify": { title: "Verifikasi toko?", copy: "Status verifikasi toko akan berubah menjadi verified dan waktu verifikasi dicatat.", label: "Verify store", tone: "positive", run: (id, reason) => adminApi.storeAction(id, "verify", reason) },
-  "store-suspend": { title: "Suspend toko?", copy: "Toko akan dinonaktifkan dari status operasional sampai direaktivasi.", label: "Suspend store", tone: "danger", run: (id, reason) => adminApi.storeAction(id, "suspend", reason) },
-  "store-reactivate": { title: "Reactivate toko?", copy: "Toko akan kembali aktif. Status verifikasi tidak diubah oleh tindakan ini.", label: "Reactivate", tone: "positive", run: (id, reason) => adminApi.storeAction(id, "reactivate", reason) },
-  "product-suspend": { title: "Suspend produk?", copy: "Produk akan ditandai tidak aktif sampai di-restore oleh admin yang berwenang.", label: "Suspend product", tone: "danger", run: (id, reason) => adminApi.changeProductStatus(id, false, reason) },
-  "product-restore": { title: "Restore produk?", copy: "Produk akan kembali aktif di katalog sesuai aturan publik yang berlaku.", label: "Restore product", tone: "positive", run: (id, reason) => adminApi.changeProductStatus(id, true, reason) },
-  "post-suspend": { title: "Suspend post?", copy: "Post social-commerce akan dinonaktifkan sampai di-restore.", label: "Suspend post", tone: "danger", run: (id, reason) => adminApi.changePostStatus(id, false, reason) },
-  "post-restore": { title: "Restore post?", copy: "Post social-commerce akan kembali aktif.", label: "Restore post", tone: "positive", run: (id, reason) => adminApi.changePostStatus(id, true, reason) }
+  "user-suspend": { title: "Tangguhkan pengguna?", copy: "Pengguna tidak dapat memakai akun sampai diaktifkan kembali. Sesi publik aktif akan dicabut.", label: "Tangguhkan", tone: "danger", run: (id, reason) => adminApi.changeUserStatus(id, false, reason) },
+  "user-reactivate": { title: "Aktifkan kembali pengguna?", copy: "Pengguna akan kembali diizinkan menggunakan akun marketplace.", label: "Aktifkan kembali", tone: "positive", run: (id, reason) => adminApi.changeUserStatus(id, true, reason) },
+  "store-verify": { title: "Verifikasi toko?", copy: "Status verifikasi toko akan berubah menjadi verified dan waktu verifikasi dicatat.", label: "Verifikasi toko", tone: "positive", run: (id, reason) => adminApi.storeAction(id, "verify", reason) },
+  "store-suspend": { title: "Tangguhkan toko?", copy: "Toko akan dinonaktifkan dari operasional sampai diaktifkan kembali.", label: "Tangguhkan toko", tone: "danger", run: (id, reason) => adminApi.storeAction(id, "suspend", reason) },
+  "store-reactivate": { title: "Aktifkan kembali toko?", copy: "Toko akan kembali aktif. Status verifikasi tidak diubah oleh tindakan ini.", label: "Aktifkan kembali", tone: "positive", run: (id, reason) => adminApi.storeAction(id, "reactivate", reason) },
+  "product-suspend": { title: "Nonaktifkan produk?", copy: "Produk akan ditandai tidak aktif sampai dipulihkan oleh admin yang berwenang.", label: "Nonaktifkan produk", tone: "danger", run: (id, reason) => adminApi.changeProductStatus(id, false, reason) },
+  "product-restore": { title: "Pulihkan produk?", copy: "Produk akan kembali aktif di katalog sesuai aturan publik yang berlaku.", label: "Pulihkan produk", tone: "positive", run: (id, reason) => adminApi.changeProductStatus(id, true, reason) },
+  "post-suspend": { title: "Nonaktifkan konten?", copy: "Konten social-commerce akan dinonaktifkan sampai dipulihkan.", label: "Nonaktifkan konten", tone: "danger", run: (id, reason) => adminApi.changePostStatus(id, false, reason) },
+  "post-restore": { title: "Pulihkan konten?", copy: "Konten social-commerce akan kembali aktif.", label: "Pulihkan konten", tone: "positive", run: (id, reason) => adminApi.changePostStatus(id, true, reason) }
 });
 
 async function runAction(context, button) {
@@ -241,17 +262,18 @@ async function runAction(context, button) {
 export async function renderRecords(context) {
   const config = CONFIG[context.route];
   if (!config) throw new Error("View admin tidak dikenali.");
+  const displayTitle = config.displayTitle || config.title;
   const params = routeParams();
   const payload = await adminApi.control(config.resource, pageParams(config, params), { signal: context.signal });
 
   context.host.innerHTML = `
     <header class="view-header">
-      <div><p class="eyebrow">Admin Control Center</p><h1 class="view-title">${escapeHtml(config.title)}</h1><p class="view-description">${escapeHtml(config.description)}</p></div>
+      <div><p class="eyebrow">Manajemen marketplace</p><h1 class="view-title">${escapeHtml(displayTitle)}</h1><p class="view-description">${escapeHtml(config.description)}</p></div>
     </header>
     ${toolbar(config, params)}
-    <section class="data-shell" aria-label="${escapeHtml(config.title)} data">
+    <section class="data-shell" aria-label="Data ${escapeHtml(displayTitle)}">
       <ul class="data-list" id="recordList">${(payload.items || []).map(item => config.render(item, context)).join("")}</ul>
-      ${(payload.items || []).length === 0 ? `<div class="empty-state"><strong>Belum ada data.</strong><p>Tidak ada ${escapeHtml(config.title.toLowerCase())} yang cocok dengan filter saat ini.</p></div>` : ""}
+      ${(payload.items || []).length === 0 ? `<div class="empty-state"><strong>Belum ada data.</strong><p>Tidak ada data ${escapeHtml(displayTitle.toLowerCase())} yang cocok dengan filter saat ini.</p></div>` : ""}
       <div class="load-more" id="loadMoreWrap" ${payload.page?.has_more ? "" : "hidden"}><button class="button button-secondary" id="loadMoreButton" type="button">Muat lebih banyak</button></div>
     </section>
   `;
