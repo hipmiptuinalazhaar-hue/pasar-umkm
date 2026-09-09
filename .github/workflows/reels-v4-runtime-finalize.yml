@@ -49,7 +49,6 @@ jobs:
 
           build_path = Path('scripts/build-runtime.mjs')
           build = build_path.read_text()
-
           const_anchor = 'const V10_BOOT = "js/performance-v10-a.js";\n'
           if 'const REELS_BOOT = "js/reel-profile-separation.js";' not in build:
               if const_anchor not in build:
@@ -63,22 +62,7 @@ jobs:
               build = build.replace(lazy_anchor, lazy_anchor + '  REELS_BOOT,\n', 1)
 
           function_anchor = 'async function stampLazyBootGraph() {\n'
-          nested_helper = '''async function stampReelsBootGraph() {
-  let boot = await readFile(REELS_BOOT, "utf8");
-  for (const assetPath of [
-    "css/reels-commerce-v4.css",
-    "css/reels-advanced-creator-v4.css",
-    "js/reels-commerce-v4.js",
-    "js/reels-advanced-creator-v4.js"
-  ]) {
-    const version = await sha12(assetPath);
-    boot = stampVersion(boot, assetPath, version);
-    console.log(`reels-cache-key ${assetPath}=${version}`);
-  }
-  await writeFile(REELS_BOOT, boot, "utf8");
-}
-
-'''
+          nested_helper = "async function stampReelsBootGraph() {\n  let boot = await readFile(REELS_BOOT, \\\"utf8\\\");\n  for (const assetPath of [\n    \\\"css/reels-commerce-v4.css\\\",\n    \\\"css/reels-advanced-creator-v4.css\\\",\n    \\\"js/reels-commerce-v4.js\\\",\n    \\\"js/reels-advanced-creator-v4.js\\\"\n  ]) {\n    const version = await sha12(assetPath);\n    boot = stampVersion(boot, assetPath, version);\n    console.log(`reels-cache-key ${assetPath}=${version}`);\n  }\n  await writeFile(REELS_BOOT, boot, \\\"utf8\\\");\n}\n\n"
           if 'async function stampReelsBootGraph()' not in build:
               if function_anchor not in build:
                   raise SystemExit('Lazy boot function anchor not found')
@@ -90,7 +74,6 @@ jobs:
               if call_anchor not in build:
                   raise SystemExit('Nested fingerprint call anchor not found')
               build = build.replace(call_anchor, call_replacement, 1)
-
           build_path.write_text(build)
           PY
 
@@ -114,16 +97,7 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add \
-            js/account-resilience.js \
-            scripts/build-runtime.mjs \
-            js/reel-profile-separation.js \
-            js/performance-v10-a.js \
-            index.html \
-            css/tokens.css \
-            js/app.runtime.js \
-            css/style.runtime.css \
-            .assetsignore
+          git add js/account-resilience.js scripts/build-runtime.mjs js/reel-profile-separation.js js/performance-v10-a.js index.html css/tokens.css js/app.runtime.js css/style.runtime.css .assetsignore
           if git diff --cached --quiet; then
             echo 'Reels V10 runtime graph already finalized.'
             exit 0
