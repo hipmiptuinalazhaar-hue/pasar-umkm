@@ -52,7 +52,7 @@
     ensureStyle('link[data-reels-advanced-v4-style]', 'css/reels-advanced-creator-v4.css?v=adb3c840d989', 'reelsAdvancedV4Style');
     if (window.PasarReelsAdvancedV4?.version === '4.0' || document.querySelector('script[data-reels-advanced-v4-script]')) return;
     const script = document.createElement('script');
-    script.src = 'js/reels-advanced-creator-v4.js?v=a4641116a5da';
+    script.src = 'js/reels-advanced-creator-v4.js?v=9d2773df5275';
     script.async = false;
     script.dataset.reelsAdvancedV4Script = 'true';
     script.onerror = () => console.error('[Pasar UMKM] Reels Advanced Creator V4 gagal dimuat.');
