@@ -1,7 +1,8 @@
 import { readFile } from "node:fs/promises";
 
-const [index, css] = await Promise.all([
+const [index, entry, css] = await Promise.all([
   readFile("index.html", "utf8"),
+  readFile("css/public-responsive-v9.css", "utf8"),
   readFile("css/public-experience-v9.css", "utf8")
 ]);
 
@@ -10,8 +11,22 @@ function assert(condition, message) {
 }
 
 assert(
-  index.includes('href="css/public-experience-v9.css?v='),
-  "Public Experience V9 stylesheet is not loaded by index.html."
+  index.includes('href="css/public-responsive-v9.css?v='),
+  "Public Experience V9 responsive entry is not loaded by index.html."
+);
+assert(
+  entry.includes('./tablet-desktop-v2.css?v=') && entry.includes('./public-experience-v9.css?v='),
+  "V9 responsive entry must load compatibility rules before the final V9 owner."
+);
+assert(
+  entry.indexOf("tablet-desktop-v2.css") < entry.indexOf("public-experience-v9.css"),
+  "V9 responsive entry cascade order is invalid."
+);
+
+const firstPartyStyles = [...index.matchAll(/<link\s+rel="stylesheet"\s+href="css\//g)];
+assert(
+  firstPartyStyles.length === 5,
+  `Critical shell must keep exactly five first-party stylesheets (${firstPartyStyles.length}).`
 );
 
 assert(
@@ -32,22 +47,18 @@ assert(
   /@media \(min-width: 768px\)[\s\S]*?\.app > \.app-navigation,[\s\S]*?top: var\(--v9-header-h\) !important;/.test(css),
   "Tablet navigation must live below the top header."
 );
-
 assert(
   /@media \(min-width: 1024px\)[\s\S]*?\.app > \.app-navigation,[\s\S]*?top: var\(--v9-header-h\) !important;/.test(css),
   "Desktop navigation must remain in the marketplace top shell."
 );
-
 assert(
   /@media \(min-width: 900px\) and \(max-width: 1279px\)[\s\S]*?grid-template-columns: repeat\(2, minmax\(0, 1fr\)\) !important;/.test(css),
   "Tablet landscape / compact laptop must use a two-column feed."
 );
-
 assert(
   /@media \(min-width: 1280px\)[\s\S]*?grid-template-columns: repeat\(3, minmax\(0, 1fr\)\) !important;/.test(css),
   "Expanded desktop must use a three-column feed."
 );
-
 assert(
   /\.is-product-post \.post-media,[\s\S]*?aspect-ratio: 1 \/ 1 !important;/.test(css),
   "Product feed media must use a stable square commerce frame."
@@ -64,7 +75,6 @@ assert(
   Math.min(...pixelFontSizes) >= 10,
   `V9 contains text smaller than 10px (${Math.min(...pixelFontSizes)}px).`
 );
-
 assert(
   !/box-shadow\s*:\s*0\s+\d{2,}px\s+\d{2,}px/i.test(css),
   "V9 contains oversized decorative elevation."
