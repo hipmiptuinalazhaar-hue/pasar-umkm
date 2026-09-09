@@ -228,7 +228,7 @@
   function loadV1Completion() {
     if (window.PasarV1Completion?.version === '1.0' || doc.querySelector('script[data-v1-completion="true"]')) return;
     const script = doc.createElement('script');
-    script.src = 'js/v1-completion.js?v=1.0';
+    script.src = 'js/v1-completion.js?v=1.1';
     script.async = true;
     script.dataset.v1Completion = 'true';
     body.appendChild(script);
@@ -255,7 +255,7 @@
     if (!doc.querySelector('link[data-p7-launch-growth-style="true"]')) {
       const link = doc.createElement('link');
       link.rel = 'stylesheet';
-      link.href = 'css/p7-launch-growth.css?v=1.0';
+      link.href = 'css/p7-launch-growth.css?v=1.1';
       link.dataset.p7LaunchGrowthStyle = 'true';
       doc.head.appendChild(link);
     }
@@ -286,7 +286,7 @@
 
   window.PasarP3Experience = Object.freeze({
     version: '1.0',
-    revision: '2.0',
+    revision: '2.1',
     ready: () => root.dataset.p3Ready === 'true'
   });
 })();

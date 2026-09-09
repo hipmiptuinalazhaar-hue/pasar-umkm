@@ -74,7 +74,7 @@ forbid(appP7, /\beval\s*\(|\bnew\s+Function\s*\(|document\.write\s*\(/, "P7 brow
 req(appP7Css, ".p7-report-dialog", "P7 report dialog styles missing");
 req(appP7Css, ".p7-discovery", "P7 discovery styles missing");
 
-req(p3, "css/p7-launch-growth.css?v=1.0", "P3 deferred loader missing P7 CSS");
+req(p3, "css/p7-launch-growth.css?v=1.1", "P3 deferred loader missing refreshed P7 CSS");
 req(p3, "js/p7-launch-growth.js?v=1.0", "P3 deferred loader missing P7 JS");
 req(p3, "loadP7LaunchGrowth", "P3 deferred P7 loader function missing");
 forbid(index, /p7-launch-growth\.(css|js)|p7-launch-center\.js/i, "P7 assets must not be part of critical index shell");

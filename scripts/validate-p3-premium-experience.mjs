@@ -19,9 +19,11 @@ const js = read('js/p3-premium-experience.js');
 expect(!index.includes('css/p3-premium-experience.css?v='), 'premium CSS is excluded from critical HTML');
 expect(!index.includes('js/p3-premium-experience.js?v='), 'premium controller is excluded from critical HTML');
 expect(loader.includes('css/p3-premium-experience.css?v=1.0'), 'P6 loader lazy-loads premium CSS');
-expect(loader.includes('js/p3-premium-experience.js?v=1.0'), 'P6 loader lazy-loads premium controller');
+expect(loader.includes('js/p3-premium-experience.js?v=1.1'), 'P6 loader lazy-loads refreshed premium controller');
 expect(loader.includes('function ensurePremiumExperience()'), 'premium lazy loader has one reusable gate');
-expect(loader.includes('runIdle(() => ensurePremiumExperience().catch(() => null),1200)'), 'premium experience is scheduled after critical render');
+expect(loader.includes('runIdle(() => ensurePremiumExperience().catch(() => null),1200)'), 'premium experience is scheduled after critical render on normal networks');
+expect(/if\s*\(network\.constrained\)[\s\S]{0,220}?ensurePremiumExperience/.test(loader), 'constrained networks delay rather than remove functional premium chain');
+expect(loader.includes("document.addEventListener('visibilitychange', start"), 'hidden startup resumes deferred functional loading when visible');
 
 const initialScripts = [...index.matchAll(/<script[^>]+src="js\//g)].length;
 const initialStyles = [...index.matchAll(/<link[^>]+href="css\//g)].length;
@@ -29,9 +31,11 @@ expect(initialScripts === 5, `critical shell keeps exactly five first-party scri
 expect(index.includes('js/p8-commerce-integration.js?v='), 'critical shell includes cache-safe checkout routing');
 expect(initialStyles === 5, `critical shell keeps exactly five first-party stylesheets (${initialStyles})`);
 expect(stat('index.html').size <= 18_000, 'critical HTML stays within 18 KB P6+commerce budget');
-expect(stat('js/account-resilience.js').size <= 18_000, 'P6 loader stays within 18 KB budget after premium gate');
+expect(stat('js/account-resilience.js').size <= 18_000, 'P6 loader stays within 18 KB budget after adaptive functional gate');
 
-expect(js.includes("revision: '2.0'"), 'P3 v2 controller revision is declared');
+expect(js.includes("revision: '2.1'"), 'P3 v2.1 controller revision is declared');
+expect(js.includes("js/v1-completion.js?v=1.1"), 'P3 refreshes V1 completion cache key');
+expect(js.includes("css/p7-launch-growth.css?v=1.1"), 'P3 refreshes P7 presentation cache key');
 expect(js.includes('function trapFocus('), 'dialog focus trap exists');
 expect(js.includes("event.key !== 'Tab'"), 'focus trap is Tab-specific');
 expect(js.includes("event.key === 'Escape'"), 'Escape closes active dialog surfaces');
@@ -70,4 +74,4 @@ expect(cssBytes <= 18_000, 'premium CSS stays within 18 KB source budget');
 expect(jsBytes <= 12_000, 'premium JS stays within 12 KB source budget');
 
 if (process.exitCode) process.exit(process.exitCode);
-console.log('P3 premium product experience v2 contract: PASS');
+console.log('P3 premium product experience v2.1 contract: PASS');
