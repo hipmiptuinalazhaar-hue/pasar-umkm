@@ -6,7 +6,15 @@ on:
       - main
   push:
     branches:
+      - main
       - p0-runtime-schema-hardening
+    paths:
+      - 'src/**'
+      - 'js/**'
+      - 'database/migrations/**'
+      - 'package.json'
+      - '.github/workflows/p0-validate.yml'
+  workflow_dispatch:
 
 jobs:
   validate:
