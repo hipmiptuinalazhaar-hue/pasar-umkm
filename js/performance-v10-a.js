@@ -17,6 +17,7 @@
   let longTasks = 0;
 
   const ASSETS = Object.freeze({
+    efficiency: 'js/performance-v10-b.js?v=d1c1c336d07e',
     chat: 'js/chat-single-render-v6.js?v=ef079b1c35ef',
     commerce: 'js/p8-commerce-integration.js?v=fc3dcbac9b78',
     account: 'js/account-resilience.js?v=cc7573b68dc0&seller=1',
@@ -110,6 +111,7 @@
   }
 
   const loaders = Object.freeze({
+    efficiency: () => loadScript('efficiency', () => window.PasarPerformanceV10B?.version === '10.2'),
     chat: () => loadScript('chat', () => typeof window.ensurePasarChatV7 === 'function'),
     commerce: () => loadScript('commerce', () => window.PasarP8Commerce?.version === '1.2'),
     account: () => loadScript('account', () => window.PasarP6Loader?.version === '1.1'),
@@ -218,6 +220,17 @@
     } catch {}
   }
 
+  function scheduleEfficiency() {
+    const run = () => {
+      const task = () => loaders.efficiency().catch(error => {
+        console.warn('[Pasar UMKM] V10-B efficiency bootstrap:', error);
+      });
+      setTimeout(task, 0);
+    };
+    if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', run, { once: true });
+    else run();
+  }
+
   function scheduleWarmup() {
     const run = () => {
       if (doc.visibilityState === 'hidden') return;
@@ -233,6 +246,7 @@
 
   observeVitals();
   warmPublicBootstrap();
+  scheduleEfficiency();
   scheduleWarmup();
 
   window.PasarP2Performance = Object.freeze({

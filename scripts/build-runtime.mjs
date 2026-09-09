@@ -23,6 +23,7 @@ const CRITICAL_ASSETS = [
 ];
 
 const LAZY_BOOT_ASSETS = [
+  "js/performance-v10-b.js",
   "js/chat-single-render-v6.js",
   "js/p8-commerce-integration.js",
   "js/account-resilience.js",
@@ -115,6 +116,7 @@ if (cssMatches.length !== 1 || jsMatches.length !== 1) {
 }
 
 for (const forbidden of [
+  "js/performance-v10-b.js",
   "js/chat-single-render-v6.js",
   "js/p8-commerce-integration.js",
   "js/account-resilience.js",

@@ -1,0 +1,45 @@
+name: Performance V10-B Validation
+
+on:
+  pull_request:
+    paths:
+      - 'js/performance-v10-a.js'
+      - 'js/performance-v10-b.js'
+      - 'src/rating-summary-v2.js'
+      - 'scripts/build-runtime.mjs'
+      - 'scripts/validate-performance-v10-a.mjs'
+      - 'scripts/validate-performance-v10-b.mjs'
+      - 'index.html'
+      - 'package.json'
+  push:
+    branches:
+      - main
+    paths:
+      - 'js/performance-v10-a.js'
+      - 'js/performance-v10-b.js'
+      - 'src/rating-summary-v2.js'
+      - 'scripts/build-runtime.mjs'
+      - 'scripts/validate-performance-v10-a.mjs'
+      - 'scripts/validate-performance-v10-b.mjs'
+      - 'index.html'
+      - 'package.json'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+      - name: Install exact locked dependencies
+        run: npm ci
+      - name: Validate V10-B contract
+        run: npm run test:v10-b
+      - name: Verify reproducible runtime build
+        run: npm run build:runtime && git diff --exit-code
