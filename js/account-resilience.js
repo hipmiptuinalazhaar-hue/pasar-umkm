@@ -109,7 +109,7 @@
     if (premiumJob) return premiumJob;
     premiumJob = Promise.all([
       loadStyle('link[data-p3-premium-style="true"]','css/p3-premium-experience.css?v=1.0','p3PremiumStyle'),
-      loadScript('script[data-p3-premium-script="true"]','js/p3-premium-experience.js?v=1.0','p3PremiumScript')
+      loadScript('script[data-p3-premium-script="true"]','js/p3-premium-experience.js?v=1.1','p3PremiumScript')
     ]).then(() => window.PasarP3Experience).catch(error => { premiumJob = null; throw error; });
     return premiumJob;
   }
@@ -227,11 +227,27 @@
     else setTimeout(task,450);
   }
   function schedulePostRenderWarmup() {
+    let waitingForVisibility = false;
     const start = () => {
+      if (document.visibilityState === 'hidden') {
+        if (!waitingForVisibility) {
+          waitingForVisibility = true;
+          document.addEventListener('visibilitychange', () => {
+            waitingForVisibility = false;
+            if (document.visibilityState === 'visible') start();
+          }, { once: true });
+        }
+        return;
+      }
+
       const network = networkCapability();
-      if (document.visibilityState === 'hidden' || network.constrained) return;
+      if (network.constrained) {
+        setTimeout(() => runIdle(() => ensurePremiumExperience().catch(() => null),3000),900);
+        return;
+      }
       if (network.effectiveType === '3g') {
-        setTimeout(() => runIdle(() => ensureCoreEnhancements().catch(() => null),3000),900);
+        runIdle(() => ensurePremiumExperience().catch(() => null),2200);
+        setTimeout(() => runIdle(() => ensureCoreEnhancements().catch(() => null),3500),900);
         return;
       }
       runIdle(() => ensurePremiumExperience().catch(() => null),1200);
