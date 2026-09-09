@@ -87,6 +87,18 @@ jobs:
           node --check scripts/browser-reels-v4-smoke.mjs
           node --check scripts/validate-reels-commerce-v4.mjs
 
+      - name: Validate router-owned Reels bootstrap
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq "case 'reels':" js/app.js
+          grep -Fq "PasarPerformanceV10?.openReels?.()" js/app.js
+          grep -Fq "openReels: () => loaders.reels()" js/performance-v10-a.js
+          if grep -Fq "selector: '[data-nav=\"reels\"]'" js/performance-v10-a.js; then
+            echo 'Legacy Reels click interception must stay retired.'
+            exit 1
+          fi
+
       - name: Validate R1-R11 contracts
         run: npm run test:reels-v4
 
