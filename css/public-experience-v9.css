@@ -1,0 +1,1186 @@
+/* =========================================================
+   PASAR UMKM — PUBLIC EXPERIENCE V9
+   Marketplace-grade responsive owner for phone, tablet, laptop, desktop.
+
+   Product principles
+   - Mobile stays mobile: compact header + bottom navigation.
+   - Tablet/desktop use marketplace navigation at the top, never a phone dock.
+   - Search is the primary discovery control on larger screens.
+   - Product content uses square commerce media; social content can remain editorial.
+   - Typography is readable. No 7–10px product UI.
+   - No decorative gradients, glassmorphism, neon, backdrop blur, or fake metrics.
+   - Existing APIs, auth, cart, checkout, social, and commerce behavior are untouched.
+   ========================================================= */
+
+:root {
+  --v9-shell-max: 1240px;
+  --v9-feed-max: 1180px;
+  --v9-work-max: 1180px;
+  --v9-page: #f6f7f7;
+  --v9-surface: #ffffff;
+  --v9-line: rgba(16, 24, 19, .10);
+  --v9-line-soft: rgba(16, 24, 19, .07);
+  --v9-text: #111612;
+  --v9-muted: #59615a;
+  --v9-brand: #0f5c3b;
+  --v9-brand-strong: #083725;
+  --v9-control-radius: 8px;
+  --v9-card-radius: 10px;
+  --v9-header-h: 100px;
+  --v9-nav-h: 66px;
+}
+
+html,
+body {
+  min-width: 0;
+  background: var(--v9-page) !important;
+}
+
+html body,
+html body button,
+html body input,
+html body textarea,
+html body select {
+  font-family: var(--font-ui, "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+}
+
+html body {
+  color: var(--v9-text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+html body .app {
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 100dvh;
+  margin: 0 !important;
+  background: var(--v9-page) !important;
+}
+
+/* ---------- Shared header ---------- */
+html body .app > .app-header {
+  background: #fff !important;
+  border-bottom: 1px solid var(--v9-line-soft) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html body .app > .app-header .header-search {
+  border: 1px solid var(--v9-line) !important;
+  border-radius: var(--v9-control-radius) !important;
+  background: #f2f4f3 !important;
+  box-shadow: none !important;
+}
+
+html body .app > .app-header .header-search span {
+  color: #657069 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+html body .app > .app-header .header-icon-button {
+  border-radius: var(--v9-control-radius) !important;
+  color: #27302a !important;
+}
+
+html body .app > .app-header .header-icon-button:hover,
+html body .app > .app-header .header-icon-button:focus-visible {
+  background: #f2f4f3 !important;
+}
+
+/* ---------- Mobile shell ---------- */
+@media (max-width: 767px) {
+  :root {
+    --v9-header-h: 100px;
+    --v9-nav-h: 66px;
+    --header-height: var(--v9-header-h);
+    --bottom-nav-height: var(--v9-nav-h);
+    --page-gutter: 14px;
+  }
+
+  html body .app > .app-header {
+    min-height: calc(var(--v9-header-h) + var(--safe-top, 0px)) !important;
+    padding: calc(7px + var(--safe-top, 0px)) var(--page-gutter) 8px !important;
+    grid-template-columns: 40px minmax(0, 1fr) auto !important;
+    grid-template-rows: 40px 42px !important;
+    column-gap: 8px !important;
+    row-gap: 4px !important;
+  }
+
+  html body .app > .app-header .header-logo {
+    width: 104px !important;
+    max-height: 34px !important;
+  }
+
+  html body .app > .app-header .header-search {
+    height: 42px !important;
+    min-height: 42px !important;
+    padding-inline: 12px !important;
+  }
+
+  html body .app > .app-header .header-icon-button {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+  }
+
+  html body .app > .app-header .header-icon-button i {
+    font-size: 21px !important;
+  }
+
+  html body .app > .app-main {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 100dvh;
+    margin: 0 !important;
+    padding-top: calc(var(--v9-header-h) + var(--safe-top, 0px)) !important;
+    padding-bottom: calc(var(--v9-nav-h) + var(--safe-bottom, 0px) + 12px) !important;
+    background: var(--v9-page) !important;
+  }
+
+  html body .app > .app-navigation {
+    position: fixed !important;
+    inset: auto 0 0 0 !important;
+    width: 100% !important;
+    height: calc(var(--v9-nav-h) + var(--safe-bottom, 0px)) !important;
+    min-height: calc(var(--v9-nav-h) + var(--safe-bottom, 0px)) !important;
+    padding: 5px 6px calc(5px + var(--safe-bottom, 0px)) !important;
+    transform: none !important;
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    align-items: center !important;
+    gap: 2px !important;
+    border: 0 !important;
+    border-top: 1px solid var(--v9-line-soft) !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    box-shadow: 0 -2px 10px rgba(7, 26, 17, .04) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  html body .app-navigation .nav-item {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 52px !important;
+    height: 52px !important;
+    padding: 4px 2px !important;
+    gap: 3px !important;
+    border-radius: 8px !important;
+  }
+
+  html body .app-navigation .nav-item > i {
+    font-size: 22px !important;
+  }
+
+  html body .app-navigation .nav-item > span:not(.nav-badge):not(.nav-create-icon) {
+    font-size: 11px !important;
+    line-height: 1.1 !important;
+    font-weight: 600 !important;
+  }
+
+  html body .app-navigation .nav-item.active {
+    background: transparent !important;
+  }
+
+  html body .app-navigation .nav-item.active::before {
+    top: 1px !important;
+    width: 16px !important;
+    height: 2px !important;
+  }
+
+  html body .app-navigation .nav-item-create {
+    transform: none !important;
+  }
+
+  html body .app-navigation .nav-create-icon {
+    width: 34px !important;
+    height: 34px !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: 8px !important;
+    background: var(--v9-brand-strong) !important;
+    box-shadow: none !important;
+  }
+
+  html body .app-navigation .nav-create-icon i {
+    font-size: 19px !important;
+  }
+
+  html body .app-navigation .nav-create-label {
+    display: block !important;
+    margin-top: 0 !important;
+    font-size: 11px !important;
+  }
+
+  /* Home: compact commerce banner, not a giant generated-looking hero. */
+  html body #homeDiscovery {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 12px var(--page-gutter) 0 !important;
+    background: var(--v9-page) !important;
+  }
+
+  html body #homeDiscovery .market-hero {
+    min-height: 0 !important;
+    margin: 0 0 18px !important;
+    padding: 20px 18px 17px !important;
+    border: 0 !important;
+    border-radius: 12px !important;
+    background: var(--v9-brand-strong) !important;
+    box-shadow: none !important;
+  }
+
+  html body #homeDiscovery .market-hero-content {
+    max-width: 100% !important;
+  }
+
+  html body #homeDiscovery .market-hero-accent {
+    left: 18px !important;
+    width: 34px !important;
+    height: 2px !important;
+  }
+
+  html body #homeDiscovery .market-hero-overline {
+    margin-bottom: 10px !important;
+    font-size: 10px !important;
+    letter-spacing: .07em !important;
+  }
+
+  html body #homeDiscovery .market-hero-title {
+    max-width: 290px !important;
+    font-size: clamp(24px, 7.2vw, 28px) !important;
+    line-height: 1.12 !important;
+    letter-spacing: -.035em !important;
+  }
+
+  html body #homeDiscovery .market-hero-description {
+    max-width: 300px !important;
+    margin-top: 10px !important;
+    font-size: 12.5px !important;
+    line-height: 1.55 !important;
+  }
+
+  html body #homeDiscovery .market-hero-actions {
+    gap: 8px !important;
+    margin-top: 15px !important;
+  }
+
+  html body #homeDiscovery .market-hero-primary,
+  html body #homeDiscovery .market-hero-secondary {
+    min-height: 42px !important;
+    padding-inline: 13px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+  }
+
+  html body #homeDiscovery .market-hero-foot {
+    margin-top: 14px !important;
+    font-size: 10.5px !important;
+  }
+
+  html body #homeDiscovery .home-section-head {
+    min-height: 32px !important;
+    margin-bottom: 9px !important;
+    padding: 0 !important;
+  }
+
+  html body #homeDiscovery .home-section-head h2 {
+    font-size: 17px !important;
+    font-weight: 750 !important;
+  }
+
+  html body #homeDiscovery .section-link {
+    min-height: 40px !important;
+    font-size: 11.5px !important;
+  }
+
+  html body #homeDiscovery .quick-categories,
+  html body #homeDiscovery .quick-categories:not(:empty) {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 8px 6px !important;
+    margin-bottom: 18px !important;
+  }
+
+  html body #homeDiscovery .quick-category {
+    min-height: 72px !important;
+    padding: 6px 1px !important;
+    gap: 6px !important;
+  }
+
+  html body #homeDiscovery .quick-category-icon,
+  html body #homeDiscovery .quick-category:nth-child(n) .quick-category-icon {
+    width: 44px !important;
+    height: 44px !important;
+    flex-basis: 44px !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+    border: 1px solid var(--v9-line-soft) !important;
+  }
+
+  html body #homeDiscovery .quick-category-label {
+    font-size: 11.5px !important;
+    line-height: 1.22 !important;
+    font-weight: 600 !important;
+  }
+
+  /* Feed: commerce products are square; social posts keep a richer editorial frame. */
+  html body #feed {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 0 calc(var(--v9-nav-h) + 12px) !important;
+    gap: 8px !important;
+    background: var(--v9-page) !important;
+  }
+
+  html body #feed > .market-feed-head {
+    padding: 18px var(--page-gutter) 10px !important;
+  }
+
+  html body #feed .market-feed-eyebrow {
+    margin-bottom: 6px !important;
+    font-size: 10px !important;
+    letter-spacing: .075em !important;
+  }
+
+  html body #feed .market-feed-title {
+    font-size: 20px !important;
+    font-weight: 750 !important;
+  }
+
+  html body #feed .market-feed-description {
+    max-width: 360px !important;
+    font-size: 12.5px !important;
+  }
+
+  html body #feed > .post-card {
+    margin: 0 !important;
+    border: 0 !important;
+    border-top: 1px solid var(--v9-line-soft) !important;
+    border-bottom: 1px solid var(--v9-line-soft) !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
+  html body #feed > .post-card.is-product-post .post-media,
+  html body #feed > .post-card.is-product-post .ig-product-media {
+    aspect-ratio: 1 / 1 !important;
+    background: #f7f7f6 !important;
+  }
+
+  html body #feed > .post-card .post-header {
+    min-height: 60px !important;
+    padding: 9px var(--page-gutter) !important;
+  }
+
+  html body #feed > .post-card .post-avatar {
+    width: 38px !important;
+    height: 38px !important;
+    flex-basis: 38px !important;
+  }
+
+  html body #feed > .post-card .post-author {
+    font-size: 13px !important;
+  }
+
+  html body #feed > .post-card .post-context {
+    font-size: 11.5px !important;
+  }
+
+  html body #feed > .post-card .post-actions {
+    min-height: 52px !important;
+    padding: 4px 8px 2px !important;
+  }
+
+  html body #feed > .post-card .action-btn {
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    min-height: 42px !important;
+    border-radius: 8px !important;
+  }
+
+  html body #feed > .post-card .action-btn i {
+    font-size: 21px !important;
+  }
+
+  html body #feed > .post-card .action-count {
+    font-size: 11.5px !important;
+  }
+
+  html body #feed > .post-card .ig-product-info {
+    padding: 11px var(--page-gutter) 14px !important;
+  }
+
+  html body #feed > .post-card .ig-product-category {
+    font-size: 10.5px !important;
+  }
+
+  html body #feed > .post-card .ig-product-stock {
+    font-size: 11px !important;
+  }
+
+  html body #feed > .post-card .ig-product-name {
+    font-size: 15px !important;
+    line-height: 1.35 !important;
+  }
+
+  html body #feed > .post-card .ig-product-price {
+    margin-top: 5px !important;
+    font-size: 18px !important;
+  }
+
+  html body #feed > .post-card .ig-product-description,
+  html body #feed > .post-card .post-caption {
+    font-size: 12.5px !important;
+    line-height: 1.5 !important;
+  }
+
+  html body #feed > .post-card .ig-product-buttons {
+    gap: 7px !important;
+    margin-top: 12px !important;
+  }
+
+  html body #feed > .post-card .ig-cart-button,
+  html body #feed > .post-card .ig-buy-button {
+    min-height: 44px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+  }
+
+  html body #searchOverlay .search-head {
+    background: #fff !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  html body .bottom-sheet {
+    border-radius: 18px 18px 0 0 !important;
+  }
+}
+
+/* ---------- Tablet: marketplace top navigation ---------- */
+@media (min-width: 768px) {
+  :root {
+    --v9-header-h: 64px;
+    --v9-nav-h: 46px;
+    --header-height: var(--v9-header-h);
+    --page-gutter: 24px;
+  }
+
+  html body .app > .app-header {
+    position: fixed !important;
+    inset: 0 0 auto 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: var(--v9-header-h) !important;
+    height: var(--v9-header-h) !important;
+    padding: 8px max(24px, calc((100vw - 960px) / 2)) !important;
+    transform: none !important;
+    display: grid !important;
+    grid-template-columns: 40px 118px minmax(250px, 1fr) auto !important;
+    grid-template-areas: "menu brand search actions" !important;
+    grid-template-rows: 48px !important;
+    align-items: center !important;
+    gap: 10px !important;
+    z-index: 300 !important;
+  }
+
+  html body .app > .app-header .header-logo {
+    width: 108px !important;
+    max-height: 36px !important;
+  }
+
+  html body .app > .app-header .header-search {
+    width: min(100%, 620px) !important;
+    max-width: 620px !important;
+    min-height: 42px !important;
+    height: 42px !important;
+    margin-inline: auto !important;
+    padding-inline: 13px !important;
+  }
+
+  html body .app > .app-header .header-search span {
+    display: inline !important;
+    font-size: 13px !important;
+  }
+
+  html body .app > .app-header .header-icon-button {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+  }
+
+  html body .app > .app-navigation,
+  html body.chat-v7-body .app-navigation {
+    position: fixed !important;
+    top: var(--v9-header-h) !important;
+    bottom: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: var(--v9-nav-h) !important;
+    min-height: var(--v9-nav-h) !important;
+    padding: 3px max(24px, calc((100vw - 960px) / 2)) !important;
+    transform: none !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 4px !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--v9-line-soft) !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    isolation: auto !important;
+    z-index: 290 !important;
+  }
+
+  html body .app > .app-navigation::before,
+  html body.chat-v7-body .app-navigation::before {
+    content: none !important;
+    display: none !important;
+  }
+
+  html body .app-navigation .nav-item {
+    width: auto !important;
+    min-width: 0 !important;
+    min-height: 38px !important;
+    height: 38px !important;
+    flex: 0 0 auto !important;
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 0 12px !important;
+    border-radius: 7px !important;
+    color: #4d5750 !important;
+  }
+
+  html body .app-navigation .nav-item > i {
+    width: auto !important;
+    font-size: 18px !important;
+  }
+
+  html body .app-navigation .nav-item > span:not(.nav-badge):not(.nav-create-icon) {
+    display: inline !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+    font-weight: 600 !important;
+  }
+
+  html body .app-navigation .nav-item.active {
+    background: #eef4f1 !important;
+    color: var(--v9-brand) !important;
+  }
+
+  html body .app-navigation .nav-item.active::before {
+    content: none !important;
+    display: none !important;
+  }
+
+  html body .app-navigation .nav-item-create,
+  html body .app-navigation .nav-item-create:active {
+    transform: none !important;
+  }
+
+  html body .app-navigation .nav-create-icon {
+    width: 26px !important;
+    height: 26px !important;
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: 6px !important;
+    background: var(--v9-brand-strong) !important;
+    box-shadow: none !important;
+  }
+
+  html body .app-navigation .nav-create-icon i {
+    font-size: 15px !important;
+  }
+
+  html body .app-navigation .nav-create-label {
+    display: inline !important;
+    margin: 0 !important;
+    font-size: 12px !important;
+  }
+
+  html body .app > .app-main,
+  html body .app.commerce-view-active:not(.commerce-hide-nav) > .app-main {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 100dvh !important;
+    margin: 0 !important;
+    padding-top: calc(var(--v9-header-h) + var(--v9-nav-h) + 20px) !important;
+    padding-bottom: 34px !important;
+    background: var(--v9-page) !important;
+  }
+
+  html body .app.commerce-view-active.commerce-hide-nav > .app-main {
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  html body #storiesSection,
+  html body #homeDiscovery {
+    width: min(calc(100% - 48px), 960px) !important;
+    max-width: 960px !important;
+    margin-inline: auto !important;
+  }
+
+  html body #homeDiscovery {
+    padding: 0 !important;
+  }
+
+  html body #homeDiscovery .market-hero {
+    min-height: 220px !important;
+    margin: 0 0 22px !important;
+    padding: 30px 34px 26px !important;
+    border: 0 !important;
+    border-radius: 12px !important;
+    background: var(--v9-brand-strong) !important;
+    box-shadow: none !important;
+  }
+
+  html body #homeDiscovery .market-hero-content {
+    width: min(100%, 610px) !important;
+  }
+
+  html body #homeDiscovery .market-hero-title {
+    max-width: 560px !important;
+    font-size: clamp(32px, 4.6vw, 38px) !important;
+    line-height: 1.08 !important;
+    letter-spacing: -.035em !important;
+  }
+
+  html body #homeDiscovery .market-hero-description {
+    max-width: 500px !important;
+    margin-top: 12px !important;
+    font-size: 13.5px !important;
+  }
+
+  html body #homeDiscovery .market-hero-actions {
+    margin-top: 18px !important;
+  }
+
+  html body #homeDiscovery .market-hero-primary,
+  html body #homeDiscovery .market-hero-secondary {
+    min-height: 44px !important;
+    border-radius: 8px !important;
+    font-size: 12.5px !important;
+  }
+
+  html body #homeDiscovery .home-section-head {
+    margin-bottom: 10px !important;
+  }
+
+  html body #homeDiscovery .home-section-head h2 {
+    font-size: 18px !important;
+    font-weight: 750 !important;
+  }
+
+  html body #homeDiscovery .quick-categories,
+  html body #homeDiscovery .quick-categories:not(:empty) {
+    width: 100% !important;
+    max-width: none !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    margin: 0 0 24px !important;
+  }
+
+  html body #homeDiscovery .quick-category {
+    min-height: 66px !important;
+    padding: 9px 10px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    border: 1px solid var(--v9-line-soft) !important;
+    border-radius: 9px !important;
+    background: #fff !important;
+  }
+
+  html body #homeDiscovery .quick-category-icon,
+  html body #homeDiscovery .quick-category:nth-child(n) .quick-category-icon {
+    width: 42px !important;
+    height: 42px !important;
+    flex: 0 0 42px !important;
+    border-radius: 8px !important;
+    border: 0 !important;
+    background: #eef4f1 !important;
+  }
+
+  html body #homeDiscovery .quick-category-label {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    font-size: 12px !important;
+    line-height: 1.25 !important;
+    font-weight: 650 !important;
+    text-align: left !important;
+  }
+
+  html body #feed {
+    width: min(calc(100% - 48px), 760px) !important;
+    max-width: 760px !important;
+    margin-inline: auto !important;
+    padding: 0 0 36px !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 14px !important;
+    background: transparent !important;
+  }
+
+  html body #feed > .market-feed-head,
+  html body #feed > .catalog-load-more,
+  html body #feed > .empty-state {
+    grid-column: 1 / -1 !important;
+  }
+
+  html body #feed > .market-feed-head {
+    padding: 14px 0 4px !important;
+  }
+
+  html body #feed .market-feed-title {
+    font-size: 22px !important;
+  }
+
+  html body #feed .market-feed-description {
+    max-width: 560px !important;
+    font-size: 13px !important;
+  }
+
+  html body #feed > .post-card {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    border: 1px solid var(--v9-line-soft) !important;
+    border-radius: var(--v9-card-radius) !important;
+    background: #fff !important;
+    box-shadow: none !important;
+  }
+
+  html body #feed > .post-card.is-product-post .post-media,
+  html body #feed > .post-card.is-product-post .ig-product-media {
+    aspect-ratio: 1 / 1 !important;
+    background: #f7f7f6 !important;
+  }
+
+  html body #feed > .post-card .post-header {
+    min-height: 58px !important;
+    padding: 8px 12px !important;
+  }
+
+  html body #feed > .post-card .post-avatar {
+    width: 36px !important;
+    height: 36px !important;
+    flex-basis: 36px !important;
+  }
+
+  html body #feed > .post-card .post-actions {
+    min-height: 48px !important;
+    padding: 2px 6px !important;
+  }
+
+  html body #feed > .post-card .action-btn {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    border-radius: 7px !important;
+  }
+
+  html body #feed > .post-card .action-btn i {
+    font-size: 20px !important;
+  }
+
+  html body #feed > .post-card .ig-product-info {
+    padding: 11px 13px 13px !important;
+  }
+
+  html body #feed > .post-card .ig-product-name {
+    font-size: 14.5px !important;
+  }
+
+  html body #feed > .post-card .ig-product-price {
+    font-size: 18px !important;
+  }
+
+  html body #feed > .post-card .ig-product-description,
+  html body #feed > .post-card .post-caption {
+    font-size: 12.5px !important;
+  }
+
+  html body #feed > .post-card .ig-cart-button,
+  html body #feed > .post-card .ig-buy-button {
+    min-height: 42px !important;
+    border-radius: 7px !important;
+  }
+
+  html body #searchOverlay {
+    padding: calc(var(--v9-header-h) + var(--v9-nav-h) + 20px) 24px 40px !important;
+    background: rgba(17, 22, 18, .22) !important;
+  }
+
+  html body #searchOverlay .search-shell {
+    width: min(760px, 100%) !important;
+    margin-inline: auto !important;
+  }
+
+  html body #searchOverlay .search-head {
+    min-height: 62px !important;
+    padding: 9px 10px !important;
+    border: 1px solid var(--v9-line) !important;
+    border-bottom: 0 !important;
+    border-radius: 10px 10px 0 0 !important;
+    background: #fff !important;
+  }
+
+  html body #searchOverlay .search-results {
+    max-height: min(68dvh, 700px) !important;
+    padding: 10px 16px 20px !important;
+    border: 1px solid var(--v9-line) !important;
+    border-top: 0 !important;
+    border-radius: 0 0 10px 10px !important;
+    background: #fff !important;
+  }
+
+  html body .side-menu-panel {
+    width: min(380px, 52vw) !important;
+    max-width: 380px !important;
+  }
+
+  html body .commerce-page {
+    width: min(calc(100% - 48px), 940px) !important;
+    max-width: 940px !important;
+    margin-inline: auto !important;
+    border-inline: 0 !important;
+  }
+
+  html body .commerce-content {
+    padding: 20px 22px 32px !important;
+  }
+
+  html body .commerce-section {
+    border-radius: 10px !important;
+  }
+
+  html body .commerce-sticky {
+    left: 50% !important;
+    bottom: 16px !important;
+    width: min(900px, calc(100vw - 48px)) !important;
+    border-radius: 10px !important;
+    transform: translateX(-50%) !important;
+    box-shadow: 0 6px 20px rgba(7, 26, 17, .08) !important;
+  }
+
+  html body.chat-v7-body .app-main {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: calc(var(--v9-header-h) + var(--v9-nav-h)) 0 0 !important;
+  }
+
+  html body.chat-v7-body .chat-v7-page {
+    width: min(calc(100% - 48px), 920px) !important;
+    max-width: 920px !important;
+    height: calc(100dvh - var(--v9-header-h) - var(--v9-nav-h)) !important;
+    margin-inline: auto !important;
+    border-inline: 1px solid var(--v9-line-soft) !important;
+  }
+}
+
+/* Tablet landscape / compact laptop gets a two-column social-commerce canvas. */
+@media (min-width: 900px) and (max-width: 1279px) {
+  html body #feed {
+    width: min(calc(100% - 48px), 980px) !important;
+    max-width: 980px !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-items: start !important;
+  }
+
+  html body #feed > .post-card .post-media,
+  html body #feed > .post-card .ig-product-media {
+    aspect-ratio: 1 / 1 !important;
+  }
+}
+
+/* ---------- Desktop ---------- */
+@media (min-width: 1024px) {
+  :root {
+    --v9-header-h: 68px;
+    --v9-nav-h: 44px;
+  }
+
+  html body .app > .app-header {
+    min-height: var(--v9-header-h) !important;
+    height: var(--v9-header-h) !important;
+    padding: 10px max(30px, calc((100vw - var(--v9-shell-max)) / 2)) !important;
+    grid-template-columns: 40px 128px minmax(360px, 1fr) auto !important;
+    grid-template-rows: 48px !important;
+    gap: 12px !important;
+  }
+
+  html body .app > .app-header .header-logo {
+    width: 116px !important;
+    max-height: 38px !important;
+  }
+
+  html body .app > .app-header .header-search {
+    width: min(100%, 720px) !important;
+    max-width: 720px !important;
+    min-height: 44px !important;
+    height: 44px !important;
+    margin-inline: auto !important;
+  }
+
+  html body .app > .app-navigation,
+  html body.chat-v7-body .app-navigation {
+    top: var(--v9-header-h) !important;
+    height: var(--v9-nav-h) !important;
+    min-height: var(--v9-nav-h) !important;
+    padding: 2px max(30px, calc((100vw - var(--v9-shell-max)) / 2)) !important;
+    justify-content: flex-start !important;
+  }
+
+  html body .app-navigation .nav-item {
+    min-height: 36px !important;
+    height: 36px !important;
+    padding-inline: 13px !important;
+  }
+
+  html body .app > .app-main,
+  html body .app.commerce-view-active:not(.commerce-hide-nav) > .app-main {
+    padding-top: calc(var(--v9-header-h) + var(--v9-nav-h) + 24px) !important;
+    padding-bottom: 40px !important;
+  }
+
+  html body #storiesSection,
+  html body #homeDiscovery {
+    width: min(calc(100% - 60px), var(--v9-shell-max)) !important;
+    max-width: var(--v9-shell-max) !important;
+  }
+
+  html body #homeDiscovery .market-hero {
+    min-height: 236px !important;
+    margin-bottom: 24px !important;
+    padding: 34px 40px 30px !important;
+  }
+
+  html body #homeDiscovery .market-hero-content {
+    width: min(100%, 650px) !important;
+  }
+
+  html body #homeDiscovery .market-hero-title {
+    max-width: 620px !important;
+    font-size: clamp(35px, 3.2vw, 42px) !important;
+  }
+
+  html body #homeDiscovery .market-hero-description {
+    max-width: 540px !important;
+    font-size: 13.5px !important;
+  }
+
+  html body #homeDiscovery .quick-categories,
+  html body #homeDiscovery .quick-categories:not(:empty) {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    margin-bottom: 28px !important;
+  }
+
+  html body #homeDiscovery .quick-category {
+    min-height: 70px !important;
+    padding: 10px 12px !important;
+  }
+
+  html body #homeDiscovery .quick-category-label {
+    font-size: 12.5px !important;
+  }
+
+  html body #feed {
+    width: min(calc(100% - 60px), 1060px) !important;
+    max-width: 1060px !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+  }
+
+  html body #feed > .market-feed-head {
+    padding: 16px 0 5px !important;
+  }
+
+  html body #feed .market-feed-title {
+    font-size: 23px !important;
+  }
+
+  html body #feed > .post-card {
+    border-radius: 10px !important;
+  }
+
+  html body #feed > .post-card .post-media,
+  html body #feed > .post-card .ig-product-media {
+    aspect-ratio: 1 / 1 !important;
+  }
+
+  html body #feed > .post-card .post-header {
+    padding-inline: 13px !important;
+  }
+
+  html body #feed > .post-card .post-actions,
+  html body #feed > .post-card .ig-product-info,
+  html body #feed > .post-card .post-caption {
+    padding-left: 13px !important;
+    padding-right: 13px !important;
+  }
+
+  html body .commerce-page {
+    width: min(calc(100% - 60px), var(--v9-work-max)) !important;
+    max-width: var(--v9-work-max) !important;
+  }
+
+  html body .commerce-content {
+    padding: 26px 30px 40px !important;
+  }
+
+  html body .commerce-menu-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  html body .commerce-menu-row {
+    min-height: 94px !important;
+    border-radius: 9px !important;
+  }
+
+  html body .commerce-page:has(> .commerce-detail-media) {
+    max-width: 1180px !important;
+    grid-template-columns: minmax(390px, .95fr) minmax(440px, 1.05fr) !important;
+  }
+
+  html body .commerce-page:has(> .commerce-detail-media) > .commerce-detail-media {
+    min-height: 560px !important;
+    max-height: calc(100dvh - var(--v9-header-h) - var(--v9-nav-h) - 30px) !important;
+  }
+
+  html body .commerce-page:has(> .commerce-detail-media) > .commerce-detail-body {
+    padding: 34px 34px 120px !important;
+  }
+
+  html body .social-account-page[data-p3-upgraded="true"],
+  html body .social-universal-profile[data-p3-upgraded="true"],
+  html body .post-viewer-page[data-p3-upgraded="true"],
+  html body .social-notifications-page[data-p3-upgraded="true"] {
+    width: min(calc(100% - 60px), 1000px) !important;
+    max-width: 1000px !important;
+    margin-inline: auto !important;
+    border: 1px solid var(--v9-line-soft) !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+    overflow: hidden !important;
+  }
+
+  html body.chat-v7-body .app-main {
+    padding-top: calc(var(--v9-header-h) + var(--v9-nav-h)) !important;
+  }
+
+  html body.chat-v7-body .chat-v7-page {
+    width: min(calc(100% - 60px), 1080px) !important;
+    max-width: 1080px !important;
+    height: calc(100dvh - var(--v9-header-h) - var(--v9-nav-h)) !important;
+  }
+}
+
+@media (min-width: 1280px) {
+  html body #homeDiscovery,
+  html body #storiesSection {
+    width: min(calc(100% - 72px), var(--v9-shell-max)) !important;
+  }
+
+  html body #feed {
+    width: min(calc(100% - 72px), var(--v9-feed-max)) !important;
+    max-width: var(--v9-feed-max) !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+  }
+
+  html body #feed > .post-card .post-author {
+    font-size: 12.5px !important;
+  }
+
+  html body #feed > .post-card .post-context,
+  html body #feed > .post-card .action-count,
+  html body #feed > .post-card .ig-product-stock {
+    font-size: 11px !important;
+  }
+
+  html body #feed > .post-card .ig-product-name {
+    font-size: 14px !important;
+  }
+
+  html body #feed > .post-card .ig-product-price {
+    font-size: 17px !important;
+  }
+
+  html body #feed > .post-card .ig-product-description,
+  html body #feed > .post-card .post-caption {
+    font-size: 12px !important;
+  }
+
+  html body #feed > .post-card .ig-cart-button,
+  html body #feed > .post-card .ig-buy-button {
+    min-height: 40px !important;
+    font-size: 11.5px !important;
+  }
+}
+
+@media (min-width: 1600px) {
+  :root {
+    --v9-shell-max: 1320px;
+    --v9-feed-max: 1240px;
+    --v9-work-max: 1240px;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html body .app-navigation .nav-item,
+  html body #homeDiscovery .quick-category,
+  html body #feed > .post-card,
+  html body .commerce-menu-row,
+  html body .commerce-product-row {
+    transition: background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+  }
+
+  html body .app-navigation .nav-item:hover {
+    background: #f2f4f3 !important;
+  }
+
+  html body #homeDiscovery .quick-category:hover {
+    border-color: rgba(15, 92, 59, .20) !important;
+    background: #fbfcfb !important;
+  }
+
+  html body #feed > .post-card:hover {
+    border-color: rgba(16, 24, 19, .14) !important;
+    box-shadow: 0 3px 12px rgba(7, 26, 17, .055) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .app-navigation .nav-item,
+  html body #homeDiscovery .quick-category,
+  html body #feed > .post-card,
+  html body .commerce-menu-row,
+  html body .commerce-product-row {
+    transition-duration: .01ms !important;
+  }
+}
