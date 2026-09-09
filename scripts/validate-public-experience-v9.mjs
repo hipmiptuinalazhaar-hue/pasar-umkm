@@ -66,8 +66,15 @@ assert(
 
 assert(!/linear-gradient\s*\(/i.test(css), "V9 must not use decorative linear gradients.");
 assert(!/radial-gradient\s*\(/i.test(css), "V9 must not use decorative radial gradients.");
-assert(!/backdrop-filter\s*:\s*(?!none)/i.test(css), "V9 must not use backdrop blur/glass effects.");
 assert(!/filter\s*:\s*blur\s*\(/i.test(css), "V9 must not use blur effects.");
+
+const backdropValues = [...css.matchAll(/(?:-webkit-)?backdrop-filter\s*:\s*([^;}{]+)/gi)]
+  .map(match => match[1].trim().toLowerCase());
+const safeBackdropValues = new Set(["none", "initial", "unset"]);
+assert(
+  backdropValues.every(value => safeBackdropValues.has(value)),
+  `V9 must disable backdrop filters rather than render glass effects (${backdropValues.join(", ")}).`
+);
 
 const pixelFontSizes = [...css.matchAll(/font-size\s*:\s*([0-9.]+)px/gi)].map(match => Number(match[1]));
 assert(pixelFontSizes.length > 0, "V9 typography contract found no explicit pixel font sizes.");
