@@ -23,6 +23,7 @@ const runtime = read('js/v1-completion.js');
 const css = read('css/v1-completion.css');
 const p3 = read('js/p3-premium-experience.js');
 const resilience = read('js/account-resilience.js');
+const v10 = read('js/performance-v10-a.js');
 const index = read('index.html');
 const checkoutApi = read('src/cart-checkout-v2-api.js');
 const ordersApi = read('src/orders-api-v2.js');
@@ -37,6 +38,7 @@ budget('js/v1-completion.js', 24000);
 budget('css/v1-completion.css', 9000);
 budget('js/p3-premium-experience.js', 12000);
 budget('js/account-resilience.js', 24000);
+budget('js/performance-v10-a.js', 12000);
 budget('js/admin/intelligence-v2.js', 14000);
 budget('css/admin-intelligence-v2.css', 9000);
 budget('admin/intelligence.html', 3000);
@@ -115,12 +117,26 @@ if (index.includes('js/v1-completion.js')) throw new Error('V1 completion must n
 
 for (const marker of [
   'js/p3-premium-experience.js?v=1.1',
-  'if (network.constrained)',
+  'device.constrained || device.lowEnd',
+  "device.effectiveType === '3g'",
   'ensurePremiumExperience().catch(() => null)',
   "document.addEventListener('visibilitychange'"
 ]) need(resilience, marker, 'adaptive functional warmup contract');
-forbid(resilience, /document\.visibilityState\s*===\s*['"]hidden['"]\s*\|\|\s*network\.constrained\)\s*return/, 'functional warmup permanently skipped for hidden/constrained clients');
-needRegex(resilience, /if\s*\(network\.constrained\)[\s\S]{0,220}?ensurePremiumExperience/, 'constrained clients still receive P3 functional chain');
+forbid(resilience, /document\.visibilityState\s*===\s*['"]hidden['"][\s\S]{0,100}?(?:device|network)\.constrained\)\s*return/, 'functional warmup permanently skipped for hidden/constrained clients');
+needRegex(resilience, /if\s*\(device\.constrained\s*\|\|\s*device\.lowEnd\)[\s\S]{0,260}?ensurePremiumExperience/, 'constrained/low-end clients still receive P3 functional chain');
+needRegex(resilience, /device\.effectiveType\s*===\s*['"]3g['"][\s\S]{0,220}?ensurePremiumExperience/, '3G clients still receive deferred P3 functional chain');
+
+for (const marker of [
+  "version === '10.1'",
+  'hardwareConcurrency',
+  'deviceMemory',
+  'saveData',
+  "['slow-2g', '2g']",
+  'installIntentGate',
+  'event.stopImmediatePropagation()',
+  'target.click()'
+]) need(v10, marker, 'V10 capability/intent resilience contract');
+needRegex(index, /js\/performance-v10-a\.js\?v=[0-9a-f]{12}/, 'fingerprinted V10 critical bootstrap');
 
 if (manifest.release !== '2026-09-08-v1-completion') throw new Error('Unexpected P10 release manifest version');
 for (const key of [
@@ -147,4 +163,4 @@ need(css, '.p5-trust-panel .p5-trust-stats:has(>span:nth-child(3):last-child)', 
 if (pkg.scripts?.['test:v1-completion'] !== 'node scripts/validate-v1-completion.mjs') throw new Error('package.json missing test:v1-completion');
 if (!String(pkg.scripts?.validate || '').includes('npm run test:v1-completion')) throw new Error('Canonical validate must include P10 V1 certification');
 
-console.log('P6-P10 V1 completion certification PASS: seller operations, commerce-native recommendations, adaptive feature resilience, cart safety, operational intelligence, human-facing UI hygiene, non-custodial boundaries, lazy performance, and launch manifest are intact.');
+console.log('P6-P10 V1 completion certification PASS: seller operations, commerce-native recommendations, V10 adaptive feature resilience, cart safety, operational intelligence, human-facing UI hygiene, non-custodial boundaries, lazy performance, and launch manifest are intact.');
