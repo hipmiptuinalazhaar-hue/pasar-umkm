@@ -6,6 +6,7 @@ const files = Object.freeze({
   css: 'css/reels-commerce-v4.css',
   advancedCss: 'css/reels-advanced-creator-v4.css',
   loader: 'js/reel-profile-separation.js',
+  app: 'js/app.js',
   api: 'src/reels-commerce-v4-api.js',
   advancedApi: 'src/reels-advanced-v4-api.js',
   bridge: 'src/business-agency-api.js',
@@ -54,6 +55,7 @@ contract('R10 timed text overlays', has('advanced', 'composerOverlays', 'advance
 contract('R10 copyright-safe audio library', has('advanced', 'Audio library aman hak cipta', 'synth') && match('advancedMigration', /reel_audio_library|platform-generated/i));
 contract('R10 templates/remix metadata', match('api', /template_of_reel_id|remix_of_reel_id/i) && match('migration', /template_of_reel_id|remix_of_reel_id/i));
 contract('R11 advanced metadata endpoint', has('advancedApi', '/api/reels/v4/advanced/metadata', 'audio-library'));
+contract('R11 cold-bootstrap preserves active Reels shell', match('app', /function renderApplication\(\)\s*\{[\s\S]*?STATE\.activeNav\s*!==\s*['"]reels['"][\s\S]*?renderFeed\(\)/));
 contract('V4 compatibility bridge', has('bridge', '/api/reels-v4', '/api/reels/v4') && match('mediaBridge', /legacy|handleMediaSocial/i));
 contract('V4 schema migration markers', has('migration', '2026-09-09-reels-commerce-v4') && has('advancedMigration', '2026-09-09-reels-advanced-creator-v4'));
 contract('Reduced-motion coverage', match('css', /prefers-reduced-motion/i) && match('advancedCss', /prefers-reduced-motion/i));
