@@ -15,9 +15,11 @@
   const CLOUDINARY_HOST = 'res.cloudinary.com';
   const IMAGE_WIDTHS = Object.freeze([240, 320, 480, 640, 800, 960, 1280]);
 
+  let bridgedEvidence = null;
   let cacheHits = 0;
   let cacheMisses = 0;
   let recommendationRewrites = 0;
+  let evidenceBridgeHits = 0;
   let optimizedImages = 0;
   let optimizedVideos = 0;
   let apiTransferBytes = 0;
@@ -47,18 +49,47 @@
     return 12;
   }
 
+  function jsonResponse(data) {
+    return new Response(JSON.stringify(data), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Cache-Control': 'no-store'
+      }
+    });
+  }
+
+  function parseIds(value) {
+    return String(value || '').split(',').map(id => id.trim()).filter(Boolean);
+  }
+
+  function evidenceFromMemory(url) {
+    if (url.pathname !== '/api/ratings/summaries' || !bridgedEvidence || bridgedEvidence.expiresAt <= Date.now()) return null;
+    const productIds = parseIds(url.searchParams.get('product_ids'));
+    const storeIds = parseIds(url.searchParams.get('store_ids'));
+    if (!productIds.every(id => bridgedEvidence.productIds.has(id))) return null;
+    if (!storeIds.every(id => bridgedEvidence.storeIds.has(id))) return null;
+    evidenceBridgeHits += 1;
+    return jsonResponse({
+      ok: true,
+      evidence_version: bridgedEvidence.evidenceVersion || 'p5-v1',
+      products: bridgedEvidence.products,
+      stores: bridgedEvidence.stores
+    });
+  }
+
   function analyzePublicRequest(input, init) {
     try {
       const request = input instanceof Request ? input : new Request(input, init);
       const method = String(request.method || 'GET').toUpperCase();
-      const url = new URL(request.url, location.href);
-      if (url.origin !== location.origin || method !== 'GET') return null;
+      const originalUrl = new URL(request.url, location.href);
+      if (originalUrl.origin !== location.origin || method !== 'GET') return null;
 
-      const ttl = API_CACHE_RULES.get(url.pathname);
-      if (!ttl) return null;
-
+      let url = new URL(originalUrl.href);
       let requestInput = input;
+      let bridgeRecommendations = false;
       if (
+        !(input instanceof Request) &&
         url.pathname === '/api/discover' &&
         url.searchParams.get('kind') === 'products' &&
         (url.searchParams.get('sort') || 'relevance') === 'relevance' &&
@@ -68,26 +99,29 @@
       ) {
         const current = Math.max(1, Number.parseInt(url.searchParams.get('limit') || '12', 10) || 12);
         const bounded = Math.min(current, recommendationLimit());
-        if (bounded !== current && !(input instanceof Request)) {
-          url.searchParams.set('limit', String(bounded));
-          requestInput = url.href;
-          recommendationRewrites += 1;
-        }
+        url = new URL('/api/recommendations', location.origin);
+        url.searchParams.set('limit', String(bounded));
+        requestInput = url.href;
+        bridgeRecommendations = true;
+        recommendationRewrites += 1;
       }
 
-      const keyUrl = requestInput instanceof Request
-        ? new URL(requestInput.url, location.href)
-        : new URL(String(requestInput), location.href);
-      return { key: `${keyUrl.pathname}${keyUrl.search}`, ttl, input: requestInput };
+      const ttl = API_CACHE_RULES.get(url.pathname);
+      if (!ttl) return null;
+      return {
+        key: `${url.pathname}${url.search}`,
+        ttl,
+        input: requestInput,
+        originalInput: input,
+        bridgeRecommendations,
+        url
+      };
     } catch {
       return null;
     }
   }
 
-  window.fetch = async function v10bFetch(input, init) {
-    const analyzed = analyzePublicRequest(input, init);
-    if (!analyzed) return priorFetch(input, init);
-
+  async function cachedPublicFetch(analyzed, init) {
     const now = Date.now();
     const cached = responseCache.get(analyzed.key);
     if (cached?.expiresAt > now) {
@@ -111,6 +145,46 @@
       });
     responseCache.set(analyzed.key, { expiresAt: now + analyzed.ttl, promise });
     return (await promise).clone();
+  }
+
+  window.fetch = async function v10bFetch(input, init) {
+    try {
+      const request = input instanceof Request ? input : new Request(input, init);
+      const directUrl = new URL(request.url, location.href);
+      const memoryEvidence = evidenceFromMemory(directUrl);
+      if (memoryEvidence) return memoryEvidence;
+    } catch {}
+
+    const analyzed = analyzePublicRequest(input, init);
+    if (!analyzed) return priorFetch(input, init);
+
+    const response = await cachedPublicFetch(analyzed, init);
+    if (!analyzed.bridgeRecommendations) return response;
+    if (!response.ok) return priorFetch(analyzed.originalInput, init);
+
+    const bundle = await response.clone().json().catch(() => null);
+    if (!bundle?.ok || !Array.isArray(bundle.products) || !bundle.evidence) {
+      return priorFetch(analyzed.originalInput, init);
+    }
+
+    const evidenceProducts = Array.isArray(bundle.evidence.products) ? bundle.evidence.products : [];
+    const evidenceStores = Array.isArray(bundle.evidence.stores) ? bundle.evidence.stores : [];
+    bridgedEvidence = {
+      expiresAt: Date.now() + 45_000,
+      evidenceVersion: bundle.evidence_version,
+      productIds: new Set(bundle.products.map(item => String(item.id || '')).filter(Boolean)),
+      storeIds: new Set(bundle.products.map(item => String(item.store_id || '')).filter(Boolean)),
+      products: evidenceProducts,
+      stores: evidenceStores
+    };
+
+    return jsonResponse({
+      ok: true,
+      query: '',
+      filters: { kind: 'products', category: '', district: '', sort: 'relevance' },
+      products: bundle.products,
+      stores: []
+    });
   };
 
   function isCloudinary(raw) {
@@ -281,6 +355,7 @@
       cache_misses: cacheMisses,
       cache_entries: responseCache.size,
       recommendation_rewrites: recommendationRewrites,
+      evidence_bridge_hits: evidenceBridgeHits,
       recommendation_limit: recommendationLimit(),
       optimized_images: optimizedImages,
       optimized_videos: optimizedVideos,
