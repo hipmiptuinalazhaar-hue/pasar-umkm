@@ -65,7 +65,7 @@ await check('legal trust center', async () => {
   });
   assert(response.status === 200, `HTTP ${response.status}`);
   assertSameOrigin(response, 'legal trust center');
-  assert(/Legal\s*&\s*Trust\s*Center/i.test(text), 'Legal & Trust Center marker missing');
+  assert(/Legal\s*(?:&|&amp;)\s*Trust\s*Center/i.test(text), 'Legal & Trust Center marker missing');
   assert(text.includes('Capryan Agusto, orang perseorangan'), 'operator disclosure missing');
   assert(text.includes('Penyelesaian kasus tidak otomatis memindahkan uang.'), 'financial dispute boundary missing');
   return `hub + operator + commerce boundary (${new URL(response.url).pathname})`;
