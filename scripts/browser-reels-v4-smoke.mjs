@@ -135,10 +135,13 @@ try {
   const client = new CdpClient(ws);
   await client.send('Runtime.enable');
   await client.send('Page.enable');
+  await client.send('Network.enable');
   await waitFor(client, "document.readyState === 'complete'", 'document readiness');
   await waitFor(client, "Boolean(document.querySelector('[data-nav=\"reels\"]'))", 'Reels navigation');
 
   const consoleErrors = [];
+  const runtimeExceptions = [];
+  const networkFailures = [];
   ws.addEventListener('message', event => {
     try {
       const message = JSON.parse(String(event.data));
@@ -146,11 +149,34 @@ try {
         const text = (message.params.args || []).map(arg => arg.value || arg.description || '').join(' ');
         if (text) consoleErrors.push(text);
       }
+      if (message.method === 'Runtime.exceptionThrown') {
+        const details = message.params?.exceptionDetails;
+        const text = details?.exception?.description || details?.text || 'Unknown runtime exception';
+        runtimeExceptions.push(text);
+      }
+      if (message.method === 'Network.loadingFailed') {
+        const failure = message.params || {};
+        networkFailures.push(`${failure.errorText || 'loading failed'}:${failure.type || 'unknown'}`);
+      }
     } catch {}
   });
 
   await evaluate(client, `document.querySelector('[data-nav="reels"]').click(); true`);
-  await waitFor(client, "window.PasarReelsV4?.version === '4.0'", 'Reels V4 runtime');
+  try {
+    await waitFor(client, "window.PasarReelsV4?.version === '4.0'", 'Reels V4 runtime');
+  } catch (error) {
+    const diagnostics = await evaluate(client, `(() => ({
+      v10: window.PasarPerformanceV10?.version || '',
+      reels: window.PasarReelsV4?.version || '',
+      readyState: document.readyState,
+      lazy: [...document.querySelectorAll('script[data-v10-lazy]')].map(node => ({ name: node.dataset.v10Lazy || '', src: node.src })),
+      reelsLoader: [...document.scripts].filter(node => node.src.includes('reel-profile-separation')).map(node => node.src),
+      reelsCore: [...document.scripts].filter(node => node.src.includes('reels-commerce-v4')).map(node => node.src),
+      reelsCss: [...document.querySelectorAll('link[rel="stylesheet"]')].filter(node => node.href.includes('reels-commerce-v4')).map(node => node.href),
+      busy: document.querySelector('[data-nav="reels"]')?.getAttribute('aria-busy') || ''
+    }))()`);
+    throw new Error(`${error.message} diagnostics=${JSON.stringify(diagnostics)} console=${JSON.stringify(consoleErrors.slice(-8))} exceptions=${JSON.stringify(runtimeExceptions.slice(-8))} network=${JSON.stringify(networkFailures.slice(-8))}`);
+  }
   await waitFor(client, "document.body.classList.contains('reels-v4-active') && Boolean(document.querySelector('.reels-v4-shell'))", 'immersive Reels shell');
   await waitFor(client, "document.querySelectorAll('.reels-v4-card').length > 0", 'at least one production Reel');
   await waitFor(client, "window.PasarReelsAdvancedV4?.version === '4.0'", 'advanced Reels runtime');
@@ -206,6 +232,7 @@ try {
 
   const severeErrors = consoleErrors.filter(text => !/play\(\)|autoplay|AbortError|NotAllowedError/i.test(text));
   if (severeErrors.length) throw new Error(`browser console errors: ${severeErrors.slice(0, 3).join(' | ')}`);
+  if (runtimeExceptions.length) throw new Error(`browser runtime exceptions: ${runtimeExceptions.slice(0, 3).join(' | ')}`);
 
   console.log('Reels Commerce V4 real-browser smoke: PASS');
   console.log(JSON.stringify({ baseline, audioProbe, viewports: { mobile, tablet, desktop }, modeProbe }));
