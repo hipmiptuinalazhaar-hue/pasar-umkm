@@ -34,24 +34,30 @@ jobs:
             node --check "$file"
           done < <(find src js -type f -name '*.js' -print0)
 
-      - name: Verify bootstrap acceleration
+      - name: Verify V10 bootstrap acceleration
         shell: bash
         run: |
           set -euo pipefail
-          file='js/account-resilience.js'
-          grep -q 'warmPublicBootstrap' "$file"
-          grep -q 'PUBLIC_CACHE_TTL_MS' "$file"
-          grep -q '/api/categories' "$file"
-          grep -q '/api/stores' "$file"
-          grep -q '/api/products' "$file"
-          grep -q '/api/posts' "$file"
-          grep -q 'requestIdleCallback' "$file"
-          grep -q 'ensureCoreEnhancements' "$file"
-          grep -q 'ensureProfileEnhancements' "$file"
-          grep -q 'ensureMediaEnhancements' "$file"
-          grep -q 'ensureBusinessEnhancements' "$file"
-          grep -q 'schedulePostRenderWarmup' "$file"
-          ! grep -q 'loadDeferredEnhancements' "$file"
+          v10='js/performance-v10-a.js'
+          account='js/account-resilience.js'
+          grep -q 'warmPublicBootstrap' "$v10"
+          grep -q 'PUBLIC_CACHE_TTL_MS' "$v10"
+          grep -q '/api/categories' "$v10"
+          grep -q '/api/stores' "$v10"
+          grep -q '/api/products' "$v10"
+          grep -q '/api/posts' "$v10"
+          grep -q 'requestIdleCallback' "$v10"
+          grep -q 'hardwareConcurrency' "$v10"
+          grep -q 'deviceMemory' "$v10"
+          grep -q 'saveData' "$v10"
+          grep -q 'installIntentGate' "$v10"
+          grep -q 'target.click()' "$v10"
+          grep -q 'ensureCoreEnhancements' "$account"
+          grep -q 'ensureProfileEnhancements' "$account"
+          grep -q 'ensureMediaEnhancements' "$account"
+          grep -q 'ensureBusinessEnhancements' "$account"
+          grep -q 'schedulePostRenderWarmup' "$account"
+          ! grep -q 'loadDeferredEnhancements' "$account"
 
       - name: Verify secondary modules are intent loaded
         shell: bash
@@ -60,6 +66,7 @@ jobs:
           node <<'NODE'
           const fs = require('fs');
           const text = fs.readFileSync('js/account-resilience.js', 'utf8');
+          const v10 = fs.readFileSync('js/performance-v10-a.js', 'utf8');
           const markers = {
             profile: text.indexOf('function ensureProfileEnhancements()'),
             media: text.indexOf('function ensureMediaEnhancements()'),
@@ -77,6 +84,9 @@ jobs:
           for (const [asset, owner] of owned) {
             const pos = text.indexOf(asset);
             if (pos < owner) throw new Error(`${asset} escaped its intent owner`);
+          }
+          for (const asset of ['js/chat-single-render-v6.js','js/p8-commerce-integration.js','js/account-resilience.js','js/profile-saved.js']) {
+            if (!v10.includes(asset)) throw new Error(`${asset} missing from V10 lazy graph`);
           }
           for (const retired of ['js/chat-media-experience.js','js/store-management-core.js']) {
             if (text.includes(retired)) throw new Error(`${retired} returned to enhancement loader`);
@@ -98,22 +108,26 @@ jobs:
           grep -q 'stale-while-revalidate' _headers
           ! grep -qx '_headers' .assetsignore
 
-      - name: Enforce initial payload budgets
+      - name: Enforce V10 initial payload budgets
         shell: bash
         run: |
           set -euo pipefail
-          app_js=$(wc -c < js/app.js)
-          resilience_js=$(wc -c < js/account-resilience.js)
-          saved_js=$(wc -c < js/profile-saved.js)
-          base_css=$(wc -c < css/style.css)
+          app_runtime=$(wc -c < js/app.runtime.js)
+          v10_runtime=$(wc -c < js/performance-v10-a.js)
+          style_runtime=$(wc -c < css/style.runtime.css)
           tokens_css=$(wc -c < css/tokens.css)
-          initial_js=$((app_js + resilience_js + saved_js))
-          initial_css=$((base_css + tokens_css))
-          echo "Initial JS bytes: $initial_js"
-          echo "Initial CSS bytes: $initial_css"
-          test "$app_js" -le 300000
-          test "$initial_js" -le 290000
-          test "$initial_css" -le 330000
+          mobile_css=$(wc -c < css/mobile-foundation-v2.css)
+          home_css=$(wc -c < css/home-feed-v3.css)
+          responsive_css=$(wc -c < css/tablet-desktop-v2.css)
+          v9_css=$(wc -c < css/public-experience-v9.css)
+          initial_js=$((app_runtime + v10_runtime))
+          initial_css=$((style_runtime + tokens_css + mobile_css + home_css + responsive_css + v9_css))
+          echo "V10 initial JS source bytes: $initial_js"
+          echo "V10 initial CSS source bytes: $initial_css"
+          test "$app_runtime" -le 190000
+          test "$v10_runtime" -le 12000
+          test "$initial_js" -le 200000
+          test "$initial_css" -le 300000
 
       - name: Report oversized repository assets
         shell: bash
