@@ -188,6 +188,8 @@
     }, true);
   }
 
+  doc.addEventListener('click',e=>e.target.closest('[data-nav=reels]')&&loaders.reels(),true);
+
   installIntentGate({
     selector: '[data-action="messages"],[data-social-action="message-user"],[data-social-action="open-conversation"]',
     ready: () => typeof window.ensurePasarChatV7 === 'function',
