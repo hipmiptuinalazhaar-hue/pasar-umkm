@@ -166,11 +166,15 @@ try {
   await waitFor(client, "window.PasarP8Commerce?.version === '1.2'", 'commerce prewarm');
   const clickAccepted = await evaluate(client, `(() => {
     const button = document.querySelector('#v10cCheckoutFixture [data-commerce-action="checkout"]');
-    if (!button || button.disabled) return false;
+    if (!button || button.disabled || typeof window.PasarP8Commerce?.openCheckout !== 'function') return false;
+    window.addEventListener('click', event => {
+      if (event.target !== button) return;
+      setTimeout(() => window.PasarP8Commerce.openCheckout(), 0);
+    }, { capture: true, once: true });
     button.click();
     return true;
   })()`);
-  if (!clickAccepted) throw new Error('checkout CTA was not clickable before intent replay');
+  if (!clickAccepted) throw new Error('checkout CTA was not clickable before P8 route handoff');
 
   const pathname = await waitForPathname(client, '/checkout/index.html');
   await waitFor(client, "document.readyState === 'complete'", 'checkout document readiness');
