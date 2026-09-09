@@ -5,15 +5,14 @@ on:
   push:
     branches:
       - main
-      - feat/reels-commerce-v4-r1-r11
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   verify-runtime-assets:
     uses: ./.github/workflows/runtime-assets.yml
     with:
-      write_changes: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feat/reels-commerce-v4-r1-r11' }}
+      write_changes: false
     permissions:
-      contents: write
+      contents: read
