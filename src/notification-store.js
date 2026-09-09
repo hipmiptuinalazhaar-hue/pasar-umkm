@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { ensureFunctionalityInfrastructure } from "./functionality-store.js";
 
 let notificationInfrastructureReady = false;
 let notificationInfrastructurePromise = null;
@@ -16,6 +17,12 @@ function schemaError(missing) {
  * P0 hardening:
  * Worker tidak boleh menjalankan CREATE/ALTER/INDEX/TRIGGER ketika menerima request.
  * Fungsi ini hanya memverifikasi bahwa migration production sudah diterapkan.
+ *
+ * Verifikasi functionality dimulai dengan koneksi SQL yang sama secara paralel.
+ * routeRequest tetap memanggil ensureFullFunctionalityInfrastructure setelah fungsi
+ * ini, tetapi functionality-store akan langsung menggunakan state/promise yang sama.
+ * Dengan begitu cold Worker tidak membayar dua round-trip schema verification secara
+ * berurutan sebelum request publik dapat diproses.
  */
 export async function ensureNotificationInfrastructure(env) {
   if (notificationInfrastructureReady) return;
@@ -24,32 +31,35 @@ export async function ensureNotificationInfrastructure(env) {
   notificationInfrastructurePromise = (async () => {
     const sql = neon(env.DATABASE_URL);
 
-    const rows = await sql`
-      SELECT
-        to_regclass('public.notifications') IS NOT NULL AS notifications,
-        to_regclass('public.user_follows') IS NOT NULL AS user_follows,
-        EXISTS (
-          SELECT 1
-          FROM information_schema.columns
-          WHERE table_schema = 'public'
-            AND table_name = 'notifications'
-            AND column_name = 'actor_user_id'
-        ) AS actor_user_id,
-        EXISTS (
-          SELECT 1
-          FROM information_schema.columns
-          WHERE table_schema = 'public'
-            AND table_name = 'notifications'
-            AND column_name = 'entity_type'
-        ) AS entity_type,
-        EXISTS (
-          SELECT 1
-          FROM information_schema.columns
-          WHERE table_schema = 'public'
-            AND table_name = 'notifications'
-            AND column_name = 'entity_id'
-        ) AS entity_id
-    `;
+    const [rows] = await Promise.all([
+      sql`
+        SELECT
+          to_regclass('public.notifications') IS NOT NULL AS notifications,
+          to_regclass('public.user_follows') IS NOT NULL AS user_follows,
+          EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = 'notifications'
+              AND column_name = 'actor_user_id'
+          ) AS actor_user_id,
+          EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = 'notifications'
+              AND column_name = 'entity_type'
+          ) AS entity_type,
+          EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = 'notifications'
+              AND column_name = 'entity_id'
+          ) AS entity_id
+      `,
+      ensureFunctionalityInfrastructure(sql)
+    ]);
 
     const state = rows[0] || {};
     const missing = [];
