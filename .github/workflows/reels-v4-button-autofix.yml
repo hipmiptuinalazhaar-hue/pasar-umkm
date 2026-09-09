@@ -1,0 +1,60 @@
+name: Reels V4 Button Autofix
+
+on:
+  push:
+    branches:
+      - feat/reels-commerce-v4-r1-r11
+    paths:
+      - '.github/workflows/reels-v4-button-autofix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: feat/reels-commerce-v4-r1-r11
+
+      - name: Add explicit button semantics
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          replacements = {
+              Path('js/reels-commerce-v4.js'): [
+                  ('<button class="reels-v4-tab', '<button type="button" class="reels-v4-tab'),
+                  ('<button class="reels-v4-sheet-button', '<button type="button" class="reels-v4-sheet-button'),
+              ],
+              Path('js/admin/reels-moderation-v4.js'): [
+                  ('<button class="reels-admin-button primary" data-report-action=', '<button type="button" class="reels-admin-button primary" data-report-action='),
+                  ('<button class="reels-admin-button" data-report-action=', '<button type="button" class="reels-admin-button" data-report-action='),
+                  ('<button class="reels-admin-button danger" data-report-action=', '<button type="button" class="reels-admin-button danger" data-report-action='),
+              ],
+          }
+          for path, pairs in replacements.items():
+              source = path.read_text()
+              for old, new in pairs:
+                  source = source.replace(old, new)
+              path.write_text(source)
+          PY
+          node --check js/reels-commerce-v4.js
+          node --check js/admin/reels-moderation-v4.js
+
+      - name: Commit repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- js/reels-commerce-v4.js js/admin/reels-moderation-v4.js; then
+            echo 'Button semantics already explicit.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add js/reels-commerce-v4.js js/admin/reels-moderation-v4.js
+          git commit -m 'fix(reels): add explicit button types to rendered controls'
+          git push origin HEAD:feat/reels-commerce-v4-r1-r11
