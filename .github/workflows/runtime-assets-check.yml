@@ -24,7 +24,7 @@ jobs:
           cache: npm
       - run: npm ci --no-audit --no-fund
 
-      - name: Add non-owning Reels capture prewarm
+      - name: Add budget-safe non-owning Reels capture prewarm
         shell: bash
         run: |
           set -euo pipefail
@@ -32,17 +32,17 @@ jobs:
           from pathlib import Path
           path = Path('js/performance-v10-a.js')
           text = path.read_text()
-          marker = """  installIntentGate({\n    selector: '[data-action=\"messages\"],[data-social-action=\"message-user\"],[data-social-action=\"open-conversation\"]',\n"""
-          block = """  // Reels navigation remains owned by app.js. This capture listener only\n  // starts the lazy runtime early so synthetic/keyboard clicks cannot race\n  // application event binding or asset startup. It never prevents or replays.\n  doc.addEventListener('click', event => {\n    const target = event.target?.closest?.('[data-nav=\"reels\"]');\n    if (!target || window.PasarReelsV4?.version === '4.0') return;\n    loaders.reels().catch(error => {\n      console.error('[Pasar UMKM] Reels prewarm error:', error);\n    });\n  }, true);\n\n"""
-          if block not in text:
+          marker = "  installIntentGate({\n    selector: '[data-action=\"messages\"],[data-social-action=\"message-user\"],[data-social-action=\"open-conversation\"]',\n"
+          line = "  doc.addEventListener('click',e=>e.target.closest('[data-nav=reels]')&&loaders.reels(),true);\n\n"
+          if line not in text:
               if marker not in text:
                   raise SystemExit('intent gate insertion marker not found')
-              text = text.replace(marker, block + marker, 1)
+              text = text.replace(marker, line + marker, 1)
           path.write_text(text)
           PY
-          grep -Fq "Reels navigation remains owned by app.js" js/performance-v10-a.js
-          grep -Fq "closest?.('[data-nav=\"reels\"]')" js/performance-v10-a.js
+          grep -Fq "doc.addEventListener('click',e=>e.target.closest('[data-nav=reels]')&&loaders.reels(),true);" js/performance-v10-a.js
           node --check js/performance-v10-a.js
+          test "$(wc -c < js/performance-v10-a.js)" -le 12000
 
       - name: Regenerate canonical runtime and validate
         run: |
