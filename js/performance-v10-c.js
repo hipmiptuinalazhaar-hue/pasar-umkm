@@ -79,8 +79,8 @@
     const knownIds = readArray(CART_IDS_KEY);
     const currentSet = new Set(currentIds);
 
-    // V10-C migration rule: an old empty array without cart identity is stale,
-    // not proof that the user intentionally deselected the current cart.
+    // Old V10-A/B could leave [] in sessionStorage with no cart identity.
+    // Treat that as stale migration state, not an intentional deselection.
     if (knownIds === null || storedSelection === null) {
       migratedSelections += 1;
       return writeSelection(currentIds, currentIds);
@@ -94,13 +94,12 @@
       return writeSelection(storedSelection.filter(id => currentSet.has(id)), currentIds);
     }
 
-    // Preserve an explicit "select none" choice after V10-C has recorded
-    // the cart identity. Otherwise preserve selected existing items and select
-    // newly-added products by default.
+    // Once V10-C owns cart identity, an explicit empty choice is respected.
     if (storedSelection.length === 0) {
       return writeSelection([], currentIds);
     }
 
+    // Keep selected existing rows and select newly-added products by default.
     const selectedSet = new Set(storedSelection);
     const next = currentIds.filter(id => selectedSet.has(id) || !knownSet.has(id));
     return writeSelection(next, currentIds);
@@ -118,13 +117,38 @@
     );
   }
 
+  function syncSelectionControls(selected, ids) {
+    const selectedSet = selected instanceof Set ? selected : new Set(selected || []);
+    const allowed = new Set(ids);
+
+    for (const control of doc.querySelectorAll('.commerce-page [data-cart-v2-item]')) {
+      const id = String(control.dataset.cartV2Item || '').trim();
+      if (!id || !allowed.has(id)) continue;
+      control.checked = selectedSet.has(id);
+      control.closest('.commerce-cart-item')?.classList.toggle('is-unselected', !selectedSet.has(id));
+    }
+
+    for (const control of doc.querySelectorAll('.commerce-page [data-cart-v2-store]')) {
+      const storeIds = uniqueIds(String(control.dataset.productIds || '').split(',')).filter(id => allowed.has(id));
+      if (!storeIds.length) continue;
+      const count = storeIds.filter(id => selectedSet.has(id)).length;
+      control.checked = count === storeIds.length;
+      control.indeterminate = count > 0 && count < storeIds.length;
+    }
+
+    const all = doc.querySelector('.commerce-page [data-cart-v2-all]');
+    if (all) {
+      all.checked = ids.length > 0 && selectedSet.size === ids.length;
+      all.indeterminate = selectedSet.size > 0 && selectedSet.size < ids.length;
+    }
+  }
+
   function repairCheckoutState() {
     const ids = currentCartIds();
     if (!ids.length) return;
 
-    let selected = migrateSelection(ids);
-    const explicit = selectionFromControls(ids);
-    if (explicit !== null) selected = writeSelection(explicit, ids);
+    const selected = migrateSelection(ids);
+    syncSelectionControls(selected, ids);
 
     const selectedCount = selected.size;
     for (const button of doc.querySelectorAll(CHECKOUT_SELECTOR)) {
@@ -135,13 +159,11 @@
         button.setAttribute('aria-disabled', 'false');
         checkoutRepairs += 1;
       }
-      if (selectedCount > 0 && !button.hasAttribute('data-v10c-checkout-ready')) {
-        button.dataset.v10cCheckoutReady = 'true';
-      }
+      if (selectedCount > 0) button.dataset.v10cCheckoutReady = 'true';
     }
 
-    // Prime the commerce owner as soon as a real checkout CTA exists. This
-    // removes the click-time network race while keeping P8 out of first paint.
+    // Prime P8 only when checkout is actually rendered. This removes the
+    // click-time script race without putting commerce back in the first paint.
     if (
       doc.querySelector(CHECKOUT_SELECTOR) &&
       window.PasarP8Commerce?.version !== '1.2'
