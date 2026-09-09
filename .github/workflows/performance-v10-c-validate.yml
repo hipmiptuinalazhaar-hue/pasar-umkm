@@ -1,0 +1,115 @@
+name: Performance V10-C Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'index.html'
+      - 'js/performance-v10-a.js'
+      - 'js/performance-v10-b.js'
+      - 'js/performance-v10-c.js'
+      - 'js/p8-commerce-integration.js'
+      - 'js/cart-checkout-hotfix-v1.js'
+      - 'scripts/validate-performance-v10-c.mjs'
+      - 'scripts/browser-v10-c-checkout-smoke.mjs'
+      - 'scripts/wait-cloudflare-deploy.mjs'
+      - 'package.json'
+      - '.github/workflows/performance-v10-c-validate.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'index.html'
+      - 'js/performance-v10-a.js'
+      - 'js/performance-v10-b.js'
+      - 'js/performance-v10-c.js'
+      - 'js/p8-commerce-integration.js'
+      - 'js/cart-checkout-hotfix-v1.js'
+      - 'scripts/validate-performance-v10-c.mjs'
+      - 'scripts/browser-v10-c-checkout-smoke.mjs'
+      - 'scripts/wait-cloudflare-deploy.mjs'
+      - 'package.json'
+      - '.github/workflows/performance-v10-c-validate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: read
+
+concurrency:
+  group: performance-v10-c-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install exact locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Syntax check V10-C tooling
+        run: |
+          node --check js/performance-v10-c.js
+          node --check scripts/validate-performance-v10-c.mjs
+          node --check scripts/browser-v10-c-checkout-smoke.mjs
+
+      - name: V10-C contract
+        run: npm run test:v10-c
+
+      - name: Canonical validation
+        run: npm run validate
+
+  checkout-browser:
+    needs: contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+
+      - name: Wait for exact Cloudflare deployment
+        id: deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLOUDFLARE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          CLOUDFLARE_WAIT_TIMEOUT_MS: '420000'
+          CLOUDFLARE_WAIT_POLL_MS: '5000'
+        run: node scripts/wait-cloudflare-deploy.mjs
+
+      - name: Resolve exact browser target
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PREVIEW_URL: ${{ steps.deploy.outputs.preview_url }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            test -n "$PREVIEW_URL" || { echo "Cloudflare PR preview URL missing."; exit 1; }
+            echo "V10C_BASE_URL=$PREVIEW_URL" >> "$GITHUB_ENV"
+          else
+            echo "V10C_BASE_URL=https://pasar-umkm.hipmiptuinalazhaar.workers.dev" >> "$GITHUB_ENV"
+          fi
+
+      - name: Verify Chrome
+        run: google-chrome --version
+
+      - name: Simulate stale cart and click checkout
+        env:
+          V10C_BROWSER_TIMEOUT_MS: '20000'
+        run: npm run smoke:browser:v10-c

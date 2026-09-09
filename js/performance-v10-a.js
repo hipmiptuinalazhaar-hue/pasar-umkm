@@ -9,15 +9,18 @@
   const publicPaths = new Set(['/api/categories', '/api/stores', '/api/products', '/api/posts']);
   const responseCache = new Map();
   const PUBLIC_CACHE_TTL_MS = 20_000;
+  const INTENT_LOAD_TIMEOUT_MS = 4_500;
   let warmRequests = 0;
   let replayCount = 0;
   let lazyLoads = 0;
+  let intentTimeouts = 0;
   let lcp = 0;
   let cls = 0;
   let longTasks = 0;
 
   const ASSETS = Object.freeze({
     efficiency: 'js/performance-v10-b.js?v=d1c1c336d07e',
+    stability: 'js/performance-v10-c.js?v=e289ccfe89b5',
     chat: 'js/chat-single-render-v6.js?v=ef079b1c35ef',
     commerce: 'js/p8-commerce-integration.js?v=fc3dcbac9b78',
     account: 'js/account-resilience.js?v=cc7573b68dc0&seller=1',
@@ -112,13 +115,27 @@
 
   const loaders = Object.freeze({
     efficiency: () => loadScript('efficiency', () => window.PasarPerformanceV10B?.version === '10.2'),
+    stability: () => loadScript('stability', () => window.PasarPerformanceV10C?.version === '10.3'),
     chat: () => loadScript('chat', () => typeof window.ensurePasarChatV7 === 'function'),
     commerce: () => loadScript('commerce', () => window.PasarP8Commerce?.version === '1.2'),
     account: () => loadScript('account', () => window.PasarP6Loader?.version === '1.1'),
     saved: () => loadScript('saved', () => typeof window.hydratePersistentSaved === 'function')
   });
 
-  function installIntentGate({ selector, ready, loader, label }) {
+  function withIntentTimeout(promise, label) {
+    let timer = 0;
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => {
+        timer = setTimeout(() => {
+          intentTimeouts += 1;
+          reject(new Error(`${label} bootstrap timeout.`));
+        }, INTENT_LOAD_TIMEOUT_MS);
+      })
+    ]).finally(() => clearTimeout(timer));
+  }
+
+  function installIntentGate({ selector, ready, loader, label, fallback }) {
     const prewarm = event => {
       const target = event.target?.closest?.(selector);
       if (target && !ready()) loader().catch(() => null);
@@ -132,13 +149,14 @@
       event.stopImmediatePropagation();
       target.setAttribute('aria-busy', 'true');
       try {
-        await loader();
+        await withIntentTimeout(loader(), label);
         replayCount += 1;
         replaying.add(target);
         target.click();
         queueMicrotask(() => replaying.delete(target));
       } catch (error) {
         console.error(`[Pasar UMKM] V10 ${label} bootstrap error:`, error);
+        if (typeof fallback === 'function' && fallback(target, error) === true) return;
         window.showToast?.('Fitur belum dapat dibuka. Coba lagi.');
       } finally {
         target.removeAttribute('aria-busy');
@@ -169,7 +187,15 @@
     ].join(','),
     ready: () => window.PasarP8Commerce?.version === '1.2',
     loader: loaders.commerce,
-    label: 'commerce'
+    label: 'commerce',
+    fallback: target => {
+      const checkout = target.matches?.(
+        '[data-cart-v2-checkout],[data-action="checkout"],[data-function-action="checkout-open"],[data-commerce-action="checkout"]'
+      );
+      if (!checkout) return false;
+      location.assign('/checkout/index.html');
+      return true;
+    }
   });
 
   installIntentGate({
@@ -222,8 +248,11 @@
 
   function scheduleEfficiency() {
     const run = () => {
-      const task = () => loaders.efficiency().catch(error => {
-        console.warn('[Pasar UMKM] V10-B efficiency bootstrap:', error);
+      const task = () => Promise.all([
+        loaders.efficiency(),
+        loaders.stability()
+      ]).catch(error => {
+        console.warn('[Pasar UMKM] V10 performance bootstrap:', error);
       });
       setTimeout(task, 0);
     };
@@ -269,6 +298,7 @@
       cache_entries: responseCache.size,
       lazy_loads: lazyLoads,
       replayed_intents: replayCount,
+      intent_timeouts: intentTimeouts,
       lcp_ms: lcp,
       cls: Number(cls.toFixed(4)),
       long_tasks: longTasks
