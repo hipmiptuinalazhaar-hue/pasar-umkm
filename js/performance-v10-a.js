@@ -223,14 +223,6 @@
   });
 
   installIntentGate({
-    selector: '[data-nav="reels"]',
-    ready: () => window.PasarReelsV4?.version === '4.0',
-    loader: loaders.reels,
-    label: 'reels',
-    root: doc.querySelector('[data-nav="reels"]') || doc
-  });
-
-  installIntentGate({
     selector: [
       '[data-nav="account"]',
       '[data-action="account-edit"]',
@@ -322,6 +314,10 @@
   window.PasarPerformanceV10 = Object.freeze({
     version: '10.1',
     capability,
+    openReels: () => loaders.reels().then(reels => reels.open()).catch(error => {
+      console.error('[Pasar UMKM] Reels navigation error:', error);
+      window.showToast?.('Reels belum dapat dibuka. Coba lagi.');
+    }),
     load: name => loaders[name]?.() || Promise.reject(new Error(`Unknown V10 feature: ${name}`)),
     getDiagnostics: () => Object.freeze({
       capability: capability(),
