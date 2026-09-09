@@ -10,6 +10,7 @@ const INDEX = "index.html";
 const ASSETS_IGNORE = ".assetsignore";
 const TOKENS = "css/tokens.css";
 const V10_BOOT = "js/performance-v10-a.js";
+const REELS_BOOT = "js/reel-profile-separation.js";
 
 const CRITICAL_ASSETS = [
   TOKENS,
@@ -25,6 +26,7 @@ const CRITICAL_ASSETS = [
 const LAZY_BOOT_ASSETS = [
   "js/performance-v10-b.js",
   "js/performance-v10-c.js",
+  REELS_BOOT,
   "js/chat-single-render-v6.js",
   "js/p8-commerce-integration.js",
   "js/account-resilience.js",
@@ -71,6 +73,21 @@ async function stampTokenImports() {
   await writeFile(TOKENS, tokens, "utf8");
 }
 
+async function stampReelsBootGraph() {
+  let boot = await readFile(REELS_BOOT, "utf8");
+  for (const assetPath of [
+    "css/reels-commerce-v4.css",
+    "css/reels-advanced-creator-v4.css",
+    "js/reels-commerce-v4.js",
+    "js/reels-advanced-creator-v4.js"
+  ]) {
+    const version = await sha12(assetPath);
+    boot = stampVersion(boot, assetPath, version);
+    console.log(`reels-cache-key ${assetPath}=${version}`);
+  }
+  await writeFile(REELS_BOOT, boot, "utf8");
+}
+
 async function stampLazyBootGraph() {
   let boot = await readFile(V10_BOOT, "utf8");
   for (const assetPath of LAZY_BOOT_ASSETS) {
@@ -105,6 +122,7 @@ await assertReduction(CSS_SOURCE, CSS_RUNTIME, 0.15);
 
 // Fingerprint nested dependencies before hashing their parent entrypoints.
 await stampTokenImports();
+await stampReelsBootGraph();
 await stampLazyBootGraph();
 
 let index = await readFile(INDEX, "utf8");

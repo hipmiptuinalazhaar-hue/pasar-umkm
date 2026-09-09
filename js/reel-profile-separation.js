@@ -49,10 +49,10 @@
   }
 
   function loadAdvancedCreator() {
-    ensureStyle('link[data-reels-advanced-v4-style]', 'css/reels-advanced-creator-v4.css?v=4.0', 'reelsAdvancedV4Style');
+    ensureStyle('link[data-reels-advanced-v4-style]', 'css/reels-advanced-creator-v4.css?v=adb3c840d989', 'reelsAdvancedV4Style');
     if (window.PasarReelsAdvancedV4?.version === '4.0' || document.querySelector('script[data-reels-advanced-v4-script]')) return;
     const script = document.createElement('script');
-    script.src = 'js/reels-advanced-creator-v4.js?v=4.0';
+    script.src = 'js/reels-advanced-creator-v4.js?v=a4641116a5da';
     script.async = false;
     script.dataset.reelsAdvancedV4Script = 'true';
     script.onerror = () => console.error('[Pasar UMKM] Reels Advanced Creator V4 gagal dimuat.');
@@ -60,7 +60,7 @@
   }
 
   function loadReelsCommerceV4() {
-    ensureStyle('link[data-reels-commerce-v4-style]', 'css/reels-commerce-v4.css?v=4.0', 'reelsCommerceV4Style');
+    ensureStyle('link[data-reels-commerce-v4-style]', 'css/reels-commerce-v4.css?v=745d6c5c0ee8', 'reelsCommerceV4Style');
     if (window.PasarReelsV4?.version === '4.0') {
       loadAdvancedCreator();
       return;
@@ -71,7 +71,7 @@
       return;
     }
     const script = document.createElement('script');
-    script.src = 'js/reels-commerce-v4.js?v=4.0';
+    script.src = 'js/reels-commerce-v4.js?v=a9072a74975a';
     script.async = false;
     script.dataset.reelsCommerceV4Script = 'true';
     script.onload = loadAdvancedCreator;

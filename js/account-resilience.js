@@ -218,7 +218,7 @@
 
   installIntentGate('[data-action="notifications"],[data-action="comments"],[data-action="like"],[data-action="save"],[data-action="seller-profile"],[data-menu-action="favorites"]', () => coreReady, ensureCoreEnhancements);
   installIntentGate('[data-nav="account"],[data-action="account-edit"]', () => profileReady, ensureProfileEnhancements);
-  installIntentGate('[data-nav="reels"],[data-action="open-story"],[data-action="add-story"]', () => mediaReady, ensureMediaEnhancements);
+  installIntentGate('[data-action="open-story"],[data-action="add-story"]', () => mediaReady, ensureMediaEnhancements);
   installIntentGate('[data-menu-action="business-agency"],[data-function-action="business-agency"]', () => businessReady, ensureBusinessEnhancements);
 
   function runIdle(task, timeout = 2500) {

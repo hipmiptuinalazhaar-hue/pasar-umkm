@@ -23,9 +23,9 @@
     stability: 'js/performance-v10-c.js?v=e289ccfe89b5',
     chat: 'js/chat-single-render-v6.js?v=ef079b1c35ef',
     commerce: 'js/p8-commerce-integration.js?v=fc3dcbac9b78',
-    account: 'js/account-resilience.js?v=cc7573b68dc0&seller=1',
+    account: 'js/account-resilience.js?v=05a13489b947&seller=1',
     saved: 'js/profile-saved.js?v=fbf14ea3f0cd',
-    reels: 'js/reel-profile-separation.js?v=8063ac5eae10'
+    reels: 'js/reel-profile-separation.js?v=79ab953f8871'
   });
 
   function capability() {
