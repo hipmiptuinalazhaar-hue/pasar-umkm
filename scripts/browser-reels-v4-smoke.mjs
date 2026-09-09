@@ -138,6 +138,7 @@ try {
   await client.send('Network.enable');
   await waitFor(client, "document.readyState === 'complete'", 'document readiness');
   await waitFor(client, "Boolean(document.querySelector('[data-nav=\"reels\"]'))", 'Reels navigation');
+  await waitFor(client, "typeof window.PasarPerformanceV10?.openReels === 'function'", 'Reels router entry');
 
   const consoleErrors = [];
   const runtimeExceptions = [];
@@ -161,21 +162,50 @@ try {
     } catch {}
   });
 
-  await evaluate(client, `document.querySelector('[data-nav="reels"]').click(); true`);
+  const clickProbe = await evaluate(client, `(() => {
+    const button = document.querySelector('[data-nav="reels"]');
+    let seen = 0;
+    const probe = () => { seen += 1; };
+    document.addEventListener('click', probe, true);
+    const before = {
+      disabled: Boolean(button?.disabled),
+      inert: Boolean(button?.inert),
+      connected: Boolean(button?.isConnected),
+      activeNav: typeof STATE !== 'undefined' ? STATE.activeNav : '',
+      openReels: typeof window.PasarPerformanceV10?.openReels
+    };
+    button?.click();
+    document.removeEventListener('click', probe, true);
+    return {
+      ...before,
+      seen,
+      activeNavAfter: typeof STATE !== 'undefined' ? STATE.activeNav : '',
+      lazyAfter: [...document.querySelectorAll('script[data-v10-lazy]')].map(node => node.dataset.v10Lazy || '')
+    };
+  })()`);
+  console.log(`Reels navigation click probe: ${JSON.stringify(clickProbe)}`);
+  if (!clickProbe.connected) throw new Error(`Reels navigation is detached: ${JSON.stringify(clickProbe)}`);
+  if (clickProbe.disabled || clickProbe.inert) throw new Error(`Reels navigation is not interactive: ${JSON.stringify(clickProbe)}`);
+  if (clickProbe.seen < 1) throw new Error(`Reels click event was not dispatched: ${JSON.stringify(clickProbe)}`);
+
   try {
     await waitFor(client, "window.PasarReelsV4?.version === '4.0'", 'Reels V4 runtime');
   } catch (error) {
     const diagnostics = await evaluate(client, `(() => ({
       v10: window.PasarPerformanceV10?.version || '',
+      openReels: typeof window.PasarPerformanceV10?.openReels,
       reels: window.PasarReelsV4?.version || '',
       readyState: document.readyState,
+      activeNav: typeof STATE !== 'undefined' ? STATE.activeNav : '',
+      navDisabled: Boolean(document.querySelector('[data-nav="reels"]')?.disabled),
+      navInert: Boolean(document.querySelector('[data-nav="reels"]')?.inert),
       lazy: [...document.querySelectorAll('script[data-v10-lazy]')].map(node => ({ name: node.dataset.v10Lazy || '', src: node.src })),
       reelsLoader: [...document.scripts].filter(node => node.src.includes('reel-profile-separation')).map(node => node.src),
       reelsCore: [...document.scripts].filter(node => node.src.includes('reels-commerce-v4')).map(node => node.src),
       reelsCss: [...document.querySelectorAll('link[rel="stylesheet"]')].filter(node => node.href.includes('reels-commerce-v4')).map(node => node.href),
       busy: document.querySelector('[data-nav="reels"]')?.getAttribute('aria-busy') || ''
     }))()`);
-    throw new Error(`${error.message} diagnostics=${JSON.stringify(diagnostics)} console=${JSON.stringify(consoleErrors.slice(-8))} exceptions=${JSON.stringify(runtimeExceptions.slice(-8))} network=${JSON.stringify(networkFailures.slice(-8))}`);
+    throw new Error(`${error.message} clickProbe=${JSON.stringify(clickProbe)} diagnostics=${JSON.stringify(diagnostics)} console=${JSON.stringify(consoleErrors.slice(-8))} exceptions=${JSON.stringify(runtimeExceptions.slice(-8))} network=${JSON.stringify(networkFailures.slice(-8))}`);
   }
   await waitFor(client, "document.body.classList.contains('reels-v4-active') && Boolean(document.querySelector('.reels-v4-shell'))", 'immersive Reels shell');
   await waitFor(client, "document.querySelectorAll('.reels-v4-card').length > 0", 'at least one production Reel');
@@ -235,7 +265,7 @@ try {
   if (runtimeExceptions.length) throw new Error(`browser runtime exceptions: ${runtimeExceptions.slice(0, 3).join(' | ')}`);
 
   console.log('Reels Commerce V4 real-browser smoke: PASS');
-  console.log(JSON.stringify({ baseline, audioProbe, viewports: { mobile, tablet, desktop }, modeProbe }));
+  console.log(JSON.stringify({ clickProbe, baseline, audioProbe, viewports: { mobile, tablet, desktop }, modeProbe }));
 } finally {
   try { ws?.close(); } catch {}
   if (chrome.exitCode === null && chrome.signalCode === null) chrome.kill('SIGKILL');
