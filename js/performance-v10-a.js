@@ -19,7 +19,7 @@
   const ASSETS = Object.freeze({
     chat: 'js/chat-single-render-v6.js?v=ef079b1c35ef',
     commerce: 'js/p8-commerce-integration.js?v=fc3dcbac9b78',
-    account: 'js/account-resilience.js?v=4383988aa048&seller=1',
+    account: 'js/account-resilience.js?v=cc7573b68dc0&seller=1',
     saved: 'js/profile-saved.js?v=fbf14ea3f0cd'
   });
 
