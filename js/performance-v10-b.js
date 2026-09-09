@@ -9,6 +9,7 @@
   const mediaSeen = new WeakSet();
   const API_CACHE_RULES = new Map([
     ['/api/discover', 45_000],
+    ['/api/recommendations', 45_000],
     ['/api/ratings/summaries', 60_000]
   ]);
   const CLOUDINARY_HOST = 'res.cloudinary.com';
