@@ -78,11 +78,8 @@
 
   function warmPublicBootstrap() {
     const network = capability();
-    const paths = network.constrained || network.lowEnd
-      ? ['/api/categories']
-      : network.effectiveType === '3g'
-        ? ['/api/categories', '/api/stores']
-        : [...publicPaths];
+    if (network.constrained || network.lowEnd || network.effectiveType === '3g') return;
+    const paths = ['/api/categories', '/api/stores'];
     const init = { method: 'GET', credentials: 'include', headers: { Accept: 'application/json' }, cache: 'no-store' };
     for (const path of paths) {
       warmRequests += 1;
@@ -271,36 +268,53 @@
     } catch {}
   }
 
+  function runWhenIdle(task, timeout = 3000, fallbackDelay = 1200) {
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => task(), { timeout });
+      return;
+    }
+    setTimeout(task, fallbackDelay);
+  }
+
+  function afterWindowLoad(task) {
+    const run = () => task();
+    if (doc.readyState === 'complete') run();
+    else window.addEventListener('load', run, { once: true, passive: true });
+  }
+
   function scheduleEfficiency() {
-    const run = () => {
-      const task = () => Promise.all([
-        loaders.efficiency(),
-        loaders.stability()
-      ]).catch(error => {
-        console.warn('[Pasar UMKM] V10 performance bootstrap:', error);
-      });
-      setTimeout(task, 0);
-    };
-    if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', run, { once: true });
-    else run();
+    afterWindowLoad(() => {
+      if (doc.visibilityState === 'hidden') return;
+      runWhenIdle(() => {
+        loaders.efficiency().catch(error => {
+          console.warn('[Pasar UMKM] V10 efficiency bootstrap:', error);
+        });
+        runWhenIdle(() => loaders.stability().catch(error => {
+          console.warn('[Pasar UMKM] V10 stability bootstrap:', error);
+        }), 5000, 1800);
+      }, 3500, 900);
+    });
+  }
+
+  function schedulePublicWarmup() {
+    afterWindowLoad(() => {
+      if (doc.visibilityState === 'hidden') return;
+      runWhenIdle(() => warmPublicBootstrap(), 6000, 2600);
+    });
   }
 
   function scheduleWarmup() {
-    const run = () => {
+    afterWindowLoad(() => {
       if (doc.visibilityState === 'hidden') return;
       const device = capability();
       if (device.constrained || device.lowEnd || device.effectiveType === '3g') return;
-      const task = () => loaders.saved().catch(() => null);
-      if ('requestIdleCallback' in window) requestIdleCallback(task, { timeout: 5000 });
-      else setTimeout(task, 1800);
-    };
-    if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', run, { once: true });
-    else run();
+      runWhenIdle(() => loaders.saved().catch(() => null), 6500, 3200);
+    });
   }
 
   observeVitals();
-  warmPublicBootstrap();
   scheduleEfficiency();
+  schedulePublicWarmup();
   scheduleWarmup();
 
   window.PasarP2Performance = Object.freeze({
