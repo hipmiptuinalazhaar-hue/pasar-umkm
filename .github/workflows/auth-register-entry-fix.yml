@@ -1,0 +1,98 @@
+name: Auth Register Entry Fix
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/auth-register-entry-fix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Route guest login intent through Auth Security V2
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+
+          const bootPath = 'js/performance-v10-a.js';
+          let boot = fs.readFileSync(bootPath, 'utf8');
+
+          const declarationsBefore = `  let warmRequests = 0;
+          let replayCount = 0;
+          let lazyLoads = 0;
+          let intentTimeouts = 0;
+          let lcp = 0;
+          let cls = 0;
+          let longTasks = 0;`;
+          const declarationsAfter = `  let warmRequests=0,replayCount=0,lazyLoads=0,intentTimeouts=0,lcp=0,cls=0,longTasks=0;`;
+          if (!boot.includes(declarationsBefore)) throw new Error('V10 diagnostics declaration block changed unexpectedly.');
+          boot = boot.replace(declarationsBefore, declarationsAfter);
+
+          const selectorBefore = `      '[data-action="post-create"]',
+                '[data-nav="cart"]',`;
+          const selectorAfter = `      '[data-action="post-create"]',
+                '[data-action="login"]',
+                '[data-nav="cart"]',`;
+          if (!boot.includes(selectorBefore)) throw new Error('V10 commerce intent selector block changed unexpectedly.');
+          boot = boot.replace(selectorBefore, selectorAfter);
+          fs.writeFileSync(bootPath, boot);
+
+          const validatorPath = 'scripts/validate-performance-v10-a.mjs';
+          let validator = fs.readFileSync(validatorPath, 'utf8');
+          const anchor = `assert(!account.includes('window.fetch ='), 'fetch coalescing hanya boleh dimiliki V10 bootstrap, bukan account bootstrap.');`;
+          const guard = `assert(boot.includes('[data-action="login"]'), 'guest Masuk / Daftar harus melewati V10 commerce intent agar Auth Security V2 dimuat sebelum legacy login.');\n\n${anchor}`;
+          if (!validator.includes(anchor)) throw new Error('V10 validator anchor changed unexpectedly.');
+          validator = validator.replace(anchor, guard);
+          fs.writeFileSync(validatorPath, validator);
+          NODE
+
+      - name: Build generated runtime and fingerprints
+        run: npm run build:runtime
+
+      - name: Validate auth and performance contracts
+        run: |
+          node --check js/performance-v10-a.js
+          node scripts/validate-auth-security-v2.mjs
+          node scripts/validate-performance-v10-a.mjs
+          npm run validate
+
+      - name: Stage intended product changes
+        run: git add js/performance-v10-a.js scripts/validate-performance-v10-a.mjs index.html
+
+      - name: Verify reproducible runtime build
+        run: |
+          npm run build:runtime
+          git diff --exit-code
+
+      - name: Commit fix
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if git diff --cached --quiet; then
+            echo 'No product changes to commit.'
+            exit 0
+          fi
+          git commit -m 'fix(auth): expose secure registration from guest entry'
+          git push origin HEAD:main
