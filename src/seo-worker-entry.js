@@ -3,6 +3,7 @@ import { handlePublicSeo } from "./public-seo.js";
 
 const SITE_ORIGIN = "https://pasar-umkm.hipmiptuinalazhaar.workers.dev";
 const HOME_DESCRIPTION = "Pasar UMKM Lubuklinggau, platform digital untuk menemukan produk, layanan, dan usaha lokal.";
+const GOOGLE_SITE_VERIFICATION = "DMxwOlwgQkfPaF5_P_mezSHlo5-iGcU7t0QLYMi6M4c";
 
 function homepageSchema() {
   return JSON.stringify({
@@ -52,6 +53,7 @@ async function homepage(request, env) {
 <link rel="canonical" href="${canonical}">
 <link rel="icon" href="/assets/logo.webp?v=2.0" type="image/webp">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+<meta name="google-site-verification" content="${GOOGLE_SITE_VERIFICATION}">
 <meta property="og:locale" content="id_ID">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Pasar UMKM Lubuklinggau">
