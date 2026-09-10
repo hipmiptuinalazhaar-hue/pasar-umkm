@@ -173,6 +173,14 @@ async function handleHealth(env) {
       release: RELEASE_CONTRACT,
       environment: runtimeEnvironment(env),
       staging_database_attested: stagingDatabaseAttested,
+      auth: {
+        verification_ready: Boolean(String(env?.RESEND_API_KEY || '').trim())
+          && Boolean(String(env?.AUTH_FROM_EMAIL || '').trim())
+          && String(env?.AUTH_OTP_PEPPER || '').length >= 32,
+        email_provider_configured: Boolean(String(env?.RESEND_API_KEY || '').trim()),
+        sender_configured: Boolean(String(env?.AUTH_FROM_EMAIL || '').trim()),
+        otp_pepper_configured: String(env?.AUTH_OTP_PEPPER || '').length >= 32
+      },
       database: { connected: true },
       schema: {
         core_ready: missingCore.length === 0,
