@@ -6,7 +6,7 @@
    ========================================================= */
 
 (() => {
-  if (window.PasarAboutExperience?.version === '2.0' && window.PasarAboutExperience?.revision === '2.2') return;
+  if (window.PasarAboutExperience?.version === '2.0' && window.PasarAboutExperience?.revision === '2.3') return;
 
   const fallback = typeof window.openAbout === 'function'
     ? window.openAbout.bind(window)
@@ -42,6 +42,7 @@
     const operator = typeof CONFIG !== 'undefined'
       ? (CONFIG.OPERATOR || 'Capryan Agusto')
       : 'Capryan Agusto';
+    const personalUrl = 'https://capryan-agusto.hipmiptuinalazhaar.workers.dev/';
     const logo = typeof ASSETS !== 'undefined'
       ? (ASSETS.logo || 'assets/logo.webp')
       : 'assets/logo.webp';
@@ -142,7 +143,7 @@
           </div>
           <div class="about-v2-identity-row">
             <span>Founder & Product Initiator</span>
-            <strong>${esc(initiator)}</strong>
+            <strong><a href="${personalUrl}" rel="me author noopener" target="_blank" aria-label="Profil resmi ${esc(initiator)}" style="color:inherit;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;">${esc(initiator)}</a></strong>
           </div>
           <div class="about-v2-identity-row">
             <span>Penyelenggara platform</span>
@@ -179,7 +180,7 @@
   window.openAbout = openAboutV2;
   window.PasarAboutExperience = Object.freeze({
     version: '2.0',
-    revision: '2.2',
+    revision: '2.3',
     open: openAboutV2
   });
 })();
