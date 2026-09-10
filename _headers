@@ -21,14 +21,41 @@
 /index.html
   Cache-Control: public, max-age=0, must-revalidate
 
+/checkout
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, nofollow
+
+/checkout/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, nofollow
+
+/purchases
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, nofollow
+
+/purchases/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, nofollow
+
 /seller-orders
   Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, nofollow
 
 /seller-orders/*
   Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, nofollow
+
+/support
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, nofollow
+
+/support/*
+  Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, nofollow
 
 /admin
   Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, nofollow
   Referrer-Policy: no-referrer
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   Cross-Origin-Opener-Policy: same-origin
@@ -36,6 +63,7 @@
 
 /admin/*
   Cache-Control: no-store, max-age=0
+  X-Robots-Tag: noindex, nofollow
   Referrer-Policy: no-referrer
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   Cross-Origin-Opener-Policy: same-origin
