@@ -1,5 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import { handlePublicAuthSecurityV2Api } from "./public-auth-security-v2-api.js";
+import { ensureSupportInfrastructure } from "./support-store.js";
 import {
   normalizeEmail,
   validEmail,
@@ -10,6 +11,7 @@ import {
 
 const SESSION_COOKIE = "__Host-pasar_umkm_session";
 const MAX_SESSION_AGE = 604800;
+const MANUAL_RECOVERY_MESSAGE = "Jika email tersebut terdaftar, permintaan reset kata sandi telah dikirim ke Customer Service. Admin akan memverifikasi identitas sebelum mereset kata sandi.";
 
 function json(data, status = 200, extraHeaders = {}) {
   return Response.json(data, {
@@ -47,6 +49,7 @@ function route(request) {
   const method = request.method;
   if (url.pathname === "/api/auth/register" && method === "POST") return "register";
   if (url.pathname === "/api/auth/login" && method === "POST") return "login";
+  if (url.pathname === "/api/auth/password/forgot" && method === "POST") return "password-forgot-manual";
   if (url.pathname === "/api/auth/me" && method === "GET") return "me";
   if (url.pathname === "/api/auth/logout" && method === "POST") return "logout";
   return null;
@@ -54,7 +57,7 @@ function route(request) {
 
 function serviceUnavailable() {
   return json(
-    { ok: false, error: "Layanan verifikasi akun sedang tidak tersedia. Coba lagi beberapa saat.", code: "AUTH_SERVICE_UNAVAILABLE" },
+    { ok: false, error: "Layanan akun sedang tidak tersedia. Coba lagi beberapa saat.", code: "AUTH_SERVICE_UNAVAILABLE" },
     503,
     { "Retry-After": "60" }
   );
@@ -112,6 +115,79 @@ async function register(sql, request) {
     }
     throw error;
   }
+}
+
+async function manualPasswordRecovery(sql, request) {
+  const startedAt = Date.now();
+  const body = await request.json().catch(() => null);
+  const email = normalizeEmail(body?.email);
+  if (!validEmail(email)) return json({ ok: false, error: "Alamat email tidak valid." }, 400);
+
+  await ensureSupportInfrastructure(sql);
+  const users = await sql`
+    SELECT id, email
+    FROM users
+    WHERE email = ${email}
+      AND is_active = TRUE
+    LIMIT 1
+  `;
+  const user = users[0] || null;
+
+  if (user) {
+    const existing = await sql`
+      SELECT id
+      FROM support_tickets
+      WHERE user_id = ${user.id}
+        AND category = 'account_security'
+        AND subject = 'Permintaan reset kata sandi'
+        AND status IN ('waiting_support','in_progress','waiting_user')
+        AND created_at > NOW() - INTERVAL '24 hours'
+      ORDER BY created_at DESC
+      LIMIT 1
+    `;
+
+    if (!existing[0]) {
+      const tickets = await sql`
+        INSERT INTO support_tickets (
+          user_id, category, subject, status, priority,
+          last_user_message_at, updated_at
+        ) VALUES (
+          ${user.id}, 'account_security', 'Permintaan reset kata sandi',
+          'waiting_support', 'high', NOW(), NOW()
+        )
+        RETURNING id
+      `;
+      const ticket = tickets[0];
+      if (ticket) {
+        await sql`
+          INSERT INTO support_messages (ticket_id, sender_type, user_id, message)
+          VALUES (
+            ${ticket.id}, 'user', ${user.id},
+            'Saya lupa kata sandi dan meminta bantuan Customer Service untuk memulihkan akses akun.'
+          )
+        `;
+        await sql`
+          INSERT INTO support_ticket_events (
+            ticket_id, actor_type, user_id, event_type, metadata
+          ) VALUES (
+            ${ticket.id}, 'user', ${user.id}, 'password_recovery.requested',
+            '{"source":"forgot_password","mode":"manual_admin"}'::jsonb
+          )
+        `;
+      }
+    }
+
+    await auditAuth(sql, request, {
+      userId: user.id,
+      email: user.email,
+      eventType: "password_reset_manual_requested",
+      outcome: "requested"
+    });
+  }
+
+  const remainingFloor = 700 - (Date.now() - startedAt);
+  if (remainingFloor > 0) await new Promise(resolve => setTimeout(resolve, remainingFloor));
+  return json({ ok: true, manual_review: true, message: MANUAL_RECOVERY_MESSAGE }, 202);
 }
 
 async function login(sql, request) {
@@ -194,7 +270,8 @@ export async function handlePublicAuthApi(request, env) {
 
   try {
     const sql = neon(env.DATABASE_URL);
-    if (isV2Route) return await handlePublicAuthSecurityV2Api(sql, request, env);
+    if (coreAction === "password-forgot-manual") return await manualPasswordRecovery(sql, request);
+    if (isV2Route && !coreAction) return await handlePublicAuthSecurityV2Api(sql, request, env);
     if (coreAction === "register") return await register(sql, request);
     if (coreAction === "login") return await login(sql, request);
     if (coreAction === "me") return await me(sql, request);
@@ -205,7 +282,13 @@ export async function handlePublicAuthApi(request, env) {
     return json({
       ok: false,
       authenticated: coreAction === "me" ? false : undefined,
-      error: coreAction === "me" ? "Gagal memeriksa session." : coreAction === "login" ? "Terjadi kesalahan saat login." : "Pendaftaran belum dapat diproses."
+      error: coreAction === "me"
+        ? "Gagal memeriksa session."
+        : coreAction === "login"
+          ? "Terjadi kesalahan saat login."
+          : coreAction === "password-forgot-manual"
+            ? "Permintaan pemulihan akun belum dapat diproses."
+            : "Pendaftaran belum dapat diproses."
     }, 500);
   }
 }
