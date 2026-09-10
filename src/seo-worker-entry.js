@@ -4,6 +4,7 @@ import { handlePublicSeo } from "./public-seo.js";
 const SITE_ORIGIN = "https://pasar-umkm.hipmiptuinalazhaar.workers.dev";
 const HOME_DESCRIPTION = "Pasar UMKM Lubuklinggau, platform digital untuk menemukan produk, layanan, dan usaha lokal.";
 const GOOGLE_SITE_VERIFICATION = "DMxwOlwgQkfPaF5_P_mezSHlo5-iGcU7t0QLYMi6M4c";
+const CRITICAL_PUBLIC_STYLE = "/css/public-experience-v9.css?v=654bea569c48";
 
 function homepageSchema() {
   return JSON.stringify({
@@ -44,18 +45,31 @@ async function homepage(request, env) {
   // Fetch the root asset. Cloudflare Static Assets canonicalizes /index.html
   // back to /, so requesting /index.html through ASSETS can yield a 307.
   const assetRequest = new Request(new URL("/", request.url), request);
-  const response = await env.ASSETS.fetch(assetRequest);
-  if (!response.ok || !String(response.headers.get("Content-Type") || "").includes("text/html")) return response;
+  const assetResponse = await env.ASSETS.fetch(assetRequest);
+  if (!assetResponse.ok || !String(assetResponse.headers.get("Content-Type") || "").includes("text/html")) return assetResponse;
+
+  // Keep the document itself fresh. Versioned assets may be cached, but the HTML
+  // must always be revalidated so a new deploy cannot boot an obsolete asset graph.
+  const headers = new Headers(assetResponse.headers);
+  headers.set("Cache-Control", "no-cache, max-age=0, must-revalidate");
+  headers.set("Pragma", "no-cache");
+  const response = new Response(assetResponse.body, {
+    status: assetResponse.status,
+    statusText: assetResponse.statusText,
+    headers
+  });
 
   const canonical = `${SITE_ORIGIN}/`;
   return new HTMLRewriter()
     .on("head", {
       element(element) {
         element.append(`
+<link rel="stylesheet" href="${CRITICAL_PUBLIC_STYLE}" data-critical-public-ui="v11">
 <link rel="canonical" href="${canonical}">
 <link rel="icon" href="/assets/logo.webp?v=2.0" type="image/webp">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="google-site-verification" content="${GOOGLE_SITE_VERIFICATION}">
+<meta name="pumkm-runtime-policy" content="fresh-shell-v11">
 <meta property="og:locale" content="id_ID">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Pasar UMKM Lubuklinggau">
