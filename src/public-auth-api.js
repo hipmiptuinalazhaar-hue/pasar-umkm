@@ -1,18 +1,10 @@
 import { neon } from "@neondatabase/serverless";
-import { sendAuthCode } from "./auth-email.js";
 import { handlePublicAuthSecurityV2Api } from "./public-auth-security-v2-api.js";
 import {
-  OTP_TTL_MINUTES,
-  OTP_MAX_ATTEMPTS,
-  OTP_RESEND_SECONDS,
   normalizeEmail,
   validEmail,
   validatePassword,
-  maskedEmail,
-  createOtp,
-  otpHash,
   auditAuth,
-  assertAuthV2Configured,
   isAuthConfigurationError
 } from "./auth-security-v2-shared.js";
 
@@ -68,8 +60,7 @@ function serviceUnavailable() {
   );
 }
 
-async function register(sql, request, env) {
-  assertAuthV2Configured(env);
+async function register(sql, request) {
   const body = await request.json().catch(() => null);
   if (!body) return json({ ok: false, error: "Data pendaftaran tidak valid." }, 400);
 
@@ -87,52 +78,40 @@ async function register(sql, request, env) {
     return json({ ok: false, error: "Email tidak dapat digunakan untuk pendaftaran." }, 409);
   }
 
-  const hashes = await sql`SELECT crypt(${password}, gen_salt('bf', 12)) AS password_hash`;
-  const pendingPasswordHash = hashes[0]?.password_hash;
-  if (!pendingPasswordHash) throw new Error("Password hashing failed");
-
-  const challengeId = crypto.randomUUID();
-  const code = createOtp();
-  const codeHash = await otpHash(env, challengeId, "register", code);
-  await sql`
-    UPDATE user_auth_challenges
-    SET consumed_at = NOW(), updated_at = NOW()
-    WHERE email = ${email} AND purpose = 'register' AND consumed_at IS NULL
-  `;
-  await sql`
-    INSERT INTO user_auth_challenges (
-      id, purpose, email, pending_name, pending_password_hash,
-      code_hash, expires_at, max_attempts, last_sent_at
-    ) VALUES (
-      ${challengeId}, 'register', ${email}, ${name}, ${pendingPasswordHash},
-      ${codeHash}, NOW() + INTERVAL '10 minutes', ${OTP_MAX_ATTEMPTS}, NOW()
-    )
-  `;
-
   try {
-    await sendAuthCode(env, {
-      to: email,
-      code,
-      purpose: "register",
-      expiresMinutes: OTP_TTL_MINUTES,
-      idempotencyKey: `register-${challengeId}-0`
+    const users = await sql`
+      INSERT INTO users (name, email, password_hash, email_verified, email_verified_at)
+      VALUES (${name}, ${email}, crypt(${password}, gen_salt('bf', 12)), TRUE, NOW())
+      RETURNING id, name, email, role, email_verified, created_at
+    `;
+    const user = users[0];
+    if (!user) throw new Error("User creation failed");
+
+    const token = createSessionToken();
+    await sql`
+      INSERT INTO sessions (user_id, token_hash, expires_at)
+      VALUES (${user.id}, encode(digest(${token}, 'sha256'), 'hex'), NOW() + INTERVAL '7 days')
+    `;
+    await sql`UPDATE users SET last_login_at = NOW() WHERE id = ${user.id}`;
+    await auditAuth(sql, request, {
+      userId: user.id,
+      email: user.email,
+      eventType: "registration_manual",
+      outcome: "success",
+      metadata: { email_otp: false }
     });
+
+    return json(
+      { ok: true, message: "Akun berhasil dibuat. Anda sudah masuk.", user },
+      201,
+      { "Set-Cookie": sessionCookie(token) }
+    );
   } catch (error) {
-    await sql`UPDATE user_auth_challenges SET consumed_at = NOW(), updated_at = NOW() WHERE id = ${challengeId}`;
-    await auditAuth(sql, request, { email, eventType: "registration_otp_delivery", outcome: "failure", metadata: { provider_status: error?.status || null } });
+    if (error?.code === "23505") {
+      return json({ ok: false, error: "Email tidak dapat digunakan untuk pendaftaran." }, 409);
+    }
     throw error;
   }
-
-  await auditAuth(sql, request, { email, eventType: "registration_otp_sent", outcome: "success" });
-  return json({
-    ok: true,
-    verification_required: true,
-    challenge_id: challengeId,
-    masked_email: maskedEmail(email),
-    expires_in: OTP_TTL_MINUTES * 60,
-    resend_after: OTP_RESEND_SECONDS,
-    message: "Kode verifikasi telah dikirim ke email Anda."
-  }, 202);
 }
 
 async function login(sql, request) {
@@ -216,7 +195,7 @@ export async function handlePublicAuthApi(request, env) {
   try {
     const sql = neon(env.DATABASE_URL);
     if (isV2Route) return await handlePublicAuthSecurityV2Api(sql, request, env);
-    if (coreAction === "register") return await register(sql, request, env);
+    if (coreAction === "register") return await register(sql, request);
     if (coreAction === "login") return await login(sql, request);
     if (coreAction === "me") return await me(sql, request);
     return await logout(sql, request);
@@ -226,7 +205,7 @@ export async function handlePublicAuthApi(request, env) {
     return json({
       ok: false,
       authenticated: coreAction === "me" ? false : undefined,
-      error: coreAction === "me" ? "Gagal memeriksa session." : coreAction === "login" ? "Terjadi kesalahan saat login." : "Verifikasi akun belum dapat diproses."
+      error: coreAction === "me" ? "Gagal memeriksa session." : coreAction === "login" ? "Terjadi kesalahan saat login." : "Pendaftaran belum dapat diproses."
     }, 500);
   }
 }
