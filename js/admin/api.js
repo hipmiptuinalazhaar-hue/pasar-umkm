@@ -87,5 +87,6 @@ export const adminApi = Object.freeze({
   supportTicket(id, { signal } = {}) { return request(`/api/admin/support/tickets/${encodeURIComponent(id)}`, { signal }); },
   supportReply(id, message) { return request(`/api/admin/support/tickets/${encodeURIComponent(id)}/messages`, { method: "POST", body: JSON.stringify({ message }) }); },
   supportUpdate(id, payload) { return request(`/api/admin/support/tickets/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(payload) }); },
-  supportNote(id, note) { return request(`/api/admin/support/tickets/${encodeURIComponent(id)}/notes`, { method: "POST", body: JSON.stringify({ note }) }); }
+  supportNote(id, note) { return request(`/api/admin/support/tickets/${encodeURIComponent(id)}/notes`, { method: "POST", body: JSON.stringify({ note }) }); },
+  supportPasswordReset(id) { return request(`/api/admin/support/tickets/${encodeURIComponent(id)}/password-reset`, { method: "POST", body: "{}" }); }
 });
