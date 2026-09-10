@@ -125,6 +125,12 @@ async function withTransaction(env, work) {
   }
 }
 
+function temporaryPassword(length = 20) {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  const bytes = crypto.getRandomValues(new Uint8Array(length));
+  return [...bytes].map(byte => alphabet[byte % alphabet.length]).join("");
+}
+
 function serialize(row) {
   return {
     id: row.id,
@@ -411,6 +417,77 @@ async function updateTicket(request, env, ticketId) {
   });
 }
 
+async function resetUserPassword(request, env, ticketId) {
+  if (!sameOrigin(request)) return fail("Origin permintaan tidak valid.", 403, "ORIGIN_REJECTED");
+  const authz = await authorize(request, env, "support.manage");
+  if (authz.response) return authz.response;
+
+  const password = temporaryPassword();
+  const outcome = await withTransaction(env, async client => {
+    const locked = await client.query(
+      `SELECT t.id,t.user_id,t.category,t.subject,t.status,u.email,u.is_active
+       FROM support_tickets t
+       JOIN users u ON u.id=t.user_id
+       WHERE t.id=$1
+       FOR UPDATE`,
+      [ticketId]
+    );
+    const ticket = locked.rows[0];
+    if (!ticket) return { error: "missing" };
+    if (ticket.category !== "account_security" || ticket.subject !== "Permintaan reset kata sandi") {
+      return { error: "wrong_ticket" };
+    }
+    if (ticket.status === "closed" || ticket.status === "resolved") return { error: "finished" };
+    if (!ticket.is_active) return { error: "inactive" };
+
+    await client.query(
+      `UPDATE users
+       SET password_hash=crypt($1, gen_salt('bf',12)), password_changed_at=NOW()
+       WHERE id=$2`,
+      [password, ticket.user_id]
+    );
+    await client.query(`DELETE FROM sessions WHERE user_id=$1`, [ticket.user_id]);
+    await client.query(
+      `UPDATE support_tickets
+       SET status='resolved', assigned_admin_id=COALESCE(assigned_admin_id,$1),
+           last_admin_message_at=NOW(), admin_last_read_at=NOW(),
+           resolved_at=NOW(), closed_at=NULL, updated_at=NOW()
+       WHERE id=$2`,
+      [authz.session.id, ticketId]
+    );
+    await client.query(
+      `INSERT INTO support_messages (ticket_id,sender_type,message)
+       VALUES ($1,'system','Kata sandi akun telah direset oleh Customer Service setelah verifikasi manual. Semua sesi lama dicabut.')`,
+      [ticketId]
+    );
+    await client.query(
+      `INSERT INTO support_ticket_events
+        (ticket_id,actor_type,admin_account_id,event_type,from_value,to_value,metadata)
+       VALUES ($1,'admin',$2,'password_recovery.completed',$3,'resolved',
+         '{"sessions_revoked":true,"temporary_password_exposed_once":true}'::jsonb)`,
+      [ticketId, authz.session.id, ticket.status]
+    );
+    return { userId: ticket.user_id, email: ticket.email, previousStatus: ticket.status };
+  });
+
+  if (outcome.error === "missing") return fail("Tiket tidak ditemukan.", 404, "SUPPORT_TICKET_NOT_FOUND");
+  if (outcome.error === "wrong_ticket") return fail("Tiket ini bukan permintaan reset kata sandi.", 409, "NOT_PASSWORD_RECOVERY_TICKET");
+  if (outcome.error === "finished") return fail("Permintaan reset ini sudah selesai atau ditutup.", 409, "PASSWORD_RECOVERY_ALREADY_FINISHED");
+  if (outcome.error === "inactive") return fail("Akun pengguna sedang tidak aktif.", 409, "USER_ACCOUNT_INACTIVE");
+
+  await audit(authz.sql, request, authz.session, "support.password_reset", ticketId, {
+    user_id: outcome.userId,
+    previous_status: outcome.previousStatus,
+    sessions_revoked: true
+  });
+  return json({
+    ok: true,
+    status: "resolved",
+    temporary_password: password,
+    message: "Kata sandi sementara dibuat. Tampilkan hanya kepada pengguna yang identitasnya sudah diverifikasi. Nilai ini tidak disimpan dan tidak dapat ditampilkan ulang."
+  }, 201);
+}
+
 async function addNote(request, env, ticketId) {
   if (!sameOrigin(request)) return fail("Origin permintaan tidak valid.", 403, "ORIGIN_REJECTED");
   const authz = await authorize(request, env, "support.manage");
@@ -435,6 +512,12 @@ export async function handleAdminSupportApi(request, env) {
   try {
     if (url.pathname === "/api/admin/support/tickets" && request.method === "GET") {
       return await listTickets(request, env, url);
+    }
+    const resetMatch = url.pathname.match(/^\/api\/admin\/support\/tickets\/([0-9a-f-]{36})\/password-reset$/i);
+    if (resetMatch && request.method === "POST") {
+      const id = uuid(resetMatch[1]);
+      if (!id) return fail("ID tiket tidak valid.", 400, "INVALID_TICKET_ID");
+      return await resetUserPassword(request, env, id);
     }
     const ticketMatch = url.pathname.match(/^\/api\/admin\/support\/tickets\/([0-9a-f-]{36})$/i);
     if (ticketMatch) {
