@@ -1,7 +1,7 @@
 'use strict';
 
 (() => {
-  if (window.PasarAuthSecurityV2?.version === '1.1-direct') return;
+  if (window.PasarAuthSecurityV2?.version === '1.2-manual-recovery') return;
 
   const flow = { mode: 'login', preferredEmail: '' };
 
@@ -42,9 +42,10 @@
     if (node) { node.hidden = true; node.textContent = ''; }
   }
 
-  function shell({ title, subtitle, body, tabs = false }) {
+  function shell({ title, subtitle, body, tabs = false, back = '' }) {
     return `
       <div id="authV2Shell" class="auth-v2-shell">
+        ${back ? `<button type="button" class="auth-v2-back" data-auth-v2-action="${esc(back)}"><i class="ph ph-arrow-left"></i><span>Kembali</span></button>` : ''}
         <section class="auth-v2-brand">
           <div class="auth-v2-mark"><img src="${esc(logo())}" alt="" aria-hidden="true"></div>
           <div class="auth-v2-heading">
@@ -87,7 +88,14 @@
             <input id="authV2LoginEmail" class="auth-v2-input" name="email" type="email" inputmode="email" autocomplete="email" maxlength="255" placeholder="nama@email.com" value="${esc(flow.preferredEmail)}" required>
           </div>
         </div>
-        ${passwordField('authV2LoginPassword', 'password', 'Kata sandi')}
+        <div class="auth-v2-field">
+          <div class="auth-v2-label-row"><label class="auth-v2-label" for="authV2LoginPassword">Kata sandi</label><button type="button" class="auth-v2-link" data-auth-v2-action="forgot">Lupa kata sandi?</button></div>
+          <div class="auth-v2-input-wrap">
+            <i class="ph ph-lock-key auth-v2-input-icon" aria-hidden="true"></i>
+            <input id="authV2LoginPassword" class="auth-v2-input" name="password" type="password" autocomplete="current-password" maxlength="72" placeholder="Masukkan kata sandi" required>
+            <button type="button" class="auth-v2-toggle" data-auth-v2-toggle="authV2LoginPassword" aria-label="Tampilkan kata sandi"><i class="ph ph-eye"></i></button>
+          </div>
+        </div>
         <button type="submit" class="auth-v2-submit"><i class="ph ph-sign-in"></i><span>Masuk</span></button>
       </form>`;
   }
@@ -102,19 +110,32 @@
         <div class="auth-v2-field">
           <label class="auth-v2-label" for="authV2RegisterEmail">Email</label>
           <div class="auth-v2-input-wrap"><i class="ph ph-envelope-simple auth-v2-input-icon"></i><input id="authV2RegisterEmail" class="auth-v2-input" name="email" type="email" inputmode="email" autocomplete="email" maxlength="255" placeholder="nama@email.com" required></div>
-          <p class="auth-v2-hint">Verifikasi email sementara dinonaktifkan. Pastikan alamat email yang Anda masukkan benar.</p>
+          <p class="auth-v2-hint">Pastikan alamat email yang Anda masukkan benar.</p>
         </div>
         ${passwordField('authV2RegisterPassword', 'password', 'Kata sandi', 'new-password', 'Minimal 8 karakter', true)}
         <button type="submit" class="auth-v2-submit"><i class="ph ph-user-plus"></i><span>Daftar sekarang</span></button>
       </form>`;
   }
 
+  function forgotBody() {
+    return `
+      <form id="authV2ForgotForm" class="auth-v2-form">
+        <div class="auth-v2-field">
+          <label class="auth-v2-label" for="authV2RecoveryEmail">Email akun</label>
+          <div class="auth-v2-input-wrap"><i class="ph ph-envelope-simple auth-v2-input-icon"></i><input id="authV2RecoveryEmail" class="auth-v2-input" name="email" type="email" inputmode="email" autocomplete="email" maxlength="255" placeholder="nama@email.com" value="${esc(flow.preferredEmail)}" required></div>
+          <p class="auth-v2-hint">Permintaan akan masuk ke Customer Service. Admin akan memverifikasi identitas Anda sebelum mereset kata sandi. Demi privasi, sistem tidak mengungkap apakah email terdaftar.</p>
+        </div>
+        <button type="submit" class="auth-v2-submit"><i class="ph ph-headset"></i><span>Kirim permintaan reset</span></button>
+      </form>`;
+  }
+
   function render(mode = 'login', options = {}) {
     ensureStyle();
-    flow.mode = mode === 'register' ? 'register' : 'login';
-    const html = flow.mode === 'register'
-      ? shell({ title: 'Buat akun', subtitle: 'Daftar langsung untuk mulai menggunakan Pasar UMKM.', body: registerBody(), tabs: true })
-      : shell({ title: 'Selamat datang kembali', subtitle: 'Masuk untuk melanjutkan aktivitas di Pasar UMKM.', body: loginBody(), tabs: true });
+    flow.mode = ['register', 'forgot'].includes(mode) ? mode : 'login';
+    let html;
+    if (flow.mode === 'register') html = shell({ title: 'Buat akun', subtitle: 'Daftar langsung untuk mulai menggunakan Pasar UMKM.', body: registerBody(), tabs: true });
+    else if (flow.mode === 'forgot') html = shell({ title: 'Lupa kata sandi', subtitle: 'Kirim permintaan pemulihan akun ke Customer Service.', body: forgotBody(), back: 'login' });
+    else html = shell({ title: 'Selamat datang kembali', subtitle: 'Masuk untuk melanjutkan aktivitas di Pasar UMKM.', body: loginBody(), tabs: true });
 
     if (typeof closeSideMenu === 'function') closeSideMenu();
     if (typeof openBottomSheet !== 'function') return;
@@ -220,6 +241,23 @@
     } finally { setLoading(button, false); }
   }
 
+  async function submitForgot(form) {
+    if (!form.checkValidity()) return form.reportValidity();
+    const email = String(new FormData(form).get('email') || '').trim().toLowerCase();
+    const button = form.querySelector('.auth-v2-submit');
+    clearMessage(); setLoading(button, true, 'Mengirim permintaan...');
+    try {
+      const result = await request('/api/auth/password/forgot', { email });
+      flow.preferredEmail = email;
+      render('login', {
+        messageType: 'success',
+        message: result.message || 'Permintaan pemulihan akun sudah diteruskan ke Customer Service.'
+      });
+    } catch (error) {
+      setMessage('error', error.message || 'Permintaan pemulihan belum dapat diproses.');
+    } finally { setLoading(button, false); }
+  }
+
   function bind() {
     const root = document.getElementById('authV2Shell');
     if (!root) return;
@@ -229,8 +267,11 @@
       const input = meter.closest('.auth-v2-field')?.querySelector('input[type="password"]');
       if (input) { input.addEventListener('input', () => updateMeter(input)); updateMeter(input); }
     });
+    root.querySelector('[data-auth-v2-action="forgot"]')?.addEventListener('click', () => render('forgot'));
+    root.querySelector('[data-auth-v2-action="login"]')?.addEventListener('click', () => render('login'));
     root.querySelector('#authV2LoginForm')?.addEventListener('submit', event => { event.preventDefault(); submitLogin(event.currentTarget); });
     root.querySelector('#authV2RegisterForm')?.addEventListener('submit', event => { event.preventDefault(); submitRegister(event.currentTarget); });
+    root.querySelector('#authV2ForgotForm')?.addEventListener('submit', event => { event.preventDefault(); submitForgot(event.currentTarget); });
   }
 
   const v2OpenLogin = () => {
@@ -246,7 +287,7 @@
   window.renderAuthSheet = v2RenderAuthSheet;
 
   window.PasarAuthSecurityV2 = Object.freeze({
-    version: '1.1-direct',
+    version: '1.2-manual-recovery',
     open: v2OpenLogin,
     render,
     state: () => ({ mode: flow.mode })
