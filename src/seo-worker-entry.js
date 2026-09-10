@@ -41,7 +41,9 @@ async function homepage(request, env) {
   }
   if (url.pathname !== "/") return null;
 
-  const assetRequest = new Request(new URL("/index.html", request.url), request);
+  // Fetch the root asset. Cloudflare Static Assets canonicalizes /index.html
+  // back to /, so requesting /index.html through ASSETS can yield a 307.
+  const assetRequest = new Request(new URL("/", request.url), request);
   const response = await env.ASSETS.fetch(assetRequest);
   if (!response.ok || !String(response.headers.get("Content-Type") || "").includes("text/html")) return response;
 
