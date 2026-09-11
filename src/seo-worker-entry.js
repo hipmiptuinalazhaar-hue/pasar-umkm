@@ -8,7 +8,7 @@ const CRITICAL_PUBLIC_STYLE = "/css/public-experience-v9.css?v=654bea569c48";
 const TRUST_STYLE = "/css/p5-trust-conversion.css?v=1.0";
 const SELLER_STYLE = "/css/seller-center-p8-bridge.css?v=1.0";
 const V1_STYLE = "/css/v1-completion.css?v=1.1";
-const PERFORMANCE_B = "/js/performance-v10-b.js?v=d1c1c336d07e";
+const PERFORMANCE_B = "/js/performance-v10-b.js?v=7a5a0101a671";
 const COMMERCE_RUNTIME = "/js/p8-commerce-integration.js?v=fc3dcbac9b78";
 const TRUST_RUNTIME = "/js/p5-trust-conversion.js?v=1.0";
 const V1_RUNTIME = "/js/v1-completion.js?v=1.2";
@@ -81,7 +81,7 @@ async function homepage(request, env) {
 <link rel="icon" href="/assets/logo.webp?v=2.0" type="image/webp">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="google-site-verification" content="${GOOGLE_SITE_VERIFICATION}">
-<meta name="pumkm-runtime-policy" content="p0-v11.3-parallel-marketplace">
+<meta name="pumkm-runtime-policy" content="p1-finalized-v12">
 <meta property="og:locale" content="id_ID">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Pasar UMKM Lubuklinggau">
