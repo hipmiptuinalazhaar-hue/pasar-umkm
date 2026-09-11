@@ -46,7 +46,9 @@ Viewport matrix bersifat **read-only dan click-free**.
 
 ## Critical-surface browser certification
 
-`scripts/browser-p5-critical-surfaces.mjs` melengkapi viewport matrix dengan interaksi browser nyata terhadap permukaan kritis. Runner menggunakan Chrome nyata dan memasang CDP Fetch guard yang memblokir seluruh request `POST`, `PUT`, `PATCH`, dan `DELETE`. Dengan demikian test boleh menekan tombol UI tanpa membuat order, pesan, notifikasi, rating, atau mutation production lain.
+`scripts/browser-p5-critical-surfaces-v2.mjs` melengkapi viewport matrix dengan interaksi browser nyata terhadap permukaan kritis. Runner menggunakan Chrome nyata dan memasang CDP Fetch guard yang memblokir seluruh request `POST`, `PUT`, `PATCH`, dan `DELETE`. Dengan demikian test boleh menekan tombol UI tanpa membuat order, pesan, notifikasi, rating, atau mutation production lain.
+
+V2 menunggu state UI asinkron secara eksplisit, termasuk lazy runtime account/auth, sehingga certification tidak memakai tebakan waktu tetap untuk menentukan apakah sebuah permukaan berhasil dibuka.
 
 Coverage P5 mencakup:
 
@@ -97,7 +99,7 @@ Staging bootstrap juga memverifikasi database target bernama `pasar_umkm_staging
    - menjalankan post-deploy HTTP smoke pada main/manual release;
    - memastikan Chrome nyata tersedia;
    - menjalankan viewport matrix;
-   - menjalankan critical-surface browser certification dengan mutation blocker;
+   - menjalankan critical-surface browser certification V2 dengan mutation blocker;
    - menjalankan 50/100/200 public-read load gate pada main/manual release;
    - mencetak browser report.
 
@@ -112,7 +114,7 @@ P5 release/browser layer dianggap **100% selesai untuk scope production-safe cer
 - Cloudflare build untuk final SHA sukses;
 - exact post-deploy HTTP smoke hijau;
 - seluruh viewport real-browser matrix hijau;
-- critical-surface browser certification hijau;
+- critical-surface browser certification V2 hijau;
 - notification visual regression guard hijau;
 - critical private routes lolos mobile dan desktop rendering;
 - tidak ada runtime/browser defect yang terdeteksi dalam scope test;
