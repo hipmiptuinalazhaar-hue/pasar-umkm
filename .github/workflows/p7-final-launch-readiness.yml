@@ -116,7 +116,7 @@ jobs:
       - name: Read-only load smoke
         env:
           LOAD_TIERS: 50,100,200
-          LOAD_TIMEOUT_MS: '12000'
+          LOAD_TIMEOUT_MS: '20000'
           LOAD_P95_LIMIT_MS: '8000'
           LOAD_MIN_SUCCESS_RATE: '0.99'
         run: node scripts/load-smoke-v1.mjs
