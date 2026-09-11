@@ -66,8 +66,12 @@ function homepageSchema() {
   }).replace(/</g, "\\u003c");
 }
 
+function htmlResponse(response) {
+  return response && response.status === 200 && String(response.headers.get("Content-Type") || "").includes("text/html");
+}
+
 function enhanceDirectory(response) {
-  if (!response || response.status !== 200 || !String(response.headers.get("Content-Type") || "").includes("text/html")) return response;
+  if (!htmlResponse(response)) return response;
   return new HTMLRewriter()
     .on("main", {
       element(element) {
@@ -78,6 +82,26 @@ function enhanceDirectory(response) {
   <p>Urutan yang tampil di halaman ini memprioritaskan data usaha dan produk yang masih aktif. Status verifikasi pada profil UMKM ditampilkan sebagai informasi tambahan ketika tersedia, tetapi pengguna tetap dianjurkan membaca detail produk, profil penjual, kebijakan transaksi, serta informasi pendukung sebelum membuat keputusan pembelian. Pasar UMKM tidak menambahkan rating, harga, stok, atau klaim usaha yang tidak berasal dari data platform.</p>
   <p>Bagi pelaku usaha, keberadaan halaman publik membantu katalog lebih mudah ditemukan melalui tautan internal dan mesin pencari. Bagi pembeli, struktur direktori membuat pencarian produk lokal lebih sederhana karena setiap produk terhubung langsung dengan profil UMKM yang menjualnya. Direktori ini diperbarui berdasarkan data aktif sehingga tautan menuju produk atau usaha yang sudah tidak tersedia tidak dimasukkan ke sitemap publik. Informasi yang ditampilkan tetap mengikuti pembaruan data marketplace dan status publik masing-masing entitas.</p>
   <p>Gunakan halaman <a href="/legal/index.html">informasi dan kebijakan</a> untuk memahami aturan platform, <a href="/legal/kebijakan-pembeli.html">kebijakan pembeli</a> untuk panduan transaksi, dan <a href="/legal/kebijakan-penjual.html">kebijakan penjual</a> untuk ketentuan bagi pemilik UMKM.</p>
+</section>`, { html: true });
+      }
+    })
+    .transform(response);
+}
+
+function enhanceEntityCrawlQuality(response, kind) {
+  if (!htmlResponse(response)) return response;
+  const isProduct = kind === "product";
+  const title = isProduct ? "Panduan membaca informasi produk" : "Panduan membaca profil UMKM";
+  const copy = isProduct
+    ? "Informasi publik pada halaman produk dirancang sebagai ringkasan katalog, bukan pengganti konfirmasi transaksi. Periksa kembali harga, stok, varian, catatan produk, identitas UMKM, metode pembayaran, serta ketentuan pengiriman ketika akan membuat pesanan. Data dapat berubah setelah penjual memperbarui katalog. Gunakan halaman kebijakan pembeli dan alur marketplace untuk memahami proses pesanan, pembatalan, dukungan, dan bukti transaksi yang tersedia di platform."
+    : "Informasi publik pada profil UMKM membantu pengunjung mengenali usaha dan katalog yang terhubung dengannya. Periksa kategori usaha, lokasi yang ditampilkan, status produk aktif, deskripsi, serta informasi transaksi sebelum mengambil keputusan. Data profil dapat diperbarui oleh pemilik usaha sesuai aktivitas marketplace. Gunakan halaman produk dan kebijakan platform sebagai rujukan tambahan agar konteks harga, stok, pembayaran, pengiriman, dukungan, dan riwayat pesanan tetap jelas.";
+  return new HTMLRewriter()
+    .on("main", {
+      element(element) {
+        element.append(`
+<section data-p3-entity-guide="${kind}" style="margin-top:24px;padding:22px;background:#fff;border:1px solid #dfe8e3;border-radius:18px;color:#43554c;font:500 15px/1.75 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+  <h2 style="margin:0 0 10px;font-size:21px;line-height:1.35;color:#17221d">${title}</h2>
+  <p style="margin:0">${copy}</p>
 </section>`, { html: true });
       }
     })
@@ -134,7 +158,7 @@ async function homepage(request, env) {
 <link rel="icon" href="/assets/logo.webp?v=2.0" type="image/webp">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="google-site-verification" content="${GOOGLE_SITE_VERIFICATION}">
-<meta name="pumkm-runtime-policy" content="p3-seo-finalized-v14.3">
+<meta name="pumkm-runtime-policy" content="p3-seo-finalized-v14.4">
 <meta property="og:locale" content="id_ID">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Pasar UMKM Lubuklinggau">
@@ -192,6 +216,8 @@ export default {
     const seoResponse = await handlePublicSeo(request, env);
     if (seoResponse) {
       if (url.pathname === "/jelajahi" || url.pathname === "/jelajahi/") return enhanceDirectory(seoResponse);
+      if (/^\/umkm\/[^/]+\/?$/.test(url.pathname)) return enhanceEntityCrawlQuality(seoResponse, "store");
+      if (/^\/produk\/[^/]+\/[^/]+\/?$/.test(url.pathname)) return enhanceEntityCrawlQuality(seoResponse, "product");
       return seoResponse;
     }
     return applicationWorker.fetch(request, env, ctx);
