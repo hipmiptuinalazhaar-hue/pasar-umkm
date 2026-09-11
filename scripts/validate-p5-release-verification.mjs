@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 const files = {
   wait: readFileSync('scripts/wait-cloudflare-deploy.mjs', 'utf8'),
   browser: readFileSync('scripts/browser-release-smoke.mjs', 'utf8'),
-  critical: readFileSync('scripts/browser-p5-critical-surfaces.mjs', 'utf8'),
+  critical: readFileSync('scripts/browser-p5-critical-surfaces-v2.mjs', 'utf8'),
   load: readFileSync('scripts/load-smoke-v1.mjs', 'utf8'),
   workflow: readFileSync('.github/workflows/p5-real-release-verification.yml', 'utf8'),
   postDeploy: readFileSync('.github/workflows/post-deploy-smoke.yml', 'utf8'),
@@ -53,9 +53,10 @@ requireContract(files.critical.includes('notification-core.css'), 'critical-surf
 requireContract(files.critical.includes('notification avatar width regression'), 'critical-surface browser protects notification avatar sizing');
 requireContract(files.critical.includes('notification row is not grid'), 'critical-surface browser protects notification row layout');
 requireContract(files.critical.includes("new Set(['POST', 'PUT', 'PATCH', 'DELETE'])"), 'critical-surface browser declares all state-changing methods');
-requireContract(files.critical.includes("client.send('Fetch.failRequest'"), 'critical-surface browser blocks state-changing network requests');
+requireContract(files.critical.includes("cdp.send('Fetch.failRequest'"), 'critical-surface browser blocks state-changing network requests');
 requireContract(files.critical.includes("window.PasarPerformanceV10.openReels()"), 'critical-surface browser opens Reels through canonical runtime owner');
-requireContract(files.critical.includes("STATE.activeNav : ''"), 'critical-surface browser verifies live SPA routing state');
+requireContract(files.critical.includes("STATE.activeNav==='cart'"), 'critical-surface browser verifies live SPA routing state');
+requireContract(files.critical.includes("STATE.activeSheet"), 'critical-surface browser waits for asynchronous auth-sheet state');
 requireContract(files.critical.includes('390, height: 844') && files.critical.includes('1280, height: 800'), 'critical route shells are checked on mobile and desktop');
 
 const waitStepIndex = files.workflow.indexOf('- name: Wait for exact Cloudflare deployment');
@@ -67,13 +68,13 @@ requireContract(files.workflow.includes('checks: read'), 'P5 workflow can read e
 requireContract(files.workflow.includes('node scripts/wait-cloudflare-deploy.mjs'), 'P5 workflow waits for exact Cloudflare deployment');
 requireContract(files.workflow.includes('PRODUCTION_BASE_URL="$P5_BASE_URL" node scripts/post-deploy-smoke.mjs'), 'P5 workflow runs post-deploy HTTP smoke against attested release');
 requireContract(files.workflow.includes('node scripts/browser-release-smoke.mjs'), 'P5 workflow runs real browser viewport verification');
-requireContract(files.workflow.includes('node scripts/browser-p5-critical-surfaces.mjs'), 'P5 workflow runs critical-surface browser verification');
+requireContract(files.workflow.includes('node scripts/browser-p5-critical-surfaces-v2.mjs'), 'P5 workflow runs critical-surface browser verification v2');
 requireContract(files.workflow.includes('node scripts/load-smoke-v1.mjs'), 'P5 workflow runs post-deploy public read load verification');
 requireContract(waitStepIndex >= 0 && httpStepIndex > waitStepIndex, 'HTTP smoke runs only after deployment attestation');
 requireContract(browserStepIndex > httpStepIndex, 'browser matrix follows healthy HTTP production smoke');
 requireContract(criticalStepIndex > browserStepIndex, 'critical-surface certification follows viewport matrix');
 requireContract(loadStepIndex > criticalStepIndex, 'production load gate follows browser certification');
-requireContract((files.workflow.match(/if: github\.event_name != 'pull_request'/g) || []).length >= 2, 'production-only HTTP and load probes are excluded from PR preview mutations/load');
+requireContract((files.workflow.match(/if: github\.event_name != 'pull_request'/g) || []).length >= 2, 'production-only HTTP and load probes are excluded from PR preview');
 requireContract(files.workflow.includes('google-chrome --version'), 'P5 workflow proves a real Chrome binary is present');
 requireContract(files.workflow.includes('CLOUDFLARE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}'), 'P5 PR attestation targets branch head SHA, not merge-test SHA');
 requireContract(files.workflow.includes('EVENT_NAME: ${{ github.event_name }}'), 'P5 workflow distinguishes PR preview from production release');
@@ -81,7 +82,7 @@ requireContract(files.workflow.includes('PREVIEW_URL: ${{ steps.deploy.outputs.p
 requireContract(files.workflow.includes('Cloudflare PR preview URL missing.'), 'PR verification fails closed when preview URL is absent');
 requireContract(files.workflow.includes('P5_BASE_URL=$PREVIEW_URL'), 'PR browser matrix targets candidate preview build');
 requireContract(files.workflow.includes('P5_BASE_URL=https://pasar-umkm.hipmiptuinalazhaar.workers.dev'), 'main browser matrix targets production only after deploy attestation');
-requireContract(files.workflow.includes("'scripts/browser-p5-critical-surfaces.mjs'"), 'critical-surface test changes retrigger P5 workflow');
+requireContract(files.workflow.includes("'scripts/browser-p5-critical-surfaces-v2.mjs'"), 'critical-surface test changes retrigger P5 workflow');
 requireContract(files.workflow.includes("'checkout/**'") && files.workflow.includes("'support/**'") && files.workflow.includes("'seller-orders/**'"), 'critical application surface changes retrigger P5 workflow');
 
 requireContract(files.load.includes('LOAD_TIERS'), 'load harness keeps explicit concurrency tiers');
