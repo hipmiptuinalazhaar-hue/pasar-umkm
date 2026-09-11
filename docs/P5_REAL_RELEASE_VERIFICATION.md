@@ -2,20 +2,20 @@
 
 ## Tujuan
 
-P5 membuktikan release yang benar-benar ter-deploy, bukan hanya source code yang lulus static CI. Fokusnya adalah menghilangkan dua blind spot terakhir: race antara GitHub Actions dan Cloudflare deployment, serta tidak adanya browser/device verification nyata di pipeline production.
+P5 membuktikan release yang benar-benar ter-deploy, bukan hanya source code yang lulus static CI. Fokusnya adalah menutup blind spot release identity, browser/device rendering, critical interaction surfaces, dan load-readiness tanpa melakukan mutation terhadap data production.
 
 ## Release identity
 
-Post Deploy Smoke dan P5 Browser Matrix tidak lagi langsung menembak URL production sesaat setelah push. Keduanya lebih dulu membaca GitHub check-runs untuk **commit SHA yang sedang diuji** dan menunggu check dari aplikasi `cloudflare-workers-and-pages` dengan nama `Workers Builds:` selesai dengan conclusion `success`.
+P5 tidak langsung menguji URL production sesaat setelah push. Workflow lebih dulu membaca GitHub check-runs untuk **commit SHA yang sedang diuji** dan menunggu check dari aplikasi `cloudflare-workers-and-pages` dengan nama `Workers Builds:` selesai dengan conclusion `success`.
 
 Konsekuensinya:
 
-- smoke tidak boleh menganggap deployment selesai hanya karena URL lama masih sehat;
-- failure/cancel/timeout Cloudflare membuat release verification fail-closed;
+- smoke tidak boleh menganggap deployment selesai hanya karena URL release lama masih sehat;
+- failure, cancel, atau timeout Cloudflare membuat release verification fail-closed;
 - tidak munculnya check Cloudflare dalam batas waktu juga dianggap failure;
-- HTTP smoke baru berjalan setelah deployment SHA yang tepat ter-attest.
+- HTTP smoke, browser matrix, critical-surface browser test, dan load gate baru berjalan terhadap release yang telah ter-attest.
 
-## Real browser matrix
+## Real browser viewport matrix
 
 `scripts/browser-release-smoke.mjs` menjalankan Chrome headless nyata melalui Chrome DevTools Protocol tanpa library browser tambahan. Matrix default:
 
@@ -27,7 +27,8 @@ Konsekuensinya:
 | 768x1024 | tablet portrait |
 | 1024x768 | laptop/compact landscape |
 | 1280x800 | desktop |
-| 1600x900 | ultrawide |
+| 1366x768 | laptop umum |
+| 1600x900 | desktop lebar |
 
 Setiap viewport membuktikan:
 
@@ -41,41 +42,81 @@ Setiap viewport membuktikan:
 - navigation mengikuti mode mobile/tablet/laptop/desktop yang diharapkan;
 - screenshot real-render dihasilkan untuk setiap viewport selama run.
 
-Production browser smoke bersifat **read-only**. Ia tidak melakukan scripted click, login, checkout, chat write, rating write, atau HTTP mutation.
+Viewport matrix bersifat **read-only dan click-free**.
+
+## Critical-surface browser certification
+
+`scripts/browser-p5-critical-surfaces.mjs` melengkapi viewport matrix dengan interaksi browser nyata terhadap permukaan kritis. Runner menggunakan Chrome nyata dan memasang CDP Fetch guard yang memblokir seluruh request `POST`, `PUT`, `PATCH`, dan `DELETE`. Dengan demikian test boleh menekan tombol UI tanpa membuat order, pesan, notifikasi, rating, atau mutation production lain.
+
+Coverage P5 mencakup:
+
+- notification entry point dan regression guard untuk `notification-core.css`;
+- batas ukuran avatar notifikasi agar bug avatar raksasa tidak kembali;
+- notification row/topbar grid dan overflow;
+- search open/close;
+- side menu open/close;
+- cart routing;
+- account, notification, messages, dan seller guest/auth-gated intent;
+- canonical Reels runtime dan shell;
+- checkout, purchases, seller-orders, support, dan admin shell;
+- private-route `no-store` dan `noindex` contract;
+- private route rendering pada mobile 390x844 dan desktop 1280x800;
+- runtime exception dan console-error guard.
+
+Produksi tetap **mutation-safe**. Interaksi kritis boleh diklik, tetapi request state-changing dibatalkan di level browser protocol sebelum mencapai server.
+
+## Exact post-deploy HTTP smoke
+
+Pada push `main` atau manual release, P5 menjalankan `scripts/post-deploy-smoke.mjs` setelah exact Cloudflare SHA ter-attest dan sebelum Chrome certification. Ini membuktikan shell, legal/trust, support, health/database readiness, catalog, dan anonymous security boundaries masih sehat pada release yang sama.
+
+## Post-deploy load gate
+
+Setelah browser certification lulus, P5 menjalankan public-read load smoke pada production dengan tier 50, 100, dan 200 concurrent requests. Gate mensyaratkan minimum success rate 99% dan p95 di bawah batas yang ditetapkan workflow. Load probe hanya menggunakan public read traffic dan tidak melakukan mutation.
+
+PR preview tidak menerima production load gate.
 
 ## Authenticated stateful E2E
 
 Authenticated E2E V2 tetap menjadi jalur terpisah karena ia melakukan mutation nyata: cart, checkout, order lifecycle, rating, social/chat, dan admin session. Jalur ini hanya boleh dijalankan pada runtime non-production yang ter-attest dan database test terisolasi.
 
-Production hostname secara eksplisit ditolak oleh authenticated runner. Tidak ada alasan engineering yang sah untuk menciptakan order palsu di database pengguna hanya agar dashboard CI terlihat hijau.
+Production hostname secara eksplisit ditolak oleh authenticated runner. Mutation ke database pengguna tidak pernah digunakan hanya untuk membuat dashboard CI terlihat hijau.
+
+Staging bootstrap juga memverifikasi database target bernama `pasar_umkm_staging`, menyalin schema saja tanpa production rows, lalu menanam synthetic buyer, seller, dan admin fixtures.
 
 ## Workflow
 
 `P5 Real Release Verification` memiliki dua job:
 
 1. `release-contract`
-   - syntax tooling;
+   - syntax check seluruh tooling P5;
    - exact locked dependencies;
    - canonical `npm run validate`, termasuk static P5 contract.
 
-2. `production-browser`
-   - hanya pada push/main atau manual dispatch, bukan PR;
-   - menunggu exact Cloudflare SHA;
+2. `real-browser`
+   - menunggu exact Cloudflare deployment untuk SHA yang diuji;
+   - menjalankan post-deploy HTTP smoke pada main/manual release;
    - memastikan Chrome nyata tersedia;
-   - menjalankan seluruh viewport matrix terhadap production.
+   - menjalankan viewport matrix;
+   - menjalankan critical-surface browser certification dengan mutation blocker;
+   - menjalankan 50/100/200 public-read load gate pada main/manual release;
+   - mencetak browser report.
 
-`Post Deploy Smoke` juga menggunakan exact deployment attestation yang sama sebelum menjalankan 9-point production HTTP smoke.
+PR memakai exact Cloudflare preview URL. Push `main` memakai production hanya setelah exact deploy attestation.
 
 ## Definition of Done
 
-P5 code/release-verification layer dianggap selesai ketika:
+P5 release/browser layer dianggap **100% selesai untuk scope production-safe certification** ketika:
 
-- static P5 contract hijau;
-- seluruh existing CI tidak regression;
-- PR merged ke main;
-- Cloudflare build untuk merge SHA sukses;
-- Post Deploy Smoke sesudah exact deploy hijau;
-- P5 real browser matrix sesudah exact deploy hijau;
-- Load Smoke sesudah deployment tetap hijau.
+- static P5 release contract hijau;
+- seluruh canonical validation tidak regression;
+- Cloudflare build untuk final SHA sukses;
+- exact post-deploy HTTP smoke hijau;
+- seluruh viewport real-browser matrix hijau;
+- critical-surface browser certification hijau;
+- notification visual regression guard hijau;
+- critical private routes lolos mobile dan desktop rendering;
+- tidak ada runtime/browser defect yang terdeteksi dalam scope test;
+- 50/100/200 public-read load smoke hijau;
+- runtime build tetap deterministic.
 
-Full **stateful authenticated E2E** baru dapat ditandai live-verified setelah tersedia runtime non-production yang terhubung ke database test terisolasi dan secrets synthetic roles. Ketiadaan konfigurasi eksternal tersebut tidak boleh diganti dengan mutation ke production.
+Full **stateful authenticated E2E** tidak pernah dijalankan terhadap production. Ia baru dapat ditandai live-verified ketika runtime staging terisolasi dan secrets synthetic roles tersedia. Ketiadaan konfigurasi staging tidak boleh diganti dengan mutation ke production.
