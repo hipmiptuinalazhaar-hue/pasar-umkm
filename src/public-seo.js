@@ -36,6 +36,12 @@ function compactText(value, max = 160) {
   return `${text.slice(0, Math.max(1, max - 1)).trimEnd()}…`;
 }
 
+function descriptiveMeta(primary, fallback, max = 155) {
+  const base = compactText(primary, max);
+  if (base.length >= 70) return base;
+  return compactText([base, fallback].filter(Boolean).join(base ? ". " : ""), max);
+}
+
 function canonicalUrl(pathname) {
   return `${SITE_ORIGIN}${pathname}`;
 }
@@ -93,7 +99,7 @@ function pageShell({ title, description, canonical, image, type = "website", jso
 <meta name="twitter:description" content="${safeDescription}">
 <meta name="twitter:image" content="${safeImage}">
 <script type="application/ld+json">${safeJson(jsonLd)}</script>
-<style>body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0;color:#17221d;background:#f7faf8}main{max-width:960px;margin:auto;padding:32px 20px 72px}a{color:#0b6846}.crumbs{font-size:14px;margin-bottom:24px}.hero,.directory-card{background:#fff;border:1px solid #dfe8e3;border-radius:18px;padding:22px}.hero img,.directory-card img{width:100%;max-height:420px;object-fit:cover;border-radius:14px;background:#eef3f0}.eyebrow{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#557166}h1{font-size:clamp(28px,6vw,44px);line-height:1.1;margin:10px 0 12px}h2{font-size:24px;margin:34px 0 14px}.price{font-size:24px;font-weight:800;color:#0b6846}.meta{color:#5a6b63}.description{font-size:17px;line-height:1.7;white-space:pre-line}.links{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}.links a{display:inline-block;padding:11px 15px;border:1px solid #bdd3c8;border-radius:10px;text-decoration:none;font-weight:650}.directory-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}.directory-card{text-decoration:none;color:inherit;padding:16px}.directory-card strong{display:block;margin:8px 0 4px}.directory-card span{font-size:14px;color:#5a6b63}.directory-card img{height:150px}.site-footer{margin-top:38px;padding-top:20px;border-top:1px solid #dfe8e3;font-size:14px;color:#5a6b63}.site-footer a{margin-right:14px}@media(max-width:520px){main{padding:20px 14px 60px}.hero{padding:17px}.directory-grid{grid-template-columns:1fr 1fr}.directory-card{padding:12px}.directory-card img{height:120px}}</style>
+<style>body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;margin:0;color:#17221d;background:#f7faf8}main{max-width:960px;margin:auto;padding:32px 20px 72px}a{color:#0b6846}.crumbs{font-size:14px;margin-bottom:24px}.hero,.directory-card,.detail-guide{background:#fff;border:1px solid #dfe8e3;border-radius:18px;padding:22px}.hero img,.directory-card img{width:100%;max-height:420px;object-fit:cover;border-radius:14px;background:#eef3f0}.eyebrow{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#557166}h1{font-size:clamp(28px,6vw,44px);line-height:1.1;margin:10px 0 12px}h2{font-size:24px;margin:34px 0 14px}.price{font-size:24px;font-weight:800;color:#0b6846}.meta{color:#5a6b63}.description{font-size:17px;line-height:1.7;white-space:pre-line}.links{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}.links a{display:inline-block;padding:11px 15px;border:1px solid #bdd3c8;border-radius:10px;text-decoration:none;font-weight:650}.directory-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}.directory-card{text-decoration:none;color:inherit;padding:16px}.directory-card strong{display:block;margin:8px 0 4px}.directory-card span{font-size:14px;color:#5a6b63}.directory-card img{height:150px}.detail-guide{margin-top:24px;font-size:15px;line-height:1.75;color:#43554c}.detail-guide h2{margin:0 0 12px;font-size:22px;color:#17221d}.detail-guide p{margin:0 0 14px}.detail-guide p:last-child{margin-bottom:0}.site-footer{margin-top:38px;padding-top:20px;border-top:1px solid #dfe8e3;font-size:14px;color:#5a6b63}.site-footer a{margin-right:14px}@media(max-width:520px){main{padding:20px 14px 60px}.hero,.detail-guide{padding:17px}.directory-grid{grid-template-columns:1fr 1fr}.directory-card{padding:12px}.directory-card img{height:120px}}</style>
 </head>
 <body>${body}</body>
 </html>`;
@@ -261,10 +267,13 @@ async function storePage(env, rawSlug) {
   if (!store) return notFound();
 
   const canonical = canonicalUrl(`/umkm/${encodeURIComponent(store.slug)}`);
-  const description = compactText(store.description, 155) || `${store.name}, UMKM di ${store.city || "Lubuklinggau"}. Temukan profil usaha dan produk lokalnya di Pasar UMKM.`;
-  const title = compactText(`${store.name} | UMKM ${store.city || "Lubuklinggau"}`, 65);
+  const locationName = store.city || "Lubuklinggau";
+  const description = descriptiveMeta(store.description, `${store.name} merupakan UMKM di ${locationName}. Lihat profil usaha, kategori, lokasi, dan produk aktifnya di Pasar UMKM Lubuklinggau.`);
+  const title = compactText(`${store.name} | UMKM ${locationName}`, 65);
   const image = store.cover_url || store.logo_url || LOGO_URL;
   const address = [store.address, store.district, store.city, store.province].filter(Boolean).join(", ");
+  const category = store.category_name || "UMKM lokal";
+  const productCount = Number(store.product_count || 0);
   const schema = {
     "@context": "https://schema.org",
     "@graph": [
@@ -274,7 +283,7 @@ async function storePage(env, rawSlug) {
         name: store.name,
         url: canonical,
         image,
-        logo: store.logo_url || undefined,
+        logo: store.logo_url || LOGO_URL,
         description,
         address: address ? { "@type": "PostalAddress", streetAddress: store.address || undefined, addressLocality: store.city || undefined, addressRegion: store.province || undefined, addressCountry: "ID" } : undefined,
         parentOrganization: { "@type": "Organization", "@id": `${SITE_ORIGIN}/#initiative`, name: SITE_NAME, url: `${SITE_ORIGIN}/`, logo: LOGO_URL }
@@ -283,7 +292,7 @@ async function storePage(env, rawSlug) {
       breadcrumbSchema([{ name: "Pasar UMKM", url: `${SITE_ORIGIN}/` }, { name: "Jelajahi", url: `${SITE_ORIGIN}/jelajahi/` }, { name: store.name, url: canonical }])
     ]
   };
-  const body = `<main><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Pasar UMKM</a> / <a href="/jelajahi/">Jelajahi</a> / <span>${escapeHtml(store.name)}</span></nav><article class="hero">${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(store.name)}" loading="eager" decoding="async">` : ""}<p class="eyebrow">${escapeHtml(store.category_name || "UMKM lokal")}${store.verification_status === "verified" ? " · Terverifikasi" : ""}</p><h1>${escapeHtml(store.name)}</h1><p class="meta">${escapeHtml(address || store.city || "Lubuklinggau")} · ${Number(store.product_count || 0)} produk aktif</p><p class="description">${escapeHtml(store.description || "Profil UMKM lokal di Pasar UMKM Lubuklinggau.")}</p><div class="links"><a href="/jelajahi/">Jelajahi UMKM lain</a><a href="${escapeHtml(PERSONAL_URL)}" rel="author">Tentang pengembang</a></div></article></main>`;
+  const body = `<main><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Pasar UMKM</a> / <a href="/jelajahi/">Jelajahi</a> / <span>${escapeHtml(store.name)}</span></nav><article class="hero">${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(store.name)}" loading="eager" decoding="async">` : ""}<p class="eyebrow">${escapeHtml(category)}${store.verification_status === "verified" ? " · Terverifikasi" : ""}</p><h1>${escapeHtml(store.name)}</h1><p class="meta">${escapeHtml(address || locationName)} · ${productCount} produk aktif</p><p class="description">${escapeHtml(store.description || `Profil ${store.name}, UMKM lokal yang tersedia di Pasar UMKM Lubuklinggau.`)}</p><div class="links"><a href="/jelajahi/">Jelajahi UMKM lain</a><a href="/legal/index.html">Informasi & kebijakan</a><a href="${escapeHtml(PERSONAL_URL)}" rel="author">Tentang pengembang</a></div></article><section class="detail-guide" aria-labelledby="storeInfoTitle"><h2 id="storeInfoTitle">Informasi tentang ${escapeHtml(store.name)}</h2><p>Halaman ini merupakan profil publik ${escapeHtml(store.name)} di Pasar UMKM Lubuklinggau. Informasi nama usaha, kategori ${escapeHtml(category)}, lokasi, deskripsi, dan jumlah produk aktif ditampilkan dari data yang dipublikasikan oleh marketplace. Profil ini membantu pengunjung memahami usaha yang berada di balik sebuah produk sebelum berpindah ke halaman produk atau melakukan interaksi lebih lanjut.</p><p>Saat ini profil mencatat ${productCount} produk aktif. Jumlah tersebut mengikuti status katalog pada sistem dan dapat berubah ketika pemilik usaha menambah, memperbarui, menonaktifkan, atau menghapus produk. Informasi lokasi yang tersedia adalah ${escapeHtml(address || locationName)}. Jika data alamat pada profil terbatas, pengguna sebaiknya mengandalkan detail kontak dan informasi transaksi yang tersedia di dalam aplikasi ketika berkomunikasi dengan penjual.</p><p>Status profil${store.verification_status === "verified" ? " telah tercatat sebagai terverifikasi di platform" : " mengikuti data verifikasi yang tersimpan di platform"}. Status tersebut tidak menggantikan penilaian pengguna terhadap detail produk, harga, stok, metode pembayaran, atau ketentuan penjual. Untuk keputusan transaksi, baca informasi produk secara lengkap dan gunakan alur marketplace yang tersedia agar riwayat pesanan dan dukungan dapat dikelola dengan lebih jelas.</p><p>Pasar UMKM menyediakan halaman publik ini agar usaha lokal lebih mudah ditemukan melalui direktori dan mesin pencari. Data privat akun, proses checkout, percakapan, dan dukungan pelanggan tidak dimasukkan ke halaman publik ini. Gunakan <a href="/jelajahi/">direktori UMKM dan produk</a> untuk menemukan pilihan lain, serta halaman kebijakan resmi untuk memahami aturan penggunaan platform.</p></section></main>`;
   return textResponse(pageShell({ title, description, canonical, image, type: "business.business", jsonLd: schema, body }), "text/html; charset=utf-8");
 }
 
@@ -295,7 +304,7 @@ async function productPage(env, rawStoreSlug, rawProductSlug) {
   const rows = await sql`
     SELECT p.id, p.name, p.slug, p.description, p.price, p.stock, p.unit,
            COALESCE(NULLIF(p.thumbnail_url, ''), first_image.image_url) AS image_url,
-           p.updated_at, s.name AS store_name, s.slug AS store_slug,
+           p.updated_at, s.name AS store_name, s.slug AS store_slug, s.logo_url AS store_logo_url,
            s.city, s.province, c.name AS category_name
     FROM products p
     JOIN stores s ON s.id = p.store_id
@@ -317,10 +326,12 @@ async function productPage(env, rawStoreSlug, rawProductSlug) {
 
   const canonical = canonicalUrl(`/produk/${encodeURIComponent(product.store_slug)}/${encodeURIComponent(product.slug)}`);
   const storeCanonical = canonicalUrl(`/umkm/${encodeURIComponent(product.store_slug)}`);
-  const description = compactText(product.description, 155) || `${product.name} dari ${product.store_name}. Temukan produk UMKM lokal di Pasar UMKM Lubuklinggau.`;
+  const description = descriptiveMeta(product.description, `${product.name} dijual oleh ${product.store_name}. Lihat harga, stok, penjual, dan detail produk UMKM lokal di Pasar UMKM Lubuklinggau.`);
   const title = compactText(`${product.name} dari ${product.store_name} | Pasar UMKM`, 65);
   const image = product.image_url || LOGO_URL;
   const price = Number(product.price || 0);
+  const stock = Number(product.stock || 0);
+  const category = product.category_name || "Produk UMKM";
   const schema = {
     "@context": "https://schema.org",
     "@graph": [
@@ -337,8 +348,8 @@ async function productPage(env, rawStoreSlug, rawProductSlug) {
           url: canonical,
           priceCurrency: "IDR",
           price: price.toFixed(2),
-          availability: Number(product.stock || 0) > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-          seller: { "@type": "Organization", name: product.store_name, url: storeCanonical }
+          availability: stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          seller: { "@type": "Organization", name: product.store_name, url: storeCanonical, logo: product.store_logo_url || LOGO_URL }
         }
       },
       { "@type": "WebPage", "@id": `${canonical}#page`, url: canonical, name: title, description, mainEntity: { "@id": `${canonical}#product` }, isPartOf: { "@id": `${SITE_ORIGIN}/#website` } },
@@ -346,7 +357,7 @@ async function productPage(env, rawStoreSlug, rawProductSlug) {
     ]
   };
   const formattedPrice = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(price);
-  const body = `<main><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Pasar UMKM</a> / <a href="/jelajahi/">Jelajahi</a> / <a href="/umkm/${encodeURIComponent(product.store_slug)}">${escapeHtml(product.store_name)}</a> / <span>${escapeHtml(product.name)}</span></nav><article class="hero">${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(product.name)} dari ${escapeHtml(product.store_name)}" loading="eager" decoding="async">` : ""}<p class="eyebrow">${escapeHtml(product.category_name || "Produk UMKM")}</p><h1>${escapeHtml(product.name)}</h1><p class="price">${escapeHtml(formattedPrice)}</p><p class="meta">${Number(product.stock || 0) > 0 ? `Stok ${Number(product.stock)}${product.unit ? ` ${escapeHtml(product.unit)}` : ""}` : "Stok habis"} · <a href="/umkm/${encodeURIComponent(product.store_slug)}">${escapeHtml(product.store_name)}</a></p><p class="description">${escapeHtml(product.description || "Produk lokal yang tersedia melalui Pasar UMKM Lubuklinggau.")}</p><div class="links"><a href="/jelajahi/">Jelajahi produk lain</a><a href="/umkm/${encodeURIComponent(product.store_slug)}">Lihat UMKM</a></div></article></main>`;
+  const body = `<main><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Pasar UMKM</a> / <a href="/jelajahi/">Jelajahi</a> / <a href="/umkm/${encodeURIComponent(product.store_slug)}">${escapeHtml(product.store_name)}</a> / <span>${escapeHtml(product.name)}</span></nav><article class="hero">${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(product.name)} dari ${escapeHtml(product.store_name)}" loading="eager" decoding="async">` : ""}<p class="eyebrow">${escapeHtml(category)}</p><h1>${escapeHtml(product.name)}</h1><p class="price">${escapeHtml(formattedPrice)}</p><p class="meta">${stock > 0 ? `Stok ${stock}${product.unit ? ` ${escapeHtml(product.unit)}` : ""}` : "Stok habis"} · <a href="/umkm/${encodeURIComponent(product.store_slug)}">${escapeHtml(product.store_name)}</a></p><p class="description">${escapeHtml(product.description || `Produk ${product.name} yang ditawarkan oleh ${product.store_name} melalui Pasar UMKM Lubuklinggau.`)}</p><div class="links"><a href="/jelajahi/">Jelajahi produk lain</a><a href="/umkm/${encodeURIComponent(product.store_slug)}">Lihat UMKM</a><a href="/legal/kebijakan-pembeli.html">Kebijakan pembeli</a></div></article><section class="detail-guide" aria-labelledby="productInfoTitle"><h2 id="productInfoTitle">Informasi produk ${escapeHtml(product.name)}</h2><p>${escapeHtml(product.name)} adalah produk kategori ${escapeHtml(category)} yang dipublikasikan oleh <a href="/umkm/${encodeURIComponent(product.store_slug)}">${escapeHtml(product.store_name)}</a> di Pasar UMKM Lubuklinggau. Halaman ini menyatukan informasi produk dan identitas penjual dalam satu alamat publik agar pengguna dapat memeriksa sumber produk sebelum melanjutkan transaksi atau menghubungi usaha terkait.</p><p>Harga yang tercatat saat halaman ini dimuat adalah ${escapeHtml(formattedPrice)}. Status persediaan saat ini ${stock > 0 ? `menunjukkan ${stock}${product.unit ? ` ${escapeHtml(product.unit)}` : " unit"} tersedia` : "menunjukkan stok habis"}. Harga dan stok merupakan data marketplace yang dapat berubah ketika penjual memperbarui katalog. Karena itu, informasi pada proses checkout dan pesanan menjadi rujukan operasional saat pengguna benar-benar melakukan transaksi.</p><p>Deskripsi produk berasal dari informasi yang dipublikasikan untuk katalog. Pasar UMKM tidak menambahkan klaim manfaat, kualitas, komposisi, atau karakteristik produk yang tidak tersedia pada data penjual. Pengguna dianjurkan membaca deskripsi, memeriksa profil UMKM, memahami metode pembayaran dan pengiriman, serta menggunakan fitur dukungan apabila membutuhkan bantuan terkait pesanan.</p><p>Halaman produk publik dibuat agar produk UMKM lokal dapat ditemukan melalui direktori, tautan internal, dan mesin pencari. Informasi akun pembeli, percakapan, alamat pengiriman, serta data transaksi tidak ditampilkan pada halaman publik ini. Untuk pilihan lain, kembali ke <a href="/jelajahi/">direktori produk dan UMKM</a> atau buka profil ${escapeHtml(product.store_name)} untuk melihat konteks usaha penjual.</p></section></main>`;
   return textResponse(pageShell({ title, description, canonical, image, type: "product", jsonLd: schema, body }), "text/html; charset=utf-8");
 }
 
