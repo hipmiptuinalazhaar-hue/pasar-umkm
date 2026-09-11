@@ -19,7 +19,7 @@ on:
       - 'database/migrations/**'
       - 'wrangler.jsonc'
       - 'scripts/browser-release-smoke.mjs'
-      - 'scripts/browser-p5-critical-surfaces.mjs'
+      - 'scripts/browser-p5-critical-surfaces-v2.mjs'
       - 'scripts/load-smoke-v1.mjs'
       - 'scripts/post-deploy-smoke.mjs'
       - 'scripts/wait-cloudflare-deploy.mjs'
@@ -47,7 +47,7 @@ on:
       - 'database/migrations/**'
       - 'wrangler.jsonc'
       - 'scripts/browser-release-smoke.mjs'
-      - 'scripts/browser-p5-critical-surfaces.mjs'
+      - 'scripts/browser-p5-critical-surfaces-v2.mjs'
       - 'scripts/load-smoke-v1.mjs'
       - 'scripts/post-deploy-smoke.mjs'
       - 'scripts/wait-cloudflare-deploy.mjs'
@@ -89,7 +89,7 @@ jobs:
           node --check scripts/wait-cloudflare-deploy.mjs
           node --check scripts/post-deploy-smoke.mjs
           node --check scripts/browser-release-smoke.mjs
-          node --check scripts/browser-p5-critical-surfaces.mjs
+          node --check scripts/browser-p5-critical-surfaces-v2.mjs
           node --check scripts/load-smoke-v1.mjs
           node --check scripts/validate-p5-release-verification.mjs
 
@@ -152,7 +152,7 @@ jobs:
         run: node scripts/browser-release-smoke.mjs
 
       - name: Run critical-surface browser certification
-        run: node scripts/browser-p5-critical-surfaces.mjs
+        run: node scripts/browser-p5-critical-surfaces-v2.mjs
 
       - name: Run post-deploy public read load smoke
         if: github.event_name != 'pull_request'
