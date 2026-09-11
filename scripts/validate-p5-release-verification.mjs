@@ -59,18 +59,21 @@ requireContract(files.critical.includes("STATE.activeNav : ''"), 'critical-surfa
 requireContract(files.critical.includes('390, height: 844') && files.critical.includes('1280, height: 800'), 'critical route shells are checked on mobile and desktop');
 
 const waitStepIndex = files.workflow.indexOf('- name: Wait for exact Cloudflare deployment');
+const httpStepIndex = files.workflow.indexOf('- name: Run exact post-deploy HTTP smoke');
 const browserStepIndex = files.workflow.indexOf('- name: Run real browser viewport matrix');
 const criticalStepIndex = files.workflow.indexOf('- name: Run critical-surface browser certification');
 const loadStepIndex = files.workflow.indexOf('- name: Run post-deploy public read load smoke');
 requireContract(files.workflow.includes('checks: read'), 'P5 workflow can read exact deployment check-runs');
 requireContract(files.workflow.includes('node scripts/wait-cloudflare-deploy.mjs'), 'P5 workflow waits for exact Cloudflare deployment');
+requireContract(files.workflow.includes('PRODUCTION_BASE_URL="$P5_BASE_URL" node scripts/post-deploy-smoke.mjs'), 'P5 workflow runs post-deploy HTTP smoke against attested release');
 requireContract(files.workflow.includes('node scripts/browser-release-smoke.mjs'), 'P5 workflow runs real browser viewport verification');
 requireContract(files.workflow.includes('node scripts/browser-p5-critical-surfaces.mjs'), 'P5 workflow runs critical-surface browser verification');
 requireContract(files.workflow.includes('node scripts/load-smoke-v1.mjs'), 'P5 workflow runs post-deploy public read load verification');
-requireContract(waitStepIndex >= 0 && browserStepIndex > waitStepIndex, 'browser verification runs only after deployment attestation');
+requireContract(waitStepIndex >= 0 && httpStepIndex > waitStepIndex, 'HTTP smoke runs only after deployment attestation');
+requireContract(browserStepIndex > httpStepIndex, 'browser matrix follows healthy HTTP production smoke');
 requireContract(criticalStepIndex > browserStepIndex, 'critical-surface certification follows viewport matrix');
 requireContract(loadStepIndex > criticalStepIndex, 'production load gate follows browser certification');
-requireContract(files.workflow.includes("if: github.event_name != 'pull_request'"), 'load smoke is limited to deployed main/manual release, not PR preview');
+requireContract((files.workflow.match(/if: github\.event_name != 'pull_request'/g) || []).length >= 2, 'production-only HTTP and load probes are excluded from PR preview mutations/load');
 requireContract(files.workflow.includes('google-chrome --version'), 'P5 workflow proves a real Chrome binary is present');
 requireContract(files.workflow.includes('CLOUDFLARE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}'), 'P5 PR attestation targets branch head SHA, not merge-test SHA');
 requireContract(files.workflow.includes('EVENT_NAME: ${{ github.event_name }}'), 'P5 workflow distinguishes PR preview from production release');
@@ -85,11 +88,11 @@ requireContract(files.load.includes('LOAD_TIERS'), 'load harness keeps explicit 
 requireContract(files.load.includes('LOAD_MIN_SUCCESS_RATE'), 'load harness enforces minimum success rate');
 requireContract(files.load.includes('LOAD_P95_LIMIT_MS'), 'load harness enforces p95 latency ceiling');
 
-requireContract(files.postDeploy.includes('checks: read'), 'post-deploy smoke can read Cloudflare check-runs');
-requireContract(files.postDeploy.includes('node scripts/wait-cloudflare-deploy.mjs'), 'post-deploy smoke waits for exact Cloudflare deployment');
+requireContract(files.postDeploy.includes('checks: read'), 'standalone post-deploy smoke can read Cloudflare check-runs');
+requireContract(files.postDeploy.includes('node scripts/wait-cloudflare-deploy.mjs'), 'standalone post-deploy smoke waits for exact Cloudflare deployment');
 const postWaitIndex = files.postDeploy.indexOf('- name: Wait for exact Cloudflare deployment');
 const postSmokeIndex = files.postDeploy.indexOf('- name: Verify deployed production');
-requireContract(postWaitIndex >= 0 && postSmokeIndex > postWaitIndex, 'post-deploy HTTP smoke occurs after deployment attestation');
+requireContract(postWaitIndex >= 0 && postSmokeIndex > postWaitIndex, 'standalone post-deploy HTTP smoke occurs after deployment attestation');
 
 requireContract(files.authenticated.includes('Production target rejected for stateful authenticated E2E.'), 'stateful authenticated E2E explicitly rejects production');
 requireContract(files.authenticated.includes('SMOKE_EXPECT_ENVIRONMENT: staging'), 'stateful authenticated E2E requires non-production runtime identity');
