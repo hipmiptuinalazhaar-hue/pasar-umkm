@@ -7,11 +7,13 @@ const JS_RUNTIME = "js/app.runtime.js";
 const CSS_SOURCE = "css/style.css";
 const CSS_RUNTIME = "css/style.runtime.css";
 const INDEX = "index.html";
+const SEO_WORKER = "src/seo-worker-entry.js";
 const ASSETS_IGNORE = ".assetsignore";
 const TOKENS = "css/tokens.css";
 const V10_BOOT = "js/performance-v10-a.js";
 const REELS_BOOT = "js/reel-profile-separation.js";
 const REELS_ENTRY = "js/reels-v4-entry.js";
+const WORKER_EAGER_ASSETS = ["js/performance-v10-b.js"];
 
 const CRITICAL_ASSETS = [
   TOKENS,
@@ -101,6 +103,16 @@ async function stampLazyBootGraph() {
   await writeFile(V10_BOOT, boot, "utf8");
 }
 
+async function stampWorkerEagerGraph() {
+  let worker = await readFile(SEO_WORKER, "utf8");
+  for (const assetPath of WORKER_EAGER_ASSETS) {
+    const version = await sha12(assetPath);
+    worker = stampVersion(worker, `/${assetPath}`, version);
+    console.log(`worker-eager-cache-key ${assetPath}=${version}`);
+  }
+  await writeFile(SEO_WORKER, worker, "utf8");
+}
+
 await build({
   entryPoints: [JS_SOURCE],
   outfile: JS_RUNTIME,
@@ -128,6 +140,7 @@ await stampTokenImports();
 await stampReelsGraph(REELS_BOOT, "reels-profile");
 await stampReelsGraph(REELS_ENTRY, "reels-entry");
 await stampLazyBootGraph();
+await stampWorkerEagerGraph();
 
 let index = await readFile(INDEX, "utf8");
 const cssPattern = /css\/style(?:\.runtime)?\.css\?v=[^"']+/g;
