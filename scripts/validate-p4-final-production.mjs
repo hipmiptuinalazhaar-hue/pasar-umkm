@@ -50,19 +50,32 @@ function firstLoc(xml) {
   return xml.match(/<loc>([^<]+)<\/loc>/i)?.[1]?.replace(/&amp;/g, '&') || '';
 }
 
+function visibleWordCount(html) {
+  const text = String(html || '')
+    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&[a-z0-9#]+;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return text ? text.split(' ').filter(Boolean).length : 0;
+}
+
 await check('homepage production shell', async () => {
   const { response, text } = await request('/');
   assert(response.status === 200, `HTTP ${response.status}`);
   assert((text.match(/<title>/gi) || []).length === 1, 'homepage must contain exactly one title');
   assert(text.includes('<title>Pasar UMKM Lubuklinggau | Produk &amp; Usaha Lokal</title>') || text.includes('<title>Pasar UMKM Lubuklinggau | Produk & Usaha Lokal</title>'), 'final homepage title missing');
   assert(canonicalFrom(text) === `${BASE_URL}/`, 'homepage canonical mismatch');
-  assert(text.includes('p3-seo-finalized-v14.3'), 'final SEO runtime policy missing');
   assert(text.includes('data-seo-directory="p3"'), 'crawlable homepage discovery content missing');
+  assert(visibleWordCount(text) >= 250, `homepage crawl content too thin (${visibleWordCount(text)} words)`);
+  assert(text.includes('"@type":"WebSite"') || text.includes('"@type": "WebSite"'), 'WebSite schema missing');
+  assert(text.includes('"@type":"Organization"') || text.includes('"@type": "Organization"'), 'Organization schema missing');
   const csp = response.headers.get('content-security-policy') || '';
   assert(csp.includes("object-src 'none'"), 'public CSP missing object-src none');
   assert(!csp.includes("'unsafe-eval'"), 'public CSP permits unsafe-eval');
   assert((response.headers.get('x-content-type-options') || '').toLowerCase() === 'nosniff', 'nosniff missing');
-  return 'SEO + CSP + crawl shell';
+  return 'SEO + schema + CSP + crawl shell';
 });
 
 await check('robots production contract', async () => {
@@ -124,8 +137,10 @@ await check('dynamic store production page', async () => {
   assert(canonicalFrom(text) === firstStoreUrl, 'store canonical mismatch');
   assert(text.includes('"@type":"LocalBusiness"') || text.includes('"@type": "LocalBusiness"'), 'LocalBusiness schema missing');
   assert(text.includes('"@type":"BreadcrumbList"') || text.includes('"@type": "BreadcrumbList"'), 'store breadcrumbs missing');
-  assert(/Tentang UMKM|Informasi UMKM/i.test(text), 'store explanatory section missing');
-  return 'LocalBusiness + breadcrumb + content';
+  const words = visibleWordCount(text);
+  assert(words >= 200, `store public content too thin (${words} words)`);
+  assert(text.includes('class="detail-guide"'), 'store crawl-quality detail section missing');
+  return `LocalBusiness + breadcrumb + ${words} words`;
 });
 
 await check('dynamic product production page', async () => {
@@ -135,7 +150,8 @@ await check('dynamic product production page', async () => {
   assert(text.includes('"@type":"Product"') || text.includes('"@type": "Product"'), 'Product schema missing');
   assert(text.includes('"@type":"Offer"') || text.includes('"@type": "Offer"'), 'Offer schema missing');
   assert(/Informasi produk/i.test(text), 'product explanatory section missing');
-  return 'Product + Offer + content';
+  assert(visibleWordCount(text) >= 200, `product public content too thin (${visibleWordCount(text)} words)`);
+  return 'Product + Offer + crawl-quality content';
 });
 
 await check('health and database readiness', async () => {
