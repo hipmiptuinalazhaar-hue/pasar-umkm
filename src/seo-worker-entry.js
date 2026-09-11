@@ -8,11 +8,13 @@ const CRITICAL_PUBLIC_STYLE = "/css/public-experience-v9.css?v=654bea569c48";
 const TRUST_STYLE = "/css/p5-trust-conversion.css?v=1.0";
 const SELLER_STYLE = "/css/seller-center-p8-bridge.css?v=1.0";
 const V1_STYLE = "/css/v1-completion.css?v=1.1";
+const P2_STYLE = "/css/p2-final-polish.css?v=2.0";
 const PERFORMANCE_B = "/js/performance-v10-b.js?v=7a5a0101a671";
 const COMMERCE_RUNTIME = "/js/p8-commerce-integration.js?v=fc3dcbac9b78";
 const TRUST_RUNTIME = "/js/p5-trust-conversion.js?v=1.0";
 const V1_RUNTIME = "/js/v1-completion.js?v=1.2";
 const INSTANT_SHELL = "/js/instant-shell-v11.js?v=11.3";
+const P2_RUNTIME = "/js/p2-final-ux.js?v=2.0";
 
 function homepageSchema() {
   return JSON.stringify({
@@ -72,16 +74,18 @@ async function homepage(request, env) {
 <link rel="stylesheet" href="${TRUST_STYLE}" data-critical-trust-ui="v11">
 <link rel="stylesheet" href="${SELLER_STYLE}" data-critical-seller-ui="v11">
 <link rel="stylesheet" href="${V1_STYLE}" data-critical-v1-ui="v11">
+<link rel="stylesheet" href="${P2_STYLE}" data-p2-final-ui="true">
 <link rel="preload" href="${PERFORMANCE_B}" as="script">
 <link rel="preload" href="${COMMERCE_RUNTIME}" as="script">
 <link rel="preload" href="${TRUST_RUNTIME}" as="script">
 <link rel="preload" href="${V1_RUNTIME}" as="script">
 <link rel="preload" href="${INSTANT_SHELL}" as="script">
+<link rel="preload" href="${P2_RUNTIME}" as="script">
 <link rel="canonical" href="${canonical}">
 <link rel="icon" href="/assets/logo.webp?v=2.0" type="image/webp">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="google-site-verification" content="${GOOGLE_SITE_VERIFICATION}">
-<meta name="pumkm-runtime-policy" content="p1-finalized-v12">
+<meta name="pumkm-runtime-policy" content="p2-finalized-v13">
 <meta property="og:locale" content="id_ID">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Pasar UMKM Lubuklinggau">
@@ -103,7 +107,8 @@ async function homepage(request, env) {
 <script src="${COMMERCE_RUNTIME}" defer data-v11-critical="commerce-navigation"></script>
 <script src="${TRUST_RUNTIME}" defer data-v11-critical="trust-evidence"></script>
 <script src="${V1_RUNTIME}" defer data-v11-critical="recommendation-ui"></script>
-<script src="${INSTANT_SHELL}" defer data-v11-critical="instant-shell"></script>`, { html: true });
+<script src="${INSTANT_SHELL}" defer data-v11-critical="instant-shell"></script>
+<script src="${P2_RUNTIME}" defer data-p2-final-runtime="true"></script>`, { html: true });
       }
     })
     .transform(response);
