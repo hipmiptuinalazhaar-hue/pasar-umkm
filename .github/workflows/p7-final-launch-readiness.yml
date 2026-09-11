@@ -1,0 +1,131 @@
+name: P7 Final Launch Readiness
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/P7_FINAL_LAUNCH_READINESS.md'
+      - 'scripts/validate-p7-final-launch-readiness.mjs'
+      - 'scripts/p7-production-launch-probe.mjs'
+      - '.github/workflows/p7-final-launch-readiness.yml'
+      - 'src/observability.js'
+      - 'src/worker-entry.js'
+      - 'wrangler.jsonc'
+      - 'package.json'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: read
+
+concurrency:
+  group: p7-final-launch-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install exact locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Syntax check P7 tooling
+        run: |
+          node --check scripts/validate-p7-final-launch-readiness.mjs
+          node --check scripts/p7-production-launch-probe.mjs
+
+      - name: P7 final launch contract
+        run: npm run test:p7-final
+
+      - name: Canonical validation
+        run: npm run validate
+
+      - name: Deterministic runtime build
+        run: |
+          npm run build:runtime
+          git diff --exit-code
+
+  production-launch-gate:
+    if: github.event_name == 'push'
+    needs: release-contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+      P7_BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+      P6_BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+      PRODUCTION_BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+      LOAD_BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+      P5_BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+      P5_VIEWPORTS: 360x800,390x844,430x932,768x1024,1024x768,1280x800,1366x768,1600x900
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+
+      - name: Wait for exact Cloudflare deployment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLOUDFLARE_SHA: ${{ github.sha }}
+          CLOUDFLARE_WAIT_TIMEOUT_MS: '420000'
+          CLOUDFLARE_WAIT_POLL_MS: '5000'
+        run: node scripts/wait-cloudflare-deploy.mjs
+
+      - name: Post-deploy HTTP smoke
+        run: node scripts/post-deploy-smoke.mjs
+
+      - name: P6 production reliability regression
+        env:
+          P6_PROBE_TIMEOUT_MS: '12000'
+          P6_PROBE_ROUNDS: '3'
+          P6_P95_LIMIT_MS: '5000'
+        run: node scripts/p6-production-reliability-probe.mjs
+
+      - name: P7 production launch probe
+        env:
+          P7_PROBE_TIMEOUT_MS: '12000'
+          P7_PROBE_ROUNDS: '3'
+          P7_P95_LIMIT_MS: '5000'
+        run: node scripts/p7-production-launch-probe.mjs
+
+      - name: Verify Chrome
+        run: google-chrome --version
+
+      - name: Real-browser viewport matrix
+        run: node scripts/browser-release-smoke.mjs
+
+      - name: Critical browser surfaces
+        run: node scripts/browser-p5-critical-surfaces-v2.mjs
+
+      - name: Read-only load smoke
+        env:
+          LOAD_TIERS: 50,100,200
+          LOAD_TIMEOUT_MS: '12000'
+          LOAD_P95_LIMIT_MS: '8000'
+          LOAD_MIN_SUCCESS_RATE: '0.99'
+        run: node scripts/load-smoke-v1.mjs
+
+      - name: Preserve P7 launch report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: p7-launch-readiness-${{ github.run_id }}
+          path: p7-launch-readiness-results/report.json
+          if-no-files-found: error
+          retention-days: 14
