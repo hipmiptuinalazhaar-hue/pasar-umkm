@@ -2,8 +2,10 @@ import applicationWorker from "./worker-entry.js";
 import { handlePublicSeo } from "./public-seo.js";
 
 const SITE_ORIGIN = "https://pasar-umkm.hipmiptuinalazhaar.workers.dev";
-const HOME_DESCRIPTION = "Pasar UMKM Lubuklinggau, platform digital untuk menemukan produk, layanan, dan usaha lokal.";
+const HOME_TITLE = "Pasar UMKM Lubuklinggau | Produk & Usaha Lokal";
+const HOME_DESCRIPTION = "Temukan produk, toko, dan usaha lokal Lubuklinggau di Pasar UMKM. Jelajahi katalog UMKM, profil penjual, dan produk lokal dalam satu platform.";
 const GOOGLE_SITE_VERIFICATION = "DMxwOlwgQkfPaF5_P_mezSHlo5-iGcU7t0QLYMi6M4c";
+const LOGO_URL = `${SITE_ORIGIN}/assets/logo.webp?v=2.0`;
 const CRITICAL_PUBLIC_STYLE = "/css/public-experience-v9.css?v=654bea569c48";
 const TRUST_STYLE = "/css/p5-trust-conversion.css?v=1.0";
 const SELLER_STYLE = "/css/seller-center-p8-bridge.css?v=1.0";
@@ -27,7 +29,25 @@ function homepageSchema() {
         name: "Pasar UMKM Lubuklinggau",
         description: HOME_DESCRIPTION,
         inLanguage: "id-ID",
+        publisher: { "@id": `${SITE_ORIGIN}/#initiative` },
         creator: { "@id": "https://capryan-agusto.hipmiptuinalazhaar.workers.dev/#person" }
+      },
+      {
+        "@type": "WebPage",
+        "@id": `${SITE_ORIGIN}/#home`,
+        url: `${SITE_ORIGIN}/`,
+        name: HOME_TITLE,
+        description: HOME_DESCRIPTION,
+        isPartOf: { "@id": `${SITE_ORIGIN}/#website` },
+        about: { "@id": `${SITE_ORIGIN}/#initiative` },
+        primaryImageOfPage: { "@id": `${SITE_ORIGIN}/#logo` }
+      },
+      {
+        "@type": "ImageObject",
+        "@id": `${SITE_ORIGIN}/#logo`,
+        url: LOGO_URL,
+        contentUrl: LOGO_URL,
+        caption: "Pasar UMKM Lubuklinggau"
       },
       {
         "@type": "Person",
@@ -39,7 +59,8 @@ function homepageSchema() {
         "@type": "Organization",
         "@id": `${SITE_ORIGIN}/#initiative`,
         name: "HIPMI PT UIN Al Azhaar Lubuklinggau",
-        url: `${SITE_ORIGIN}/`
+        url: `${SITE_ORIGIN}/`,
+        logo: { "@id": `${SITE_ORIGIN}/#logo` }
       }
     ]
   }).replace(/</g, "\\u003c");
@@ -67,6 +88,16 @@ async function homepage(request, env) {
 
   const canonical = `${SITE_ORIGIN}/`;
   return new HTMLRewriter()
+    .on("title", {
+      text(text) {
+        text.replace(HOME_TITLE);
+      }
+    })
+    .on('meta[name="description"]', {
+      element(element) {
+        element.setAttribute("content", HOME_DESCRIPTION);
+      }
+    })
     .on("head", {
       element(element) {
         element.append(`
@@ -85,24 +116,32 @@ async function homepage(request, env) {
 <link rel="icon" href="/assets/logo.webp?v=2.0" type="image/webp">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="google-site-verification" content="${GOOGLE_SITE_VERIFICATION}">
-<meta name="pumkm-runtime-policy" content="p2-finalized-v13">
+<meta name="pumkm-runtime-policy" content="p3-seo-finalized-v14">
 <meta property="og:locale" content="id_ID">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Pasar UMKM Lubuklinggau">
-<meta property="og:title" content="Pasar UMKM Lubuklinggau">
+<meta property="og:title" content="${HOME_TITLE}">
 <meta property="og:description" content="${HOME_DESCRIPTION}">
 <meta property="og:url" content="${canonical}">
-<meta property="og:image" content="${SITE_ORIGIN}/assets/logo.webp?v=2.0">
+<meta property="og:image" content="${LOGO_URL}">
+<meta property="og:image:alt" content="Pasar UMKM Lubuklinggau">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Pasar UMKM Lubuklinggau">
+<meta name="twitter:title" content="${HOME_TITLE}">
 <meta name="twitter:description" content="${HOME_DESCRIPTION}">
-<meta name="twitter:image" content="${SITE_ORIGIN}/assets/logo.webp?v=2.0">
+<meta name="twitter:image" content="${LOGO_URL}">
 <script type="application/ld+json">${homepageSchema()}</script>`, { html: true });
       }
     })
     .on("body", {
       element(element) {
         element.append(`
+<footer data-seo-directory="p3" style="max-width:980px;margin:24px auto 96px;padding:18px 16px;border-top:1px solid rgba(18,31,24,.08);font:600 13px/1.6 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#506158">
+  <nav aria-label="Tautan publik Pasar UMKM" style="display:flex;gap:14px;flex-wrap:wrap">
+    <a href="/jelajahi/" style="color:#0b6846">Jelajahi UMKM &amp; produk</a>
+    <a href="/legal/index.html" style="color:#0b6846">Informasi &amp; kebijakan</a>
+    <a href="https://capryan-agusto.hipmiptuinalazhaar.workers.dev/" rel="author" style="color:#0b6846">Tentang pengembang</a>
+  </nav>
+</footer>
 <script src="${PERFORMANCE_B}" defer data-v11-critical="recommendation-cache"></script>
 <script src="${COMMERCE_RUNTIME}" defer data-v11-critical="commerce-navigation"></script>
 <script src="${TRUST_RUNTIME}" defer data-v11-critical="trust-evidence"></script>
