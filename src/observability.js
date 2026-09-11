@@ -121,8 +121,17 @@ function classifyEvent({ status, route, durationMs, slowMs }) {
   return "api.request.completed";
 }
 
+function applyApiSecurityHeaders(headers) {
+  headers.set("X-Content-Type-Options", "nosniff");
+  headers.set("Referrer-Policy", "no-referrer");
+  headers.set("X-Frame-Options", "DENY");
+  headers.set("X-Permitted-Cross-Domain-Policies", "none");
+  headers.set("Strict-Transport-Security", "max-age=31536000");
+  return headers;
+}
+
 function withDiagnosticHeaders(response, id, durationMs) {
-  const headers = new Headers(response.headers);
+  const headers = applyApiSecurityHeaders(new Headers(response.headers));
   headers.set("X-Request-Id", id);
   headers.set("Server-Timing", `app;dur=${durationMs}`);
   return new Response(response.body, {
@@ -188,20 +197,19 @@ export async function observeRequest(request, env, ctx, handler) {
       error_class: safeErrorClass(error)
     });
 
+    const headers = applyApiSecurityHeaders(new Headers({
+      "Cache-Control": "no-store",
+      "X-Request-Id": id,
+      "Server-Timing": `app;dur=${durationMs}`
+    }));
+
     return Response.json(
       {
         ok: false,
         error: "Layanan sedang mengalami gangguan. Coba lagi beberapa saat.",
         code: "INTERNAL_ERROR"
       },
-      {
-        status: 500,
-        headers: {
-          "Cache-Control": "no-store",
-          "X-Request-Id": id,
-          "Server-Timing": `app;dur=${durationMs}`
-        }
-      }
+      { status: 500, headers }
     );
   }
 }
