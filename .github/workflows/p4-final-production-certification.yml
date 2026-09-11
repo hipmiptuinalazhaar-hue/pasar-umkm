@@ -1,0 +1,43 @@
+name: P4 Final Production Certification
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: p4-final-production-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  certify-p4-final:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - name: Setup Node 22
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Full repository validation
+        run: npm run validate
+
+      - name: Existing post-deploy smoke
+        run: npm run smoke:post-deploy
+
+      - name: P4 live production certification
+        run: npm run test:p4-final
+
+      - name: Verify deterministic runtime build
+        run: |
+          npm run build:runtime
+          git diff --exit-code
