@@ -47,8 +47,12 @@ assert(source.observability.includes('request_body_logged: false'), 'observabili
 assert(source.observability.includes('cookies_logged: false'), 'observability avoids cookie logging');
 assert(source.observability.includes('ip_address_logged: false'), 'observability avoids raw IP logging');
 
-assert(source.performanceB.includes("const MEDIA_ROOT_SELECTORS = ['#feed', '#searchResults', '#sheetContent', '#sideMenu', '.app']"), 'dynamic-media observer is scoped to known UI roots');
-assert(!source.performanceB.includes('observer.observe(doc.body, { childList: true, subtree: true })'), 'body-wide media observer removed');
+assert(source.performanceB.includes('const MEDIA_ROOT_SELECTOR = ['), 'dynamic-media observer declares scoped UI roots');
+for (const root of ["'.app-main'", "'#feed'", "'#quickCategories'", "'#sheetContent'", "'#searchResults'", "'#sideMenuContent'"]) {
+  assert(source.performanceB.includes(root), `dynamic-media observer includes ${root}`);
+}
+assert(source.performanceB.includes('observer.observe(root, { childList: true, subtree: true })'), 'media observer attaches to scoped roots');
+assert(!source.performanceB.includes('observer.observe(doc.body, { childList: true, subtree: true })'), 'media optimizer no longer attaches its observer to the full body');
 assert(source.performanceB.includes("device.constrained || device.lowEnd ? 'none' : 'metadata'"), 'low-end video preloading is disabled');
 assert(source.performanceB.includes('device.constrained ? 480 : (device.lowEnd || device.effectiveType === \'3g\') ? 800 : 960'), 'low-end responsive image ceiling retained');
 
