@@ -8,13 +8,23 @@ on:
       - 'index.html'
       - '_headers'
       - 'admin/**'
+      - 'checkout/**'
+      - 'purchases/**'
+      - 'seller-orders/**'
+      - 'support/**'
+      - 'legal/**'
       - 'css/**'
       - 'js/**'
       - 'src/**'
+      - 'database/migrations/**'
       - 'wrangler.jsonc'
       - 'scripts/browser-release-smoke.mjs'
+      - 'scripts/browser-p5-critical-surfaces.mjs'
+      - 'scripts/load-smoke-v1.mjs'
       - 'scripts/wait-cloudflare-deploy.mjs'
+      - 'scripts/validate-p4-final-production.mjs'
       - 'scripts/validate-p5-release-verification.mjs'
+      - 'docs/P5_REAL_RELEASE_VERIFICATION.md'
       - '.github/workflows/p5-real-release-verification.yml'
       - '.github/workflows/post-deploy-smoke.yml'
       - 'package.json'
@@ -25,13 +35,23 @@ on:
       - 'index.html'
       - '_headers'
       - 'admin/**'
+      - 'checkout/**'
+      - 'purchases/**'
+      - 'seller-orders/**'
+      - 'support/**'
+      - 'legal/**'
       - 'css/**'
       - 'js/**'
       - 'src/**'
+      - 'database/migrations/**'
       - 'wrangler.jsonc'
       - 'scripts/browser-release-smoke.mjs'
+      - 'scripts/browser-p5-critical-surfaces.mjs'
+      - 'scripts/load-smoke-v1.mjs'
       - 'scripts/wait-cloudflare-deploy.mjs'
+      - 'scripts/validate-p4-final-production.mjs'
       - 'scripts/validate-p5-release-verification.mjs'
+      - 'docs/P5_REAL_RELEASE_VERIFICATION.md'
       - '.github/workflows/p5-real-release-verification.yml'
       - '.github/workflows/post-deploy-smoke.yml'
       - 'package.json'
@@ -66,6 +86,8 @@ jobs:
         run: |
           node --check scripts/wait-cloudflare-deploy.mjs
           node --check scripts/browser-release-smoke.mjs
+          node --check scripts/browser-p5-critical-surfaces.mjs
+          node --check scripts/load-smoke-v1.mjs
           node --check scripts/validate-p5-release-verification.mjs
 
       - name: Canonical validation including P5
@@ -74,10 +96,11 @@ jobs:
   real-browser:
     needs: release-contract
     runs-on: ubuntu-24.04
-    timeout-minutes: 12
+    timeout-minutes: 18
     env:
       P5_VIEWPORTS: 360x800,390x844,430x932,768x1024,1024x768,1280x800,1366x768,1600x900
       P5_BROWSER_READY_TIMEOUT_MS: '20000'
+      P5_CRITICAL_TIMEOUT_MS: '25000'
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -117,6 +140,19 @@ jobs:
 
       - name: Run real browser viewport matrix
         run: node scripts/browser-release-smoke.mjs
+
+      - name: Run critical-surface browser certification
+        run: node scripts/browser-p5-critical-surfaces.mjs
+
+      - name: Run post-deploy public read load smoke
+        if: github.event_name != 'pull_request'
+        env:
+          LOAD_TIERS: 50,100,200
+          LOAD_TIMEOUT_MS: '12000'
+          LOAD_P95_LIMIT_MS: '8000'
+          LOAD_MIN_SUCCESS_RATE: '0.99'
+        run: |
+          LOAD_BASE_URL="$P5_BASE_URL" node scripts/load-smoke-v1.mjs
 
       - name: Print browser verification report
         if: always()
