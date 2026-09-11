@@ -76,17 +76,6 @@
     return (await promise).clone();
   };
 
-  function warmPublicBootstrap() {
-    const network = capability();
-    if (network.constrained || network.lowEnd || network.effectiveType === '3g') return;
-    const paths = ['/api/categories', '/api/stores'];
-    const init = { method: 'GET', credentials: 'include', headers: { Accept: 'application/json' }, cache: 'no-store' };
-    for (const path of paths) {
-      warmRequests += 1;
-      window.fetch(path, init).catch(() => null);
-    }
-  }
-
   function loadScript(name, ready) {
     if (ready?.()) return Promise.resolve(ready());
     if (jobs.has(name)) return jobs.get(name);
@@ -296,13 +285,6 @@
     });
   }
 
-  function schedulePublicWarmup() {
-    afterWindowLoad(() => {
-      if (doc.visibilityState === 'hidden') return;
-      runWhenIdle(() => warmPublicBootstrap(), 6000, 2600);
-    });
-  }
-
   function scheduleWarmup() {
     afterWindowLoad(() => {
       if (doc.visibilityState === 'hidden') return;
@@ -314,7 +296,6 @@
 
   observeVitals();
   scheduleEfficiency();
-  schedulePublicWarmup();
   scheduleWarmup();
 
   window.PasarP2Performance = Object.freeze({
