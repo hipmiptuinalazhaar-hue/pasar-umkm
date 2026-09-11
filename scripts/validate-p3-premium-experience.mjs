@@ -34,8 +34,9 @@ expect(initialScriptSrcs[0]?.startsWith('js/performance-v10-a.js?v='), 'V10 adap
 expect(initialScriptSrcs[1]?.startsWith('js/app.runtime.js?v='), 'app runtime remains the only application implementation in critical JS');
 expect(/js\/p8-commerce-integration\.js\?v=[0-9a-f]{12}/.test(boot), 'V10 bootstrap includes cache-safe lazy checkout routing');
 expect(boot.includes("'[data-action=\"checkout\"]'") && boot.includes('stopImmediatePropagation') && boot.includes('target.click()'), 'checkout intent is intercepted and replayed only after its owner loads');
-expect(initialStyleHrefs.length === 6, `critical shell keeps exactly six direct first-party stylesheets after P2 finalization (${initialStyleHrefs.length})`);
-expect(initialStyleHrefs.some(href => href.startsWith('css/p2-final-polish.css?v=')), 'P2 accessibility polish is part of the finalized critical style layer');
+expect(initialStyleHrefs.length === 6, `critical shell keeps exactly six direct first-party stylesheets after finalized notification/tablet layering (${initialStyleHrefs.length})`);
+expect(initialStyleHrefs.some(href => href.startsWith('css/notification-core.css?v=')), 'notification core remains an explicit critical stylesheet');
+expect(initialStyleHrefs.some(href => href.startsWith('css/tablet-desktop-v2.css?v=')), 'tablet/desktop responsive layer remains explicit');
 expect(index.includes('rel="preload" href="css/public-experience-v9.css?v='), 'V9 presentation is discovered early without becoming an extra stylesheet owner');
 expect(stat('index.html').size <= 18_000, 'critical HTML stays within 18 KB P6+commerce budget');
 expect(stat('js/account-resilience.js').size <= 18_000, 'P6 loader stays within 18 KB budget after adaptive functional gate');
