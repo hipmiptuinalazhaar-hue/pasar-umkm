@@ -89,8 +89,8 @@ async function homepage(request, env) {
   const canonical = `${SITE_ORIGIN}/`;
   return new HTMLRewriter()
     .on("title", {
-      text(text) {
-        text.replace(HOME_TITLE);
+      element(element) {
+        element.setInnerContent(HOME_TITLE);
       }
     })
     .on('meta[name="description"]', {
@@ -116,7 +116,7 @@ async function homepage(request, env) {
 <link rel="icon" href="/assets/logo.webp?v=2.0" type="image/webp">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="google-site-verification" content="${GOOGLE_SITE_VERIFICATION}">
-<meta name="pumkm-runtime-policy" content="p3-seo-finalized-v14">
+<meta name="pumkm-runtime-policy" content="p3-seo-finalized-v14.1">
 <meta property="og:locale" content="id_ID">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Pasar UMKM Lubuklinggau">
@@ -135,10 +135,21 @@ async function homepage(request, env) {
     .on("body", {
       element(element) {
         element.append(`
-<footer data-seo-directory="p3" style="max-width:980px;margin:24px auto 96px;padding:18px 16px;border-top:1px solid rgba(18,31,24,.08);font:600 13px/1.6 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#506158">
+<section data-seo-directory="p3" aria-labelledby="seoAboutTitle" style="max-width:980px;margin:28px auto 0;padding:24px 18px;font:500 14px/1.75 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#43554c">
+  <h2 id="seoAboutTitle" style="margin:0 0 10px;font-size:20px;line-height:1.3;color:#17221d">Belanja dan menemukan UMKM Lubuklinggau dalam satu tempat</h2>
+  <p>Pasar UMKM Lubuklinggau membantu masyarakat menemukan produk, toko, dan usaha lokal secara lebih terstruktur. Setiap profil UMKM publik dapat menampilkan identitas usaha, lokasi, kategori, serta produk aktif yang tersedia. Pengunjung dapat menjelajahi katalog untuk membandingkan pilihan dari pelaku usaha lokal tanpa harus mencari informasi yang tersebar di banyak kanal.</p>
+  <p>Halaman produk memuat informasi harga, ketersediaan stok, nama penjual, dan deskripsi produk berdasarkan data yang dipublikasikan di platform. Halaman profil UMKM menghubungkan produk dengan usaha yang menjualnya sehingga pengguna dapat memahami sumber produk sebelum melanjutkan interaksi atau transaksi. Fitur kepercayaan, dukungan pelanggan, dan informasi kebijakan disediakan sebagai bagian dari pengalaman marketplace yang lebih transparan.</p>
+  <p>Platform ini dikembangkan untuk mendukung digitalisasi ekosistem usaha lokal Lubuklinggau. Pemilik UMKM dapat membangun kehadiran digital melalui profil usaha dan katalog produk, sementara pembeli memperoleh jalur yang lebih sederhana untuk menemukan produk lokal. Data publik yang dapat dirayapi mesin pencari dibatasi pada informasi marketplace yang memang ditujukan untuk publik. Area akun, checkout, dukungan, dan endpoint API tetap dipisahkan dari halaman publik.</p>
+  <p>Gunakan direktori Jelajahi untuk melihat UMKM dan produk terbaru, lalu buka profil usaha atau halaman produk untuk informasi yang lebih lengkap. Informasi operasional dan kebijakan platform juga tersedia melalui halaman legal resmi.</p>
+</section>
+<footer style="max-width:980px;margin:0 auto 96px;padding:18px 16px;border-top:1px solid rgba(18,31,24,.08);font:600 13px/1.6 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#506158">
   <nav aria-label="Tautan publik Pasar UMKM" style="display:flex;gap:14px;flex-wrap:wrap">
     <a href="/jelajahi/" style="color:#0b6846">Jelajahi UMKM &amp; produk</a>
     <a href="/legal/index.html" style="color:#0b6846">Informasi &amp; kebijakan</a>
+    <a href="/legal/privasi.html" style="color:#0b6846">Privasi</a>
+    <a href="/legal/syarat-ketentuan.html" style="color:#0b6846">Syarat &amp; ketentuan</a>
+    <a href="/legal/kebijakan-pembeli.html" style="color:#0b6846">Kebijakan pembeli</a>
+    <a href="/legal/kebijakan-penjual.html" style="color:#0b6846">Kebijakan penjual</a>
     <a href="https://capryan-agusto.hipmiptuinalazhaar.workers.dev/" rel="author" style="color:#0b6846">Tentang pengembang</a>
   </nav>
 </footer>
