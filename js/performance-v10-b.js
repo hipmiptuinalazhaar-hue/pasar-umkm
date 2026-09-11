@@ -7,6 +7,7 @@
   const priorFetch = window.fetch.bind(window);
   const responseCache = new Map();
   const mediaSeen = new WeakSet();
+  const observedRoots = new WeakSet();
   const API_CACHE_RULES = new Map([
     ['/api/discover', 45_000],
     ['/api/recommendations', 45_000],
@@ -14,6 +15,17 @@
   ]);
   const CLOUDINARY_HOST = 'res.cloudinary.com';
   const IMAGE_WIDTHS = Object.freeze([240, 320, 480, 640, 800, 960, 1280]);
+  const MEDIA_ROOT_SELECTOR = [
+    '.app-main',
+    '#feed',
+    '#quickCategories',
+    '#sheetContent',
+    '#searchResults',
+    '#sideMenuContent',
+    '#bottomSheet',
+    '#searchOverlay',
+    '#sideMenu'
+  ].join(',');
 
   let bridgedEvidence = null;
   let cacheHits = 0;
@@ -307,17 +319,35 @@
     root.querySelectorAll?.('video').forEach(optimizeVideo);
   }
 
-  function observeMedia() {
-    optimizeTree(doc);
+  function observeMediaRoot(root) {
+    if (!root || observedRoots.has(root)) return;
+    observedRoots.add(root);
+    optimizeTree(root);
     if (!('MutationObserver' in window)) return;
     const observer = new MutationObserver(records => {
       for (const record of records) {
         for (const node of record.addedNodes) {
-          if (node.nodeType === Node.ELEMENT_NODE) optimizeTree(node);
+          if (node.nodeType !== Node.ELEMENT_NODE) continue;
+          if (node.matches?.('img,video') || node.querySelector?.('img,video')) optimizeTree(node);
         }
       }
     });
-    observer.observe(doc.body, { childList: true, subtree: true });
+    observer.observe(root, { childList: true, subtree: true });
+  }
+
+  function observeMedia() {
+    doc.querySelectorAll(MEDIA_ROOT_SELECTOR).forEach(observeMediaRoot);
+    if (!('MutationObserver' in window) || !doc.body) return;
+    const rootObserver = new MutationObserver(records => {
+      for (const record of records) {
+        for (const node of record.addedNodes) {
+          if (node.nodeType !== Node.ELEMENT_NODE) continue;
+          if (node.matches?.(MEDIA_ROOT_SELECTOR)) observeMediaRoot(node);
+          node.querySelectorAll?.(MEDIA_ROOT_SELECTOR).forEach(observeMediaRoot);
+        }
+      }
+    });
+    rootObserver.observe(doc.body, { childList: true, subtree: true });
   }
 
   function observeApiTransfers() {
@@ -349,7 +379,7 @@
     capability,
     recommendationLimit,
     optimizeImageUrl: cloudinaryUrl,
-    refreshMedia: () => optimizeTree(doc),
+    refreshMedia: () => doc.querySelectorAll(MEDIA_ROOT_SELECTOR).forEach(optimizeTree),
     getDiagnostics: () => Object.freeze({
       cache_hits: cacheHits,
       cache_misses: cacheMisses,
