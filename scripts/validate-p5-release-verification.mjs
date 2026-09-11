@@ -3,6 +3,8 @@ import { readFileSync } from 'node:fs';
 const files = {
   wait: readFileSync('scripts/wait-cloudflare-deploy.mjs', 'utf8'),
   browser: readFileSync('scripts/browser-release-smoke.mjs', 'utf8'),
+  critical: readFileSync('scripts/browser-p5-critical-surfaces.mjs', 'utf8'),
+  load: readFileSync('scripts/load-smoke-v1.mjs', 'utf8'),
   workflow: readFileSync('.github/workflows/p5-real-release-verification.yml', 'utf8'),
   postDeploy: readFileSync('.github/workflows/post-deploy-smoke.yml', 'utf8'),
   authenticated: readFileSync('.github/workflows/authenticated-smoke-v2.yml', 'utf8'),
@@ -35,15 +37,40 @@ requireContract(files.browser.includes('horizontal overflow'), 'browser probe re
 requireContract(files.browser.includes('categories did not hydrate'), 'browser probe waits for live category hydration');
 requireContract(files.browser.includes('runtime JS errors'), 'browser probe fails on runtime JavaScript errors');
 requireContract(files.browser.includes('primary CTA touch target'), 'browser probe checks minimum primary touch target');
-requireContract(!/\.click\s*\(/.test(files.browser), 'production/preview browser probe performs no scripted clicks');
-requireContract(!/method\s*:\s*['\"](?:POST|PUT|PATCH|DELETE)['\"]/i.test(files.browser), 'browser probe contains no mutating HTTP method');
+requireContract(!/\.click\s*\(/.test(files.browser), 'production viewport matrix performs no scripted clicks');
+requireContract(!/method\s*:\s*['\"](?:POST|PUT|PATCH|DELETE)['\"]/i.test(files.browser), 'viewport matrix contains no mutating HTTP method');
+
+for (const route of ['/checkout/', '/purchases/', '/seller-orders/', '/support/', '/admin/']) {
+  requireContract(files.critical.includes(`'${route}'`), `critical-surface browser covers ${route}`);
+}
+requireContract(files.critical.includes("'#notificationButton'"), 'critical-surface browser covers notification entry point');
+requireContract(files.critical.includes("'#messageButton'"), 'critical-surface browser covers message entry point');
+requireContract(files.critical.includes("'[data-nav=\"reels\"]'"), 'critical-surface browser covers Reels entry point');
+requireContract(files.critical.includes("'[data-nav=\"cart\"]'"), 'critical-surface browser covers cart entry point');
+requireContract(files.critical.includes("'[data-nav=\"account\"]'"), 'critical-surface browser covers account entry point');
+requireContract(files.critical.includes("'[data-action=\"sell\"]'"), 'critical-surface browser covers seller entry point');
+requireContract(files.critical.includes('notification-core.css'), 'critical-surface browser verifies notification stylesheet delivery');
+requireContract(files.critical.includes('notification avatar width regression'), 'critical-surface browser protects notification avatar sizing');
+requireContract(files.critical.includes('notification row is not grid'), 'critical-surface browser protects notification row layout');
+requireContract(files.critical.includes("new Set(['POST', 'PUT', 'PATCH', 'DELETE'])"), 'critical-surface browser declares all state-changing methods');
+requireContract(files.critical.includes("client.send('Fetch.failRequest'"), 'critical-surface browser blocks state-changing network requests');
+requireContract(files.critical.includes("window.PasarPerformanceV10.openReels()"), 'critical-surface browser opens Reels through canonical runtime owner');
+requireContract(files.critical.includes("STATE.activeNav : ''"), 'critical-surface browser verifies live SPA routing state');
+requireContract(files.critical.includes('390, height: 844') && files.critical.includes('1280, height: 800'), 'critical route shells are checked on mobile and desktop');
 
 const waitStepIndex = files.workflow.indexOf('- name: Wait for exact Cloudflare deployment');
 const browserStepIndex = files.workflow.indexOf('- name: Run real browser viewport matrix');
+const criticalStepIndex = files.workflow.indexOf('- name: Run critical-surface browser certification');
+const loadStepIndex = files.workflow.indexOf('- name: Run post-deploy public read load smoke');
 requireContract(files.workflow.includes('checks: read'), 'P5 workflow can read exact deployment check-runs');
 requireContract(files.workflow.includes('node scripts/wait-cloudflare-deploy.mjs'), 'P5 workflow waits for exact Cloudflare deployment');
-requireContract(files.workflow.includes('node scripts/browser-release-smoke.mjs'), 'P5 workflow runs real browser verification');
+requireContract(files.workflow.includes('node scripts/browser-release-smoke.mjs'), 'P5 workflow runs real browser viewport verification');
+requireContract(files.workflow.includes('node scripts/browser-p5-critical-surfaces.mjs'), 'P5 workflow runs critical-surface browser verification');
+requireContract(files.workflow.includes('node scripts/load-smoke-v1.mjs'), 'P5 workflow runs post-deploy public read load verification');
 requireContract(waitStepIndex >= 0 && browserStepIndex > waitStepIndex, 'browser verification runs only after deployment attestation');
+requireContract(criticalStepIndex > browserStepIndex, 'critical-surface certification follows viewport matrix');
+requireContract(loadStepIndex > criticalStepIndex, 'production load gate follows browser certification');
+requireContract(files.workflow.includes("if: github.event_name != 'pull_request'"), 'load smoke is limited to deployed main/manual release, not PR preview');
 requireContract(files.workflow.includes('google-chrome --version'), 'P5 workflow proves a real Chrome binary is present');
 requireContract(files.workflow.includes('CLOUDFLARE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}'), 'P5 PR attestation targets branch head SHA, not merge-test SHA');
 requireContract(files.workflow.includes('EVENT_NAME: ${{ github.event_name }}'), 'P5 workflow distinguishes PR preview from production release');
@@ -51,6 +78,12 @@ requireContract(files.workflow.includes('PREVIEW_URL: ${{ steps.deploy.outputs.p
 requireContract(files.workflow.includes('Cloudflare PR preview URL missing.'), 'PR verification fails closed when preview URL is absent');
 requireContract(files.workflow.includes('P5_BASE_URL=$PREVIEW_URL'), 'PR browser matrix targets candidate preview build');
 requireContract(files.workflow.includes('P5_BASE_URL=https://pasar-umkm.hipmiptuinalazhaar.workers.dev'), 'main browser matrix targets production only after deploy attestation');
+requireContract(files.workflow.includes("'scripts/browser-p5-critical-surfaces.mjs'"), 'critical-surface test changes retrigger P5 workflow');
+requireContract(files.workflow.includes("'checkout/**'") && files.workflow.includes("'support/**'") && files.workflow.includes("'seller-orders/**'"), 'critical application surface changes retrigger P5 workflow');
+
+requireContract(files.load.includes('LOAD_TIERS'), 'load harness keeps explicit concurrency tiers');
+requireContract(files.load.includes('LOAD_MIN_SUCCESS_RATE'), 'load harness enforces minimum success rate');
+requireContract(files.load.includes('LOAD_P95_LIMIT_MS'), 'load harness enforces p95 latency ceiling');
 
 requireContract(files.postDeploy.includes('checks: read'), 'post-deploy smoke can read Cloudflare check-runs');
 requireContract(files.postDeploy.includes('node scripts/wait-cloudflare-deploy.mjs'), 'post-deploy smoke waits for exact Cloudflare deployment');
@@ -61,7 +94,7 @@ requireContract(postWaitIndex >= 0 && postSmokeIndex > postWaitIndex, 'post-depl
 requireContract(files.authenticated.includes('Production target rejected for stateful authenticated E2E.'), 'stateful authenticated E2E explicitly rejects production');
 requireContract(files.authenticated.includes('SMOKE_EXPECT_ENVIRONMENT: staging'), 'stateful authenticated E2E requires non-production runtime identity');
 requireContract(files.authenticated.includes('SMOKE_ALLOW_MUTATIONS: "true"'), 'mutation permission is explicit only in isolated authenticated workflow');
-requireContract(!files.workflow.includes('SMOKE_ALLOW_MUTATIONS'), 'real browser release workflow never enables mutations');
+requireContract(!files.workflow.includes('SMOKE_ALLOW_MUTATIONS'), 'real browser release workflow never enables application mutations');
 
 requireContract(files.docs.includes('read-only'), 'P5 documentation records read-only production/preview browser boundary');
 requireContract(files.docs.includes('database test terisolasi'), 'P5 documentation preserves isolated stateful E2E boundary');
