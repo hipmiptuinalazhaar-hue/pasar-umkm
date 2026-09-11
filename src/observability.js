@@ -2,6 +2,7 @@ const DEFAULT_SUCCESS_SAMPLE_RATE = 0.10;
 const DEFAULT_CLIENT_ERROR_SAMPLE_RATE = 0.25;
 const DEFAULT_SLOW_REQUEST_MS = 1500;
 const MAX_ERROR_CODE_LENGTH = 64;
+const OBSERVABILITY_POLICY_VERSION = "p6-reliability-v1";
 
 const ROUTE_RULES = [
   [/^\/api\/health$/, "/api/health"],
@@ -9,10 +10,18 @@ const ROUTE_RULES = [
   [/^\/api\/admin\/security(?:\/|$)/, "/api/admin/security/*"],
   [/^\/api\/admin\/control(?:\/|$)/, "/api/admin/control/*"],
   [/^\/api\/admin\/access(?:\/|$)/, "/api/admin/access/*"],
+  [/^\/api\/admin\/operations(?:\/|$)/, "/api/admin/operations/*"],
+  [/^\/api\/admin\/growth(?:\/|$)/, "/api/admin/growth/*"],
+  [/^\/api\/admin\/support(?:\/|$)/, "/api/admin/support/*"],
   [/^\/api\/commerce\/checkout$/, "/api/commerce/checkout"],
   [/^\/api\/commerce\/cart(?:\/|$)/, "/api/commerce/cart/*"],
   [/^\/api\/commerce\/orders(?:\/|$)/, "/api/commerce/orders/*"],
   [/^\/api\/commerce(?:\/|$)/, "/api/commerce/*"],
+  [/^\/api\/checkout-commerce-preference(?:\/|$)/, "/api/checkout-commerce-preference/*"],
+  [/^\/api\/support(?:\/|$)/, "/api/support/*"],
+  [/^\/api\/reports(?:\/|$)/, "/api/reports/*"],
+  [/^\/api\/disputes(?:\/|$)/, "/api/disputes/*"],
+  [/^\/api\/store-verification(?:\/|$)/, "/api/store-verification/*"],
   [/^\/api\/auth(?:\/|$)/, "/api/auth/*"],
   [/^\/api\/chat\/media(?:\/|$)/, "/api/chat/media/*"],
   [/^\/api\/chat(?:\/|$)/, "/api/chat/*"],
@@ -149,6 +158,7 @@ export async function observeRequest(request, env, ctx, handler) {
   const cfRay = safeCfRay(request);
   const colo = safeColo(request);
   const slowMs = boundedNumber(env?.OBSERVABILITY_SLOW_REQUEST_MS, DEFAULT_SLOW_REQUEST_MS, 250, 30_000);
+  const environment = String(env?.APP_ENV || "production").trim().toLowerCase() === "staging" ? "staging" : "production";
 
   try {
     const response = await handler(request, env, ctx);
@@ -165,6 +175,8 @@ export async function observeRequest(request, env, ctx, handler) {
         event,
         level,
         service: "pasar-umkm",
+        observability_policy: OBSERVABILITY_POLICY_VERSION,
+        environment,
         request_id: id,
         cf_ray: cfRay,
         colo,
@@ -185,6 +197,8 @@ export async function observeRequest(request, env, ctx, handler) {
       event: "api.request.exception",
       level: "error",
       service: "pasar-umkm",
+      observability_policy: OBSERVABILITY_POLICY_VERSION,
+      environment,
       request_id: id,
       cf_ray: cfRay,
       colo,
@@ -215,6 +229,7 @@ export async function observeRequest(request, env, ctx, handler) {
 }
 
 export const observabilityPolicy = Object.freeze({
+  version: OBSERVABILITY_POLICY_VERSION,
   success_sample_rate: DEFAULT_SUCCESS_SAMPLE_RATE,
   client_error_sample_rate: DEFAULT_CLIENT_ERROR_SAMPLE_RATE,
   slow_request_ms: DEFAULT_SLOW_REQUEST_MS,
