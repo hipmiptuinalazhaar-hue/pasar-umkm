@@ -1,6 +1,11 @@
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 const TRUSTED_FETCH_SITES = new Set(["same-origin", "none"]);
 const LEGACY_PUBLIC_ADMIN_PREFIX = "/api/commerce/admin";
+const SESSION_COOKIE_NAMES = Object.freeze([
+  "__Host-pasar_umkm_session",
+  "__Host-pasar_umkm_admin",
+  "__Host-pasar_umkm_admin_challenge"
+]);
 
 function jsonDenied(error, code) {
   return Response.json(
@@ -17,10 +22,10 @@ function jsonDenied(error, code) {
   );
 }
 
-function originDenied() {
+function originDenied(code = "ORIGIN_REJECTED") {
   return jsonDenied(
     "Permintaan lintas-origin tidak diizinkan.",
-    "ORIGIN_REJECTED"
+    code
   );
 }
 
@@ -38,6 +43,12 @@ function normalizeOrigin(value) {
   } catch {
     return "invalid";
   }
+}
+
+function hasSessionCookie(request) {
+  const cookie = String(request.headers.get("Cookie") || "");
+  if (!cookie) return false;
+  return SESSION_COOKIE_NAMES.some(name => new RegExp(`(?:^|;\\s*)${name}=`).test(cookie));
 }
 
 export function enforceRequestSecurity(request) {
@@ -64,6 +75,13 @@ export function enforceRequestSecurity(request) {
     return originDenied();
   }
 
+  // Cookie-authenticated state changes must prove browser provenance. Modern
+  // same-origin browsers send Origin and/or Sec-Fetch-Site on these requests.
+  // Non-browser public API clients without session cookies remain compatible.
+  if (hasSessionCookie(request) && !requestOrigin && !fetchSite) {
+    return originDenied("BROWSER_PROVENANCE_REQUIRED");
+  }
+
   return null;
 }
 
@@ -72,7 +90,9 @@ export const requestSecurityPolicy = Object.freeze({
   protected_methods: ["POST", "PUT", "PATCH", "DELETE"],
   trusted_fetch_sites: [...TRUSTED_FETCH_SITES],
   legacy_public_admin_prefix: LEGACY_PUBLIC_ADMIN_PREFIX,
-  missing_browser_metadata_allowed: true,
+  session_cookie_names: [...SESSION_COOKIE_NAMES],
+  missing_browser_metadata_allowed: "only_without_session_cookie",
+  session_writes_require_browser_provenance: true,
   client_origin_must_match_request_origin: true,
   public_admin_routes_disabled: true
 });
