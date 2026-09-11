@@ -1,0 +1,106 @@
+name: P6 Production Reliability
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/observability.js'
+      - 'src/worker-entry.js'
+      - 'wrangler.jsonc'
+      - 'scripts/p6-production-reliability-probe.mjs'
+      - 'scripts/validate-p6-final-reliability.mjs'
+      - 'docs/P6_OBSERVABILITY_RELIABILITY.md'
+      - '.github/workflows/p6-production-reliability.yml'
+      - 'package.json'
+  push:
+    branches: [main]
+    paths:
+      - 'src/observability.js'
+      - 'src/worker-entry.js'
+      - 'wrangler.jsonc'
+      - 'scripts/p6-production-reliability-probe.mjs'
+      - 'scripts/validate-p6-final-reliability.mjs'
+      - 'docs/P6_OBSERVABILITY_RELIABILITY.md'
+      - '.github/workflows/p6-production-reliability.yml'
+      - 'package.json'
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: read
+
+concurrency:
+  group: p6-production-reliability-${{ github.event_name == 'schedule' && 'scheduled' || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  reliability-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install exact locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Syntax check P6 reliability tooling
+        run: |
+          node --check src/observability.js
+          node --check scripts/p6-production-reliability-probe.mjs
+          node --check scripts/validate-p6-final-reliability.mjs
+
+      - name: P6 final observability and reliability contract
+        run: npm run test:p6-final
+
+      - name: Canonical validation
+        if: github.event_name != 'schedule'
+        run: npm run validate
+
+  production-reliability:
+    if: github.event_name != 'pull_request'
+    needs: reliability-contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+
+      - name: Wait for exact Cloudflare deployment
+        if: github.event_name == 'push'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLOUDFLARE_SHA: ${{ github.sha }}
+          CLOUDFLARE_WAIT_TIMEOUT_MS: '420000'
+          CLOUDFLARE_WAIT_POLL_MS: '5000'
+        run: node scripts/wait-cloudflare-deploy.mjs
+
+      - name: Run live production reliability probe
+        env:
+          P6_BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+          P6_PROBE_TIMEOUT_MS: '12000'
+          P6_PROBE_ROUNDS: '3'
+          P6_P95_LIMIT_MS: '5000'
+        run: node scripts/p6-production-reliability-probe.mjs
+
+      - name: Preserve reliability report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: p6-reliability-${{ github.run_id }}
+          path: p6-reliability-results/report.json
+          if-no-files-found: error
+          retention-days: 14
