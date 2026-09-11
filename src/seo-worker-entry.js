@@ -10,6 +10,7 @@ const SELLER_STYLE = "/css/seller-center-p8-bridge.css?v=1.0";
 const PERFORMANCE_B = "/js/performance-v10-b.js?v=d1c1c336d07e";
 const COMMERCE_RUNTIME = "/js/p8-commerce-integration.js?v=fc3dcbac9b78";
 const TRUST_RUNTIME = "/js/p5-trust-conversion.js?v=1.0";
+const INSTANT_SHELL = "/js/instant-shell-v11.js?v=11.2";
 
 function homepageSchema() {
   return JSON.stringify({
@@ -75,11 +76,12 @@ async function homepage(request, env) {
 <link rel="preload" href="${PERFORMANCE_B}" as="script">
 <link rel="preload" href="${COMMERCE_RUNTIME}" as="script">
 <link rel="preload" href="${TRUST_RUNTIME}" as="script">
+<link rel="preload" href="${INSTANT_SHELL}" as="script">
 <link rel="canonical" href="${canonical}">
 <link rel="icon" href="/assets/logo.webp?v=2.0" type="image/webp">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="google-site-verification" content="${GOOGLE_SITE_VERIFICATION}">
-<meta name="pumkm-runtime-policy" content="fresh-shell-v11.1-critical-marketplace">
+<meta name="pumkm-runtime-policy" content="fresh-shell-v11.2-instant-navigation">
 <meta property="og:locale" content="id_ID">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Pasar UMKM Lubuklinggau">
@@ -96,13 +98,15 @@ async function homepage(request, env) {
     })
     .on("body", {
       element(element) {
-        // These three small runtimes own visible marketplace navigation/recommendation
-        // and trust evidence. Loading them only after click/idle caused multi-second
-        // UI upgrades on low-end phones, so they are parser-deferred instead.
+        // Visible marketplace navigation, recommendation and trust evidence are
+        // parser-deferred, while the instant shell starts session recovery before
+        // catalog/feed hydration so seller-only navigation is not held hostage by
+        // unrelated marketplace requests.
         element.append(`
 <script src="${PERFORMANCE_B}" defer data-v11-critical="recommendation"></script>
 <script src="${COMMERCE_RUNTIME}" defer data-v11-critical="commerce-navigation"></script>
-<script src="${TRUST_RUNTIME}" defer data-v11-critical="trust-evidence"></script>`, { html: true });
+<script src="${TRUST_RUNTIME}" defer data-v11-critical="trust-evidence"></script>
+<script src="${INSTANT_SHELL}" defer data-v11-critical="instant-shell"></script>`, { html: true });
       }
     })
     .transform(response);
