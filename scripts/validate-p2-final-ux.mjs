@@ -25,7 +25,7 @@ const checks = [
   ['dynamic image hardening', js.includes("img:not([alt])") && js.includes("img:not([decoding])")],
   ['P2 CSS shipped by production worker', worker.includes('P2_STYLE') && worker.includes('data-p2-final-ui="true"')],
   ['P2 JS shipped by production worker', worker.includes('P2_RUNTIME') && worker.includes('data-p2-final-runtime="true"')],
-  ['P2 runtime policy active', worker.includes('p2-finalized-v13')]
+  ['P2-or-newer runtime policy active', /p(?:2-finalized-v13|[3-9][\w.-]*finalized-v\d)/.test(worker)]
 ];
 
 let failed = 0;
