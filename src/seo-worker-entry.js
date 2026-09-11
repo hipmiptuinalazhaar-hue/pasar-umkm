@@ -7,10 +7,12 @@ const GOOGLE_SITE_VERIFICATION = "DMxwOlwgQkfPaF5_P_mezSHlo5-iGcU7t0QLYMi6M4c";
 const CRITICAL_PUBLIC_STYLE = "/css/public-experience-v9.css?v=654bea569c48";
 const TRUST_STYLE = "/css/p5-trust-conversion.css?v=1.0";
 const SELLER_STYLE = "/css/seller-center-p8-bridge.css?v=1.0";
+const V1_STYLE = "/css/v1-completion.css?v=1.1";
 const PERFORMANCE_B = "/js/performance-v10-b.js?v=d1c1c336d07e";
 const COMMERCE_RUNTIME = "/js/p8-commerce-integration.js?v=fc3dcbac9b78";
 const TRUST_RUNTIME = "/js/p5-trust-conversion.js?v=1.0";
-const INSTANT_SHELL = "/js/instant-shell-v11.js?v=11.2";
+const V1_RUNTIME = "/js/v1-completion.js?v=1.2";
+const INSTANT_SHELL = "/js/instant-shell-v11.js?v=11.3";
 
 function homepageSchema() {
   return JSON.stringify({
@@ -48,14 +50,10 @@ async function homepage(request, env) {
   }
   if (url.pathname !== "/") return null;
 
-  // Fetch the root asset. Cloudflare Static Assets canonicalizes /index.html
-  // back to /, so requesting /index.html through ASSETS can yield a 307.
   const assetRequest = new Request(new URL("/", request.url), request);
   const assetResponse = await env.ASSETS.fetch(assetRequest);
   if (!assetResponse.ok || !String(assetResponse.headers.get("Content-Type") || "").includes("text/html")) return assetResponse;
 
-  // Keep the document itself fresh. Versioned assets may be cached, but the HTML
-  // must always be revalidated so a new deploy cannot boot an obsolete asset graph.
   const headers = new Headers(assetResponse.headers);
   headers.set("Cache-Control", "no-cache, max-age=0, must-revalidate");
   headers.set("Pragma", "no-cache");
@@ -73,15 +71,17 @@ async function homepage(request, env) {
 <link rel="stylesheet" href="${CRITICAL_PUBLIC_STYLE}" data-critical-public-ui="v11">
 <link rel="stylesheet" href="${TRUST_STYLE}" data-critical-trust-ui="v11">
 <link rel="stylesheet" href="${SELLER_STYLE}" data-critical-seller-ui="v11">
+<link rel="stylesheet" href="${V1_STYLE}" data-critical-v1-ui="v11">
 <link rel="preload" href="${PERFORMANCE_B}" as="script">
 <link rel="preload" href="${COMMERCE_RUNTIME}" as="script">
 <link rel="preload" href="${TRUST_RUNTIME}" as="script">
+<link rel="preload" href="${V1_RUNTIME}" as="script">
 <link rel="preload" href="${INSTANT_SHELL}" as="script">
 <link rel="canonical" href="${canonical}">
 <link rel="icon" href="/assets/logo.webp?v=2.0" type="image/webp">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="google-site-verification" content="${GOOGLE_SITE_VERIFICATION}">
-<meta name="pumkm-runtime-policy" content="fresh-shell-v11.2-instant-navigation">
+<meta name="pumkm-runtime-policy" content="p0-v11.3-parallel-marketplace">
 <meta property="og:locale" content="id_ID">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Pasar UMKM Lubuklinggau">
@@ -98,14 +98,11 @@ async function homepage(request, env) {
     })
     .on("body", {
       element(element) {
-        // Visible marketplace navigation, recommendation and trust evidence are
-        // parser-deferred, while the instant shell starts session recovery before
-        // catalog/feed hydration so seller-only navigation is not held hostage by
-        // unrelated marketplace requests.
         element.append(`
-<script src="${PERFORMANCE_B}" defer data-v11-critical="recommendation"></script>
+<script src="${PERFORMANCE_B}" defer data-v11-critical="recommendation-cache"></script>
 <script src="${COMMERCE_RUNTIME}" defer data-v11-critical="commerce-navigation"></script>
 <script src="${TRUST_RUNTIME}" defer data-v11-critical="trust-evidence"></script>
+<script src="${V1_RUNTIME}" defer data-v11-critical="recommendation-ui"></script>
 <script src="${INSTANT_SHELL}" defer data-v11-critical="instant-shell"></script>`, { html: true });
       }
     })
