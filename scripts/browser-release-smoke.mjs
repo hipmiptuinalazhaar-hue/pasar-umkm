@@ -57,24 +57,17 @@ class CdpClient {
     this.ws = ws;
     this.nextId = 1;
     this.pending = new Map();
-    this.waiters = new Map();
     ws.addEventListener('message', event => this.onMessage(event));
   }
 
   onMessage(event) {
     const message = JSON.parse(String(event.data));
-    if (message.id) {
-      const pending = this.pending.get(message.id);
-      if (!pending) return;
-      this.pending.delete(message.id);
-      if (message.error) pending.reject(new Error(`${message.error.code}: ${message.error.message}`));
-      else pending.resolve(message.result || {});
-      return;
-    }
-    if (!message.method) return;
-    const waiters = this.waiters.get(message.method) || [];
-    this.waiters.delete(message.method);
-    for (const waiter of waiters) waiter.resolve(message.params || {});
+    if (!message.id) return;
+    const pending = this.pending.get(message.id);
+    if (!pending) return;
+    this.pending.delete(message.id);
+    if (message.error) pending.reject(new Error(`${message.error.code}: ${message.error.message}`));
+    else pending.resolve(message.result || {});
   }
 
   send(method, params = {}) {
@@ -82,23 +75,6 @@ class CdpClient {
     return new Promise((resolve, reject) => {
       this.pending.set(id, { resolve, reject });
       this.ws.send(JSON.stringify({ id, method, params }));
-    });
-  }
-
-  waitFor(method, timeoutMs = 20000) {
-    return new Promise((resolve, reject) => {
-      const wrappedResolve = value => {
-        clearTimeout(timer);
-        resolve(value);
-      };
-      const timer = setTimeout(() => {
-        const entries = this.waiters.get(method) || [];
-        this.waiters.set(method, entries.filter(item => item.resolve !== wrappedResolve));
-        reject(new Error(`Timed out waiting for CDP event ${method}`));
-      }, timeoutMs);
-      const entries = this.waiters.get(method) || [];
-      entries.push({ resolve: wrappedResolve, reject });
-      this.waiters.set(method, entries);
     });
   }
 }
@@ -290,18 +266,22 @@ async function runViewport(browserBin, viewport) {
         addEventListener('unhandledrejection', e => { window.__P5_BROWSER_ERRORS__.push('unhandledrejection: '+String(e.reason?.message || e.reason || '').slice(0,220)); });`
     });
 
-    const load = client.waitFor('Page.loadEventFired', 25000);
-    await client.send('Page.navigate', { url: baseUrl.href });
-    await load;
+    const navigation = await client.send('Page.navigate', { url: baseUrl.href });
+    if (navigation.errorText) throw new Error(`Navigation failed: ${navigation.errorText}`);
 
     const deadline = Date.now() + readyTimeoutMs;
     let probe;
     do {
-      probe = await evaluate(client, probeExpression);
+      try {
+        probe = await evaluate(client, probeExpression);
+      } catch {
+        probe = null;
+      }
       if (probe?.readyState === 'complete' && !probe.splashVisible && probe.categoryCount > 0) break;
-      await sleep(500);
+      await sleep(350);
     } while (Date.now() < deadline);
 
+    if (!probe) throw new Error('Browser page never became evaluable before readiness timeout.');
     assertProbe(probe, viewport);
     const shot = await client.send('Page.captureScreenshot', { format: 'png', fromSurface: true, captureBeyondViewport: false });
     const screenshotPath = path.join(outputDir, `${viewport.name}.png`);
