@@ -6,6 +6,7 @@ const SESSION_COOKIE_NAMES = Object.freeze([
   "__Host-pasar_umkm_admin",
   "__Host-pasar_umkm_admin_challenge"
 ]);
+const SESSION_COOKIE_PATTERN = new RegExp(`(?:^|;\\s*)(?:${SESSION_COOKIE_NAMES.join("|")})=`);
 
 function jsonDenied(error, code) {
   return Response.json(
@@ -46,9 +47,7 @@ function normalizeOrigin(value) {
 }
 
 function hasSessionCookie(request) {
-  const cookie = String(request.headers.get("Cookie") || "");
-  if (!cookie) return false;
-  return SESSION_COOKIE_NAMES.some(name => new RegExp(`(?:^|;\\s*)${name}=`).test(cookie));
+  return SESSION_COOKIE_PATTERN.test(String(request.headers.get("Cookie") || ""));
 }
 
 export function enforceRequestSecurity(request) {
