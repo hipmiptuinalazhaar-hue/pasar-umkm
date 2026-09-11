@@ -233,6 +233,8 @@ export const observabilityPolicy = Object.freeze({
   success_sample_rate: DEFAULT_SUCCESS_SAMPLE_RATE,
   client_error_sample_rate: DEFAULT_CLIENT_ERROR_SAMPLE_RATE,
   slow_request_ms: DEFAULT_SLOW_REQUEST_MS,
+  correlation_header: "X-Request-Id",
+  latency_header: "Server-Timing",
   raw_path_logged: false,
   query_string_logged: false,
   request_body_logged: false,
