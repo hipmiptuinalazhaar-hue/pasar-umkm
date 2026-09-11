@@ -66,6 +66,24 @@ function homepageSchema() {
   }).replace(/</g, "\\u003c");
 }
 
+function enhanceDirectory(response) {
+  if (!response || response.status !== 200 || !String(response.headers.get("Content-Type") || "").includes("text/html")) return response;
+  return new HTMLRewriter()
+    .on("main", {
+      element(element) {
+        element.append(`
+<section aria-labelledby="directoryGuideTitle" style="margin-top:38px;padding:24px;background:#fff;border:1px solid #dfe8e3;border-radius:18px;color:#43554c;font:500 15px/1.75 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+  <h2 id="directoryGuideTitle" style="margin:0 0 12px;color:#17221d">Cara menggunakan direktori Pasar UMKM</h2>
+  <p>Direktori ini menjadi jalur publik untuk menemukan UMKM dan produk lokal yang aktif di Pasar UMKM Lubuklinggau. Daftar UMKM mengarahkan pengguna ke profil usaha yang berisi identitas toko, kategori, lokasi, deskripsi, serta jumlah produk aktif. Daftar produk mengarahkan pengguna ke halaman produk dengan informasi harga, stok, penjual, dan deskripsi yang bersumber dari data marketplace.</p>
+  <p>Urutan yang tampil di halaman ini memprioritaskan data usaha dan produk yang masih aktif. Status verifikasi pada profil UMKM ditampilkan sebagai informasi tambahan ketika tersedia, tetapi pengguna tetap dianjurkan membaca detail produk, profil penjual, kebijakan transaksi, serta informasi pendukung sebelum membuat keputusan pembelian. Pasar UMKM tidak menambahkan rating, harga, stok, atau klaim usaha yang tidak berasal dari data platform.</p>
+  <p>Bagi pelaku usaha, keberadaan halaman publik membantu katalog lebih mudah ditemukan melalui tautan internal dan mesin pencari. Bagi pembeli, struktur direktori membuat pencarian produk lokal lebih sederhana karena setiap produk terhubung langsung dengan profil UMKM yang menjualnya. Direktori ini diperbarui berdasarkan data aktif sehingga tautan menuju produk atau usaha yang sudah tidak tersedia tidak dimasukkan ke sitemap publik.</p>
+  <p>Gunakan halaman <a href="/legal/index.html">informasi dan kebijakan</a> untuk memahami aturan platform, <a href="/legal/kebijakan-pembeli.html">kebijakan pembeli</a> untuk panduan transaksi, dan <a href="/legal/kebijakan-penjual.html">kebijakan penjual</a> untuk ketentuan bagi pemilik UMKM.</p>
+</section>`, { html: true });
+      }
+    })
+    .transform(response);
+}
+
 async function homepage(request, env) {
   const url = new URL(request.url);
   if (url.pathname === "/index.html") {
@@ -116,7 +134,7 @@ async function homepage(request, env) {
 <link rel="icon" href="/assets/logo.webp?v=2.0" type="image/webp">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="google-site-verification" content="${GOOGLE_SITE_VERIFICATION}">
-<meta name="pumkm-runtime-policy" content="p3-seo-finalized-v14.1">
+<meta name="pumkm-runtime-policy" content="p3-seo-finalized-v14.2">
 <meta property="og:locale" content="id_ID">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Pasar UMKM Lubuklinggau">
@@ -172,7 +190,10 @@ export default {
       if (homeResponse) return homeResponse;
     }
     const seoResponse = await handlePublicSeo(request, env);
-    if (seoResponse) return seoResponse;
+    if (seoResponse) {
+      if (url.pathname === "/jelajahi" || url.pathname === "/jelajahi/") return enhanceDirectory(seoResponse);
+      return seoResponse;
+    }
     return applicationWorker.fetch(request, env, ctx);
   }
 };
