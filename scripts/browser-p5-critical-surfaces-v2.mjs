@@ -164,8 +164,13 @@ try {
     const stylesheet=[...document.querySelectorAll('link[rel="stylesheet"]')].some(node=>node.href.includes('notification-core.css'));
     const fixture=document.createElement('section'); fixture.className='social-notifications-page'; fixture.style.cssText='position:fixed;left:0;top:0;width:390px;max-width:100vw;z-index:99999;background:#fff';
     fixture.innerHTML='<header class="notification-topbar"><button class="notification-back">←</button><strong class="notification-title">Notifikasi</strong><button class="notification-read-all">Dibaca semua</button></header><div class="notification-summary"><strong>Aktivitas terbaru</strong><span>Semua sudah dibaca</span></div><div class="notification-list"><button class="notification-row unread"><span class="notification-avatar fallback">A</span><span class="notification-copy"><span class="notification-copy-main"><strong>Aktivitas</strong></span><span class="notification-message">Pesan pengujian.</span></span><span class="notification-open-icon">›</span></button></div>';
-    document.body.appendChild(fixture); const avatar=fixture.querySelector('.notification-avatar').getBoundingClientRect(); const row=getComputedStyle(fixture.querySelector('.notification-row')); const top=getComputedStyle(fixture.querySelector('.notification-topbar')); const title=parseFloat(getComputedStyle(fixture.querySelector('.notification-title')).fontSize||'0'); const overflow=Math.max(0,fixture.scrollWidth-innerWidth); fixture.remove();
-    return {stylesheet,avatarWidth:avatar.width,avatarHeight:avatar.height,rowDisplay:row.display,topDisplay:top.display,title,overflow};
+    document.body.appendChild(fixture);
+    const avatar=fixture.querySelector('.notification-avatar').getBoundingClientRect();
+    const row=getComputedStyle(fixture.querySelector('.notification-row'));
+    const top=getComputedStyle(fixture.querySelector('.notification-topbar'));
+    const result={stylesheet,avatarWidth:avatar.width,avatarHeight:avatar.height,rowDisplay:row.display,topDisplay:top.display,title:parseFloat(getComputedStyle(fixture.querySelector('.notification-title')).fontSize||'0'),overflow:Math.max(0,fixture.scrollWidth-innerWidth)};
+    fixture.remove();
+    return result;
   })()`);
   assert(notification.stylesheet, 'notification-core.css is not loaded in production shell');
   assert(notification.avatarWidth >= 40 && notification.avatarWidth <= 50, `notification avatar width regression: ${notification.avatarWidth}`);
