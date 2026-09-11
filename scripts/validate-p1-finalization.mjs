@@ -62,7 +62,7 @@ assert(source.build.includes('WORKER_EAGER_ASSETS = ["js/performance-v10-b.js"]'
 
 const v10bHash = createHash('sha256').update(await readFile(FILES.performanceB)).digest('hex').slice(0, 12);
 assert(source.seoWorker.includes(`/js/performance-v10-b.js?v=${v10bHash}`), `worker V10-B fingerprint matches source (${v10bHash})`);
-assert(source.seoWorker.includes('p1-finalized-v12'), 'homepage declares finalized P1 runtime policy');
+assert(/p(?:1-finalized-v12|[2-9][\w.-]*finalized-v\d)/.test(source.seoWorker), 'homepage declares P1-or-newer finalized runtime policy');
 
 const wrangler = JSON.parse(source.wrangler);
 const limiters = new Set((wrangler.ratelimits || []).map(item => item.name));
