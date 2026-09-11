@@ -19,7 +19,7 @@
   let longTasks = 0;
 
   const ASSETS = Object.freeze({
-    efficiency: 'js/performance-v10-b.js?v=d1c1c336d07e',
+    efficiency: 'js/performance-v10-b.js?v=7a5a0101a671',
     stability: 'js/performance-v10-c.js?v=e289ccfe89b5',
     chat: 'js/chat-single-render-v6.js?v=ef079b1c35ef',
     commerce: 'js/p8-commerce-integration.js?v=fc3dcbac9b78',
