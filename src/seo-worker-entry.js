@@ -5,6 +5,11 @@ const SITE_ORIGIN = "https://pasar-umkm.hipmiptuinalazhaar.workers.dev";
 const HOME_DESCRIPTION = "Pasar UMKM Lubuklinggau, platform digital untuk menemukan produk, layanan, dan usaha lokal.";
 const GOOGLE_SITE_VERIFICATION = "DMxwOlwgQkfPaF5_P_mezSHlo5-iGcU7t0QLYMi6M4c";
 const CRITICAL_PUBLIC_STYLE = "/css/public-experience-v9.css?v=654bea569c48";
+const TRUST_STYLE = "/css/p5-trust-conversion.css?v=1.0";
+const SELLER_STYLE = "/css/seller-center-p8-bridge.css?v=1.0";
+const PERFORMANCE_B = "/js/performance-v10-b.js?v=d1c1c336d07e";
+const COMMERCE_RUNTIME = "/js/p8-commerce-integration.js?v=fc3dcbac9b78";
+const TRUST_RUNTIME = "/js/p5-trust-conversion.js?v=1.0";
 
 function homepageSchema() {
   return JSON.stringify({
@@ -65,11 +70,16 @@ async function homepage(request, env) {
       element(element) {
         element.append(`
 <link rel="stylesheet" href="${CRITICAL_PUBLIC_STYLE}" data-critical-public-ui="v11">
+<link rel="stylesheet" href="${TRUST_STYLE}" data-critical-trust-ui="v11">
+<link rel="stylesheet" href="${SELLER_STYLE}" data-critical-seller-ui="v11">
+<link rel="preload" href="${PERFORMANCE_B}" as="script">
+<link rel="preload" href="${COMMERCE_RUNTIME}" as="script">
+<link rel="preload" href="${TRUST_RUNTIME}" as="script">
 <link rel="canonical" href="${canonical}">
 <link rel="icon" href="/assets/logo.webp?v=2.0" type="image/webp">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="google-site-verification" content="${GOOGLE_SITE_VERIFICATION}">
-<meta name="pumkm-runtime-policy" content="fresh-shell-v11">
+<meta name="pumkm-runtime-policy" content="fresh-shell-v11.1-critical-marketplace">
 <meta property="og:locale" content="id_ID">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Pasar UMKM Lubuklinggau">
@@ -82,6 +92,17 @@ async function homepage(request, env) {
 <meta name="twitter:description" content="${HOME_DESCRIPTION}">
 <meta name="twitter:image" content="${SITE_ORIGIN}/assets/logo.webp?v=2.0">
 <script type="application/ld+json">${homepageSchema()}</script>`, { html: true });
+      }
+    })
+    .on("body", {
+      element(element) {
+        // These three small runtimes own visible marketplace navigation/recommendation
+        // and trust evidence. Loading them only after click/idle caused multi-second
+        // UI upgrades on low-end phones, so they are parser-deferred instead.
+        element.append(`
+<script src="${PERFORMANCE_B}" defer data-v11-critical="recommendation"></script>
+<script src="${COMMERCE_RUNTIME}" defer data-v11-critical="commerce-navigation"></script>
+<script src="${TRUST_RUNTIME}" defer data-v11-critical="trust-evidence"></script>`, { html: true });
       }
     })
     .transform(response);
