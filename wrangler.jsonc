@@ -12,6 +12,11 @@
       "/api/*",
       "/robots.txt",
       "/sitemap.xml",
+      "/sitemap-static.xml",
+      "/sitemap-stores-*.xml",
+      "/sitemap-products-*.xml",
+      "/jelajahi",
+      "/jelajahi/*",
       "/umkm/*",
       "/produk/*"
     ]
