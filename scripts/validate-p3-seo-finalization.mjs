@@ -7,12 +7,15 @@ const wrangler = read('wrangler.jsonc');
 
 const checks = [
   ['homepage title finalized', worker.includes('Pasar UMKM Lubuklinggau | Produk & Usaha Lokal')],
+  ['homepage title replaced without duplication', worker.includes('element.setInnerContent(HOME_TITLE)') && !worker.includes('text.replace(HOME_TITLE)')],
   ['homepage description finalized', worker.includes('Temukan produk, toko, dan usaha lokal Lubuklinggau')],
   ['homepage canonical', worker.includes('<link rel="canonical" href="${canonical}">')],
   ['homepage Organization logo', worker.includes('"@type": "Organization"') && worker.includes('logo: { "@id": `${SITE_ORIGIN}/#logo` }')],
   ['homepage WebSite schema', worker.includes('"@type": "WebSite"')],
   ['homepage WebPage schema', worker.includes('"@type": "WebPage"')],
   ['crawlable discovery link on homepage', worker.includes('href="/jelajahi/"') && worker.includes('data-seo-directory="p3"')],
+  ['homepage crawl-quality content', worker.includes('Belanja dan menemukan UMKM Lubuklinggau dalam satu tempat') && worker.includes('Data publik yang dapat dirayapi mesin pencari')],
+  ['directory crawl-quality enhancement', worker.includes('function enhanceDirectory(response)') && worker.includes('Cara menggunakan direktori Pasar UMKM')],
   ['SEO runtime policy finalized', worker.includes('p3-seo-finalized-v14')],
   ['robots points to sitemap index', seo.includes('Sitemap: ${SITE_ORIGIN}/sitemap.xml')],
   ['sitemap index architecture', seo.includes('<sitemapindex xmlns=') && seo.includes('sitemapIndex(env)')],
