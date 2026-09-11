@@ -21,6 +21,7 @@ on:
       - 'scripts/browser-release-smoke.mjs'
       - 'scripts/browser-p5-critical-surfaces.mjs'
       - 'scripts/load-smoke-v1.mjs'
+      - 'scripts/post-deploy-smoke.mjs'
       - 'scripts/wait-cloudflare-deploy.mjs'
       - 'scripts/validate-p4-final-production.mjs'
       - 'scripts/validate-p5-release-verification.mjs'
@@ -48,6 +49,7 @@ on:
       - 'scripts/browser-release-smoke.mjs'
       - 'scripts/browser-p5-critical-surfaces.mjs'
       - 'scripts/load-smoke-v1.mjs'
+      - 'scripts/post-deploy-smoke.mjs'
       - 'scripts/wait-cloudflare-deploy.mjs'
       - 'scripts/validate-p4-final-production.mjs'
       - 'scripts/validate-p5-release-verification.mjs'
@@ -85,6 +87,7 @@ jobs:
       - name: Syntax check P5 release tooling
         run: |
           node --check scripts/wait-cloudflare-deploy.mjs
+          node --check scripts/post-deploy-smoke.mjs
           node --check scripts/browser-release-smoke.mjs
           node --check scripts/browser-p5-critical-surfaces.mjs
           node --check scripts/load-smoke-v1.mjs
@@ -96,7 +99,7 @@ jobs:
   real-browser:
     needs: release-contract
     runs-on: ubuntu-24.04
-    timeout-minutes: 18
+    timeout-minutes: 20
     env:
       P5_VIEWPORTS: 360x800,390x844,430x932,768x1024,1024x768,1280x800,1366x768,1600x900
       P5_BROWSER_READY_TIMEOUT_MS: '20000'
@@ -135,6 +138,13 @@ jobs:
             echo "Browser target: production after exact deploy attestation"
           fi
 
+      - name: Run exact post-deploy HTTP smoke
+        if: github.event_name != 'pull_request'
+        env:
+          EXPECTED_RELEASE: 2026-09-06-platform-hardening-v3
+          SMOKE_TIMEOUT_MS: '15000'
+        run: PRODUCTION_BASE_URL="$P5_BASE_URL" node scripts/post-deploy-smoke.mjs
+
       - name: Verify real Chrome runtime
         run: google-chrome --version
 
@@ -151,8 +161,7 @@ jobs:
           LOAD_TIMEOUT_MS: '12000'
           LOAD_P95_LIMIT_MS: '8000'
           LOAD_MIN_SUCCESS_RATE: '0.99'
-        run: |
-          LOAD_BASE_URL="$P5_BASE_URL" node scripts/load-smoke-v1.mjs
+        run: LOAD_BASE_URL="$P5_BASE_URL" node scripts/load-smoke-v1.mjs
 
       - name: Print browser verification report
         if: always()
