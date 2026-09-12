@@ -1,0 +1,158 @@
+name: P10 Final Production Certification
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'js/**'
+      - 'css/**'
+      - 'scripts/**'
+      - 'docs/P9_OFFENSIVE_SECURITY_AUDIT.md'
+      - 'docs/P10_FINAL_PRODUCTION_COMPLETION.md'
+      - '.github/workflows/p10-final-production-certification.yml'
+      - 'wrangler.jsonc'
+      - 'package.json'
+      - 'package-lock.json'
+      - '_headers'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: read
+
+concurrency:
+  group: p10-final-certification-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install exact locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Canonical validation
+        run: npm run validate
+
+      - name: P10 completion contract
+        run: npm run test:p10-final
+
+      - name: Deterministic runtime build
+        run: |
+          npm run build:runtime
+          git diff --exit-code
+
+  production-certification:
+    if: github.event_name != 'pull_request'
+    needs: release-contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+      PRODUCTION_BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+      P5_BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+      P6_BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+      P7_BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+      P8_SCALE_BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+      P9_BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+      LOAD_BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+      P5_VIEWPORTS: 360x800,390x844,430x932,768x1024,1024x768,1280x800,1366x768,1600x900
+      P5_BROWSER_READY_TIMEOUT_MS: '20000'
+      P5_CRITICAL_TIMEOUT_MS: '25000'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+
+      - name: Wait for exact Cloudflare deployment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLOUDFLARE_SHA: ${{ github.sha }}
+          CLOUDFLARE_WAIT_TIMEOUT_MS: '420000'
+          CLOUDFLARE_WAIT_POLL_MS: '5000'
+        run: node scripts/wait-cloudflare-deploy.mjs
+
+      - name: Post-deploy HTTP smoke
+        run: node scripts/post-deploy-smoke.mjs
+
+      - name: P4 final production regression
+        run: node scripts/validate-p4-final-production.mjs
+
+      - name: P6 production reliability regression
+        env:
+          P6_PROBE_TIMEOUT_MS: '12000'
+          P6_PROBE_ROUNDS: '3'
+          P6_P95_LIMIT_MS: '5000'
+        run: node scripts/p6-production-reliability-probe.mjs
+
+      - name: P7 production launch regression
+        env:
+          P7_PROBE_TIMEOUT_MS: '12000'
+          P7_PROBE_ROUNDS: '3'
+          P7_P95_LIMIT_MS: '5000'
+        run: node scripts/p7-production-launch-probe.mjs
+
+      - name: P8 database scale production regression
+        env:
+          P8_SCALE_PROBE_TIMEOUT_MS: '12000'
+          P8_SCALE_P95_LIMIT_MS: '5000'
+        run: node scripts/p8-production-scale-probe.mjs
+
+      - name: P9 offensive security production probe
+        env:
+          P9_PROBE_TIMEOUT_MS: '12000'
+        run: node scripts/p9-production-security-probe.mjs
+
+      - name: Verify Chrome
+        run: google-chrome --version
+
+      - name: Real-browser viewport matrix
+        run: node scripts/browser-release-smoke.mjs
+
+      - name: Critical browser surfaces
+        run: node scripts/browser-p5-critical-surfaces-v2.mjs
+
+      - name: Checkout browser regression
+        run: node scripts/browser-v10-c-checkout-smoke.mjs
+
+      - name: Reels browser regression
+        run: node scripts/browser-reels-v4-smoke.mjs
+
+      - name: Read-only load smoke
+        env:
+          LOAD_TIERS: 50,100,200
+          LOAD_TIMEOUT_MS: '20000'
+          LOAD_P95_LIMIT_MS: '8000'
+          LOAD_MIN_SUCCESS_RATE: '0.99'
+        run: node scripts/load-smoke-v1.mjs
+
+      - name: Preserve final certification evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: p10-final-certification-${{ github.run_id }}
+          path: |
+            p5-browser-results/
+            p6-reliability-results/
+            p7-launch-readiness-results/
+            p8-scale-results/
+            p9-security-results/
+          if-no-files-found: warn
+          retention-days: 30
