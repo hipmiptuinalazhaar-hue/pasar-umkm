@@ -44,7 +44,7 @@ const assertions = [
   ['CSP blocks object embedding', headers.includes("object-src 'none'")],
   ['CSP blocks inline event handlers', headers.includes("script-src-attr 'none'")],
   ['HSTS is present', headers.toLowerCase().includes('strict-transport-security')],
-  ['framing is denied', headers.toLowerCase().includes('x-frame-options: deny') || headers.toLowerCase().includes("frame-ancestors 'none'"))
+  ['framing is denied', headers.toLowerCase().includes('x-frame-options: deny') || headers.toLowerCase().includes("frame-ancestors 'none'")]
 ];
 
 const failed = assertions.filter(([, ok]) => !ok);
