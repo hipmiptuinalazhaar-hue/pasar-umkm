@@ -15,7 +15,7 @@ const expect = (condition, message) => {
 
 expect(v10c.includes("version: '10.3'"), 'V10-C runtime exposes version 10.3');
 expect(v10a.includes("stability: 'js/performance-v10-c.js"), 'V10-C is owned by adaptive V10-A loader');
-expect(v10a.includes("stability: () => loadScript('stability'"), 'V10-A exposes deterministic V10-C loader');
+expect(/stability\s*:\s*\(\)\s*=>\s*loadScript\(\s*['"]stability['"]/.test(v10a), 'V10-A exposes deterministic V10-C loader');
 expect(v10a.includes('loaders.stability()'), 'V10-C boots after DOM readiness without becoming a critical HTML owner');
 expect(v10a.includes('INTENT_LOAD_TIMEOUT_MS'), 'lazy interaction loading is bounded by a timeout');
 expect(v10a.includes("location.assign('/checkout/index.html')"), 'checkout has a safe local-route fallback if commerce bootstrap fails');
