@@ -1,6 +1,6 @@
 'use strict';
 (()=>{
-if(window.PasarPerformanceV10?.version==='10.1')return;
+if(window.PasarPerformanceV10?.version === '10.1')return;
 const doc=document,u=doc.createElement('script');u.src='js/ui-consistency-v1.js?v=1.0';u.async=false;doc.head.append(u);
 const jobs=new Map(),replaying=new WeakSet(),publicPaths=new Set(['/api/categories','/api/stores','/api/products','/api/posts']),responseCache=new Map();
 const PUBLIC_CACHE_TTL_MS=20_000;
@@ -8,7 +8,7 @@ const PUBLIC_CACHE_MAX_ENTRIES = 64;
 const INTENT_LOAD_TIMEOUT_MS=4_500;
 let warmRequests=0,replayCount=0,lazyLoads=0,intentTimeouts=0,lcp=0,cls=0,longTasks=0;
 const ASSETS=Object.freeze({efficiency: 'js/performance-v10-b.js?v=7a5a0101a671',stability: 'js/performance-v10-c.js?v=e289ccfe89b5',chat: 'js/chat-single-render-v6.js?v=ef079b1c35ef',commerce: 'js/p8-commerce-integration.js?v=fc3dcbac9b78',account: 'js/account-resilience.js?v=05a13489b947&seller=1',saved: 'js/profile-saved.js?v=fbf14ea3f0cd',reels: 'js/reels-v4-entry.js?v=5277c6ed5d67'});
-function capability(){const connection=navigator.connection||navigator.mozConnection||navigator.webkitConnection||null,effectiveType=String(connection?.effectiveType||'').toLowerCase(),saveData=Boolean(connection?.saveData),cores=Number(navigator.hardwareConcurrency||0),memory=Number(navigator.deviceMemory||0),constrained=saveData||['slow-2g','2g'].includes(effectiveType),lowEnd=(cores>0&&cores<=4)||(memory>0&&memory<=4);return Object.freeze({effectiveType,saveData,cores,memory,constrained,lowEnd})}
+function capability(){const connection=navigator.connection||navigator.mozConnection||navigator.webkitConnection||null,effectiveType=String(connection?.effectiveType||'').toLowerCase(),saveData=Boolean(connection?.saveData),cores=Number(navigator.hardwareConcurrency||0),memory=Number(navigator.deviceMemory||0),constrained=saveData||['slow-2g', '2g'].includes(effectiveType),lowEnd=(cores>0&&cores<=4)||(memory>0&&memory<=4);return Object.freeze({effectiveType,saveData,cores,memory,constrained,lowEnd})}
 function publicKey(input,init){try{const request=input instanceof Request?input:new Request(input,init),url=new URL(request.url,location.href);if(url.origin!==location.origin||String(request.method||'GET').toUpperCase()!=='GET')return null;return publicPaths.has(url.pathname)?`${url.pathname}${url.search}`:null}catch{return null}}
 const rawFetch=window.fetch.bind(window);
 window.fetch=async function v10Fetch(input,init){const key=publicKey(input,init);if(!key)return rawFetch(input,init);const now=Date.now(),cached=responseCache.get(key);if(cached?.expiresAt > now){try{return(await cached.promise).clone()}catch{responseCache.delete(key)}}else if (cached) responseCache.delete(key);if(responseCache.size >= PUBLIC_CACHE_MAX_ENTRIES)responseCache.delete(responseCache.keys().next().value);warmRequests += 1;const promise=rawFetch(input,init).then(response=>{if(!response.ok)responseCache.delete(key);return response}).catch(error=>{responseCache.delete(key);throw error});responseCache.set(key,{expiresAt:now+PUBLIC_CACHE_TTL_MS,promise});return(await promise).clone()};
