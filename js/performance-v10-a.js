@@ -4,6 +4,12 @@
   if (window.PasarPerformanceV10?.version === '10.1') return;
 
   const doc = document;
+  const ui = doc.createElement('script');
+  ui.src = 'js/ui-consistency-v1.js?v=1.0';
+  ui.async = false;
+  ui.dataset.uiConsistencyV1 = 'true';
+  doc.head.appendChild(ui);
+
   const jobs = new Map();
   const replaying = new WeakSet();
   const publicPaths = new Set(['/api/categories', '/api/stores', '/api/products', '/api/posts']);
@@ -314,6 +320,7 @@
   window.PasarPerformanceV10 = Object.freeze({
     version: '10.1',
     capability,
+    clearPublicCache: () => responseCache.clear(),
     openReels: () => loaders.reels().then(reels => reels.open()).catch(error => {
       console.error('[Pasar UMKM] Reels navigation error:', error);
       window.showToast?.('Reels belum dapat dibuka. Coba lagi.');
