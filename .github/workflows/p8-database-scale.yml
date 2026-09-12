@@ -1,0 +1,110 @@
+name: P8 Database Scale Certification
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/P8_DATABASE_SCALE_AUDIT.md'
+      - 'database/staging/p8-scale-audit.sql'
+      - 'scripts/validate-p8-database-scale.mjs'
+      - 'scripts/p8-production-scale-probe.mjs'
+      - '.github/workflows/p8-database-scale.yml'
+      - 'src/public-catalog-api.js'
+      - 'package.json'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: read
+
+concurrency:
+  group: p8-database-scale-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scale-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install exact locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Syntax check P8 tooling
+        run: |
+          node --check scripts/validate-p8-database-scale.mjs
+          node --check scripts/p8-production-scale-probe.mjs
+
+      - name: P8 database scale contract
+        run: npm run test:p8-scale
+
+      - name: Canonical validation
+        run: npm run validate
+
+      - name: Deterministic runtime build
+        run: |
+          npm run build:runtime
+          git diff --exit-code
+
+  production-scale-gate:
+    if: github.event_name == 'push'
+    needs: scale-contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+      P7_BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+      P8_SCALE_BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+      PRODUCTION_BASE_URL: https://pasar-umkm.hipmiptuinalazhaar.workers.dev
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+
+      - name: Wait for exact Cloudflare deployment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CLOUDFLARE_SHA: ${{ github.sha }}
+          CLOUDFLARE_WAIT_TIMEOUT_MS: '420000'
+          CLOUDFLARE_WAIT_POLL_MS: '5000'
+        run: node scripts/wait-cloudflare-deploy.mjs
+
+      - name: Post-deploy regression smoke
+        run: node scripts/post-deploy-smoke.mjs
+
+      - name: Preserve P7 launch readiness
+        env:
+          P7_PROBE_TIMEOUT_MS: '12000'
+          P7_PROBE_ROUNDS: '2'
+          P7_P95_LIMIT_MS: '5000'
+        run: node scripts/p7-production-launch-probe.mjs
+
+      - name: P8 production database scale probe
+        env:
+          P8_SCALE_TIMEOUT_MS: '12000'
+          P8_SCALE_P95_LIMIT_MS: '5000'
+          P8_SCALE_PAGE_LIMIT: '2'
+        run: node scripts/p8-production-scale-probe.mjs
+
+      - name: Preserve P8 scale report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: p8-database-scale-${{ github.run_id }}
+          path: p8-scale-results/report.json
+          if-no-files-found: error
+          retention-days: 14
