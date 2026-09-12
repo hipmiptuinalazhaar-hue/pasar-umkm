@@ -72,11 +72,8 @@
     let purchases = host.querySelector('[data-p8-purchases-link]');
     const legacyOrders = host.querySelector('[data-menu-action="orders"]');
     if (!purchases) purchases = finalSideLink('/purchases/', 'package', 'Pembelian Saya', 'p8PurchasesLink');
-    if (legacyOrders) {
-      legacyOrders.replaceWith(purchases);
-    } else if (!purchases.isConnected) {
-      host.appendChild(purchases);
-    }
+    if (legacyOrders) legacyOrders.replaceWith(purchases);
+    else if (!purchases.isConnected) host.appendChild(purchases);
     purchases.classList.add('menu-sheet-btn', 'p7-side-link');
     purchases.href = '/purchases/';
     const label = purchases.querySelector('span');
@@ -129,7 +126,7 @@
     try {
       const commerce = await ensureModernCommerce();
       await commerce.handleIntent(target);
-      requestAnimationFrame(() => window.PasarP8Commerce?.syncCartSelectionUI?.());
+      requestAnimationFrame(() => window.PasarCartCheckoutV2?.syncCartSelectionUI?.());
     } catch (error) {
       console.error('[Pasar UMKM] Modern commerce bootstrap:', error);
       window.showToast?.('Fitur perdagangan belum dapat dibuka. Coba lagi.');
