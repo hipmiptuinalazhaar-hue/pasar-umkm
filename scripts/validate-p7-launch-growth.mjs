@@ -77,7 +77,9 @@ req(appP7Css, ".p7-discovery", "P7 discovery styles missing");
 req(p3, "css/p7-launch-growth.css?v=1.1", "P3 deferred loader missing refreshed P7 CSS");
 req(p3, "js/p7-launch-growth.js?v=1.0", "P3 deferred loader missing P7 JS");
 req(p3, "loadP7LaunchGrowth", "P3 deferred P7 loader function missing");
-forbid(index, /p7-launch-growth\.(css|js)|p7-launch-center\.js/i, "P7 assets must not be part of critical index shell");
+// The small P7 stylesheet may be cold-start prewarmed to prevent sidebar FOUC.
+// P7 executable behavior must remain deferred; Launch Center code must never enter the homepage shell.
+forbid(index, /p7-launch-growth\.js|p7-launch-center\.js/i, "P7 executable assets must not be part of critical index shell");
 if (size("js/p3-premium-experience.js") > 12_000) failures.push("P3 premium loader exceeds 12KB after P7 integration");
 if (size("js/p7-launch-growth.js") > 24_000) failures.push("P7 deferred app integration exceeds 24KB source budget");
 if (size("js/p7-launch-center.js") > 24_000) failures.push("P7 Launch Center JS exceeds 24KB source budget");
@@ -129,4 +131,4 @@ console.log("- seller Launch Center uses canonical ownership-scoped APIs");
 console.log("- discovery + server-rendered share/SEO contract");
 console.log("- privacy-minimized funnel instrumentation");
 console.log("- promotion placement registry with RBAC/MFA and no billing/fund movement");
-console.log("- P7 stays deferred from the critical homepage shell");
+console.log("- P7 executable behavior stays deferred; cold-start navigation CSS may be prewarmed");
