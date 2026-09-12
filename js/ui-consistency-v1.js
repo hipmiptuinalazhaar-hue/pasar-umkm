@@ -75,18 +75,10 @@
     }
   }
 
-  function loadCheckoutFinalizer() {
-    if (!doc.querySelector('script[data-ui-cart-checkout-finalizer]') && window.PasarCartCheckoutHotfix?.version !== '1.2') {
-      const script = doc.createElement('script');
-      script.src = 'js/cart-checkout-hotfix-v1.js?v=1.2';
-      script.async = true;
-      script.dataset.uiCartCheckoutFinalizer = 'true';
-      doc.body.appendChild(script);
-    }
-
-    const loadCommerce = () => window.PasarPerformanceV10?.load?.('commerce')?.catch?.(() => null);
-    if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', loadCommerce, { once: true });
-    else loadCommerce();
+  function preloadCommerce() {
+    const load = () => window.PasarPerformanceV10?.load?.('commerce')?.catch?.(() => null);
+    if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', load, { once: true });
+    else load();
   }
 
   async function refreshHome(button) {
@@ -143,7 +135,7 @@
       refreshHome(home);
     }, true);
 
-    loadCheckoutFinalizer();
+    preloadCommerce();
   }
 
   if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', install, { once: true });
