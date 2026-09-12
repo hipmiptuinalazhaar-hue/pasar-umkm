@@ -2,6 +2,7 @@
 
 /* PASAR UMKM - NAVIGATION / INITIAL RENDER GUARD v2.3 */
 (() => {
+  if (window.PasarNavigationRefreshGuard?.version === '2.3') return;
   const doc = document;
   const hash = String(location.hash || '');
   const navigationEntry = performance.getEntriesByType?.('navigation')?.[0] || null;
