@@ -24,6 +24,9 @@ const assertions = [
   ['trust runtime eager', seo.includes('data-v11-critical="trust-evidence"')],
   ['instant shell eager', seo.includes('data-v11-critical="instant-shell"')],
   ['V10 request coalescing retained', v10a.includes('responseCache.set(key') && v10a.includes('cached?.expiresAt > now')],
+  ['V10 public cache is bounded', v10a.includes('PUBLIC_CACHE_MAX_ENTRIES = 64') && v10a.includes('prunePublicCache(now)') && v10a.includes('while (responseCache.size >= PUBLIC_CACHE_MAX_ENTRIES)')],
+  ['V10 stale public cache entries are removed', v10a.includes('entry.expiresAt <= now') && v10a.includes('responseCache.delete(key)')],
+  ['V10 public network diagnostics increment', v10a.includes('warmRequests += 1') && v10a.includes('cache_max_entries: PUBLIC_CACHE_MAX_ENTRIES')],
   ['V1 recommendations use evidence', v1.includes('/api/ratings/summaries') && v1.includes('rankingScore')],
   ['V1 seller center parallel requests', v1.includes("api('/api/commerce/orders?scope=seller')") && v1.includes("api('/api/products/me')")]
 ];
