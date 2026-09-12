@@ -51,17 +51,6 @@
     }
   }
 
-  function prunePublicCache(now = Date.now()) {
-    for (const [key, entry] of responseCache) {
-      if (!entry || entry.expiresAt <= now) responseCache.delete(key);
-    }
-    while (responseCache.size >= PUBLIC_CACHE_MAX_ENTRIES) {
-      const oldestKey = responseCache.keys().next().value;
-      if (oldestKey === undefined) break;
-      responseCache.delete(oldestKey);
-    }
-  }
-
   const rawFetch = window.fetch.bind(window);
   window.fetch = async function v10Fetch(input, init) {
     const key = publicKey(input, init);
@@ -74,11 +63,8 @@
       } catch {
         responseCache.delete(key);
       }
-    } else if (cached) {
-      responseCache.delete(key);
-    }
-
-    prunePublicCache(now);
+    } else if (cached) responseCache.delete(key);
+    if (responseCache.size >= PUBLIC_CACHE_MAX_ENTRIES) responseCache.delete(responseCache.keys().next().value);
     warmRequests += 1;
     const promise = rawFetch(input, init)
       .then(response => {
@@ -321,7 +307,6 @@
     getDiagnostics: () => Object.freeze({
       warm_requests: warmRequests,
       cache_entries: responseCache.size,
-      cache_max_entries: PUBLIC_CACHE_MAX_ENTRIES,
       network: capability()
     })
   });
@@ -338,7 +323,6 @@
       capability: capability(),
       warm_requests: warmRequests,
       cache_entries: responseCache.size,
-      cache_max_entries: PUBLIC_CACHE_MAX_ENTRIES,
       lazy_loads: lazyLoads,
       replayed_intents: replayCount,
       intent_timeouts: intentTimeouts,
