@@ -104,13 +104,21 @@
 
       if (typeof window.loadInitialData === 'function') {
         await window.loadInitialData();
-        if (typeof window.renderApplication === 'function') window.renderApplication();
+        const stillHome = (() => {
+          try { return typeof STATE === 'undefined' || STATE.activeNav === 'home'; }
+          catch { return true; }
+        })();
+        if (stillHome && typeof window.renderApplication === 'function') window.renderApplication();
       } else {
         window.location.reload();
         return;
       }
 
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const stillHome = (() => {
+        try { return typeof STATE === 'undefined' || STATE.activeNav === 'home'; }
+        catch { return true; }
+      })();
+      if (stillHome) window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
       console.error('[Pasar UMKM] Home refresh error:', error);
       window.showToast?.('Beranda belum dapat diperbarui. Coba lagi.');
