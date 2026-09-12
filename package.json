@@ -1,6 +1,7 @@
 {
   "name": "pasar-umkm",
   "version": "1.0.0",
+  "description": "Pasar UMKM production marketplace",
   "private": true,
   "engines": {
     "node": ">=22 <23"
