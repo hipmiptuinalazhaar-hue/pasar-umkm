@@ -1,5 +1,8 @@
+import fs from 'node:fs';
+
 const BASE_URL = String(process.env.P9_BASE_URL || 'https://pasar-umkm.hipmiptuinalazhaar.workers.dev').replace(/\/$/, '');
 const TIMEOUT_MS = Number(process.env.P9_PROBE_TIMEOUT_MS || 12000);
+const REPORT_DIR = 'p9-security-results';
 
 function timeoutSignal(ms) {
   return AbortSignal.timeout(Math.max(1000, ms));
@@ -102,9 +105,12 @@ const report = {
   checked_at: new Date().toISOString(),
   total: checks.length,
   passed: checks.length - failed.length,
-  failed: failed.map(item => ({ name: item.name, detail: item.detail }))
+  failed: failed.map(item => ({ name: item.name, detail: item.detail })),
+  checks
 };
 
+fs.mkdirSync(REPORT_DIR, { recursive: true });
+fs.writeFileSync(`${REPORT_DIR}/report.json`, `${JSON.stringify(report, null, 2)}\n`);
 console.log(JSON.stringify(report, null, 2));
 if (failed.length) process.exit(1);
 console.log(`P9 production security probe PASS (${checks.length}/${checks.length}).`);
