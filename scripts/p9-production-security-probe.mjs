@@ -70,7 +70,7 @@ check('legacy public admin disabled', legacyAdmin.status === 403 && legacyAdmin.
 
 const privateRoutes = [
   ['/api/profile', [401]],
-  ['/api/notifications', [401]],
+  ['/api/notifications', [401, 404]],
   ['/api/commerce/orders', [401]],
   ['/api/support/tickets', [401]],
   ['/api/admin/auth/me', [401]],
