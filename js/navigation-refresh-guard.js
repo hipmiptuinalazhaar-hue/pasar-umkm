@@ -94,7 +94,7 @@
     }
     button.classList.add('menu-sheet-btn');
     const labelNode = button.querySelector('span');
-    if (labelNode) labelNode.textContent = label;
+    if (labelNode && labelNode.textContent !== label) labelNode.textContent = label;
     return button;
   }
 
@@ -113,7 +113,7 @@
     purchases.href = '/purchases/';
     purchases.dataset.p8PurchasesLink = 'true';
     const label = purchases.querySelector('span');
-    if (label) label.textContent = 'Pesanan Saya';
+    if (label && label.textContent !== 'Pesanan Saya') label.textContent = 'Pesanan Saya';
     return purchases;
   }
 
@@ -159,7 +159,14 @@
       help
     ].filter(Boolean);
 
-    for (const node of ordered) host.appendChild(node);
+    const current = [...host.children].filter(node => ordered.includes(node));
+    const orderChanged = ordered.length !== current.length || ordered.some((node, index) => current[index] !== node);
+    if (orderChanged) {
+      const fragment = doc.createDocumentFragment();
+      for (const node of ordered) fragment.appendChild(node);
+      host.appendChild(fragment);
+    }
+
     return true;
   }
 
