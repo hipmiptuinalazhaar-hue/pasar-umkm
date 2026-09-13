@@ -1,7 +1,29 @@
 'use strict';
 
 (() => {
-  if (window.PasarUIConsistency?.version === '1.0') return;
+  if (window.PasarUIConsistency?.version === '1.1') return;
+
+  function cleanupLegacySeoArtifacts() {
+    let removed = 0;
+
+    document.querySelectorAll('[data-seo-directory="p3"]').forEach(node => {
+      node.remove();
+      removed += 1;
+    });
+
+    document.querySelectorAll('body > footer').forEach(footer => {
+      const text = String(footer.textContent || '');
+      const looksLikeLegacySeoFooter =
+        footer.querySelector('a[href^="/jelajahi"],a[href^="/legal/"]') ||
+        text.includes('Tentang pengembang') ||
+        text.includes('Kebijakan pembeli');
+      if (!looksLikeLegacySeoFooter) return;
+      footer.remove();
+      removed += 1;
+    });
+
+    return removed;
+  }
 
   const getGuard = () => (
     window.PasarNavigationRefreshGuard?.version === '2.3'
@@ -28,6 +50,7 @@
   }
 
   function syncMenu() {
+    cleanupLegacySeoArtifacts();
     const guard = getGuard();
     if (guard) return guard.ensureFinalNavigation();
 
@@ -39,6 +62,7 @@
   }
 
   function refreshHome() {
+    cleanupLegacySeoArtifacts();
     const guard = getGuard();
     if (guard) return guard.refreshHome();
 
@@ -54,10 +78,15 @@
   // commerce prewarming are intentionally owned by navigation-refresh-guard.
   // Keeping a single owner removes the refresh/menu race that previously made
   // the UI change after opening Account/Profile.
+  cleanupLegacySeoArtifacts();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', cleanupLegacySeoArtifacts, { once: true });
+  }
   syncMenu();
 
   window.PasarUIConsistency = Object.freeze({
-    version: '1.0',
+    version: '1.1',
+    cleanupLegacySeoArtifacts,
     syncMenu,
     refreshHome
   });
