@@ -1,7 +1,7 @@
 'use strict';
 (()=>{
 if(window.PasarPerformanceV10?.version === '10.1')return;
-const doc=document,u=doc.createElement('script');u.src='js/ui-consistency-v1.js?v=1.0';u.async=false;doc.head.append(u);
+const doc=document,u=doc.createElement('script');u.src='js/ui-consistency-v1.js?v=1.1';u.async=false;doc.head.append(u);
 const jobs=new Map(),replaying=new WeakSet(),publicPaths=new Set(['/api/categories','/api/stores','/api/products','/api/posts']),responseCache=new Map();
 const PUBLIC_CACHE_TTL_MS = 20_000;
 const PUBLIC_CACHE_MAX_ENTRIES = 64;
