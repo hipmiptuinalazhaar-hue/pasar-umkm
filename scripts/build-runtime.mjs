@@ -11,6 +11,7 @@ const SEO_WORKER = "src/seo-worker-entry.js";
 const ASSETS_IGNORE = ".assetsignore";
 const TOKENS = "css/tokens.css";
 const V10_BOOT = "js/performance-v10-a.js";
+const NAV_GUARD = "js/navigation-refresh-guard.js";
 const REELS_BOOT = "js/reel-profile-separation.js";
 const REELS_ENTRY = "js/reels-v4-entry.js";
 const WORKER_EAGER_ASSETS = ["js/performance-v10-b.js"];
@@ -23,6 +24,7 @@ const CRITICAL_ASSETS = [
   "css/tablet-desktop-v2.css",
   "css/public-experience-v9.css",
   V10_BOOT,
+  NAV_GUARD,
   JS_RUNTIME
 ];
 
@@ -34,6 +36,11 @@ const LAZY_BOOT_ASSETS = [
   "js/p8-commerce-integration.js",
   "js/account-resilience.js",
   "js/profile-saved.js"
+];
+
+const NAVIGATION_GRAPH_ASSETS = [
+  "js/p8-commerce-integration.js",
+  "js/commerce-experience-v2.js"
 ];
 
 const REELS_GRAPH_ASSETS = [
@@ -103,6 +110,16 @@ async function stampLazyBootGraph() {
   await writeFile(V10_BOOT, boot, "utf8");
 }
 
+async function stampNavigationGraph() {
+  let guard = await readFile(NAV_GUARD, "utf8");
+  for (const assetPath of NAVIGATION_GRAPH_ASSETS) {
+    const version = await sha12(assetPath);
+    guard = stampVersion(guard, assetPath, version);
+    console.log(`navigation-cache-key ${assetPath}=${version}`);
+  }
+  await writeFile(NAV_GUARD, guard, "utf8");
+}
+
 async function stampWorkerEagerGraph() {
   let worker = await readFile(SEO_WORKER, "utf8");
   for (const assetPath of WORKER_EAGER_ASSETS) {
@@ -140,6 +157,7 @@ await stampTokenImports();
 await stampReelsGraph(REELS_BOOT, "reels-profile");
 await stampReelsGraph(REELS_ENTRY, "reels-entry");
 await stampLazyBootGraph();
+await stampNavigationGraph();
 await stampWorkerEagerGraph();
 
 let index = await readFile(INDEX, "utf8");
@@ -162,6 +180,9 @@ for (const forbidden of [
 ]) {
   if (index.includes(`src=\"${forbidden}`)) throw new Error(`${forbidden} tidak boleh menjadi initial script V10-A.`);
 }
+
+// Initial HTML must already use the final customer-facing order label.
+index = index.replaceAll("Pembelian Saya", "Pesanan Saya");
 
 const fingerprints = new Map();
 for (const assetPath of CRITICAL_ASSETS) fingerprints.set(assetPath, await sha12(assetPath));
