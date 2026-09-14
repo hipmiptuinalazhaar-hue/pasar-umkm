@@ -27,9 +27,10 @@ requireContract(securityEntry.includes("script-src-attr 'none'"), 'inline event-
 requireContract(securityEntry.includes("connect-src 'self'"), 'Worker CSP restricts browser connections to same-origin');
 requireContract(securityEntry.includes('function adminCsp(nonce)'), 'admin HTML has a dedicated CSP policy');
 requireContract(securityEntry.includes("base-uri 'none'"), 'admin CSP forbids base URI injection');
+requireContract(securityEntry.includes("img-src 'self' data: https:") && securityEntry.includes("media-src 'self' https:"), 'admin CSP permits HTTPS moderation images/video without widening API connections');
 requireContract(securityEntry.includes('admin ? "no-referrer" : "strict-origin-when-cross-origin"'), 'admin HTML keeps no-referrer policy');
 requireContract(securityEntry.includes('camera=(), microphone=(), geolocation=()'), 'admin HTML disables camera, microphone, and geolocation');
-requireContract(securityEntry.includes('admin_csp_isolated: true'), 'security policy exports admin CSP isolation invariant');
+requireContract(securityEntry.includes('admin_csp_isolated: true') && securityEntry.includes('admin_https_media_allowed: true'), 'security policy exports admin CSP invariants');
 requireContract(headers.includes("connect-src 'self';"), 'static fallback CSP also restricts browser connections');
 requireContract(observability.includes('sanitizeServerErrorResponse'), 'global response boundary sanitizes API server errors');
 requireContract(observability.includes('response.status < 500'), 'client errors are not rewritten by the 5xx sanitizer');
