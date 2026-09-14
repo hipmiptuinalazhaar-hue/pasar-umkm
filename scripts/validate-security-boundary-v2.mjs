@@ -31,8 +31,10 @@ requireContract(headers.includes("connect-src 'self';"), 'static fallback CSP al
 requireContract(observability.includes('sanitizeServerErrorResponse'), 'global response boundary sanitizes API server errors');
 requireContract(observability.includes('response.status < 500'), 'client errors are not rewritten by the 5xx sanitizer');
 requireContract(observability.includes('sanitize_api_server_errors: true'), 'observability policy declares 5xx sanitization');
-requireContract(maintenance.includes('DELETE FROM sessions WHERE expires_at <= NOW()'), 'expired public sessions have bounded cleanup');
-requireContract(maintenance.includes("revoke_reason = COALESCE(revoke_reason, 'expired_cleanup')"), 'expired admin sessions are revoked rather than silently trusted');
+requireContract(maintenance.includes('const CLEANUP_BATCH_SIZE = 500'), 'auth cleanup has an explicit per-table row budget');
+requireContract(maintenance.includes('DELETE FROM sessions s') && maintenance.includes('LIMIT ${CLEANUP_BATCH_SIZE}'), 'expired public session cleanup is batch bounded');
+requireContract(maintenance.includes("revoke_reason = COALESCE(s.revoke_reason, 'expired_cleanup')"), 'expired admin sessions are revoked rather than silently trusted');
+requireContract(maintenance.includes('cleanup_batch_size: CLEANUP_BATCH_SIZE'), 'auth maintenance policy exports its cleanup batch budget');
 requireContract(worker.includes('import { maybeCleanupAuthState } from "./auth-maintenance.js";'), 'auth maintenance is imported by the live Worker owner');
 requireContract(worker.includes('ctx.waitUntil(maybeCleanupAuthState(maintenanceSql)'), 'auth maintenance is scheduled as non-blocking Worker background work');
 requireContract(worker.includes('env?.DATABASE_URL && typeof ctx?.waitUntil === "function"'), 'auth maintenance is gated on runtime database and waitUntil availability');
