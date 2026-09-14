@@ -2,7 +2,7 @@ const DEFAULT_SUCCESS_SAMPLE_RATE = 0.10;
 const DEFAULT_CLIENT_ERROR_SAMPLE_RATE = 0.25;
 const DEFAULT_SLOW_REQUEST_MS = 1500;
 const MAX_ERROR_CODE_LENGTH = 64;
-const OBSERVABILITY_POLICY_VERSION = "p6-reliability-v1";
+const OBSERVABILITY_POLICY_VERSION = "p6-reliability-v2";
 
 const ROUTE_RULES = [
   [/^\/api\/health$/, "/api/health"],
@@ -13,6 +13,7 @@ const ROUTE_RULES = [
   [/^\/api\/admin\/operations(?:\/|$)/, "/api/admin/operations/*"],
   [/^\/api\/admin\/growth(?:\/|$)/, "/api/admin/growth/*"],
   [/^\/api\/admin\/support(?:\/|$)/, "/api/admin/support/*"],
+  [/^\/api\/admin\/reels(?:\/|$)/, "/api/admin/reels/*"],
   [/^\/api\/commerce\/checkout$/, "/api/commerce/checkout"],
   [/^\/api\/commerce\/cart(?:\/|$)/, "/api/commerce/cart/*"],
   [/^\/api\/commerce\/orders(?:\/|$)/, "/api/commerce/orders/*"],
@@ -23,6 +24,7 @@ const ROUTE_RULES = [
   [/^\/api\/disputes(?:\/|$)/, "/api/disputes/*"],
   [/^\/api\/store-verification(?:\/|$)/, "/api/store-verification/*"],
   [/^\/api\/auth(?:\/|$)/, "/api/auth/*"],
+  [/^\/api\/reels(?:\/|$)/, "/api/reels/*"],
   [/^\/api\/chat\/media(?:\/|$)/, "/api/chat/media/*"],
   [/^\/api\/chat(?:\/|$)/, "/api/chat/*"],
   [/^\/api\/profile\/avatar$/, "/api/profile/avatar"],
@@ -54,9 +56,7 @@ function routeKey(pathname) {
 
 function errorCodeFromValue(value, status) {
   const code = String(value || "").trim().toUpperCase();
-  if (/^[A-Z0-9][A-Z0-9_:-]*$/.test(code) && code.length <= MAX_ERROR_CODE_LENGTH) {
-    return code;
-  }
+  if (/^[A-Z0-9][A-Z0-9_:-]*$/.test(code) && code.length <= MAX_ERROR_CODE_LENGTH) return code;
   return `HTTP_${status}`;
 }
 
@@ -65,7 +65,6 @@ async function responseErrorCode(response) {
   const fallback = `HTTP_${response.status}`;
   const type = response.headers.get("Content-Type") || "";
   if (!type.toLowerCase().includes("application/json")) return fallback;
-
   try {
     const payload = await response.clone().json();
     return errorCodeFromValue(payload?.code, response.status);
@@ -78,54 +77,40 @@ function safeCfRay(request) {
   const value = String(request.headers.get("CF-Ray") || "").trim();
   return /^[A-Za-z0-9-]{4,128}$/.test(value) ? value : null;
 }
-
-function requestId(request) {
-  return safeCfRay(request) || crypto.randomUUID();
-}
-
+function requestId(request) { return safeCfRay(request) || crypto.randomUUID(); }
 function safeColo(request) {
   const value = String(request.cf?.colo || "").trim().toUpperCase();
   return /^[A-Z0-9]{3,8}$/.test(value) ? value : null;
 }
-
 function safeErrorClass(error) {
   const name = String(error?.name || "Error").trim();
   return /^[A-Za-z][A-Za-z0-9_.-]{0,63}$/.test(name) ? name : "Error";
 }
-
 function eventLevel(status, event) {
   if (status >= 500 || event === "api.request.exception") return "error";
   if (status === 429 || event === "api.request.slow") return "warn";
   return "info";
 }
-
 function emit(level, payload) {
   const line = JSON.stringify(payload);
   if (level === "error") console.error(line);
   else if (level === "warn") console.warn(line);
   else console.log(line);
 }
-
 function shouldAlwaysLog({ status, route, durationMs, slowMs }) {
   if (status >= 500 || status === 429) return true;
   if (durationMs >= slowMs) return true;
   if ((status === 401 || status === 403) && (route === "/api/auth/*" || route === "/api/admin/auth/*")) return true;
   return false;
 }
-
 function sampleRateFor(status, env) {
-  if (status >= 400) {
-    return boundedNumber(env?.OBSERVABILITY_CLIENT_ERROR_SAMPLE_RATE, DEFAULT_CLIENT_ERROR_SAMPLE_RATE, 0, 1);
-  }
+  if (status >= 400) return boundedNumber(env?.OBSERVABILITY_CLIENT_ERROR_SAMPLE_RATE, DEFAULT_CLIENT_ERROR_SAMPLE_RATE, 0, 1);
   return boundedNumber(env?.OBSERVABILITY_SUCCESS_SAMPLE_RATE, DEFAULT_SUCCESS_SAMPLE_RATE, 0, 1);
 }
-
 function classifyEvent({ status, route, durationMs, slowMs }) {
   if (status >= 500) return "api.request.failed";
   if (status === 429) return "api.rate_limited";
-  if ((status === 401 || status === 403) && (route === "/api/auth/*" || route === "/api/admin/auth/*")) {
-    return "api.auth.denied";
-  }
+  if ((status === 401 || status === 403) && (route === "/api/auth/*" || route === "/api/admin/auth/*")) return "api.auth.denied";
   if (durationMs >= slowMs) return "api.request.slow";
   return "api.request.completed";
 }
@@ -137,6 +122,31 @@ function applyApiSecurityHeaders(headers) {
   headers.set("X-Permitted-Cross-Domain-Policies", "none");
   headers.set("Strict-Transport-Security", "max-age=31536000");
   return headers;
+}
+
+async function sanitizeServerErrorResponse(response, pathname) {
+  if (response.status < 500 || !String(pathname || "").startsWith("/api/")) return response;
+  const headers = new Headers(response.headers);
+  headers.set("Cache-Control", "no-store");
+  let code = "INTERNAL_ERROR";
+  let authenticated;
+  const type = String(response.headers.get("Content-Type") || "").toLowerCase();
+  if (type.includes("application/json")) {
+    try {
+      const payload = await response.clone().json();
+      code = errorCodeFromValue(payload?.code, response.status);
+      if (typeof payload?.authenticated === "boolean") authenticated = payload.authenticated;
+    } catch { /* malformed server error is replaced below */ }
+  }
+  const body = {
+    ok: false,
+    error: response.status === 503
+      ? "Layanan sementara belum tersedia. Coba lagi beberapa saat."
+      : "Layanan sedang mengalami gangguan. Coba lagi beberapa saat.",
+    code
+  };
+  if (typeof authenticated === "boolean") body.authenticated = authenticated;
+  return Response.json(body, { status: response.status, headers });
 }
 
 function withDiagnosticHeaders(response, id, durationMs) {
@@ -161,9 +171,10 @@ export async function observeRequest(request, env, ctx, handler) {
   const environment = String(env?.APP_ENV || "production").trim().toLowerCase() === "staging" ? "staging" : "production";
 
   try {
-    const response = await handler(request, env, ctx);
+    const rawResponse = await handler(request, env, ctx);
+    const errorCode = await responseErrorCode(rawResponse);
+    const response = await sanitizeServerErrorResponse(rawResponse, url.pathname);
     const durationMs = Math.max(0, Math.round(performance.now() - startedAt));
-    const errorCode = await responseErrorCode(response);
     const event = classifyEvent({ status: response.status, route, durationMs, slowMs });
     const alwaysLog = shouldAlwaysLog({ status: response.status, route, durationMs, slowMs });
     const sampled = alwaysLog || Math.random() < sampleRateFor(response.status, env);
@@ -216,15 +227,11 @@ export async function observeRequest(request, env, ctx, handler) {
       "X-Request-Id": id,
       "Server-Timing": `app;dur=${durationMs}`
     }));
-
-    return Response.json(
-      {
-        ok: false,
-        error: "Layanan sedang mengalami gangguan. Coba lagi beberapa saat.",
-        code: "INTERNAL_ERROR"
-      },
-      { status: 500, headers }
-    );
+    return Response.json({
+      ok: false,
+      error: "Layanan sedang mengalami gangguan. Coba lagi beberapa saat.",
+      code: "INTERNAL_ERROR"
+    }, { status: 500, headers });
   }
 }
 
@@ -235,6 +242,7 @@ export const observabilityPolicy = Object.freeze({
   slow_request_ms: DEFAULT_SLOW_REQUEST_MS,
   correlation_header: "X-Request-Id",
   latency_header: "Server-Timing",
+  sanitize_api_server_errors: true,
   raw_path_logged: false,
   query_string_logged: false,
   request_body_logged: false,
