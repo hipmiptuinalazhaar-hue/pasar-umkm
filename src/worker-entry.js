@@ -41,6 +41,7 @@ import { ensureNotificationInfrastructure } from "./notification-store.js";
 import { ensureFullFunctionalityInfrastructure } from "./functionality-bootstrap.js";
 import { observeRequest } from "./observability.js";
 import { enforceRequestSecurity } from "./request-security.js";
+import { maybeCleanupAuthState } from "./auth-maintenance.js";
 
 const P0_MIGRATION = "2026-09-02-p0-runtime-schema-hardening";
 const P1_MIGRATION = "2026-09-02-p1-security-performance";
@@ -314,6 +315,12 @@ async function routeRequest(request, env, ctx) {
 
 export default {
   async fetch(request, env, ctx) {
+    if (env?.DATABASE_URL && typeof ctx?.waitUntil === "function") {
+      const maintenanceSql = neon(env.DATABASE_URL);
+      ctx.waitUntil(maybeCleanupAuthState(maintenanceSql).catch(error => {
+        console.warn("Auth maintenance scheduling failed:", error?.code || error?.message || "unknown");
+      }));
+    }
     return observeRequest(request, env, ctx, routeRequest);
   }
 };
