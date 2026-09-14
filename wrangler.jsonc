@@ -18,7 +18,21 @@
       "/jelajahi",
       "/jelajahi/*",
       "/umkm/*",
-      "/produk/*"
+      "/produk/*",
+      "/checkout",
+      "/checkout/*",
+      "/purchases",
+      "/purchases/*",
+      "/seller-orders",
+      "/seller-orders/*",
+      "/support",
+      "/support/*",
+      "/admin",
+      "/admin/*",
+      "/launch",
+      "/launch/*",
+      "/legal",
+      "/legal/*"
     ]
   },
 
