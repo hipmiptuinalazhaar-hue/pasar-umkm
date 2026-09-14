@@ -74,11 +74,11 @@ async function metrics(request,env){
   return json({ok:true,metrics:{...data,
     product_to_cart_7d_pct:ratio(data.add_to_cart_7d,data.product_views_7d),
     cart_to_checkout_7d_pct:ratio(data.checkout_started_7d,data.add_to_cart_7d),
-    checkout_to_completed_7d_pct:ratio(data.order_completed_7d,data.checkout_started_7d),
+    checkout_to_completed_7d_pct:null,
     product_to_cart_30d_pct:ratio(data.add_to_cart_30d,data.product_views_30d),
     cart_to_checkout_30d_pct:ratio(data.checkout_started_30d,data.add_to_cart_30d),
-    checkout_to_completed_30d_pct:ratio(data.order_completed_30d,data.checkout_started_30d)},
-    methodology:{visitor_key:"authenticated user id or hashed anonymous key",raw_ip_used:false,traffic_conversion_available:true,caveat:"Funnel reflects instrumented browser events after P7 rollout, not historical traffic."}
+    checkout_to_completed_30d_pct:null},
+    methodology:{visitor_key:"authenticated user id or hashed anonymous key",raw_ip_used:false,traffic_conversion_available:false,order_completion_source:"server_authoritative_pending",caveat:"Completed-order conversion is intentionally unavailable until server-side order completion instrumentation is enabled. Browser clients cannot assert order_completed."}
   });
 }
 
@@ -157,4 +157,4 @@ export async function handleAdminGrowthApi(request,env){
   return null;
 }
 
-export const adminGrowthPolicy=Object.freeze({version:"2026-09-07-p7-launch-growth",promotion_billing:false,financial_action:false,sensitive_management_requires_step_up:true});
+export const adminGrowthPolicy=Object.freeze({version:"2026-09-14-p7-growth-integrity-v2",promotion_billing:false,financial_action:false,sensitive_management_requires_step_up:true,traffic_conversion_available:false,order_completion_source:"server_authoritative_pending"});
