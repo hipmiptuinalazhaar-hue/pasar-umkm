@@ -1,6 +1,7 @@
 import { neon } from "@neondatabase/serverless";
 import { handlePublicAuthSecurityV2Api } from "./public-auth-security-v2-api.js";
 import { normalizeEmail, auditAuth } from "./auth-security-v2-shared.js";
+import { maybeCleanupAuthState } from "./auth-maintenance.js";
 
 const SESSION_COOKIE = "__Host-pasar_umkm_session";
 const MAX_SESSION_AGE = 604800;
@@ -142,6 +143,7 @@ export async function handlePublicAuthApi(request, env) {
 
   try {
     const sql = neon(env.DATABASE_URL);
+    await maybeCleanupAuthState(sql);
     if (securityV2) return await handlePublicAuthSecurityV2Api(sql, request, env);
     if (action === "login") return await login(sql, request);
     if (action === "me") return await me(sql, request);
