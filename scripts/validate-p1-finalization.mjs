@@ -1,10 +1,10 @@
-import { createHash } from 'node:crypto';
 import { readFile, stat } from 'node:fs/promises';
 
 const FILES = {
   headers: '_headers',
   requestSecurity: 'src/request-security.js',
   observability: 'src/observability.js',
+  securityEntry: 'src/security-worker-entry.js',
   performanceB: 'js/performance-v10-b.js',
   build: 'scripts/build-runtime.mjs',
   seoWorker: 'src/seo-worker-entry.js',
@@ -13,7 +13,7 @@ const FILES = {
   wrangler: 'wrangler.jsonc'
 };
 
-const entries = await Promise.all(Object.entries(FILES).map(async ([key, path]) => [key, await readFile(path, 'utf8')]));
+const entries = await Promise.all(Object.entries(FILES).map(async ([key, filePath]) => [key, await readFile(filePath, 'utf8')]));
 const source = Object.fromEntries(entries);
 const failures = [];
 const pass = message => console.log(`PASS ${message}`);
@@ -29,6 +29,8 @@ assert(source.headers.includes("frame-src 'none'"), 'embedded frame execution bl
 assert(!source.headers.includes("'unsafe-eval'"), 'CSP forbids unsafe-eval');
 assert(source.headers.includes('/checkout\n  Cache-Control: no-store'), 'checkout remains no-store');
 assert(source.headers.includes('/admin\n  Cache-Control: no-store'), 'admin remains no-store');
+assert(source.securityEntry.includes("script-src 'self' 'nonce-${nonce}'"), 'HTML Worker CSP uses per-response script nonce');
+assert(!source.securityEntry.includes("script-src 'self' 'unsafe-inline'"), 'effective HTML script CSP forbids unsafe-inline');
 
 for (const cookie of ['__Host-pasar_umkm_session', '__Host-pasar_umkm_admin', '__Host-pasar_umkm_admin_challenge']) {
   assert(source.requestSecurity.includes(cookie), `request security recognizes ${cookie}`);
@@ -43,6 +45,7 @@ assert(source.adminSecurity.includes('HttpOnly; Secure; SameSite=Strict'), 'admi
 assert(source.observability.includes('Strict-Transport-Security'), 'API responses receive HSTS through observability wrapper');
 assert(source.observability.includes('X-Frame-Options'), 'API responses deny framing');
 assert(source.observability.includes('X-Permitted-Cross-Domain-Policies'), 'API responses disable legacy cross-domain policies');
+assert(source.observability.includes('sanitizeServerErrorResponse'), 'API 5xx responses are sanitized globally');
 assert(source.observability.includes('request_body_logged: false'), 'observability avoids request body logging');
 assert(source.observability.includes('cookies_logged: false'), 'observability avoids cookie logging');
 assert(source.observability.includes('ip_address_logged: false'), 'observability avoids raw IP logging');
@@ -54,17 +57,20 @@ for (const root of ["'.app-main'", "'#feed'", "'#quickCategories'", "'#sheetCont
 assert(source.performanceB.includes('observer.observe(root, { childList: true, subtree: true })'), 'media observer attaches to scoped roots');
 assert(!source.performanceB.includes('observer.observe(doc.body, { childList: true, subtree: true })'), 'media optimizer no longer attaches its observer to the full body');
 assert(source.performanceB.includes("device.constrained || device.lowEnd ? 'none' : 'metadata'"), 'low-end video preloading is disabled');
-assert(source.performanceB.includes('device.constrained ? 480 : (device.lowEnd || device.effectiveType === \'3g\') ? 800 : 960'), 'low-end responsive image ceiling retained');
+assert(source.performanceB.includes("device.constrained ? 480 : (device.lowEnd || device.effectiveType === '3g') ? 800 : 960"), 'low-end responsive image ceiling retained');
 
-assert(source.build.includes('const SEO_WORKER = "src/seo-worker-entry.js"'), 'runtime build owns worker cache graph');
-assert(source.build.includes('stampWorkerEagerGraph'), 'runtime build synchronizes eager worker assets');
-assert(source.build.includes('WORKER_EAGER_ASSETS = ["js/performance-v10-b.js"]'), 'eager recommendation runtime participates in fingerprint graph');
-
-const v10bHash = createHash('sha256').update(await readFile(FILES.performanceB)).digest('hex').slice(0, 12);
-assert(source.seoWorker.includes(`/js/performance-v10-b.js?v=${v10bHash}`), `worker V10-B fingerprint matches source (${v10bHash})`);
+assert(!source.build.includes('writeFile('), 'runtime build does not rewrite tracked source');
+assert(source.build.includes('outfile: JS_RUNTIME'), 'runtime build generates JS runtime artifact');
+assert(source.build.includes('outfile: CSS_RUNTIME'), 'runtime build generates CSS runtime artifact');
+assert(source.build.includes('asset-cache-diagnostic'), 'runtime build reports asset hashes as diagnostics');
+assert(source.build.includes('generated runtime outputs only'), 'runtime build declares immutable-source contract');
+assert(source.headers.includes('/js/*\n  Cache-Control: public, max-age=0, must-revalidate'), 'JS cache revalidates before reuse');
+assert(source.headers.includes('/css/*\n  Cache-Control: public, max-age=0, must-revalidate'), 'CSS cache revalidates before reuse');
+assert(source.seoWorker.includes('/js/performance-v10-b.js?v='), 'homepage still references V10-B through a cache-keyed URL');
 assert(/p(?:1-finalized-v12|[2-9][\w.-]*finalized-v\d)/.test(source.seoWorker), 'homepage declares P1-or-newer finalized runtime policy');
 
 const wrangler = JSON.parse(source.wrangler);
+assert(wrangler.main === 'src/security-worker-entry.js', 'Cloudflare runtime enters through security wrapper');
 const limiters = new Set((wrangler.ratelimits || []).map(item => item.name));
 for (const name of ['EDGE_AUTH_LIMITER', 'EDGE_WRITE_LIMITER', 'EDGE_READ_LIMITER']) {
   assert(limiters.has(name), `Cloudflare limiter ${name} configured`);
@@ -80,4 +86,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`P1 finalization contract passed. Security, session provenance, low-end media scheduling, cache fingerprint integrity, rate limiting, and privacy-safe observability are certified.`);
+console.log('P1 finalization contract passed. Security, immutable-source build, cache revalidation, rate limiting, low-end scheduling and privacy-safe observability are certified.');
