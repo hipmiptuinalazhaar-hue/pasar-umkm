@@ -34,7 +34,7 @@ forbid(migration,/DELETE\s+FROM\s+(orders|order_items|users|stores|products)\b/i
 for(const text of ['pickup','seller_delivery','local_courier','cod','pay_at_store','bank_transfer','merchant_qris','resolveCheckoutCommerce','insertOrderTimelineEventClient'])need(helpers,text,'commerce helper');
 for(const text of ['/api/commerce/fulfillment/settings/me','/timeline$/i','/fulfillment$/i','/confirm-received$/i','String(order.seller_user_id)!==String(auth.user.id)','String(order.buyer_id)!==String(auth.user.id)','FOR UPDATE OF o','order_timeline_events'])need(api,text,'fulfillment API safety');
 
-for(const text of ["url.pathname!=='/api/commerce/checkout/preferences'",'allowedStores.has(storeId)',"updated_at<NOW()-INTERVAL '60 minutes'",'handleCartCheckoutV2Api'])need(preferences,text,'checkout preference boundary');
+for(const text of ['url.pathname !== "/api/commerce/checkout/preferences"','allowedStores.has(storeId)','await client.query("BEGIN")','await client.query("COMMIT")','await client.query("ROLLBACK")',"updated_at<NOW()-INTERVAL '60 minutes'",'CHECKOUT_PREFERENCE_INTERNAL_ERROR','handleCartCheckoutV2Api'])need(preferences,text,'atomic checkout preference boundary');
 for(const text of ['/api/commerce/checkout-v2','selected_product_ids','checkout_commerce_preferences','DELETE FROM cart_items WHERE cart_id=$1::uuid AND product_id=ANY($2::uuid[])'])need(checkoutV2Api,text,'selective checkout V2');
 
 const custodial=/\b(refund_ledger|payment_gateway|wallet_balance|wallet_transactions|seller_wallet|user_wallet|escrow_account|settlement_account)\b/i;
@@ -77,8 +77,8 @@ need(v10,'[data-commerce-action="checkout"]','V10 checkout intent gate');
 need(v10,'event.stopImmediatePropagation()','V10 protected intent interception');
 need(v10,'target.click()','V10 checkout intent replay after owner load');
 
-const budgets=[['src/commerce-fulfillment-api.js',api,30000],['src/checkout-commerce-preference-api.js',preferences,14000],['src/cart-checkout-v2-api.js',checkoutV2Api,24000],['js/p8-commerce-center.js',center,30000],['js/p8-commerce-integration.js',integration,16000],['js/checkout-v2.js',checkoutV2,26000],['js/seller-center-p8-bridge.js',sellerBridge,24000],['js/seller-center-order-p8.js',sellerOrderBridge,16000],['css/p8-commerce-center.css',css,16000],['css/checkout-v2.css',checkoutCss,18000]];
+const budgets=[['src/commerce-fulfillment-api.js',api,30000],['src/checkout-commerce-preference-api.js',preferences,16000],['src/cart-checkout-v2-api.js',checkoutV2Api,24000],['js/p8-commerce-center.js',center,30000],['js/p8-commerce-integration.js',integration,16000],['js/checkout-v2.js',checkoutV2,26000],['js/seller-center-p8-bridge.js',sellerBridge,24000],['js/seller-center-order-p8.js',sellerOrderBridge,16000],['css/p8-commerce-center.css',css,16000],['css/checkout-v2.css',checkoutCss,18000]];
 for(const [path,source,max] of budgets){const bytes=Buffer.byteLength(source);if(bytes>max)fail(`${path} too large: ${bytes}/${max}`)}
 if(pkg.scripts?.['test:p8-commerce']!=='node scripts/validate-p8-real-commerce.mjs')fail('package.json missing test:p8-commerce');
 if(!String(pkg.scripts?.validate||'').includes('npm run test:p8-commerce'))fail('canonical validate must include P8');
-console.log('P8 real commerce contract PASS: seller fulfillment/payment, state-driven selective Checkout V2, native Seller Center, non-custodial boundary, ownership, and V10 protected lazy checkout routing are intact.');
+console.log('P8 real commerce contract PASS: atomic multi-store preferences, seller fulfillment/payment, selective Checkout V2, native Seller Center, non-custodial boundary, ownership, and V10 protected lazy routing are intact.');
