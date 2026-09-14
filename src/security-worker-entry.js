@@ -1,4 +1,5 @@
 import seoWorker from "./seo-worker-entry.js";
+import { enforceRateLimit } from "./rate-limit.js";
 
 const MAX_GROWTH_INSPECTION_BYTES = 4096;
 
@@ -99,7 +100,7 @@ async function readBoundedJsonClone(request, maxBytes) {
   }
 }
 
-async function rejectClientAuthoritativeGrowthEvent(request) {
+async function rejectClientAuthoritativeGrowthEvent(request, env) {
   if (request.method !== "POST") return null;
   const url = new URL(request.url);
   if (url.pathname !== "/api/growth/events") return null;
@@ -109,6 +110,9 @@ async function rejectClientAuthoritativeGrowthEvent(request) {
   const body = parsed.body;
   if (!body || typeof body !== "object" || Array.isArray(body)) return null;
   if (String(body.event_name || "").trim() !== "order_completed") return null;
+
+  const limited = await enforceRateLimit(request, env);
+  if (limited) return limited;
 
   return Response.json(
     {
@@ -143,7 +147,7 @@ function securedHeaders(response, nonce, pathname) {
 
 export default {
   async fetch(request, env, ctx) {
-    const rejectedGrowthEvent = await rejectClientAuthoritativeGrowthEvent(request);
+    const rejectedGrowthEvent = await rejectClientAuthoritativeGrowthEvent(request, env);
     if (rejectedGrowthEvent) return rejectedGrowthEvent;
 
     const response = await seoWorker.fetch(request, env, ctx);
@@ -179,5 +183,6 @@ export const securityWorkerPolicy = Object.freeze({
   admin_https_media_allowed: true,
   admin_referrer_policy: "no-referrer",
   client_order_completed_growth_event_allowed: false,
-  growth_inspection_max_bytes: MAX_GROWTH_INSPECTION_BYTES
+  growth_inspection_max_bytes: MAX_GROWTH_INSPECTION_BYTES,
+  rejected_growth_events_rate_limited: true
 });
