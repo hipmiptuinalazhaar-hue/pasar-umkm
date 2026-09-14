@@ -10,7 +10,9 @@ const required = [
   '_headers',
   'wrangler.jsonc',
   'package.json',
+  'src/security-worker-entry.js',
   'src/worker-entry.js',
+  'src/observability.js',
   'src/rate-limit.js',
   'src/request-security.js',
   'css/tokens.css',
@@ -19,10 +21,13 @@ const required = [
   'css/admin-control.css',
   'scripts/lint-syntax.mjs',
   'scripts/post-deploy-smoke.mjs',
-  '.github/workflows/post-deploy-smoke.yml',
+  'scripts/validate-auth-security-v2-contract.mjs',
+  'scripts/validate-route-ownership-v2.mjs',
+  'scripts/validate-security-boundary-v2.mjs',
   'SECURITY.md',
   '.github/CODEOWNERS',
-  'docs/REPOSITORY_GOVERNANCE.md'
+  'docs/REPOSITORY_GOVERNANCE.md',
+  'docs/LOCAL_RELEASE_PROCESS.md'
 ];
 
 for (const file of required) if (!existsSync(file)) fail(`Missing hardening file: ${file}`);
@@ -30,9 +35,9 @@ for (const file of required) if (!existsSync(file)) fail(`Missing hardening file
 function collectFiles(root, predicate) {
   const output = [];
   if (!existsSync(root)) return output;
-  const walk = path => {
-    for (const entry of readdirSync(path)) {
-      const full = `${path}/${entry}`;
+  const walk = dir => {
+    for (const entry of readdirSync(dir)) {
+      const full = `${dir}/${entry}`;
       const stat = statSync(full);
       if (stat.isDirectory()) walk(full);
       else if (predicate(full)) output.push(full);
@@ -46,9 +51,7 @@ function auditHtml(path) {
   const html = read(path);
   if (!/<html\b[^>]*\blang=["']id["']/i.test(html)) fail(`${path}: lang=id missing`);
   if (!/name=["']viewport["'][^>]*viewport-fit=cover/i.test(html)) fail(`${path}: viewport-fit=cover missing`);
-  if (/\son(?:click|load|error|submit|change|input|keydown|keyup|touchstart|touchend)\s*=/i.test(html)) {
-    fail(`${path}: inline DOM event handler found`);
-  }
+  if (/\son(?:click|load|error|submit|change|input|keydown|keyup|touchstart|touchend)\s*=/i.test(html)) fail(`${path}: inline DOM event handler found`);
   if (/javascript\s*:/i.test(html)) fail(`${path}: javascript: URL found`);
 
   const ids = [...html.matchAll(/\bid=["']([^"']+)["']/gi)].map(match => match[1]);
@@ -60,11 +63,8 @@ function auditHtml(path) {
 
   for (const match of html.matchAll(/<button\b[^>]*>/gi)) {
     const tag = match[0];
-    if (!/\btype=["'](?:button|submit|reset)["']/i.test(tag)) {
-      fail(`${path}: button without explicit type: ${tag.slice(0, 140)}`);
-    }
+    if (!/\btype=["'](?:button|submit|reset)["']/i.test(tag)) fail(`${path}: button without explicit type: ${tag.slice(0, 140)}`);
   }
-
   for (const match of html.matchAll(/<img\b[^>]*>/gi)) {
     const tag = match[0];
     if (!/\balt=["'][^"']*["']/i.test(tag)) fail(`${path}: image without alt: ${tag.slice(0, 140)}`);
@@ -78,84 +78,59 @@ for (const file of collectFiles('js', path => /\.js$/.test(path))) {
   const source = read(file);
   for (const match of source.matchAll(/<button\b[^>]*>/gi)) {
     const tag = match[0];
-    if (!/\btype=["'](?:button|submit|reset)["']/i.test(tag)) {
-      fail(`${file}: rendered button without explicit type: ${tag.slice(0, 140)}`);
-    }
+    if (!/\btype=["'](?:button|submit|reset)["']/i.test(tag)) fail(`${file}: rendered button without explicit type: ${tag.slice(0, 140)}`);
   }
   if (/javascript\s*:/i.test(source)) fail(`${file}: javascript: URL found`);
 }
 
 if (existsSync('css/tokens.css')) {
   const tokens = read('css/tokens.css');
-  for (const marker of [
-    '--safe-top:env(safe-area-inset-top,0px)',
-    '--safe-bottom:env(safe-area-inset-bottom,0px)'
-  ]) if (!tokens.includes(marker)) fail(`design token owner missing safe-area contract: ${marker}`);
+  for (const marker of ['--safe-top:env(safe-area-inset-top,0px)', '--safe-bottom:env(safe-area-inset-bottom,0px)']) {
+    if (!tokens.includes(marker)) fail(`design token owner missing safe-area contract: ${marker}`);
+  }
 }
 
 if (existsSync('css/mobile-foundation-v2.css')) {
   const css = read('css/mobile-foundation-v2.css');
-  for (const marker of [
-    '@media (max-width: 767px)',
-    'font-size: 16px',
-    'min-width: 44px',
-    'min-height: 44px',
-    'min-height: 48px',
-    'var(--safe-top',
-    'var(--safe-bottom',
-    '@media (prefers-reduced-motion: reduce)'
-  ]) if (!css.includes(marker)) fail(`mobile foundation missing contract: ${marker}`);
+  for (const marker of ['@media (max-width: 767px)', 'font-size: 16px', 'min-width: 44px', 'min-height: 44px', 'min-height: 48px', 'var(--safe-top', 'var(--safe-bottom', '@media (prefers-reduced-motion: reduce)']) {
+    if (!css.includes(marker)) fail(`mobile foundation missing contract: ${marker}`);
+  }
 }
 
 if (existsSync('css/tablet-desktop-v2.css')) {
   const css = read('css/tablet-desktop-v2.css');
-  for (const marker of [
-    '@media (min-width: 768px)',
-    '@media (min-width: 900px) and (max-width: 1023px)',
-    '@media (min-width: 1024px)',
-    '@media (min-width: 1280px)',
-    '@media (min-width: 1600px)',
-    '--p5-feed-max: 720px',
-    '--p5-work-max: 920px',
-    '--p5-social-max: 860px',
-    'minmax(0, 1fr)',
-    'text-overflow: ellipsis',
-    '@media (hover: hover) and (pointer: fine)',
-    '@media (prefers-reduced-motion: reduce)'
-  ]) if (!css.includes(marker)) fail(`tablet/desktop owner missing contract: ${marker}`);
+  for (const marker of ['@media (min-width: 768px)', '@media (min-width: 900px) and (max-width: 1023px)', '@media (min-width: 1024px)', '@media (min-width: 1280px)', '@media (min-width: 1600px)', '--p5-feed-max: 720px', '--p5-work-max: 920px', '--p5-social-max: 860px', 'minmax(0, 1fr)', 'text-overflow: ellipsis', '@media (hover: hover) and (pointer: fine)', '@media (prefers-reduced-motion: reduce)']) {
+    if (!css.includes(marker)) fail(`tablet/desktop owner missing contract: ${marker}`);
+  }
 }
 
 if (existsSync('css/admin-control.css')) {
   const css = read('css/admin-control.css');
-  for (const marker of [
-    'min-width: 320px',
-    'font-size: 16px',
-    'min-height: 44px',
-    'overflow-x: auto',
-    'text-overflow: ellipsis',
-    '@media (min-width: 600px)',
-    '@media (min-width: 900px)',
-    '@media (min-width: 1240px)',
-    '@media (prefers-reduced-motion: reduce)'
-  ]) if (!css.includes(marker)) fail(`admin responsive contract missing: ${marker}`);
+  for (const marker of ['min-width: 320px', 'font-size: 16px', 'min-height: 44px', 'overflow-x: auto', 'text-overflow: ellipsis', '@media (min-width: 600px)', '@media (min-width: 900px)', '@media (min-width: 1240px)', '@media (prefers-reduced-motion: reduce)']) {
+    if (!css.includes(marker)) fail(`admin responsive contract missing: ${marker}`);
+  }
 }
 
 if (existsSync('_headers')) {
   const headers = read('_headers');
-  for (const marker of [
-    'Content-Security-Policy:',
-    "object-src 'none'",
-    "base-uri 'self'",
-    'Cross-Origin-Opener-Policy: same-origin',
-    'X-Content-Type-Options: nosniff',
-    'Referrer-Policy:'
-  ]) if (!headers.includes(marker)) fail(`public security header missing: ${marker}`);
+  for (const marker of ['Content-Security-Policy:', "object-src 'none'", "base-uri 'self'", 'Cross-Origin-Opener-Policy: same-origin', 'X-Content-Type-Options: nosniff', 'Referrer-Policy:', "connect-src 'self'"]) {
+    if (!headers.includes(marker)) fail(`public security header missing: ${marker}`);
+  }
   if (headers.includes("'unsafe-eval'")) fail('CSP must not allow unsafe-eval');
+}
+
+if (existsSync('src/security-worker-entry.js')) {
+  const security = read('src/security-worker-entry.js');
+  for (const marker of ['createNonce()', "script-src 'self' 'nonce-${nonce}'", "script-src-attr 'none'", "connect-src 'self'", 'HTMLRewriter']) {
+    if (!security.includes(marker)) fail(`security worker missing contract: ${marker}`);
+  }
+  if (security.includes("script-src 'self' 'unsafe-inline'")) fail('effective Worker script CSP must not allow unsafe-inline');
 }
 
 if (existsSync('wrangler.jsonc')) {
   try {
     const wrangler = JSON.parse(read('wrangler.jsonc'));
+    if (wrangler.main !== 'src/security-worker-entry.js') fail('wrangler main must use security-worker-entry.js');
     const rateLimits = Array.isArray(wrangler.ratelimits) ? wrangler.ratelimits : [];
     const names = new Set(rateLimits.map(item => item.name));
     for (const name of ['EDGE_AUTH_LIMITER', 'EDGE_WRITE_LIMITER', 'EDGE_READ_LIMITER']) {
@@ -172,15 +147,9 @@ if (existsSync('wrangler.jsonc')) {
 
 if (existsSync('src/rate-limit.js')) {
   const source = read('src/rate-limit.js');
-  for (const marker of [
-    'const buckets = new Map()',
-    'EDGE_AUTH_LIMITER',
-    'EDGE_WRITE_LIMITER',
-    'EDGE_READ_LIMITER',
-    'health-read',
-    'binding.limit({ key })',
-    'export async function enforceRateLimit(request, env = {})'
-  ]) if (!source.includes(marker)) fail(`rate-limit owner missing contract: ${marker}`);
+  for (const marker of ['const buckets = new Map()', 'EDGE_AUTH_LIMITER', 'EDGE_WRITE_LIMITER', 'EDGE_READ_LIMITER', 'health-read', 'binding.limit({ key })', 'export async function enforceRateLimit(request, env = {})']) {
+    if (!source.includes(marker)) fail(`rate-limit owner missing contract: ${marker}`);
+  }
 }
 
 if (existsSync('src/worker-entry.js')) {
@@ -189,20 +158,31 @@ if (existsSync('src/worker-entry.js')) {
   const securityIndex = source.indexOf('const securityResponse = enforceRequestSecurity(request)');
   const rateIndex = source.indexOf('const rateLimitResponse = await enforceRateLimit(request, env)');
   const healthIndex = source.indexOf('if (url.pathname === "/api/health")');
-  if (!(securityIndex >= 0 && rateIndex > securityIndex && healthIndex > rateIndex)) {
-    fail('health endpoint must execute after request-security and rate-limit boundaries');
-  }
+  if (!(securityIndex >= 0 && rateIndex > securityIndex && healthIndex > rateIndex)) fail('health endpoint must execute after request-security and rate-limit boundaries');
   for (const forbidden of ['current_database()', 'public_tables', 'latest_migration']) {
     if (source.includes(forbidden)) fail(`health endpoint leaks internal metadata marker: ${forbidden}`);
   }
 }
 
+if (existsSync('src/observability.js')) {
+  const source = read('src/observability.js');
+  if (!source.includes('sanitizeServerErrorResponse')) fail('global API 5xx sanitizer missing');
+  if (!source.includes('sanitize_api_server_errors: true')) fail('observability policy does not declare 5xx sanitization');
+}
+
 if (existsSync('package.json')) {
   const pkg = JSON.parse(read('package.json'));
-  for (const script of ['build:runtime', 'lint', 'test', 'validate', 'smoke:production', 'smoke:post-deploy']) {
+  for (const script of ['build:runtime', 'lint', 'test', 'validate', 'test:auth-v2', 'test:route-ownership', 'test:security-boundary', 'release:predeploy', 'release:postdeploy', 'smoke:production', 'smoke:post-deploy']) {
     if (!pkg.scripts?.[script]) fail(`package.json missing script: ${script}`);
   }
 }
+
+const activeWorkflowDir = '.github/workflows';
+if (existsSync(activeWorkflowDir)) {
+  const active = readdirSync(activeWorkflowDir).filter(file => /\.ya?ml$/i.test(file));
+  if (active.length) fail(`GitHub Actions must remain inactive for the selected release model: ${active.join(', ')}`);
+}
+if (!existsSync('.github/workflows-disabled')) fail('historical disabled workflows directory missing');
 
 const legacyBudgets = [
   ['src/worker.js', 118066],
@@ -228,4 +208,4 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log('Platform Hardening V3 PASS: UI controls, responsive contracts, security boundaries, rate limits, CSP, governance files, and legacy freeze are intact.');
+console.log('Platform Hardening V3 PASS: responsive, security, route, release, CSP and no-Actions governance contracts are intact.');
