@@ -29,17 +29,45 @@ function publicCsp(nonce) {
   ].join("; ");
 }
 
+function adminCsp(nonce) {
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}'`,
+    "script-src-attr 'none'",
+    "style-src 'self'",
+    "font-src 'self'",
+    "img-src 'self' data:",
+    "media-src 'self'",
+    "connect-src 'self'",
+    "frame-src 'none'",
+    "object-src 'none'",
+    "base-uri 'none'",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+    "upgrade-insecure-requests"
+  ].join("; ");
+}
+
 function isHtml(response) {
   return String(response?.headers?.get("Content-Type") || "").toLowerCase().includes("text/html");
 }
 
-function securedHeaders(response, nonce) {
+function isAdminPath(pathname) {
+  return pathname === "/admin" || pathname.startsWith("/admin/");
+}
+
+function securedHeaders(response, nonce, pathname) {
   const headers = new Headers(response.headers);
-  headers.set("Content-Security-Policy", publicCsp(nonce));
+  const admin = isAdminPath(pathname);
+  headers.set("Content-Security-Policy", admin ? adminCsp(nonce) : publicCsp(nonce));
   headers.set("X-Content-Type-Options", "nosniff");
   headers.set("X-Frame-Options", "DENY");
-  headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  headers.set("Referrer-Policy", admin ? "no-referrer" : "strict-origin-when-cross-origin");
   headers.set("Strict-Transport-Security", "max-age=31536000");
+  headers.set("Cross-Origin-Opener-Policy", "same-origin");
+  if (admin) {
+    headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  }
   return headers;
 }
 
@@ -49,10 +77,11 @@ export default {
     if (!isHtml(response)) return response;
 
     const nonce = createNonce();
+    const pathname = new URL(request.url).pathname;
     const secured = new Response(response.body, {
       status: response.status,
       statusText: response.statusText,
-      headers: securedHeaders(response, nonce)
+      headers: securedHeaders(response, nonce, pathname)
     });
 
     if (request.method === "HEAD") return secured;
@@ -72,5 +101,7 @@ export const securityWorkerPolicy = Object.freeze({
   inline_script_without_nonce_allowed: false,
   inline_script_attributes_allowed: false,
   connect_src: "self",
-  frame_ancestors: "none"
+  frame_ancestors: "none",
+  admin_csp_isolated: true,
+  admin_referrer_policy: "no-referrer"
 });
