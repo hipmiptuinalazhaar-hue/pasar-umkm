@@ -11,7 +11,7 @@ const adminControl = read("js/admin/control.js");
 const adminOperations = read("js/admin/operations.js");
 const legal = read("legal/index.html");
 const runbook = read("docs/P6_OPERATIONAL_MARKETPLACE.md");
-const workflow = read(".github/workflows/p6-operational-hardening-validate.yml");
+const release = read("docs/LOCAL_RELEASE_PROCESS.md");
 const pkg = JSON.parse(read("package.json"));
 
 const failures = [];
@@ -72,16 +72,12 @@ requireText(legal, "Penyelesaian kasus tidak otomatis memindahkan uang", "Trust 
 requireText(runbook, "no fund movement", "P6 runbook financial boundary missing");
 requireText(runbook, "Do not delete report/dispute/audit history", "P6 rollback retention rule missing");
 
-requireText(workflow, "P6 Operational Marketplace Validation", "P6 workflow name missing");
-requireText(workflow, "js/admin/operations.js", "P6 workflow path filter must cover Operations UI");
-requireText(workflow, "npm run test:p6-operations", "P6 workflow does not run P6 validator");
-requireText(workflow, "npm run validate", "P6 workflow does not run canonical validation");
-requireText(workflow, "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1", "P6 checkout action must stay SHA-pinned");
-requireText(workflow, "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020", "P6 setup-node action must stay SHA-pinned");
-requireText(workflow, "P6 production-safe boundary: PASS", "P6 post-deploy boundary proof missing");
-
+requireText(release, "npm run release:predeploy", "local predeploy gate missing");
+requireText(release, "npm run release:postdeploy", "local postdeploy gate missing");
+requireText(release, "GitHub Actions tidak digunakan", "no-Actions release policy missing");
 if (pkg.scripts?.["test:p6-operations"] !== "node scripts/validate-p6-operational-hardening.mjs") failures.push("package test:p6-operations script missing");
 if (!String(pkg.scripts?.validate || "").includes("npm run test:p6-operations")) failures.push("canonical validate does not include P6");
+if (!String(pkg.scripts?.["release:postdeploy"] || "").includes("probe:p6-production")) failures.push("postdeploy gate does not include P6 production reliability probe");
 
 if (failures.length) {
   console.error(`P6 operational hardening validation failed (${failures.length}):`);
@@ -93,6 +89,5 @@ console.log("P6 operational marketplace hardening: PASS");
 console.log("- additive report/dispute/verification schema contract");
 console.log("- authenticated ownership-scoped public case workflows");
 console.log("- RBAC + step-up + admin audit requirements");
-console.log("- Control Center operational queues and permission-gated actions");
 console.log("- no automated financial settlement/refund mutation");
-console.log("- Trust Center + recovery/runbook contract");
+console.log("- local Cloudflare release gates replace disabled GitHub Actions");
