@@ -46,7 +46,7 @@ for (const asset of [
   'js/profile-saved.js',
   'js/p8-commerce-integration.js'
 ]) {
-  expect(buildRuntime.includes(`"${asset}"`) || buildRuntime.includes(`'${asset}'`), `build fingerprints ${asset}`);
+  expect(buildRuntime.includes(`"${asset}"`) || buildRuntime.includes(`'${asset}'`), `build diagnoses ${asset}`);
 }
 
 for (const lazy of [
@@ -59,15 +59,15 @@ for (const lazy of [
   expect(!index.includes(`src="${lazy}`), `${lazy} is excluded from initial script graph`);
 }
 
-expect(buildRuntime.includes('css/ui-polish-v1.css'), 'tokens dependency graph includes UI polish CSS');
-expect(buildRuntime.includes('stampTokenImports'), 'tokens imports receive dependency fingerprints before token hashing');
-expect(buildRuntime.includes('stampLazyBootGraph'), 'V10 lazy dependencies receive fingerprints before bootstrap hashing');
-expect(buildRuntime.includes('createHash("sha256")'), 'asset fingerprint uses SHA-256');
-expect(buildRuntime.includes('slice(0, 12)'), 'asset fingerprint uses stable 12-character cache key');
-expect(index.includes('src="js/performance-v10-a.js?v='), 'V10 bootstrap is critical deferred delivery');
-expect(index.includes('rel="preload" href="css/public-experience-v9.css?v='), 'V9 stylesheet is discovered early with matching cache key');
-expect(buildRuntime.includes('asset-cache-key'), 'build emits critical cache-key diagnostics');
-expect(buildRuntime.includes('lazy-cache-key'), 'build emits lazy cache-key diagnostics');
+expect(buildRuntime.includes('createHash("sha256")'), 'asset diagnostics use SHA-256');
+expect(buildRuntime.includes('slice(0, 12)'), 'asset diagnostics use stable 12-character cache key');
+expect(index.includes('src="js/performance-v10-a.js?v='), 'V10 bootstrap remains critical deferred delivery');
+expect(index.includes('rel="preload" href="css/public-experience-v9.css?v='), 'V9 stylesheet remains discovered early');
+expect(buildRuntime.includes('asset-cache-diagnostic'), 'build emits cache diagnostics without rewriting source');
+expect(!buildRuntime.includes('writeFile('), 'runtime build does not rewrite tracked source files');
+expect(!buildRuntime.includes('stampTokenImports'), 'runtime build no longer mutates token imports');
+expect(!buildRuntime.includes('stampLazyBootGraph'), 'runtime build no longer mutates lazy bootstrap graph');
+expect(buildRuntime.includes('generated runtime outputs only'), 'build declares generated-output-only behavior');
 
 if (process.exitCode) process.exit(process.exitCode);
 console.log('Frontend cache freshness contract: PASS');
