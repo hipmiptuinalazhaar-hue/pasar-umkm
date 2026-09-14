@@ -2,6 +2,7 @@ import fs from 'node:fs';
 
 const wrangler = fs.readFileSync('wrangler.jsonc', 'utf8');
 const securityEntry = fs.readFileSync('src/security-worker-entry.js', 'utf8');
+const worker = fs.readFileSync('src/worker-entry.js', 'utf8');
 const observability = fs.readFileSync('src/observability.js', 'utf8');
 const maintenance = fs.readFileSync('src/auth-maintenance.js', 'utf8');
 const story = fs.readFileSync('src/story-upload-api.js', 'utf8');
@@ -32,6 +33,9 @@ requireContract(observability.includes('response.status < 500'), 'client errors 
 requireContract(observability.includes('sanitize_api_server_errors: true'), 'observability policy declares 5xx sanitization');
 requireContract(maintenance.includes('DELETE FROM sessions WHERE expires_at <= NOW()'), 'expired public sessions have bounded cleanup');
 requireContract(maintenance.includes("revoke_reason = COALESCE(revoke_reason, 'expired_cleanup')"), 'expired admin sessions are revoked rather than silently trusted');
+requireContract(worker.includes('import { maybeCleanupAuthState } from "./auth-maintenance.js";'), 'auth maintenance is imported by the live Worker owner');
+requireContract(worker.includes('ctx.waitUntil(maybeCleanupAuthState(maintenanceSql)'), 'auth maintenance is scheduled as non-blocking Worker background work');
+requireContract(worker.includes('env?.DATABASE_URL && typeof ctx?.waitUntil === "function"'), 'auth maintenance is gated on runtime database and waitUntil availability');
 requireContract(story.includes('detectedImageType') && story.includes('INVALID_IMAGE_SIGNATURE'), 'story upload checks magic signatures');
 requireContract(profile.includes('ALLOWED_AVATAR_HOSTS') && profile.includes('res.cloudinary.com'), 'external avatars are host allowlisted');
 requireContract(profile.includes('parsed.protocol !== "https:"'), 'external avatars require HTTPS');
