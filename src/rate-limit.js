@@ -175,6 +175,13 @@ const RULES = [
     edgeBinding: "EDGE_READ_LIMITER"
   },
   {
+    name: "growth-event-write",
+    match: (request, url) => request.method === "POST" && url.pathname === "/api/growth/events",
+    limit: 120,
+    windowMs: 60 * 1000,
+    edgeBinding: "EDGE_WRITE_LIMITER"
+  },
+  {
     name: "story-upload",
     match: (request, url) => request.method === "POST" && url.pathname === "/api/story-v2/upload-image",
     limit: 30,
