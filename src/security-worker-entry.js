@@ -36,8 +36,8 @@ function adminCsp(nonce) {
     "script-src-attr 'none'",
     "style-src 'self'",
     "font-src 'self'",
-    "img-src 'self' data:",
-    "media-src 'self'",
+    "img-src 'self' data: https:",
+    "media-src 'self' https:",
     "connect-src 'self'",
     "frame-src 'none'",
     "object-src 'none'",
@@ -103,5 +103,6 @@ export const securityWorkerPolicy = Object.freeze({
   connect_src: "self",
   frame_ancestors: "none",
   admin_csp_isolated: true,
+  admin_https_media_allowed: true,
   admin_referrer_policy: "no-referrer"
 });
