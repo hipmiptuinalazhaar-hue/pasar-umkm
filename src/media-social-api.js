@@ -1,6 +1,7 @@
 import { handleMediaSocialApi as handleMediaSocialApiLegacy } from "./media-social-api-legacy.js";
 import { handleReelsCommerceV4Api } from "./reels-commerce-v4-api.js";
 import { handleReelsAdvancedV4Api } from "./reels-advanced-v4-api.js";
+import { handleReelsV4SecureCreateApi } from "./reels-v4-secure-create-api.js";
 
 function json(body, status = 200) {
   return Response.json(body, {
@@ -27,6 +28,9 @@ async function enforceReelsEventBoundary(request) {
 export async function handleMediaSocialApi(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
+
+  const secureCreate = await handleReelsV4SecureCreateApi(request, env);
+  if (secureCreate) return secureCreate;
 
   if (path.startsWith("/api/reels/v4/advanced")) {
     return handleReelsAdvancedV4Api(request, env);
