@@ -17,6 +17,9 @@ function requireContract(condition, message) {
 }
 
 requireContract(wrangler.includes('"main": "src/security-worker-entry.js"'), 'Cloudflare entrypoint is the security wrapper');
+for (const route of ['/checkout/*','/purchases/*','/seller-orders/*','/support/*','/admin/*','/launch/*','/legal/*']) {
+  requireContract(wrangler.includes(`"${route}"`), `application HTML route ${route} runs through security Worker first`);
+}
 requireContract(securityEntry.includes('crypto.getRandomValues(new Uint8Array(18))'), 'HTML CSP nonce is random per response');
 requireContract(securityEntry.includes("script-src 'self' 'nonce-${nonce}'"), 'effective Worker CSP requires a nonce for inline scripts');
 requireContract(!securityEntry.includes("script-src 'self' 'unsafe-inline'"), 'effective Worker script CSP does not allow unsafe-inline');
