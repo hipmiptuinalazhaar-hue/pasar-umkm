@@ -16,6 +16,10 @@ function requireContract(condition, message) {
 requireContract(!publicAuth.includes('registration_manual'), 'legacy manual registration audit path is removed');
 requireContract(!/INSERT INTO users[\s\S]{0,500}email_verified[\s\S]{0,200}TRUE/i.test(publicAuth), 'core auth cannot create a verified user directly');
 requireContract(publicAuth.includes('isSecurityV2Route'), 'registration and password security routes are delegated to V2');
+requireContract(publicAuth.includes('const MAX_BCRYPT_PASSWORD_BYTES = 72'), 'login enforces the bcrypt byte boundary');
+requireContract(publicAuth.includes('textEncoder.encode(password).length') && publicAuth.includes('passwordBytes > MAX_BCRYPT_PASSWORD_BYTES'), 'oversized login passwords are rejected before bcrypt verification');
+requireContract(publicAuth.includes('WITH touched_user AS') && publicAuth.includes('INSERT INTO sessions (user_id, token_hash, expires_at)'), 'login session creation and last-login update share one atomic SQL statement');
+requireContract(!publicAuth.includes('maybeCleanupAuthState'), 'public auth request path does not own blocking maintenance');
 requireContract(authV2.includes('if (url.pathname === "/api/auth/register") return "register-start"'), 'POST /api/auth/register starts an OTP challenge');
 requireContract(authV2.includes('INSERT INTO user_auth_challenges') && authV2.includes("purpose, email, pending_name, pending_password_hash"), 'registration start stores only a pending challenge');
 requireContract(authV2.includes('sendAuthCode(env') && authV2.includes('purpose: "register"'), 'registration start sends a verification code');
