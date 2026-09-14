@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { readFile, stat, writeFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { build } from "esbuild";
 
 const JS_SOURCE = "js/app.js";
@@ -7,56 +7,40 @@ const JS_RUNTIME = "js/app.runtime.js";
 const CSS_SOURCE = "css/style.css";
 const CSS_RUNTIME = "css/style.runtime.css";
 const INDEX = "index.html";
-const SEO_WORKER = "src/seo-worker-entry.js";
 const ASSETS_IGNORE = ".assetsignore";
-const TOKENS = "css/tokens.css";
-const V10_BOOT = "js/performance-v10-a.js";
-const NAV_GUARD = "js/navigation-refresh-guard.js";
-const REELS_BOOT = "js/reel-profile-separation.js";
-const REELS_ENTRY = "js/reels-v4-entry.js";
-const WORKER_EAGER_ASSETS = ["js/performance-v10-b.js"];
 
-const CRITICAL_ASSETS = [
-  TOKENS,
+const DIAGNOSTIC_ASSETS = [
+  "css/tokens.css",
   CSS_RUNTIME,
   "css/mobile-foundation-v2.css",
   "css/home-feed-v3.css",
   "css/tablet-desktop-v2.css",
   "css/public-experience-v9.css",
-  V10_BOOT,
-  NAV_GUARD,
-  JS_RUNTIME
-];
-
-const LAZY_BOOT_ASSETS = [
+  "css/ui-polish-v1.css",
+  "css/reels-commerce-v4.css",
+  "css/reels-advanced-creator-v4.css",
+  "js/performance-v10-a.js",
   "js/performance-v10-b.js",
   "js/performance-v10-c.js",
-  REELS_ENTRY,
+  "js/navigation-refresh-guard.js",
+  "js/reel-profile-separation.js",
+  "js/reels-v4-entry.js",
+  "js/reels-commerce-v4.js",
+  "js/reels-advanced-creator-v4.js",
   "js/chat-single-render-v6.js",
   "js/p8-commerce-integration.js",
   "js/account-resilience.js",
-  "js/profile-saved.js"
+  "js/profile-saved.js",
+  JS_RUNTIME
 ];
 
-const NAVIGATION_GRAPH_ASSETS = [
-  "js/p8-commerce-integration.js",
-  "js/commerce-experience-v2.js"
-];
-
-const REELS_GRAPH_ASSETS = [
-  "css/reels-commerce-v4.css",
-  "css/reels-advanced-creator-v4.css",
-  "js/reels-commerce-v4.js",
-  "js/reels-advanced-creator-v4.js"
-];
-
-async function sha12(path) {
-  const data = await readFile(path);
+async function sha12(filePath) {
+  const data = await readFile(filePath);
   return createHash("sha256").update(data).digest("hex").slice(0, 12);
 }
 
-async function size(path) {
-  return (await stat(path)).size;
+async function size(filePath) {
+  return (await stat(filePath)).size;
 }
 
 async function assertReduction(source, runtime, minimum) {
@@ -68,66 +52,6 @@ async function assertReduction(source, runtime, minimum) {
   if (reduction < minimum) {
     throw new Error(`${runtime} reduction ${(reduction * 100).toFixed(1)}% di bawah target ${(minimum * 100).toFixed(0)}%.`);
   }
-}
-
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function stampVersion(text, assetPath, version) {
-  const pattern = new RegExp(`${escapeRegExp(assetPath)}\\?v=[^&\"')]+`, "g");
-  return text.replace(pattern, `${assetPath}?v=${version}`);
-}
-
-async function stampTokenImports() {
-  let tokens = await readFile(TOKENS, "utf8");
-  for (const dependency of ["css/mobile-foundation-v2.css", "css/ui-polish-v1.css"]) {
-    const version = await sha12(dependency);
-    const relativePath = `./${dependency.slice(4)}`;
-    tokens = stampVersion(tokens, relativePath, version);
-    console.log(`asset-cache-key ${dependency}=${version}`);
-  }
-  await writeFile(TOKENS, tokens, "utf8");
-}
-
-async function stampReelsGraph(path, label) {
-  let boot = await readFile(path, "utf8");
-  for (const assetPath of REELS_GRAPH_ASSETS) {
-    const version = await sha12(assetPath);
-    boot = stampVersion(boot, assetPath, version);
-    console.log(`${label}-cache-key ${assetPath}=${version}`);
-  }
-  await writeFile(path, boot, "utf8");
-}
-
-async function stampLazyBootGraph() {
-  let boot = await readFile(V10_BOOT, "utf8");
-  for (const assetPath of LAZY_BOOT_ASSETS) {
-    const version = await sha12(assetPath);
-    boot = stampVersion(boot, assetPath, version);
-    console.log(`lazy-cache-key ${assetPath}=${version}`);
-  }
-  await writeFile(V10_BOOT, boot, "utf8");
-}
-
-async function stampNavigationGraph() {
-  let guard = await readFile(NAV_GUARD, "utf8");
-  for (const assetPath of NAVIGATION_GRAPH_ASSETS) {
-    const version = await sha12(assetPath);
-    guard = stampVersion(guard, assetPath, version);
-    console.log(`navigation-cache-key ${assetPath}=${version}`);
-  }
-  await writeFile(NAV_GUARD, guard, "utf8");
-}
-
-async function stampWorkerEagerGraph() {
-  let worker = await readFile(SEO_WORKER, "utf8");
-  for (const assetPath of WORKER_EAGER_ASSETS) {
-    const version = await sha12(assetPath);
-    worker = stampVersion(worker, `/${assetPath}`, version);
-    console.log(`worker-eager-cache-key ${assetPath}=${version}`);
-  }
-  await writeFile(SEO_WORKER, worker, "utf8");
 }
 
 await build({
@@ -152,15 +76,7 @@ await build({
 await assertReduction(JS_SOURCE, JS_RUNTIME, 0.20);
 await assertReduction(CSS_SOURCE, CSS_RUNTIME, 0.15);
 
-// Fingerprint nested dependencies before hashing their parent entrypoints.
-await stampTokenImports();
-await stampReelsGraph(REELS_BOOT, "reels-profile");
-await stampReelsGraph(REELS_ENTRY, "reels-entry");
-await stampLazyBootGraph();
-await stampNavigationGraph();
-await stampWorkerEagerGraph();
-
-let index = await readFile(INDEX, "utf8");
+const index = await readFile(INDEX, "utf8");
 const cssPattern = /css\/style(?:\.runtime)?\.css\?v=[^"']+/g;
 const jsPattern = /js\/app(?:\.runtime)?\.js\?v=[^"']+/g;
 const cssMatches = index.match(cssPattern) || [];
@@ -168,6 +84,9 @@ const jsMatches = index.match(jsPattern) || [];
 if (cssMatches.length !== 1 || jsMatches.length !== 1) {
   throw new Error(`Index runtime reference tidak unik: css=${cssMatches.length}, js=${jsMatches.length}.`);
 }
+if (!index.includes("css/style.runtime.css?v=")) throw new Error("index.html harus memakai style.runtime.css.");
+if (!index.includes("js/app.runtime.js?v=")) throw new Error("index.html harus memakai app.runtime.js.");
+if (index.includes("Pembelian Saya")) throw new Error("index.html masih memakai label legacy Pembelian Saya.");
 
 for (const forbidden of [
   "js/performance-v10-b.js",
@@ -181,24 +100,14 @@ for (const forbidden of [
   if (index.includes(`src=\"${forbidden}`)) throw new Error(`${forbidden} tidak boleh menjadi initial script V10-A.`);
 }
 
-// Initial HTML must already use the final customer-facing order label.
-index = index.replaceAll("Pembelian Saya", "Pesanan Saya");
-
-const fingerprints = new Map();
-for (const assetPath of CRITICAL_ASSETS) fingerprints.set(assetPath, await sha12(assetPath));
-for (const [assetPath, version] of fingerprints) index = stampVersion(index, assetPath, version);
-
-index = index.replace(
-  '<script src="https://unpkg.com/@phosphor-icons/web"></script>',
-  '<script src="https://unpkg.com/@phosphor-icons/web" defer></script>'
-);
-await writeFile(INDEX, index, "utf8");
-
 const ignoreText = await readFile(ASSETS_IGNORE, "utf8");
-const ignoreLines = ignoreText.split(/\r?\n/).filter(Boolean);
+const ignoreLines = new Set(ignoreText.split(/\r?\n/).filter(Boolean));
 for (const required of [JS_SOURCE, CSS_SOURCE, "scripts/"]) {
-  if (!ignoreLines.includes(required)) ignoreLines.push(required);
+  if (!ignoreLines.has(required)) throw new Error(`${ASSETS_IGNORE} wajib mengabaikan ${required}.`);
 }
-await writeFile(ASSETS_IGNORE, `${ignoreLines.join("\n")}\n`, "utf8");
 
-for (const [assetPath, version] of fingerprints) console.log(`asset-cache-key ${assetPath}=${version}`);
+for (const assetPath of DIAGNOSTIC_ASSETS) {
+  console.log(`asset-cache-diagnostic ${assetPath}=${await sha12(assetPath)}`);
+}
+
+console.log("Runtime build complete: generated runtime outputs only; tracked source was not rewritten.");
