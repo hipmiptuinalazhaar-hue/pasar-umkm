@@ -7,10 +7,10 @@ const read = rel => fs.readFileSync(path.join(root, rel), 'utf8');
 const exists = rel => fs.existsSync(path.join(root, rel));
 
 const pkg = JSON.parse(read('package.json'));
-const workflow = read('.github/workflows/p10-final-production-certification.yml');
 const wrangler = read('wrangler.jsonc');
 const securityDoc = read('docs/P9_OFFENSIVE_SECURITY_AUDIT.md');
 const finalDoc = read('docs/P10_FINAL_PRODUCTION_COMPLETION.md');
+const releaseDoc = read('docs/LOCAL_RELEASE_PROCESS.md');
 
 function sourceFiles(dir) {
   const out = [];
@@ -26,44 +26,48 @@ function sourceFiles(dir) {
 const conflictMarkers = [];
 for (const file of sourceFiles(root)) {
   const text = fs.readFileSync(file, 'utf8');
-  if (/^(?:<<<<<<<|>>>>>>>|\|\|\|\|\|\|\|) /m.test(text)) {
-    conflictMarkers.push(path.relative(root, file));
-  }
+  if (/^(?:<<<<<<<|>>>>>>>|\|\|\|\|\|\|\|) /m.test(text)) conflictMarkers.push(path.relative(root, file));
 }
 
 const validate = String(pkg.scripts?.validate || '');
 const certification = String(pkg.scripts?.['validate:p10-certification'] || '');
+const predeploy = String(pkg.scripts?.['release:predeploy'] || '');
+const postdeploy = String(pkg.scripts?.['release:postdeploy'] || '');
+const activeWorkflowDir = path.join(root, '.github', 'workflows');
+const activeWorkflows = fs.existsSync(activeWorkflowDir)
+  ? fs.readdirSync(activeWorkflowDir).filter(name => /\.ya?ml$/i.test(name))
+  : [];
+
 const assertions = [
   ['Node module mode is explicit', pkg.type === 'module'],
   ['Node 22 engine remains pinned', pkg.engines?.node === '>=22 <23'],
   ['dependency surface remains minimal', Object.keys(pkg.dependencies || {}).length <= 2 && Object.keys(pkg.devDependencies || {}).length <= 2],
+  ['Auth V2 behavioral gate is canonical', validate.includes('test:auth-v2')],
   ['P9 static security gate is canonical', validate.includes('test:p9-security')],
   ['P10 final contract is canonical', validate.includes('test:p10-final')],
-  ['P10 certification script exists', certification.includes('test:p10-final') && certification.includes('probe:p9-security')],
   ['P9 source validator exists', exists('scripts/validate-p9-offensive-security.mjs')],
   ['P9 production probe exists', exists('scripts/p9-production-security-probe.mjs')],
-  ['P10 final workflow exists', exists('.github/workflows/p10-final-production-certification.yml')],
-  ['P10 workflow runs canonical validation', workflow.includes('npm run validate')],
-  ['P10 workflow proves deterministic runtime build', workflow.includes('npm run build:runtime') && workflow.includes('git diff --exit-code')],
-  ['P10 workflow waits for exact Cloudflare deployment', workflow.includes('wait-cloudflare-deploy.mjs') && workflow.includes('CLOUDFLARE_SHA: ${{ github.sha }}')],
-  ['P10 workflow runs post-deploy smoke', workflow.includes('post-deploy-smoke.mjs')],
-  ['P10 workflow runs reliability regression', workflow.includes('p6-production-reliability-probe.mjs')],
-  ['P10 workflow runs launch regression', workflow.includes('p7-production-launch-probe.mjs')],
-  ['P10 workflow runs database-scale regression', workflow.includes('p8-production-scale-probe.mjs')],
-  ['P10 workflow runs offensive-security production probe', workflow.includes('p9-production-security-probe.mjs')],
-  ['P10 workflow runs real-browser viewport matrix', workflow.includes('browser-release-smoke.mjs')],
-  ['P10 workflow runs critical browser surfaces', workflow.includes('browser-p5-critical-surfaces-v2.mjs')],
-  ['P10 workflow runs read-only load smoke', workflow.includes('load-smoke-v1.mjs')],
-  ['P10 workflow preserves certification evidence', workflow.includes('actions/upload-artifact@') && workflow.includes('retention-days: 30')],
-  ['P10 workflow actions are SHA pinned', !/uses:\s+actions\/(?:checkout|setup-node|upload-artifact)@v\d+/i.test(workflow)],
+  ['Auth V2 contract validator exists', exists('scripts/validate-auth-security-v2-contract.mjs')],
+  ['local release documentation exists', exists('docs/LOCAL_RELEASE_PROCESS.md')],
+  ['predeploy builds runtime and validates', predeploy.includes('build:runtime') && predeploy.includes('validate')],
+  ['postdeploy runs HTTP smoke', postdeploy.includes('smoke:post-deploy')],
+  ['postdeploy runs reliability regression', postdeploy.includes('probe:p6-production')],
+  ['postdeploy runs launch regression', postdeploy.includes('probe:p7-production')],
+  ['postdeploy runs scale regression', postdeploy.includes('probe:p8-scale-production')],
+  ['postdeploy runs offensive security probe', postdeploy.includes('probe:p9-security')],
+  ['P10 certification composes local pre/post deploy gates', certification.includes('release:predeploy') && certification.includes('release:postdeploy')],
+  ['GitHub Actions are not an active release dependency', activeWorkflows.length === 0],
   ['Cloudflare observability remains enabled', wrangler.includes('"observability"') && wrangler.includes('"enabled": true')],
   ['P9 documentation declares non-destructive scope', securityDoc.includes('non-destructive')],
   ['P10 documentation defines completion evidence', finalDoc.includes('100% engineering completion')],
+  ['release docs explicitly record no-Actions policy', releaseDoc.includes('GitHub Actions tidak digunakan')],
+  ['release docs require post-deploy verification', releaseDoc.includes('npm run release:postdeploy')],
   ['repository contains no unresolved merge markers', conflictMarkers.length === 0]
 ];
 
 const failed = assertions.filter(([, ok]) => !ok);
 for (const [name, ok] of assertions) console.log(`${ok ? 'PASS' : 'FAIL'} ${name}`);
+if (activeWorkflows.length) console.error(`Active workflows unexpectedly present: ${activeWorkflows.join(', ')}`);
 if (conflictMarkers.length) console.error(`Merge markers: ${conflictMarkers.join(', ')}`);
 
 if (failed.length) {
