@@ -5,8 +5,8 @@ const observability = read('src/observability.js');
 const worker = read('src/worker-entry.js');
 const wrangler = read('wrangler.jsonc');
 const probe = read('scripts/p6-production-reliability-probe.mjs');
-const workflow = read('.github/workflows/p6-production-reliability.yml');
 const docs = read('docs/P6_OBSERVABILITY_RELIABILITY.md');
+const release = read('docs/LOCAL_RELEASE_PROCESS.md');
 const pkg = JSON.parse(read('package.json'));
 
 const checks = [];
@@ -18,7 +18,7 @@ const requireCheck = (condition, message) => {
 const forbid = (pattern, value, message) => requireCheck(!pattern.test(value), message);
 
 requireCheck(worker.includes('observeRequest(request, env, ctx, routeRequest)'), 'all Worker requests pass through observability wrapper');
-requireCheck(observability.includes('p6-reliability-v1'), 'versioned observability policy is active');
+requireCheck(observability.includes('p6-reliability-v2'), 'versioned observability policy is active');
 for (const route of ['/api/admin/operations/*','/api/admin/support/*','/api/support/*','/api/reports/*','/api/disputes/*','/api/store-verification/*']) {
   requireCheck(observability.includes(route), `route taxonomy covers ${route}`);
 }
@@ -29,6 +29,7 @@ requireCheck(observability.includes('X-Request-Id'), 'API responses expose corre
 requireCheck(observability.includes('Server-Timing'), 'API responses expose server timing');
 requireCheck(observability.includes('status >= 500 || status === 429'), '5xx and rate-limit events are always logged');
 requireCheck(observability.includes('durationMs >= slowMs'), 'slow requests are always logged');
+requireCheck(observability.includes('sanitizeServerErrorResponse'), '5xx responses are sanitized before reaching clients');
 forbid(/request\.headers\.get\(["'](?:Cookie|Authorization|User-Agent|CF-Connecting-IP)["']\)/i, observability, 'observability does not collect sensitive request headers');
 forbid(/url\.search|searchParams|request\.text\(|request\.json\(/i, observability, 'observability does not collect query strings or request bodies');
 for (const marker of ['raw_path_logged: false','query_string_logged: false','request_body_logged: false','cookies_logged: false','user_agent_logged: false','ip_address_logged: false']) {
@@ -50,16 +51,6 @@ requireCheck(probe.includes('p95LimitMs'), 'production probe enforces p95 latenc
 requireCheck(probe.includes('status_5xx: 0'), 'production report certifies zero 5xx');
 requireCheck(probe.includes('success_rate: 1'), 'production report certifies 100% probe availability');
 
-requireCheck(workflow.includes('name: P6 Production Reliability'), 'P6 final reliability workflow exists');
-requireCheck(workflow.includes('schedule:'), 'P6 reliability workflow has recurring production monitoring');
-requireCheck(workflow.includes("cron: '17 * * * *'"), 'P6 production monitoring runs hourly');
-requireCheck(workflow.includes('npm run test:p6-final'), 'workflow runs static P6 final contract');
-requireCheck(workflow.includes('node scripts/wait-cloudflare-deploy.mjs'), 'push certification waits for exact Cloudflare deployment');
-requireCheck(workflow.includes('node scripts/p6-production-reliability-probe.mjs'), 'workflow runs live production reliability probe');
-requireCheck(workflow.includes('actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'), 'checkout action stays SHA-pinned');
-requireCheck(workflow.includes('actions/setup-node@820762786026740c76f36085b0efc47a31fe5020'), 'setup-node action stays SHA-pinned');
-requireCheck(workflow.includes('upload-artifact@'), 'reliability report is preserved as a workflow artifact');
-
 for (const heading of ['Service level objectives','Telemetry privacy','Incident triage','Rollback and recovery']) {
   requireCheck(docs.includes(heading), `runbook includes ${heading}`);
 }
@@ -67,6 +58,10 @@ requireCheck(docs.includes('99.9%'), 'runbook defines availability SLO');
 requireCheck(docs.includes('p95'), 'runbook defines latency objective');
 requireCheck(docs.includes('X-Request-Id'), 'runbook documents correlation workflow');
 
+requireCheck(release.includes('npm run release:predeploy'), 'local release docs define predeploy gate');
+requireCheck(release.includes('npm run release:postdeploy'), 'local release docs define postdeploy gate');
+requireCheck(release.includes('GitHub Actions tidak digunakan'), 'local release docs declare no-Actions model');
+requireCheck(String(pkg.scripts?.['release:postdeploy'] || '').includes('probe:p6-production'), 'postdeploy gate runs P6 reliability probe');
 requireCheck(pkg.scripts?.['test:p6-final'] === 'node scripts/validate-p6-final-reliability.mjs', 'package exposes P6 final contract');
 requireCheck(pkg.scripts?.['probe:p6-production'] === 'node scripts/p6-production-reliability-probe.mjs', 'package exposes P6 live reliability probe');
 requireCheck(String(pkg.scripts?.validate || '').includes('npm run test:p6-final'), 'canonical validation includes P6 final reliability');
