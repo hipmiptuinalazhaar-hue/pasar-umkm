@@ -8,6 +8,7 @@ const files = Object.freeze({
   loader: 'js/reel-profile-separation.js',
   app: 'js/app.js',
   api: 'src/reels-commerce-v4-api.js',
+  secureCreate: 'src/reels-v4-secure-create-api.js',
   advancedApi: 'src/reels-advanced-v4-api.js',
   bridge: 'src/business-agency-api.js',
   mediaBridge: 'src/media-social-api.js',
@@ -20,7 +21,7 @@ const files = Object.freeze({
 });
 
 const content = {};
-for (const [key, path] of Object.entries(files)) content[key] = await readFile(path, 'utf8');
+for (const [key, filePath] of Object.entries(files)) content[key] = await readFile(filePath, 'utf8');
 
 const failures = [];
 function contract(name, condition) {
@@ -57,12 +58,17 @@ contract('R10 templates/remix metadata', match('api', /template_of_reel_id|remix
 contract('R11 advanced metadata endpoint', has('advancedApi', '/api/reels/v4/advanced/metadata', 'audio-library'));
 contract('R11 cold-bootstrap preserves active Reels shell', match('app', /function renderApplication\(\)\s*\{[\s\S]*?STATE\.activeNav\s*!==\s*['"]reels['"][\s\S]*?renderFeed\(\)/));
 contract('R11 early pre-router Reels intent handed to canonical router', has('app', "document.querySelector('[data-v10-lazy=reels]')&&navigate('reels')"));
-contract('V4 compatibility bridge', has('bridge', '/api/reels-v4', '/api/reels/v4') && match('mediaBridge', /legacy|handleMediaSocial/i));
+contract('V4 compatibility bridge', has('bridge', '/api/reels-v4', '/api/reels/v4') && has('mediaBridge', 'handleReelsCommerceV4Api', 'handleReelsAdvancedV4Api'));
+contract('V4 secure create owns publish and draft routes before legacy V4 handler', has('mediaBridge', 'handleReelsV4SecureCreateApi') && content.mediaBridge.indexOf('handleReelsV4SecureCreateApi(request, env)') < content.mediaBridge.indexOf('handleReelsCommerceV4Api(request, env)'));
+contract('V4 upload validates container signature', has('secureCreate', 'detectVideoContainer', 'INVALID_VIDEO_SIGNATURE', 'iso-bmff', 'webm'));
+contract('V4 upload enforces byte and duration ceilings', has('secureCreate', 'MAX_REEL_BYTES', 'MAX_REEL_SECONDS', 'FILE_TOO_LARGE', 'VIDEO_TOO_LONG'));
+contract('V4 upload destroys orphaned Cloudinary assets', has('secureCreate', 'destroyVideo', '/video/destroy', 'if (uploaded?.publicId) await destroyVideo'));
+contract('V4 transaction event cannot be client asserted', has('mediaBridge', 'SERVER_AUTHORITATIVE_EVENT', 'event_type', 'order'));
 contract('V4 schema migration markers', has('migration', '2026-09-09-reels-commerce-v4') && has('advancedMigration', '2026-09-09-reels-advanced-creator-v4'));
 contract('Reduced-motion coverage', match('css', /prefers-reduced-motion/i) && match('advancedCss', /prefers-reduced-motion/i));
 contract('No gradient dependency in Reels V4 surfaces', !/linear-gradient|radial-gradient|conic-gradient/i.test(`${content.css}\n${content.advancedCss}\n${content.adminCss}`));
 
-const budgets = { core: 50_000, advanced: 75_000, api: 90_000, advancedApi: 55_000, css: 30_000, advancedCss: 18_000 };
+const budgets = { core: 50_000, advanced: 75_000, api: 90_000, secureCreate: 30_000, advancedApi: 55_000, css: 30_000, advancedCss: 18_000 };
 for (const [key, limit] of Object.entries(budgets)) {
   const size = (await stat(files[key])).size;
   contract(`budget ${files[key]} <= ${limit} bytes (${size})`, size <= limit);
