@@ -56,6 +56,31 @@ function isAdminPath(pathname) {
   return pathname === "/admin" || pathname.startsWith("/admin/");
 }
 
+async function rejectClientAuthoritativeGrowthEvent(request) {
+  if (request.method !== "POST") return null;
+  const url = new URL(request.url);
+  if (url.pathname !== "/api/growth/events") return null;
+
+  const body = await request.clone().json().catch(() => null);
+  if (!body || typeof body !== "object" || Array.isArray(body)) return null;
+  if (String(body.event_name || "").trim() !== "order_completed") return null;
+
+  return Response.json(
+    {
+      ok: false,
+      code: "SERVER_AUTHORITATIVE_EVENT",
+      error: "Status penyelesaian pesanan hanya dapat dicatat oleh server."
+    },
+    {
+      status: 403,
+      headers: {
+        "Cache-Control": "no-store, max-age=0",
+        "X-Content-Type-Options": "nosniff"
+      }
+    }
+  );
+}
+
 function securedHeaders(response, nonce, pathname) {
   const headers = new Headers(response.headers);
   const admin = isAdminPath(pathname);
@@ -73,6 +98,9 @@ function securedHeaders(response, nonce, pathname) {
 
 export default {
   async fetch(request, env, ctx) {
+    const rejectedGrowthEvent = await rejectClientAuthoritativeGrowthEvent(request);
+    if (rejectedGrowthEvent) return rejectedGrowthEvent;
+
     const response = await seoWorker.fetch(request, env, ctx);
     if (!isHtml(response)) return response;
 
@@ -104,5 +132,6 @@ export const securityWorkerPolicy = Object.freeze({
   frame_ancestors: "none",
   admin_csp_isolated: true,
   admin_https_media_allowed: true,
-  admin_referrer_policy: "no-referrer"
+  admin_referrer_policy: "no-referrer",
+  client_order_completed_growth_event_allowed: false
 });
