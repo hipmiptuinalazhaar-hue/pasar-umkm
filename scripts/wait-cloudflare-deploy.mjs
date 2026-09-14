@@ -73,8 +73,10 @@ async function getChecks() {
 while (Date.now() - startedAt < timeoutMs) {
   const checks = await getChecks();
   const cloudflareChecks = checks
-    .filter(check => check?.app?.slug === 'cloudflare-workers-and-pages' || check?.name?.startsWith(prefix))
-    .filter(check => !check?.head_sha || String(check.head_sha).toLowerCase() === sha.toLowerCase())
+    .filter(check => check?.name?.startsWith(prefix))
+    .filter(check => check?.app?.slug === 'cloudflare-workers-and-pages')
+    .filter(check => /^[0-9a-f]{40}$/i.test(String(check?.head_sha || '')))
+    .filter(check => String(check.head_sha).toLowerCase() === sha.toLowerCase())
     .sort((a, b) => new Date(b.completed_at || b.started_at || 0) - new Date(a.completed_at || a.started_at || 0));
 
   if (cloudflareChecks.length > 0) {
