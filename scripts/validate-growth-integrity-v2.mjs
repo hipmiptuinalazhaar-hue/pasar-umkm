@@ -3,6 +3,7 @@ import fs from 'node:fs';
 const securityEntry = fs.readFileSync('src/security-worker-entry.js', 'utf8');
 const launchGrowth = fs.readFileSync('src/launch-growth-api.js', 'utf8');
 const adminGrowth = fs.readFileSync('src/admin-growth-api.js', 'utf8');
+const rateLimit = fs.readFileSync('src/rate-limit.js', 'utf8');
 
 const checks = [];
 function requireContract(condition, message) {
@@ -19,6 +20,12 @@ requireContract(securityEntry.includes('String(body.event_name || "").trim() !==
 requireContract(securityEntry.includes('code: "SERVER_AUTHORITATIVE_EVENT"'), 'forged completed-order analytics fail with a stable code');
 requireContract(securityEntry.includes('client_order_completed_growth_event_allowed: false'), 'security policy exports the server-authoritative invariant');
 requireContract(securityEntry.indexOf('rejectClientAuthoritativeGrowthEvent(request)') < securityEntry.indexOf('seoWorker.fetch(request, env, ctx)'), 'forged event is rejected before application routing or database writes');
+requireContract(securityEntry.includes('const MAX_GROWTH_INSPECTION_BYTES = 4096'), 'pre-route growth inspection has a 4 KiB byte ceiling');
+requireContract(securityEntry.includes('total > maxBytes') && securityEntry.includes('reader.cancel()'), 'stream inspection aborts when the byte ceiling is exceeded');
+requireContract(securityEntry.includes('growth_inspection_max_bytes: MAX_GROWTH_INSPECTION_BYTES'), 'security policy exports the bounded inspection budget');
+requireContract(rateLimit.includes('name: "growth-event-write"'), 'growth analytics writes have a dedicated rate-limit rule');
+requireContract(rateLimit.includes('url.pathname === "/api/growth/events"'), 'growth rate limit is scoped to the canonical endpoint');
+requireContract(rateLimit.includes('limit: 120') && rateLimit.includes('edgeBinding: "EDGE_WRITE_LIMITER"'), 'growth analytics are bounded by isolate and edge write limiting');
 requireContract(adminGrowth.includes('checkout_to_completed_7d_pct:null') && adminGrowth.includes('checkout_to_completed_30d_pct:null'), 'admin dashboard does not fabricate a completed-order conversion percentage');
 requireContract(adminGrowth.includes('traffic_conversion_available:false'), 'admin methodology declares completed-order conversion unavailable until trusted instrumentation exists');
 requireContract(adminGrowth.includes('order_completion_source:"server_authoritative_pending"'), 'admin methodology exposes the pending server-authoritative source state');
