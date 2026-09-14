@@ -1,10 +1,11 @@
 import { neon } from "@neondatabase/serverless";
 import { handlePublicAuthSecurityV2Api } from "./public-auth-security-v2-api.js";
-import { normalizeEmail, auditAuth } from "./auth-security-v2-shared.js";
-import { maybeCleanupAuthState } from "./auth-maintenance.js";
+import { normalizeEmail, validEmail, auditAuth } from "./auth-security-v2-shared.js";
 
 const SESSION_COOKIE = "__Host-pasar_umkm_session";
 const MAX_SESSION_AGE = 604800;
+const MAX_BCRYPT_PASSWORD_BYTES = 72;
+const textEncoder = new TextEncoder();
 
 function json(data, status = 200, extraHeaders = {}) {
   return Response.json(data, {
@@ -65,6 +66,12 @@ async function login(sql, request) {
   const password = String(body.password || "");
   if (!email || !password) return json({ ok: false, error: "Email dan kata sandi wajib diisi." }, 400);
 
+  const passwordBytes = textEncoder.encode(password).length;
+  if (!validEmail(email) || passwordBytes > MAX_BCRYPT_PASSWORD_BYTES) {
+    await auditAuth(sql, request, { email, eventType: "login", outcome: "failure", metadata: { reason: "invalid_credentials_shape" } });
+    return json({ ok: false, error: "Email atau kata sandi salah." }, 401);
+  }
+
   const users = await sql`
     SELECT id, name, email, role, email_verified
     FROM users
@@ -81,11 +88,20 @@ async function login(sql, request) {
 
   const user = users[0];
   const token = createSessionToken();
-  await sql`
+  const sessions = await sql`
+    WITH touched_user AS (
+      UPDATE users
+      SET last_login_at = NOW(), updated_at = NOW()
+      WHERE id = ${user.id}
+      RETURNING id
+    )
     INSERT INTO sessions (user_id, token_hash, expires_at)
-    VALUES (${user.id}, encode(digest(${token}, 'sha256'), 'hex'), NOW() + INTERVAL '7 days')
+    SELECT id, encode(digest(${token}, 'sha256'), 'hex'), NOW() + INTERVAL '7 days'
+    FROM touched_user
+    RETURNING id
   `;
-  await sql`UPDATE users SET last_login_at = NOW() WHERE id = ${user.id}`;
+  if (!sessions[0]) throw new Error("SESSION_CREATION_FAILED");
+
   await auditAuth(sql, request, { userId: user.id, email: user.email, eventType: "login", outcome: "success" });
   return json({ ok: true, message: "Login berhasil.", user }, 200, { "Set-Cookie": sessionCookie(token) });
 }
@@ -143,7 +159,6 @@ export async function handlePublicAuthApi(request, env) {
 
   try {
     const sql = neon(env.DATABASE_URL);
-    await maybeCleanupAuthState(sql);
     if (securityV2) return await handlePublicAuthSecurityV2Api(sql, request, env);
     if (action === "login") return await login(sql, request);
     if (action === "me") return await me(sql, request);
