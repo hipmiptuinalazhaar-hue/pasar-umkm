@@ -4,7 +4,7 @@ const read = file => fs.readFileSync(file, 'utf8');
 const publicAuth = read('src/public-auth-api.js');
 const authV2 = read('src/public-auth-security-v2-api.js');
 const frontend = read('js/auth-security-v2.js');
-const migration = read('database/migrations/2026-09-08-auth-security-v2.sql');
+const limiter = read('src/rate-limit.js');
 
 const checks = [];
 function requireContract(condition, message) {
@@ -13,28 +13,33 @@ function requireContract(condition, message) {
   console.log(`AUTH V2 PASS: ${message}`);
 }
 
-requireContract(!publicAuth.includes('registration_manual'), 'legacy manual registration audit path is removed');
-requireContract(!/INSERT INTO users[\s\S]{0,500}email_verified[\s\S]{0,200}TRUE/i.test(publicAuth), 'core auth cannot create a verified user directly');
-requireContract(publicAuth.includes('isSecurityV2Route'), 'registration and password security routes are delegated to V2');
+requireContract(publicAuth.includes('if (url.pathname === "/api/auth/register" && method === "POST") return "register"'), 'POST /api/auth/register is owned by core public auth');
+requireContract(publicAuth.includes('async function register(sql, request)'), 'direct registration handler exists');
+requireContract(publicAuth.includes('validatePassword(password)'), 'direct registration keeps password validation');
+requireContract(publicAuth.includes("gen_salt('bf', 12)"), 'direct registration hashes passwords with bcrypt');
+requireContract(publicAuth.includes('WITH created_user AS') && publicAuth.includes('created_session AS'), 'user and session creation share one atomic SQL statement');
+requireContract(publicAuth.includes('registration_direct'), 'direct registration is audit logged');
+requireContract(publicAuth.includes('email_verification_required: false'), 'audit metadata records that registration email verification is disabled');
+requireContract(!publicAuth.includes('url.pathname.startsWith("/api/auth/register/")'), 'registration OTP child routes are not exposed by the public auth router');
+requireContract(publicAuth.includes('url.pathname.startsWith("/api/auth/password/")'), 'password recovery remains delegated to the security V2 flow');
 requireContract(publicAuth.includes('const MAX_BCRYPT_PASSWORD_BYTES = 72'), 'login enforces the bcrypt byte boundary');
-requireContract(publicAuth.includes('textEncoder.encode(password).length') && publicAuth.includes('passwordBytes > MAX_BCRYPT_PASSWORD_BYTES'), 'oversized login passwords are rejected before bcrypt verification');
-requireContract(publicAuth.includes('WITH touched_user AS') && publicAuth.includes('INSERT INTO sessions (user_id, token_hash, expires_at)'), 'login session creation and last-login update share one atomic SQL statement');
-requireContract(!publicAuth.includes('maybeCleanupAuthState'), 'public auth request path does not own blocking maintenance');
-requireContract(authV2.includes('if (url.pathname === "/api/auth/register") return "register-start"'), 'POST /api/auth/register starts an OTP challenge');
-requireContract(authV2.includes('INSERT INTO user_auth_challenges') && authV2.includes("purpose, email, pending_name, pending_password_hash"), 'registration start stores only a pending challenge');
-requireContract(authV2.includes('sendAuthCode(env') && authV2.includes('purpose: "register"'), 'registration start sends a verification code');
-requireContract(authV2.includes('new Client({ connectionString: env.DATABASE_URL })'), 'verified account creation uses an explicit database transaction client');
-requireContract(authV2.includes('await client.query("BEGIN")') && authV2.includes('await client.query("COMMIT")'), 'verified account creation has BEGIN/COMMIT boundaries');
-requireContract(authV2.includes("FOR UPDATE"), 'registration verification locks its challenge against races');
-requireContract(authV2.includes('INSERT INTO users(name,email,password_hash,email_verified,email_verified_at,last_login_at)'), 'user creation exists only in verified flow');
-requireContract(authV2.includes('INSERT INTO sessions(user_id,token_hash,expires_at)'), 'session creation is part of the verified transaction');
-requireContract(authV2.includes("'registration_verified','success'"), 'successful verification audit is written inside the transaction');
-requireContract(authV2.includes('consumed_at=NOW()'), 'successful/terminal challenges are consumed');
-requireContract(frontend.includes("request('/api/auth/register/verify'"), 'frontend verifies OTP before completing registration');
-requireContract(frontend.includes("flow.registerChallengeId = String(result.challenge_id"), 'frontend stores the server challenge id, not credentials');
-const registerSubmit = frontend.match(/async function submitRegister\(form\)[\s\S]*?\n  }\n\n  async function submitRegisterVerify/);
-requireContract(Boolean(registerSubmit) && !registerSubmit[0].includes('completeSession(result.user'), 'initial registration submit cannot establish a session');
-requireContract(frontend.includes("request('/api/auth/password/verify'") && frontend.includes("request('/api/auth/password/reset'"), 'password recovery is OTP verified before reset');
-requireContract(migration.includes("purpose IN ('register', 'password_reset')"), 'database challenge table supports register and password reset purposes');
+requireContract(publicAuth.includes('WITH touched_user AS') && publicAuth.includes('INSERT INTO sessions (user_id, token_hash, expires_at)'), 'login session creation and last-login update remain atomic');
 
-console.log(`\nAuth Security V2 behavioral contract: PASS (${checks.length} checks)`);
+requireContract(frontend.includes("version: '2.1-direct'"), 'frontend advertises the direct-registration auth version');
+requireContract(frontend.includes('Pendaftaran tidak memerlukan verifikasi email.'), 'registration UI clearly states that email verification is not required');
+requireContract(frontend.includes('<span>Daftar sekarang</span>'), 'registration submits directly');
+requireContract(!frontend.includes('register-verify'), 'registration OTP screen is removed from the frontend');
+requireContract(!frontend.includes('/api/auth/register/verify'), 'frontend no longer calls registration OTP verification');
+requireContract(!frontend.includes('/api/auth/register/resend'), 'frontend no longer calls registration OTP resend');
+const registerSubmit = frontend.match(/async function submitRegister\(form\)[\s\S]*?\n  }\n\n  async function submitForgot/);
+requireContract(Boolean(registerSubmit) && registerSubmit[0].includes('completeSession(result.user'), 'successful registration immediately establishes the returned session');
+
+requireContract(authV2.includes('if (url.pathname === "/api/auth/password/forgot") return "password-forgot"'), 'password recovery start endpoint remains available');
+requireContract(authV2.includes('if (url.pathname === "/api/auth/password/verify") return "password-verify"'), 'password recovery OTP verification remains available');
+requireContract(authV2.includes('if (url.pathname === "/api/auth/password/reset") return "password-reset"'), 'password reset endpoint remains available');
+requireContract(authV2.includes('purpose: "password_reset"'), 'recovery still sends a purpose-scoped email OTP');
+
+requireContract(limiter.includes('name: "auth-register"') && limiter.includes('limit: 5'), 'direct registration remains rate limited');
+requireContract(limiter.includes('name: "auth-password-forgot"'), 'password recovery remains rate limited');
+
+console.log(`\nAuth direct-registration contract: PASS (${checks.length} checks)`);

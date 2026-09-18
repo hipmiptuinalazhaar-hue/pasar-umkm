@@ -103,12 +103,12 @@ requireMatch('challenge-hash-column', migration, 'code_hash TEXT NOT NULL');
 requireMatch('frontend-direct-register', frontend, '/api/auth/register');
 requireMatch('frontend-direct-register-label', frontend, 'Daftar sekarang');
 requireMatch('frontend-direct-register-completes-session', frontend, /submitRegister[\s\S]*completeSession\(result\.user/);
-requireMatch('frontend-temporary-verification-notice', frontend, 'Verifikasi email sementara dinonaktifkan');
+requireMatch('frontend-no-email-verification-notice', frontend, 'Pendaftaran tidak memerlukan verifikasi email.');
 requireAbsent('frontend-no-register-otp-screen', frontend, 'register-verify');
 requireAbsent('frontend-no-register-resend-call', frontend, '/api/auth/register/resend');
 requireMatch('frontend-session-complete', frontend, 'completeSession');
 requireMatch('frontend-style-owner', css, '.auth-v2-shell');
-requireMatch('runtime-auth-loader', runtimeLoader, 'js/auth-security-v2.js?v=1.0');
+requireMatch('runtime-auth-loader', runtimeLoader, "js/auth-security-v2.js?v=2.1");
 
 console.log(`Auth Security V2 validator: ${passes.length} checks passed.`);
 if (failures.length) {

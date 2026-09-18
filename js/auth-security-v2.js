@@ -1,13 +1,11 @@
 'use strict';
 
 (() => {
-  if (window.PasarAuthSecurityV2?.version === '2.0-otp') return;
+  if (window.PasarAuthSecurityV2?.version === '2.1-direct') return;
 
   const flow = {
     mode: 'login',
     preferredEmail: '',
-    registerChallengeId: '',
-    registerMaskedEmail: '',
     recoveryEmail: '',
     resetToken: ''
   };
@@ -16,7 +14,7 @@
     if (document.querySelector('link[data-auth-security-v2-style="true"]')) return;
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = 'css/auth-security-v2.css?v=2.0';
+    link.href = 'css/auth-security-v2.css?v=2.1';
     link.dataset.authSecurityV2Style = 'true';
     document.head.appendChild(link);
   }
@@ -68,7 +66,7 @@
           </div>` : ''}
         <div id="authV2Message" class="auth-v2-message" aria-live="polite" hidden></div>
         ${body}
-        <div class="auth-v2-security"><i class="ph ph-shield-check" aria-hidden="true"></i><span>Session menggunakan cookie HttpOnly + Secure. Kode verifikasi kedaluwarsa otomatis dan kata sandi tidak pernah dikirim kembali ke browser.</span></div>
+        <div class="auth-v2-security"><i class="ph ph-shield-check" aria-hidden="true"></i><span>Session menggunakan cookie HttpOnly + Secure. Kata sandi disimpan dalam bentuk hash dan tidak pernah dikirim kembali ke browser.</span></div>
       </div>`;
   }
 
@@ -115,19 +113,9 @@
     return `
       <form id="authV2RegisterForm" class="auth-v2-form">
         <div class="auth-v2-field"><label class="auth-v2-label" for="authV2RegisterName">Nama lengkap</label><div class="auth-v2-input-wrap"><i class="ph ph-user auth-v2-input-icon"></i><input id="authV2RegisterName" class="auth-v2-input" name="name" type="text" autocomplete="name" minlength="2" maxlength="100" placeholder="Nama lengkap" required></div></div>
-        <div class="auth-v2-field"><label class="auth-v2-label" for="authV2RegisterEmail">Email</label><div class="auth-v2-input-wrap"><i class="ph ph-envelope-simple auth-v2-input-icon"></i><input id="authV2RegisterEmail" class="auth-v2-input" name="email" type="email" inputmode="email" autocomplete="email" maxlength="255" placeholder="nama@email.com" required></div><p class="auth-v2-hint">Kami akan mengirim kode verifikasi ke email ini sebelum akun dibuat.</p></div>
+        <div class="auth-v2-field"><label class="auth-v2-label" for="authV2RegisterEmail">Email</label><div class="auth-v2-input-wrap"><i class="ph ph-envelope-simple auth-v2-input-icon"></i><input id="authV2RegisterEmail" class="auth-v2-input" name="email" type="email" inputmode="email" autocomplete="email" maxlength="255" placeholder="nama@email.com" required></div><p class="auth-v2-hint">Pastikan alamat email benar. Pendaftaran tidak memerlukan verifikasi email.</p></div>
         ${passwordField('authV2RegisterPassword', 'password', 'Kata sandi', 'new-password', 'Minimal 8 karakter', true)}
-        <button type="submit" class="auth-v2-submit"><i class="ph ph-envelope-simple"></i><span>Kirim kode verifikasi</span></button>
-      </form>`;
-  }
-
-  function registerVerifyBody() {
-    return `
-      <form id="authV2RegisterVerifyForm" class="auth-v2-form">
-        <p class="auth-v2-hint">Masukkan kode yang dikirim ke <strong>${esc(flow.registerMaskedEmail || flow.preferredEmail || 'email Anda')}</strong>.</p>
-        ${otpField('authV2RegisterOtp')}
-        <button type="submit" class="auth-v2-submit"><i class="ph ph-seal-check"></i><span>Verifikasi & buat akun</span></button>
-        <button type="button" class="auth-v2-link" data-auth-v2-action="resend-register">Kirim ulang kode</button>
+        <button type="submit" class="auth-v2-submit"><i class="ph ph-user-plus"></i><span>Daftar sekarang</span></button>
       </form>`;
   }
 
@@ -159,11 +147,10 @@
 
   function render(mode = 'login', options = {}) {
     ensureStyle();
-    const allowed = new Set(['login', 'register', 'register-verify', 'forgot', 'recovery-verify', 'reset']);
+    const allowed = new Set(['login', 'register', 'forgot', 'recovery-verify', 'reset']);
     flow.mode = allowed.has(mode) ? mode : 'login';
     let html;
-    if (flow.mode === 'register') html = shell({ title: 'Buat akun', subtitle: 'Verifikasi email sebelum akun dibuat.', body: registerBody(), tabs: true });
-    else if (flow.mode === 'register-verify') html = shell({ title: 'Verifikasi email', subtitle: 'Kode berlaku selama 10 menit.', body: registerVerifyBody(), back: 'register' });
+    if (flow.mode === 'register') html = shell({ title: 'Buat akun', subtitle: 'Daftar langsung untuk mulai menggunakan Pasar UMKM.', body: registerBody(), tabs: true });
     else if (flow.mode === 'forgot') html = shell({ title: 'Lupa kata sandi', subtitle: 'Pulihkan akun menggunakan kode email.', body: forgotBody(), back: 'login' });
     else if (flow.mode === 'recovery-verify') html = shell({ title: 'Verifikasi pemulihan', subtitle: 'Masukkan kode 6 digit dari email.', body: recoveryVerifyBody(), back: 'forgot' });
     else if (flow.mode === 'reset') html = shell({ title: 'Buat kata sandi baru', subtitle: 'Semua sesi lama akan dicabut setelah perubahan berhasil.', body: resetBody(), back: 'login' });
@@ -269,42 +256,13 @@
     const email = String(data.get('email') || '').trim().toLowerCase();
     const password = String(data.get('password') || '');
     const button = form.querySelector('.auth-v2-submit');
-    clearMessage(); setLoading(button, true, 'Mengirim kode...');
+    clearMessage(); setLoading(button, true, 'Membuat akun...');
     try {
       const result = await request('/api/auth/register', { name, email, password });
       flow.preferredEmail = email;
-      flow.registerChallengeId = String(result.challenge_id || '');
-      flow.registerMaskedEmail = String(result.masked_email || '');
-      render('register-verify', { messageType: 'success', message: result.message || 'Kode verifikasi telah dikirim.' });
-    } catch (error) {
-      setMessage('error', error.message || 'Pendaftaran belum dapat diproses.');
-    } finally { setLoading(button, false); }
-  }
-
-  async function submitRegisterVerify(form) {
-    if (!form.checkValidity()) return form.reportValidity();
-    const code = String(new FormData(form).get('code') || '').replace(/\D/g, '').slice(0, 6);
-    const button = form.querySelector('.auth-v2-submit');
-    clearMessage(); setLoading(button, true, 'Memverifikasi...');
-    try {
-      const result = await request('/api/auth/register/verify', { challenge_id: flow.registerChallengeId, code });
-      flow.registerChallengeId = '';
-      flow.registerMaskedEmail = '';
       completeSession(result.user, result.message || 'Akun berhasil dibuat.');
     } catch (error) {
-      setMessage('error', error.message || 'Kode verifikasi tidak valid.');
-    } finally { setLoading(button, false); }
-  }
-
-  async function resendRegister(button) {
-    if (!flow.registerChallengeId) return render('register');
-    clearMessage(); setLoading(button, true, 'Mengirim ulang...');
-    try {
-      const result = await request('/api/auth/register/resend', { challenge_id: flow.registerChallengeId });
-      flow.registerMaskedEmail = String(result.masked_email || flow.registerMaskedEmail);
-      setMessage('success', result.message || 'Kode baru telah dikirim.');
-    } catch (error) {
-      setMessage('error', error.message || 'Kode belum dapat dikirim ulang.');
+      setMessage('error', error.message || 'Pendaftaran belum dapat diproses.');
     } finally { setLoading(button, false); }
   }
 
@@ -367,10 +325,8 @@
     root.querySelector('[data-auth-v2-action="forgot"]')?.addEventListener('click', () => render('forgot'));
     root.querySelector('[data-auth-v2-action="login"]')?.addEventListener('click', () => render('login'));
     root.querySelector('[data-auth-v2-action="register"]')?.addEventListener('click', () => render('register'));
-    root.querySelector('[data-auth-v2-action="resend-register"]')?.addEventListener('click', event => resendRegister(event.currentTarget));
     root.querySelector('#authV2LoginForm')?.addEventListener('submit', event => { event.preventDefault(); submitLogin(event.currentTarget); });
     root.querySelector('#authV2RegisterForm')?.addEventListener('submit', event => { event.preventDefault(); submitRegister(event.currentTarget); });
-    root.querySelector('#authV2RegisterVerifyForm')?.addEventListener('submit', event => { event.preventDefault(); submitRegisterVerify(event.currentTarget); });
     root.querySelector('#authV2ForgotForm')?.addEventListener('submit', event => { event.preventDefault(); submitForgot(event.currentTarget); });
     root.querySelector('#authV2RecoveryVerifyForm')?.addEventListener('submit', event => { event.preventDefault(); submitRecoveryVerify(event.currentTarget); });
     root.querySelector('#authV2ResetForm')?.addEventListener('submit', event => { event.preventDefault(); submitReset(event.currentTarget); });
@@ -389,9 +345,9 @@
   window.renderAuthSheet = v2RenderAuthSheet;
 
   window.PasarAuthSecurityV2 = Object.freeze({
-    version: '2.0-otp',
+    version: '2.1-direct',
     open: v2OpenLogin,
     render,
-    state: () => ({ mode: flow.mode, pending_registration: Boolean(flow.registerChallengeId), recovery_pending: Boolean(flow.recoveryEmail) })
+    state: () => ({ mode: flow.mode, recovery_pending: Boolean(flow.recoveryEmail) })
   });
 })();

@@ -5,7 +5,7 @@ const KEY='pasar_cart_selection_v2',P2='.post-card.is-product-post,.post-card[da
 let buyPending=false,frame=0,p2Timer=0,p2Observer=null;
 const addScript=(src,key,ready)=>{if(ready()||d.querySelector(`script[data-${key}="true"]`))return;const s=d.createElement('script');s.src=src;s.async=true;s.dataset[key.replace(/-([a-z])/g,(_,c)=>c.toUpperCase())]='true';(d.body||d.head).appendChild(s)};
 const addStyle=(href,key)=>{if(d.querySelector(`link[data-${key}="true"]`))return;const l=d.createElement('link');l.rel='stylesheet';l.href=href;l.dataset[key.replace(/-([a-z])/g,(_,c)=>c.toUpperCase())]='true';d.head.appendChild(l)};
-const loadAuth=()=>addScript('js/auth-security-v2.js?v=1.0','auth-security-v2',()=>window.PasarAuthSecurityV2?.version==='1.0');
+const loadAuth=()=>addScript('js/auth-security-v2.js?v=2.1','auth-security-v2',()=>window.PasarAuthSecurityV2?.version==='2.1-direct');
 const loadSeller=()=>{addScript('js/seller-center-p8-bridge.js?v=1.0','seller-p8-bridge',()=>window.PasarSellerP8?.version==='1.0');addScript('js/seller-center-order-p8.js?v=1.0','seller-order-p8-bridge',()=>window.PasarSellerOrdersP8?.version==='1.0')};
 const loadAddress=()=>addScript('js/profile-address-v2.js?v=1.0','profile-address-v2',()=>window.PasarProfileAddressV2?.version==='1.0');
 function networkCapability(){const c=navigator.connection||navigator.mozConnection||navigator.webkitConnection||null,e=String(c?.effectiveType||'').toLowerCase(),s=Boolean(c?.saveData);return Object.freeze({effectiveType:e,saveData:s,constrained:s||['slow-2g','2g'].includes(e)})}
