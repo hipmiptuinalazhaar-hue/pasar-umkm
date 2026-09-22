@@ -1,0 +1,114 @@
+/* PASAR UMKM — DESKTOP EXPERIENCE V10
+   Final desktop owner for >=1024px. Mobile behavior is intentionally untouched. */
+@media (min-width:1024px){
+:root{--d10-header:68px;--d10-nav:64px;--d10-nav-bottom:16px;--d10-shell:1240px;--d10-work:1180px;--d10-page:#f4f6f5;--d10-surface:#fff;--d10-line:rgba(15,33,23,.10);--d10-brand:#0f5c3b;--d10-dark:#083725;--d10-text:#122019;--d10-muted:#647067}
+html body{background:var(--d10-page)!important;color:var(--d10-text);font-size:14px}
+html body .app{min-height:100dvh;background:var(--d10-page)!important}
+
+/* P0: primary nav remains a bottom nav on desktop. */
+html body .app>.app-header{position:fixed!important;inset:0 0 auto!important;width:100%!important;max-width:none!important;height:var(--d10-header)!important;min-height:var(--d10-header)!important;padding:10px max(30px,calc((100vw - var(--d10-shell))/2))!important;grid-template-columns:42px 132px minmax(360px,1fr) auto!important;grid-template-rows:48px!important;gap:12px!important;background:rgba(255,255,255,.98)!important;border-bottom:1px solid var(--d10-line)!important;box-shadow:0 2px 12px rgba(7,35,23,.035)!important;z-index:340!important}
+html body .app>.app-header .header-logo{width:118px!important;max-height:38px!important}
+html body .app>.app-header .header-search{width:min(100%,720px)!important;max-width:720px!important;height:44px!important;min-height:44px!important;margin-inline:auto!important;border:1px solid var(--d10-line)!important;border-radius:12px!important;background:#f1f4f2!important}
+html body .app>.app-navigation,html body.chat-v7-body .app-navigation,html body.reels-v4-active .app>.app-navigation{position:fixed!important;top:auto!important;bottom:var(--d10-nav-bottom)!important;left:50%!important;right:auto!important;width:min(760px,calc(100vw - 48px))!important;max-width:760px!important;height:var(--d10-nav)!important;min-height:var(--d10-nav)!important;padding:6px 8px!important;transform:translateX(-50%)!important;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;align-items:center!important;gap:5px!important;border:1px solid rgba(15,33,23,.12)!important;border-radius:20px!important;background:rgba(255,255,255,.98)!important;box-shadow:0 16px 38px rgba(7,35,23,.16)!important;z-index:420!important}
+html body .app>.app-navigation::before,html body.chat-v7-body .app-navigation::before{content:none!important;display:none!important}
+html body .app-navigation .nav-item{width:100%!important;min-width:0!important;height:50px!important;min-height:50px!important;padding:5px 10px!important;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:8px!important;border-radius:14px!important;color:#4a5650!important}
+html body .app-navigation .nav-item>i{width:auto!important;font-size:20px!important}
+html body .app-navigation .nav-item>span:not(.nav-badge):not(.nav-create-icon){display:inline!important;font-size:12.5px!important;font-weight:700!important}
+html body .app-navigation .nav-item.active{background:#edf5f1!important;color:var(--d10-dark)!important}
+html body .app-navigation .nav-item.active::before{content:none!important;display:none!important}
+html body .app-navigation .nav-item-create{transform:none!important}
+html body .app-navigation .nav-create-icon{width:34px!important;height:34px!important;margin:0!important;border-radius:10px!important;background:var(--d10-dark)!important;box-shadow:none!important}
+html body .app-navigation .nav-create-label{display:inline!important;margin:0!important;font-size:12.5px!important}
+html body .app>.app-main,html body .app.commerce-view-active:not(.commerce-hide-nav)>.app-main{width:100%!important;max-width:none!important;min-height:100dvh!important;margin:0!important;padding-top:calc(var(--d10-header) + 28px)!important;padding-bottom:calc(var(--d10-nav) + var(--d10-nav-bottom) + 48px)!important;background:var(--d10-page)!important}
+
+/* P1: marketplace-grade homepage. */
+html body #storiesSection,html body #homeDiscovery{width:min(calc(100% - 60px),var(--d10-shell))!important;max-width:var(--d10-shell)!important;margin-inline:auto!important}
+html body #homeDiscovery{padding:0!important}
+html body #homeDiscovery .market-hero{width:100%!important;min-height:350px!important;margin:0 0 28px!important;padding:42px 44px!important;display:grid!important;grid-template-columns:minmax(0,1.08fr) minmax(360px,.92fr)!important;align-items:stretch!important;gap:42px!important;overflow:hidden!important;border:1px solid rgba(255,255,255,.05)!important;border-radius:24px!important;background:radial-gradient(circle at 92% 12%,rgba(237,189,93,.16),transparent 32%),linear-gradient(135deg,#083725 0%,#0a412d 52%,#0d4a33 100%)!important;box-shadow:0 18px 50px rgba(8,55,37,.14)!important}
+html body #homeDiscovery .market-hero-content{width:100%!important;max-width:650px!important;align-self:center}
+html body #homeDiscovery .market-hero-title{max-width:620px!important;font-size:clamp(38px,3.2vw,48px)!important;line-height:1.04!important;letter-spacing:-.045em!important}
+html body #homeDiscovery .market-hero-description{max-width:540px!important;margin-top:14px!important;font-size:15px!important;line-height:1.65!important}
+html body #homeDiscovery .market-hero-actions{margin-top:22px!important;gap:10px!important}
+html body #homeDiscovery .market-hero-primary,html body #homeDiscovery .market-hero-secondary{min-height:46px!important;padding-inline:17px!important;border-radius:11px!important;font-size:13px!important}
+.desktop-hero-showcase{min-width:0;display:grid;grid-template-rows:auto 1fr;gap:12px;align-self:stretch;padding:18px;border:1px solid rgba(255,255,255,.16);border-radius:18px;background:rgba(255,255,255,.075)}
+.desktop-hero-showcase-head{display:flex;align-items:center;justify-content:space-between;gap:12px;color:rgba(255,255,255,.72);font-size:11px;font-weight:750;letter-spacing:.05em;text-transform:uppercase}
+.desktop-hero-showcase-head strong{color:#fff;font-size:12px;letter-spacing:0;text-transform:none}
+.desktop-hero-showcase-grid{min-height:0;display:grid;grid-template-columns:1.18fr .82fr;grid-template-rows:repeat(2,minmax(0,1fr));gap:10px}
+.desktop-hero-tile{position:relative;min-width:0;min-height:112px;overflow:hidden;border-radius:14px;background:rgba(255,255,255,.10)}
+.desktop-hero-tile:first-child{grid-row:1/span 2;min-height:236px}
+.desktop-hero-tile img{width:100%;height:100%;display:block;object-fit:cover}
+.desktop-hero-tile::after{content:"";position:absolute;inset:auto 0 0;height:54%;background:linear-gradient(to top,rgba(3,17,11,.78),transparent);pointer-events:none}
+.desktop-hero-tile-copy{position:absolute;z-index:2;left:12px;right:12px;bottom:11px;display:grid;gap:2px;color:#fff}
+.desktop-hero-tile-copy strong{overflow:hidden;font-size:12px;line-height:1.25;text-overflow:ellipsis;white-space:nowrap}
+.desktop-hero-tile-copy span{color:rgba(255,255,255,.72);font-size:10.5px}
+.desktop-hero-tile-fallback{height:100%;display:grid;place-items:center;padding:14px;color:rgba(255,255,255,.82);text-align:center}.desktop-hero-tile-fallback i{font-size:30px}
+html body #homeDiscovery .home-section-head{width:100%!important;max-width:none!important;margin:0 0 12px!important}
+html body #homeDiscovery .home-section-head h2{font-size:22px!important;font-weight:800!important}
+html body #homeDiscovery .quick-categories,html body #homeDiscovery .quick-categories:not(:empty){width:100%!important;max-width:none!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important;margin-bottom:34px!important}
+html body #homeDiscovery .quick-category{min-height:76px!important;padding:12px 14px!important;border:1px solid var(--d10-line)!important;border-radius:14px!important;background:#fff!important}
+html body #homeDiscovery .quick-category-label{font-size:13px!important}
+html body #feed{width:min(calc(100% - 60px),var(--d10-work))!important;max-width:var(--d10-work)!important;margin-inline:auto!important;padding:0 0 42px!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;align-items:start!important;gap:18px!important;background:transparent!important}
+html body #feed>.market-feed-head,html body #feed>.catalog-load-more,html body #feed>.empty-state{grid-column:1/-1!important}
+html body #feed>.market-feed-head{padding:8px 0 4px!important}
+html body #feed .market-feed-title{font-size:25px!important}
+html body #feed .market-feed-description{max-width:620px!important;font-size:13.5px!important}
+html body #feed>.post-card{min-width:0!important;margin:0!important;overflow:hidden!important;border:1px solid var(--d10-line)!important;border-radius:16px!important;background:#fff!important;box-shadow:0 3px 14px rgba(7,35,23,.035)!important}
+html body #feed>.post-card .post-author{font-size:13.5px!important}
+html body #feed>.post-card .post-context,html body #feed>.post-card .action-count,html body #feed>.post-card .ig-product-stock{font-size:12px!important}
+html body #feed>.post-card .ig-product-name{font-size:15.5px!important}
+html body #feed>.post-card .ig-product-price{font-size:20px!important}
+html body #feed>.post-card .ig-product-description,html body #feed>.post-card .post-caption{font-size:13px!important}
+html body #feed>.post-card .ig-cart-button,html body #feed>.post-card .ig-buy-button{min-height:44px!important;font-size:12.5px!important}
+
+/* P2: desktop Reels canvas: video + info/actions, while preserving header and bottom nav. */
+html body.reels-v4-active{overflow:hidden!important;background:#050706!important}
+html body.reels-v4-active .app>.app-header,html body.reels-v4-active .app>.app-navigation{display:grid!important;visibility:visible!important;pointer-events:auto!important}
+html body.reels-v4-active .app>.app-main{padding:0!important;min-height:100dvh!important;background:#050706!important}
+html body.reels-v4-active #feed{position:fixed!important;inset:var(--d10-header) 0 calc(var(--d10-nav) + var(--d10-nav-bottom) + 28px) 0!important;z-index:300!important;width:100%!important;max-width:none!important;height:auto!important;margin:0!important;padding:0!important;display:block!important;background:#050706!important;overflow:hidden!important}
+html body.reels-v4-active .reels-v4-shell,html body.reels-v4-active .reels-v4-scroller,html body.reels-v4-active .reels-v4-card,html body.reels-v4-active .reels-v4-loader,html body.reels-v4-active .reels-v4-empty{height:100%!important;min-height:100%!important}
+html body.reels-v4-active .reels-v4-shell{max-width:1240px;margin-inline:auto;border-inline:1px solid rgba(255,255,255,.06)}
+html body.reels-v4-active .reels-v4-head{min-height:62px!important;padding:8px 24px!important;background:rgba(5,7,6,.94)!important;border-bottom:1px solid rgba(255,255,255,.08)!important}
+html body.reels-v4-active .reels-v4-card{background:radial-gradient(circle at 30% 45%,rgba(22,78,52,.22),transparent 34%),#050706!important}
+html body.reels-v4-active .reels-v4-video,html body.reels-v4-active .reels-v4-poster,html body.reels-v4-active .reels-v4-media-hit{top:50%!important;bottom:auto!important;left:calc(50% - 220px)!important;right:auto!important;width:auto!important;height:min(680px,calc(100% - 30px))!important;aspect-ratio:9/16!important;transform:translate(-50%,-50%)!important;border-radius:18px!important}
+html body.reels-v4-active .reels-v4-video,html body.reels-v4-active .reels-v4-poster{object-fit:cover!important;border:1px solid rgba(255,255,255,.12)!important;box-shadow:0 18px 48px rgba(0,0,0,.32)!important}
+html body.reels-v4-active .reels-v4-content{top:82px!important;bottom:auto!important;left:calc(50% + 22px)!important;right:max(28px,calc((100vw - 1120px)/2))!important;max-height:calc(100% - 185px)!important;overflow-y:auto!important;padding:22px!important;display:grid!important;align-content:start!important;gap:12px!important;border:1px solid rgba(255,255,255,.10)!important;border-radius:18px!important;background:#101411!important;box-shadow:0 16px 40px rgba(0,0,0,.20)!important}
+html body.reels-v4-active .reels-v4-author strong{font-size:15px!important}
+html body.reels-v4-active .reels-v4-caption{max-width:none!important;font-size:14px!important;line-height:1.6!important;text-shadow:none!important}
+html body.reels-v4-active .reels-v4-product{width:100%!important;max-width:none!important;grid-template-columns:54px minmax(0,1fr) auto!important;padding:10px!important;border-radius:13px!important;background:#172019!important}
+html body.reels-v4-active .reels-v4-product img,html body.reels-v4-active .reels-v4-product-thumb{width:54px!important;height:54px!important}
+html body.reels-v4-active .reels-v4-actions{left:calc(50% + 22px)!important;right:max(28px,calc((100vw - 1120px)/2))!important;bottom:26px!important;display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:8px!important}
+html body.reels-v4-active .reels-v4-action{width:100%!important;min-width:0!important;min-height:56px!important;border:1px solid rgba(255,255,255,.08)!important;border-radius:12px!important;background:#101411!important}
+html body.reels-v4-active .reels-v4-audio{top:82px!important;right:auto!important;left:calc(50% - 44px)!important}
+
+/* P3: common app surfaces. */
+html body .commerce-page{width:min(calc(100% - 60px),var(--d10-work))!important;max-width:var(--d10-work)!important;margin-inline:auto!important}
+html body .commerce-content{padding:28px 32px 44px!important}
+html body .commerce-section{border-radius:14px!important;border-color:var(--d10-line)!important}
+html body .commerce-menu-list{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:12px!important}
+html body .commerce-menu-row{min-height:96px!important;border-radius:12px!important}
+html body .commerce-page:has(>.commerce-detail-media){max-width:1180px!important;grid-template-columns:minmax(400px,.95fr) minmax(450px,1.05fr)!important;overflow:hidden!important;border:1px solid var(--d10-line)!important;border-radius:18px!important;background:#fff!important}
+html body .commerce-page:has(>.commerce-detail-media)>.commerce-detail-media{min-height:560px!important;max-height:calc(100dvh - var(--d10-header) - 40px)!important}
+html body .commerce-page:has(>.commerce-detail-media)>.commerce-detail-body{padding:36px 36px 130px!important}
+html body .social-account-page[data-p3-upgraded="true"],html body .social-universal-profile[data-p3-upgraded="true"],html body .post-viewer-page[data-p3-upgraded="true"],html body .social-notifications-page[data-p3-upgraded="true"]{width:min(calc(100% - 60px),1040px)!important;max-width:1040px!important;margin-inline:auto!important;border:1px solid var(--d10-line)!important;border-radius:16px!important;background:#fff!important;overflow:hidden!important}
+html body.chat-v7-body .app-main{padding-top:var(--d10-header)!important;padding-bottom:calc(var(--d10-nav) + var(--d10-nav-bottom) + 28px)!important}
+html body.chat-v7-body .chat-v7-page{width:min(calc(100% - 60px),1080px)!important;max-width:1080px!important;height:calc(100dvh - var(--d10-header) - var(--d10-nav) - var(--d10-nav-bottom) - 30px)!important;margin-inline:auto!important;border-inline:1px solid var(--d10-line)!important}
+
+/* P4: pointer/keyboard polish. */
+html body button:focus-visible,html body a:focus-visible,html body input:focus-visible,html body textarea:focus-visible,html body select:focus-visible,html body [role="button"]:focus-visible{outline:3px solid rgba(15,92,59,.24)!important;outline-offset:2px!important}
+html body .app-navigation .nav-item,html body #homeDiscovery .quick-category,html body #feed>.post-card,html body .commerce-menu-row,html body .commerce-product-row,html body .desktop-site-footer a{transition:transform 150ms ease,background-color 150ms ease,border-color 150ms ease,box-shadow 150ms ease,color 150ms ease}
+html body .app-navigation .nav-item:hover{background:#f0f5f2!important;color:var(--d10-dark)!important}
+html body #homeDiscovery .quick-category:hover{transform:translateY(-2px);border-color:rgba(15,92,59,.24)!important;box-shadow:0 8px 22px rgba(7,35,23,.07)!important}
+html body #feed>.post-card:hover{transform:translateY(-2px);border-color:rgba(15,92,59,.18)!important;box-shadow:0 12px 30px rgba(7,35,23,.08)!important}
+
+/* P5: desktop footer/trust layer. */
+html body .desktop-site-footer{display:none}
+html body:has(#homeDiscovery:not([hidden])):not(.reels-v4-active) .desktop-site-footer{width:min(calc(100% - 60px),var(--d10-shell));margin:10px auto calc(var(--d10-nav) + var(--d10-nav-bottom) + 38px);padding:28px 30px;display:grid;grid-template-columns:minmax(240px,1.15fr) minmax(420px,1fr);gap:30px;border:1px solid var(--d10-line);border-radius:20px;background:#fff}
+.desktop-site-footer-brand{display:grid;gap:8px;align-content:start}.desktop-site-footer-brand strong{color:var(--d10-dark);font-size:17px}.desktop-site-footer-brand p{max-width:480px;margin:0;color:var(--d10-muted);font-size:12.5px;line-height:1.65}
+.desktop-site-footer-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 18px;align-content:start}.desktop-site-footer-nav a{min-height:34px;display:inline-flex;align-items:center;color:#3d4b43;font-size:12.5px;font-weight:650;text-decoration:none}.desktop-site-footer-nav a:hover{color:var(--d10-brand)}
+.desktop-site-footer-meta{grid-column:1/-1;padding-top:16px;display:flex;justify-content:space-between;gap:20px;border-top:1px solid var(--d10-line);color:#748078;font-size:11px}
+}
+@media (min-width:1280px){:root{--d10-shell:1320px;--d10-work:1240px}html body #feed{grid-template-columns:repeat(3,minmax(0,1fr))!important}html body #homeDiscovery .market-hero{grid-template-columns:minmax(0,1.05fr) minmax(420px,.95fr)!important;padding:46px 50px!important}}
+@media (min-width:1600px){:root{--d10-shell:1380px;--d10-work:1280px}}
+@media (min-width:1024px) and (max-height:720px){html body.reels-v4-active .reels-v4-video,html body.reels-v4-active .reels-v4-poster,html body.reels-v4-active .reels-v4-media-hit{height:calc(100% - 24px)!important}html body.reels-v4-active .reels-v4-content{top:72px!important;max-height:calc(100% - 165px)!important}html body.reels-v4-active .reels-v4-actions{bottom:18px!important}}
+@media (hover:hover) and (pointer:fine) and (min-width:1024px){html body .reels-v4-action:hover,html body .reels-v4-head-action:hover,html body .reels-v4-back:hover{border-color:rgba(141,224,174,.34)!important;background:#162019!important}}
+@media (prefers-reduced-motion:reduce) and (min-width:1024px){html body .app-navigation .nav-item,html body #homeDiscovery .quick-category,html body #feed>.post-card{transition-duration:.01ms!important}}
