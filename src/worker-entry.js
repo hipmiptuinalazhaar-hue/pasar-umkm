@@ -54,6 +54,18 @@ const SUPPORT_MIGRATION = "2026-09-09-customer-support-v1";
 const RELEASE_CONTRACT = "2026-09-06-platform-hardening-v3";
 const STAGING_ATTESTATION_MARKER = "p2-e2e-isolated";
 
+const BOOTSTRAP_PUBLIC_READ_PATHS = new Set([
+  "/api/auth/me",
+  "/api/categories",
+  "/api/stores",
+  "/api/products",
+  "/api/posts"
+]);
+
+function canBypassRuntimeSchemaVerification(request, url) {
+  return request.method === "GET" && BOOTSTRAP_PUBLIC_READ_PATHS.has(url.pathname);
+}
+
 function runtimeEnvironment(env) {
   const value = String(env?.APP_ENV || "production").trim().toLowerCase();
   return value === "staging" ? "staging" : "production";
@@ -239,11 +251,16 @@ async function routeRequest(request, env, ctx) {
   const adminControlResponse = await handleAdminControlApi(request, env);
   if (adminControlResponse) return adminControlResponse;
 
-  try {
-    await ensureNotificationInfrastructure(env);
-    await ensureFullFunctionalityInfrastructure(env);
-  } catch {
-    if (url.pathname.startsWith("/api/")) return schemaUnavailable();
+  // P11 bootstrap resilience: production migrations are release-gated already.
+  // Do not make the five homepage bootstrap reads wait behind the cold-isolate
+  // schema-verification query. Other API routes keep the fail-closed verification.
+  if (!canBypassRuntimeSchemaVerification(request, url)) {
+    try {
+      await ensureNotificationInfrastructure(env);
+      await ensureFullFunctionalityInfrastructure(env);
+    } catch {
+      if (url.pathname.startsWith("/api/")) return schemaUnavailable();
+    }
   }
 
   const launchGrowthResponse = await handleLaunchGrowthApi(request, env);
@@ -315,12 +332,23 @@ async function routeRequest(request, env, ctx) {
 
 export default {
   async fetch(request, env, ctx) {
-    if (env?.DATABASE_URL && typeof ctx?.waitUntil === "function") {
+    const response = await observeRequest(request, env, ctx, routeRequest);
+
+    // Housekeeping must never compete with the request that is trying to paint the UI.
+    // Schedule it only after an auth/health response has been produced; module-level
+    // throttling in maybeCleanupAuthState still enforces the one-hour cadence.
+    const url = new URL(request.url);
+    const maintenanceEligible =
+      url.pathname === "/api/health" ||
+      url.pathname.startsWith("/api/auth/");
+
+    if (maintenanceEligible && env?.DATABASE_URL && typeof ctx?.waitUntil === "function") {
       const maintenanceSql = neon(env.DATABASE_URL);
       ctx.waitUntil(maybeCleanupAuthState(maintenanceSql).catch(error => {
         console.warn("Auth maintenance scheduling failed:", error?.code || error?.message || "unknown");
       }));
     }
-    return observeRequest(request, env, ctx, routeRequest);
+
+    return response;
   }
 };
