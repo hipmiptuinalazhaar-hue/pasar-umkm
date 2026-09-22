@@ -50,6 +50,8 @@
       loadStyle('core', 'css/reels-commerce-v4.css?v=745d6c5c0ee8'),
       loadStyle('advanced', 'css/reels-advanced-creator-v4.css?v=adb3c840d989')
     ]);
+    const desktopOwner = document.querySelector('link[data-desktop-v10-style="true"]');
+    if (desktopOwner) document.head.appendChild(desktopOwner);
     await loadScript('core', 'js/reels-commerce-v4.js?v=a9072a74975a', () => window.PasarReelsV4?.version === '4.0');
     await loadScript('advanced', 'js/reels-advanced-creator-v4.js?v=7fe91292a02a', () => window.PasarReelsAdvancedV4?.version === '4.0');
     return window.PasarReelsV4;
