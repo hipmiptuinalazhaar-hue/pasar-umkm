@@ -1,12 +1,13 @@
 import fs from 'node:fs';import path from 'node:path';
 const root=process.cwd(),read=f=>fs.readFileSync(path.join(root,f),'utf8'),exists=f=>fs.existsSync(path.join(root,f));
-const index=read('index.html'),desktop=read('css/desktop-experience-v10.css'),reels=read('js/reels-v4-entry.js'),pkg=JSON.parse(read('package.json'));
+const index=read('index.html'),desktop=read('css/desktop-experience-v10.css'),reels=read('js/reels-v4-entry.js'),seo=read('src/seo-worker-entry.js'),pkg=JSON.parse(read('package.json'));
 const standalone=['launch/index.html','support/index.html','purchases/index.html','checkout/index.html','seller-orders/index.html','legal/index.html'];
 const checks=[
 ['desktop stylesheet exists',exists('css/desktop-experience-v10.css')],
 ['standalone stylesheet exists',exists('css/desktop-page-v10.css')],
 ['desktop runtime exists',exists('js/desktop-experience-v10.js')],
 ['desktop owner linked last',index.includes('desktop-experience-v10.css')&&index.includes('data-desktop-v10-style')],
+['SEO transform restores desktop owner after public/P2 styles',seo.includes('DESKTOP_V10_STYLE')&&seo.indexOf('href="${DESKTOP_V10_STYLE}')>seo.indexOf('href="${P2_STYLE}')&&seo.includes('data-desktop-v10-style="seo-final"')],
 ['legacy tablet desktop owner removed',!index.includes('css/tablet-desktop-v2.css')],
 ['desktop runtime linked',index.includes('desktop-experience-v10.js')],
 ['footer present',index.includes('desktop-site-footer')&&index.includes('/support/')&&index.includes('/legal/')],
