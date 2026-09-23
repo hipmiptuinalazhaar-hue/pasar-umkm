@@ -16,6 +16,7 @@ const checks=[
 ['hero split uses premium marketplace mockup',desktop.includes('.desktop-hero-premium')&&desktop.includes('.desktop-premium-window')&&desktop.includes('.desktop-premium-categories')],
 ['hero mockup has no seller/product feed hydration',desktopJs.includes('/assets/logo.webp?v=2.0')&&!desktopJs.includes('is-product-post')&&!desktopJs.includes('.ig-product-name')&&!desktopJs.includes('.ig-product-price')],
 ['hero mockup uses generic marketplace labels only',desktopJs.includes('Jelajahi Pasar UMKM')&&desktopJs.includes('Belanja produk lokal')&&desktopJs.includes('Temukan UMKM')&&desktopJs.includes('Akses layanan')&&!desktopJs.includes('Rp ')],
+['hero has no detached floating ornaments',!desktopJs.includes('desktop-premium-floating-card')&&!desktop.includes('.desktop-premium-floating-card')],
 ['marketplace grid',desktop.includes('grid-template-columns:repeat(2,minmax(0,1fr))')&&desktop.includes('@media (min-width:1280px)')],
 ['reels app chrome preserved',desktop.includes('body.reels-v4-active .app>.app-header')&&desktop.includes('body.reels-v4-active .app>.app-navigation')],
 ['reels two-region composition',desktop.includes('left:calc(50% - 220px)')&&desktop.includes('left:calc(50% + 22px)')],

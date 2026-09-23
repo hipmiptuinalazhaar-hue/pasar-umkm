@@ -1,7 +1,7 @@
 'use strict';
 
 (() => {
-  if (window.PasarDesktopExperienceV10?.version === '10.3') return;
+  if (window.PasarDesktopExperienceV10?.version === '10.3.1') return;
 
   const mq = window.matchMedia('(min-width:1024px)');
 
@@ -112,15 +112,6 @@
         </div>
       </div>
 
-      <div class="desktop-premium-floating-card desktop-premium-floating-card-a" aria-hidden="true">
-        <span class="desktop-premium-floating-icon"><i class="ph ph-shield-check"></i></span>
-        <div><strong>Terstruktur</strong><small>Lebih mudah dijelajahi</small></div>
-      </div>
-
-      <div class="desktop-premium-floating-card desktop-premium-floating-card-b" aria-hidden="true">
-        <span class="desktop-premium-floating-icon"><i class="ph ph-sparkle"></i></span>
-        <div><strong>Lokal</strong><small>Dibuat untuk UMKM</small></div>
-      </div>
     `;
 
     hero.appendChild(panel);
@@ -137,7 +128,7 @@
   if (document.readyState !== 'loading') apply();
 
   window.PasarDesktopExperienceV10 = Object.freeze({
-    version: '10.3',
+    version: '10.3.1',
     refresh: apply
   });
 })();

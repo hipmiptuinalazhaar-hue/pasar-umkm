@@ -11,7 +11,7 @@ const TRUST_STYLE = "/css/p5-trust-conversion.css?v=1.0";
 const SELLER_STYLE = "/css/seller-center-p8-bridge.css?v=1.0";
 const V1_STYLE = "/css/v1-completion.css?v=1.1";
 const P2_STYLE = "/css/p2-final-polish.css?v=2.0";
-const DESKTOP_V10_STYLE = "/css/desktop-experience-v10.css?v=10.3.0";
+const DESKTOP_V10_STYLE = "/css/desktop-experience-v10.css?v=10.3.1";
 const PERFORMANCE_B = "/js/performance-v10-b.js?v=7a5a0101a671";
 const COMMERCE_RUNTIME = "/js/p8-commerce-integration.js?v=fc3dcbac9b78";
 const TRUST_RUNTIME = "/js/p5-trust-conversion.js?v=1.0";
