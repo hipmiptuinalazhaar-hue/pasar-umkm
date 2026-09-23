@@ -30,18 +30,9 @@ html body #homeDiscovery .market-hero-title{max-width:620px!important;font-size:
 html body #homeDiscovery .market-hero-description{max-width:540px!important;margin-top:14px!important;font-size:15px!important;line-height:1.65!important}
 html body #homeDiscovery .market-hero-actions{margin-top:22px!important;gap:10px!important}
 html body #homeDiscovery .market-hero-primary,html body #homeDiscovery .market-hero-secondary{min-height:46px!important;padding-inline:17px!important;border-radius:11px!important;font-size:13px!important}
-.desktop-hero-showcase{min-width:0;display:grid;grid-template-rows:auto 1fr;gap:12px;align-self:stretch;padding:18px;border:1px solid rgba(255,255,255,.16);border-radius:18px;background:rgba(255,255,255,.075)}
-.desktop-hero-showcase-head{display:flex;align-items:center;justify-content:space-between;gap:12px;color:rgba(255,255,255,.72);font-size:11px;font-weight:750;letter-spacing:.05em;text-transform:uppercase}
-.desktop-hero-showcase-head strong{color:#fff;font-size:12px;letter-spacing:0;text-transform:none}
-.desktop-hero-showcase-grid{min-height:0;display:grid;grid-template-columns:1.18fr .82fr;grid-template-rows:repeat(2,minmax(0,1fr));gap:10px}
-.desktop-hero-tile{position:relative;min-width:0;min-height:112px;overflow:hidden;border-radius:14px;background:rgba(255,255,255,.10)}
-.desktop-hero-tile:first-child{grid-row:1/span 2;min-height:236px}
-.desktop-hero-tile img{width:100%;height:100%;display:block;object-fit:cover}
-.desktop-hero-tile::after{content:"";position:absolute;inset:auto 0 0;height:54%;background:linear-gradient(to top,rgba(3,17,11,.78),transparent);pointer-events:none}
-.desktop-hero-tile-copy{position:absolute;z-index:2;left:12px;right:12px;bottom:11px;display:grid;gap:2px;color:#fff}
-.desktop-hero-tile-copy strong{overflow:hidden;font-size:12px;line-height:1.25;text-overflow:ellipsis;white-space:nowrap}
-.desktop-hero-tile-copy span{color:rgba(255,255,255,.72);font-size:10.5px}
-.desktop-hero-tile-fallback{height:100%;display:grid;place-items:center;padding:14px;color:rgba(255,255,255,.82);text-align:center}.desktop-hero-tile-fallback i{font-size:30px}
+.desktop-hero-brand-panel{position:relative;min-width:0;display:grid;place-items:center;align-self:stretch;overflow:hidden;padding:30px;border:1px solid rgba(255,255,255,.14);border-radius:22px;background:radial-gradient(circle at 50% 42%,rgba(255,255,255,.10),transparent 54%),linear-gradient(145deg,rgba(255,255,255,.07),rgba(255,255,255,.025))}
+.desktop-hero-brand-panel::before{content:"";position:absolute;width:310px;height:310px;border:1px solid rgba(237,189,93,.16);border-radius:50%;box-shadow:0 0 0 46px rgba(255,255,255,.025),0 0 0 92px rgba(255,255,255,.015);pointer-events:none}
+.desktop-hero-brand-logo{position:relative;z-index:1;width:min(78%,390px);height:auto;max-height:250px;object-fit:contain;filter:drop-shadow(0 18px 30px rgba(0,0,0,.18))}
 html body #homeDiscovery .home-section-head{width:100%!important;max-width:none!important;margin:0 0 12px!important}
 html body #homeDiscovery .home-section-head h2{font-size:22px!important;font-weight:800!important}
 html body #homeDiscovery .quick-categories,html body #homeDiscovery .quick-categories:not(:empty){width:100%!important;max-width:none!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important;margin-bottom:34px!important}

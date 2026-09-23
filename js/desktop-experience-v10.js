@@ -1,11 +1,39 @@
 'use strict';
-(()=>{if(window.PasarDesktopExperienceV10?.version==='10.0')return;
-const mq=matchMedia('(min-width:1024px)');let observer=null,last='';
-const q=(r,s,f='')=>r?.querySelector(s)?.textContent?.trim()||f;
-const img=r=>{const n=r?.querySelector('.ig-product-media img,.post-media img,img');return n?.currentSrc||n?.src||''};
-function ensure(){if(!mq.matches)return null;const hero=document.querySelector('#homeDiscovery .market-hero');if(!hero)return null;let a=hero.querySelector('.desktop-hero-showcase');if(a)return a;a=document.createElement('aside');a.className='desktop-hero-showcase';a.setAttribute('aria-label','Pilihan produk UMKM');a.innerHTML='<div class="desktop-hero-showcase-head"><strong>Pilihan UMKM</strong><span>Produk lokal hari ini</span></div><div class="desktop-hero-showcase-grid"><div class="desktop-hero-tile"><div class="desktop-hero-tile-fallback"><div><i class="ph ph-storefront"></i><br>Temukan produk lokal</div></div></div><div class="desktop-hero-tile"><div class="desktop-hero-tile-fallback"><div><i class="ph ph-bag"></i><br>Belanja dari UMKM</div></div></div><div class="desktop-hero-tile"><div class="desktop-hero-tile-fallback"><div><i class="ph ph-map-pin"></i><br>Lubuklinggau</div></div></div></div>';hero.appendChild(a);return a}
-function hydrate(){if(!mq.matches||document.body.classList.contains('reels-v4-active'))return;const a=ensure();if(!a)return;const items=[...document.querySelectorAll('#feed>.post-card.is-product-post')].slice(0,3).map(c=>({image:img(c),name:q(c,'.ig-product-name','Produk UMKM'),price:q(c,'.ig-product-price','Produk lokal')})).filter(x=>x.image);const sig=items.map(x=>x.image+x.name+x.price).join('|');if(!items.length||sig===last)return;last=sig;const g=a.querySelector('.desktop-hero-showcase-grid');g.replaceChildren();for(const [i,x] of items.entries()){const t=document.createElement('div');t.className='desktop-hero-tile';const im=document.createElement('img');im.src=x.image;im.alt='';im.loading=i?'lazy':'eager';im.decoding='async';const c=document.createElement('div');c.className='desktop-hero-tile-copy';const s=document.createElement('strong');s.textContent=x.name;const p=document.createElement('span');p.textContent=x.price;c.append(s,p);t.append(im,c);g.append(t)}while(g.children.length<3){const t=document.createElement('div');t.className='desktop-hero-tile';t.innerHTML='<div class="desktop-hero-tile-fallback"><div><i class="ph ph-storefront"></i><br>UMKM lokal</div></div>';g.append(t)}}
-function apply(){document.documentElement.classList.toggle('desktop-v10',mq.matches);if(mq.matches){ensure();hydrate()}}
-function watch(){observer?.disconnect();const f=document.getElementById('feed');if(!f)return;observer=new MutationObserver(()=>requestAnimationFrame(hydrate));observer.observe(f,{childList:true,subtree:true})}
-mq.addEventListener?.('change',apply);document.addEventListener('DOMContentLoaded',()=>{apply();watch()},{once:true});if(document.readyState!=='loading'){apply();watch()}
-window.PasarDesktopExperienceV10=Object.freeze({version:'10.0',refresh:()=>{apply();hydrate()}})})();
+
+(() => {
+  if (window.PasarDesktopExperienceV10?.version === '10.2') return;
+
+  const mq = window.matchMedia('(min-width:1024px)');
+
+  function ensureBrandPanel() {
+    if (!mq.matches) return null;
+    const hero = document.querySelector('#homeDiscovery .market-hero');
+    if (!hero) return null;
+
+    hero.querySelector('.desktop-hero-showcase')?.remove();
+
+    let panel = hero.querySelector('.desktop-hero-brand-panel');
+    if (panel) return panel;
+
+    panel = document.createElement('aside');
+    panel.className = 'desktop-hero-brand-panel';
+    panel.setAttribute('aria-label', 'Pasar UMKM Lubuklinggau');
+    panel.innerHTML = '<img class="desktop-hero-brand-logo" src="/assets/logo.webp?v=2.0" alt="Pasar UMKM Lubuklinggau" decoding="async" fetchpriority="high">';
+    hero.appendChild(panel);
+    return panel;
+  }
+
+  function apply() {
+    document.documentElement.classList.toggle('desktop-v10', mq.matches);
+    if (mq.matches) ensureBrandPanel();
+  }
+
+  mq.addEventListener?.('change', apply);
+  document.addEventListener('DOMContentLoaded', apply, { once: true });
+  if (document.readyState !== 'loading') apply();
+
+  window.PasarDesktopExperienceV10 = Object.freeze({
+    version: '10.2',
+    refresh: apply
+  });
+})();
