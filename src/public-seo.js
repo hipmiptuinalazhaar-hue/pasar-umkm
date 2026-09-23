@@ -2,6 +2,7 @@ import { neon } from "@neondatabase/serverless";
 
 const SITE_ORIGIN = "https://pasar-umkm.hipmiptuinalazhaar.workers.dev";
 const PERSONAL_URL = "https://capryan-agusto.hipmiptuinalazhaar.workers.dev/";
+const CASE_STUDY_URL = "https://capryan-agusto.hipmiptuinalazhaar.workers.dev/projects/pasar-umkm/";
 const SITE_NAME = "Pasar UMKM Lubuklinggau";
 const DEFAULT_DESCRIPTION = "Temukan produk, toko, dan usaha lokal Lubuklinggau di Pasar UMKM. Jelajahi katalog UMKM, profil penjual, dan produk lokal dalam satu platform.";
 const LOGO_URL = `${SITE_ORIGIN}/assets/logo.webp?v=2.0`;
@@ -84,7 +85,9 @@ function pageShell({ title, description, canonical, image, type = "website", jso
 <title>${safeTitle}</title>
 <meta name="description" content="${safeDescription}">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+<meta name="author" content="Capryan Agusto">
 <link rel="canonical" href="${safeCanonical}">
+<link rel="author" href="${escapeHtml(PERSONAL_URL)}">
 <link rel="icon" href="/assets/logo.webp?v=2.0" type="image/webp">
 <meta property="og:locale" content="id_ID">
 <meta property="og:site_name" content="${SITE_NAME}">
@@ -241,7 +244,7 @@ async function directoryPage(env) {
       { "@type": "ItemList", itemListElement: itemList.map((item, index) => ({ "@type": "ListItem", position: index + 1, name: item.name, url: item.url })) }
     ]
   };
-  const body = `<main><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Pasar UMKM</a> / <span>Jelajahi</span></nav><header class="hero"><p class="eyebrow">Direktori Pasar UMKM</p><h1>Jelajahi UMKM & produk lokal Lubuklinggau</h1><p class="description">Temukan usaha lokal aktif dan produk terbaru yang tersedia di Pasar UMKM Lubuklinggau.</p></header><h2>UMKM terbaru</h2><section class="directory-grid">${storeCards || "<p>Belum ada UMKM aktif.</p>"}</section><h2>Produk terbaru</h2><section class="directory-grid">${productCards || "<p>Belum ada produk aktif.</p>"}</section><footer class="site-footer"><a href="/">Beranda</a><a href="/legal/index.html">Informasi & kebijakan</a><a href="${escapeHtml(PERSONAL_URL)}" rel="author">Tentang pengembang</a></footer></main>`;
+  const body = `<main><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Pasar UMKM</a> / <span>Jelajahi</span></nav><header class="hero"><p class="eyebrow">Direktori Pasar UMKM</p><h1>Jelajahi UMKM & produk lokal Lubuklinggau</h1><p class="description">Temukan usaha lokal aktif dan produk terbaru yang tersedia di Pasar UMKM Lubuklinggau.</p></header><h2>UMKM terbaru</h2><section class="directory-grid">${storeCards || "<p>Belum ada UMKM aktif.</p>"}</section><h2>Produk terbaru</h2><section class="directory-grid">${productCards || "<p>Belum ada produk aktif.</p>"}</section><footer class="site-footer"><a href="/">Beranda</a><a href="/legal/index.html">Informasi & kebijakan</a><a href="${escapeHtml(PERSONAL_URL)}" rel="author">Tentang pengembang</a><a href="${escapeHtml(CASE_STUDY_URL)}">Studi kasus Pasar UMKM</a></footer></main>`;
   return textResponse(pageShell({ title, description, canonical, image: LOGO_URL, jsonLd: schema, body }), "text/html; charset=utf-8", 200, "public, max-age=300, stale-while-revalidate=1800");
 }
 
