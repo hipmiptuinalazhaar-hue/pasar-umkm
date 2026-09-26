@@ -30,11 +30,21 @@
     if (styleJobs.has(href)) return styleJobs.get(href);
     const job = new Promise((resolve, reject) => {
       const link = document.createElement('link');
+      const timer = window.setTimeout(() => {
+        link.remove();
+        reject(new Error(`Timeout memuat ${href}`));
+      }, 10000);
       link.rel = 'stylesheet';
       link.href = href;
       link.dataset[key] = 'true';
-      link.onload = () => resolve(link);
-      link.onerror = () => reject(new Error(`Gagal memuat ${href}`));
+      link.onload = () => {
+        window.clearTimeout(timer);
+        resolve(link);
+      };
+      link.onerror = () => {
+        window.clearTimeout(timer);
+        reject(new Error(`Gagal memuat ${href}`));
+      };
       document.head.appendChild(link);
     }).catch(error => {
       styleJobs.delete(href);
@@ -50,11 +60,21 @@
     if (scriptJobs.has(src)) return scriptJobs.get(src);
     const job = new Promise((resolve, reject) => {
       const script = document.createElement('script');
+      const timer = window.setTimeout(() => {
+        script.remove();
+        reject(new Error(`Timeout memuat ${src}`));
+      }, 10000);
       script.src = src;
       script.async = true;
       script.dataset[key] = 'true';
-      script.onload = () => resolve(script);
-      script.onerror = () => reject(new Error(`Gagal memuat ${src}`));
+      script.onload = () => {
+        window.clearTimeout(timer);
+        resolve(script);
+      };
+      script.onerror = () => {
+        window.clearTimeout(timer);
+        reject(new Error(`Gagal memuat ${src}`));
+      };
       document.body.appendChild(script);
     }).catch(error => {
       scriptJobs.delete(src);
@@ -89,13 +109,13 @@
   }
 
   const CORE_SCRIPTS = [
-    ['script[data-navigation-refresh-guard="true"]', 'js/navigation-refresh-guard.js?v=1.0', 'navigationRefreshGuard'],
+    ['script[data-navigation-refresh-guard="true"]', 'js/navigation-refresh-guard.js?v=20260926p0', 'navigationRefreshGuard'],
     ['script[data-social-core-module="true"]', 'js/social-core.js?v=1.0', 'socialCoreModule'],
     ['script[data-like-core-module="true"]', 'js/like-core.js?v=1.1', 'likeCoreModule'],
     ['script[data-social-shell-module="true"]', 'js/social-shell.js?v=1.1', 'socialShellModule'],
     ['script[data-notification-router-v2="true"]', 'js/notification-router-v2.js?v=2.1', 'notificationRouterV2'],
     ['script[data-notification-core-module="true"]', 'js/notification-core.js?v=1.1', 'notificationCoreModule'],
-    ['script[data-functionality-core-module="true"]', 'js/functionality-core.js?v=1.0', 'functionalityCoreModule']
+    ['script[data-functionality-core-module="true"]', 'js/functionality-core.js?v=20260926p0', 'functionalityCoreModule']
   ];
 
   let coreJob;
@@ -129,13 +149,13 @@
         loadStyle('link[data-rating-form-v3-style="true"]', 'css/rating-form-v3.css?v=3.0', 'ratingFormV3Style')
       ]);
       const modules = [
-        ['script[data-profile-edit-module="true"]', 'js/profile-edit.js?v=4.0', 'profileEditModule'],
-        ['script[data-profile-identity-module="true"]', 'js/profile-identity.js?v=2.0', 'profileIdentityModule'],
-        ['script[data-profile-title-center-module="true"]', 'js/profile-title-center.js?v=1.1', 'profileTitleCenterModule'],
+        ['script[data-profile-edit-module="true"]', 'js/profile-edit.js?v=20260926p0', 'profileEditModule'],
+        ['script[data-profile-identity-module="true"]', 'js/profile-identity.js?v=20260926p0', 'profileIdentityModule'],
+        ['script[data-profile-title-center-module="true"]', 'js/profile-title-center.js?v=20260926p0', 'profileTitleCenterModule'],
         ['script[data-saved-remove-core="true"]', 'js/saved-remove-core.js?v=1.0', 'savedRemoveCore'],
         ['script[data-rating-core="true"]', 'js/rating-core.js?v=2.1', 'ratingCore'],
-        ['script[data-seller-p8-bridge="true"]', 'js/seller-center-p8-bridge.js?v=1.1', 'sellerP8Bridge'],
-        ['script[data-seller-order-p8-bridge="true"]', 'js/seller-center-order-p8.js?v=1.1', 'sellerOrderP8Bridge']
+        ['script[data-seller-p8-bridge="true"]', 'js/seller-center-p8-bridge.js?v=20260926p0', 'sellerP8Bridge'],
+        ['script[data-seller-order-p8-bridge="true"]', 'js/seller-center-order-p8.js?v=20260926p0', 'sellerOrderP8Bridge']
       ];
       for (const args of modules) await loadScript(...args);
       profileReady = true;
@@ -269,7 +289,7 @@
       return Promise.resolve(window.PasarSocialExperience);
     }
     if (socialScriptJob) return socialScriptJob;
-    socialScriptJob = loadScript('script[data-social-experience-v3="true"]', 'js/social-experience-v3.js?v=3.0', 'socialExperienceV3')
+    socialScriptJob = loadScript('script[data-social-experience-v3="true"]', 'js/social-experience-v3.js?v=20260926p0', 'socialExperienceV3')
       .then(() => {
         if (window.PasarSocialExperience?.version !== '3.0') throw new Error('Social Experience gagal diinisialisasi.');
         return window.PasarSocialExperience;
@@ -326,7 +346,13 @@
     if (!DOM.feed) return;
     DOM.feed.innerHTML = '<section class="social-account-page"><section class="social-account-empty"><div class="social-account-empty-icon"><i class="ph ph-user-circle"></i></div><strong>Memuat profil</strong><p>Menyiapkan halaman akun Anda.</p></section></section>';
 
-    let store = null;
+    try {
+      renderSocialAccountProfile(STATE.currentStore || null);
+    } catch (error) {
+      console.error('[Pasar UMKM] Immediate profile render error:', error);
+    }
+
+    let store = STATE.currentStore || null;
     if (STATE.user.role === 'seller' || STATE.user.role === 'admin') {
       const [storeResult, productsResult] = await Promise.allSettled([loadCurrentAccountStore(), loadCurrentAccountProducts()]);
       if (storeResult.status === 'fulfilled') {

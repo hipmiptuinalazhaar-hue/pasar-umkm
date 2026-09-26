@@ -4,6 +4,8 @@ const read = path => fs.readFileSync(path, 'utf8');
 const worker = read('src/worker-entry.js');
 const index = read('index.html');
 const resilience = read('js/bootstrap-resilience-v1.js');
+const app = read('js/app.js');
+const account = read('js/account-resilience.js');
 const chat = read('js/chat-experience-v7.js');
 const chatCss = read('css/chat-experience-v7.css');
 const mobileCss = read('css/mobile-foundation-v2.css');
@@ -19,6 +21,9 @@ const checks = [
   ['blocking loader has bounded lifetime', resilience.includes('MAX_BLOCKING_LOADER_MS = 4500') && resilience.includes("release('soft-timeout')")],
   ['resilience releases on runtime failures', resilience.includes("release('runtime-error')") && resilience.includes("release('runtime-rejection')")],
   ['resilience loads before app runtime', index.indexOf('bootstrap-resilience-v1.js') >= 0 && index.indexOf('bootstrap-resilience-v1.js') < index.indexOf('js/app.runtime.js')],
+  ['public bootstrap tolerates partial mobile-network failure', app.includes('async function resilientFetch') && app.includes('Promise.allSettled([\n    loadCategories(),\n    loadStores()') && app.includes('Products bootstrap network error') && app.includes('Posts bootstrap network error')],
+  ['account profile cannot wait forever on lazy assets', account.includes('Timeout memuat') && account.includes('renderSocialAccountProfile(STATE.currentStore || null)')],
+  ['chat requests have a bounded timeout', chat.includes("error.code = cause?.name === 'AbortError' ? 'CHAT_TIMEOUT'") && chat.includes('const timeoutMs = Number(options.timeoutMs || 12000)')],
   ['mobile chat tracks visual viewport bottom inset', chat.includes("'--chat7-offset-bottom'") && index.includes('bottom:var(--chat7-offset-bottom,0)!important') && index.includes('height:auto!important;min-height:0!important')],
   ['mobile chat can shrink below legacy 320px floor', chatCss.includes('@media (max-width:767px)') && chatCss.includes('min-height:0')],
   ['desktop footer cannot leak into phone seller pages', mobileCss.includes('.desktop-site-footer') && mobileCss.includes('display:none !important')],
