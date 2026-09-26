@@ -505,3 +505,11 @@ html body .empty-state {
     display: inline !important;
   }
 }
+
+
+/* Mobile shell invariant: the desktop trust footer is desktop-only. */
+@media (max-width:1023px) {
+  .desktop-site-footer {
+    display:none !important;
+  }
+}

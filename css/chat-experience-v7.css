@@ -968,6 +968,12 @@ body.chat-v7-body .feed {
   outline-offset:2px;
 }
 
+@media (max-width:767px) {
+  .chat-v7-page {
+    min-height:0;
+  }
+}
+
 @media (max-width:360px) {
   .chat-v7-search-wrap {
     padding-inline:12px;

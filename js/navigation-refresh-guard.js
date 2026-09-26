@@ -15,7 +15,7 @@
   }
 
   const STYLE_ASSETS = Object.freeze([
-    ['commerceCoreStyle', 'css/commerce-experience-v2.css?v=2.1'],
+    ['commerceCoreStyle', 'css/commerce-experience-v2.css?v=9f7edf0c8628'],
     ['cartCheckoutStyle', 'css/cart-checkout-v2.css?v=1.0'],
     ['p7NavigationStyle', 'css/p7-launch-growth.css?v=1.0']
   ]);
@@ -177,14 +177,14 @@
     commerceJob = (async () => {
       await loadScript({
         selector: 'script[src*="js/p8-commerce-integration.js"]',
-        src: 'js/p8-commerce-integration.js?v=fc3dcbac9b78',
+        src: 'js/p8-commerce-integration.js?v=9c56dd281571',
         datasetKey: 'p8CommerceIntegration',
         ready: () => window.PasarP8Commerce?.version === '1.2' ? window.PasarP8Commerce : null
       });
 
       const commerce = await loadScript({
         selector: 'script[src*="js/commerce-experience-v2.js"]',
-        src: 'js/commerce-experience-v2.js?v=2.1',
+        src: 'js/commerce-experience-v2.js?v=5e65d9481453',
         datasetKey: 'commerceCoreV2',
         ready: () => window.PasarCommerce?.version === '2.1' ? window.PasarCommerce : null
       });
