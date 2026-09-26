@@ -4,6 +4,11 @@ const read = path => fs.readFileSync(path, 'utf8');
 const worker = read('src/worker-entry.js');
 const index = read('index.html');
 const resilience = read('js/bootstrap-resilience-v1.js');
+const chat = read('js/chat-experience-v7.js');
+const chatCss = read('css/chat-experience-v7.css');
+const mobileCss = read('css/mobile-foundation-v2.css');
+const navGuard = read('js/navigation-refresh-guard.js');
+const about = read('js/about-experience-v2.js');
 const pkg = JSON.parse(read('package.json'));
 
 const checks = [
@@ -14,6 +19,12 @@ const checks = [
   ['blocking loader has bounded lifetime', resilience.includes('MAX_BLOCKING_LOADER_MS = 4500') && resilience.includes("release('soft-timeout')")],
   ['resilience releases on runtime failures', resilience.includes("release('runtime-error')") && resilience.includes("release('runtime-rejection')")],
   ['resilience loads before app runtime', index.indexOf('bootstrap-resilience-v1.js') >= 0 && index.indexOf('bootstrap-resilience-v1.js') < index.indexOf('js/app.runtime.js')],
+  ['mobile chat tracks visual viewport bottom inset', chat.includes("'--chat7-offset-bottom'") && index.includes('bottom:var(--chat7-offset-bottom,0)!important') && index.includes('height:auto!important;min-height:0!important')],
+  ['mobile chat can shrink below legacy 320px floor', chatCss.includes('@media (max-width:767px)') && chatCss.includes('min-height:0')],
+  ['desktop footer cannot leak into phone seller pages', mobileCss.includes('.desktop-site-footer') && mobileCss.includes('display:none !important')],
+  ['about V2 remains canonical and cache-busted', about.includes("revision: '2.2'") && /js\/about-experience-v2\.js\?v=[0-9a-f]{12}/.test(index) && /css\/about-experience-v2\.css\?v=[0-9a-f]{12}/.test(index)],
+  ['seller center ownership assets are cache-busted', /js\/navigation-refresh-guard\.js\?v=[0-9a-f]{12}/.test(index) && /js\/commerce-experience-v2\.js\?v=[0-9a-f]{12}/.test(navGuard) && /css\/commerce-experience-v2\.css\?v=[0-9a-f]{12}/.test(navGuard)],
+  ['legacy purchase label is absent from shell', !index.includes('Pembelian Saya')],
   ['validator is canonical', String(pkg.scripts?.validate || '').includes('test:bootstrap-resilience')]
 ];
 
