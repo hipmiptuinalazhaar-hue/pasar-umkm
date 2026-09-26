@@ -64,12 +64,16 @@
       Accept: 'application/json',
       ...(options.headers || {})
     };
+    const controller = new AbortController();
+    const timeoutMs = Number(options.timeoutMs || 12000);
+    const timer = window.setTimeout(() => controller.abort(), timeoutMs);
 
     const config = {
       method: options.method || 'GET',
       credentials: 'include',
       cache: 'no-store',
-      headers
+      headers,
+      signal: controller.signal
     };
 
     if (options.body !== undefined) {
@@ -77,7 +81,22 @@
       config.body = JSON.stringify(options.body);
     }
 
-    const response = await fetch(path, config);
+    let response;
+    try {
+      response = await fetch(path, config);
+    } catch (cause) {
+      const error = new Error(
+        cause?.name === 'AbortError'
+          ? 'Koneksi terlalu lama. Silakan coba lagi.'
+          : 'Koneksi chat terputus. Periksa jaringan lalu coba lagi.'
+      );
+      error.code = cause?.name === 'AbortError' ? 'CHAT_TIMEOUT' : 'CHAT_NETWORK_ERROR';
+      error.cause = cause;
+      throw error;
+    } finally {
+      window.clearTimeout(timer);
+    }
+
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok || data.ok !== true) {
