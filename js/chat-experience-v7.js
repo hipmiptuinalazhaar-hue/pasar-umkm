@@ -98,16 +98,30 @@
   }
 
   function syncViewport() {
+    const root = document.documentElement;
     const viewport = window.visualViewport;
+    const layoutHeight = Math.max(
+      0,
+      Math.round(window.innerHeight || root.clientHeight || 720)
+    );
+    const offsetTop = viewport
+      ? Math.max(0, Math.round(viewport.offsetTop || 0))
+      : 0;
+    const viewportHeight = viewport
+      ? Math.max(0, Math.round(viewport.height || layoutHeight))
+      : layoutHeight;
+    const offsetBottom = Math.max(
+      0,
+      Math.round(layoutHeight - offsetTop - viewportHeight)
+    );
     const height = Math.max(
-      320,
-      Math.round(viewport?.height || window.innerHeight || 720)
+      240,
+      Math.min(viewportHeight || layoutHeight, Math.max(240, layoutHeight - offsetTop))
     );
 
-    document.documentElement.style.setProperty(
-      '--chat7-height',
-      `${height}px`
-    );
+    root.style.setProperty('--chat7-offset-top', `${offsetTop}px`);
+    root.style.setProperty('--chat7-offset-bottom', `${offsetBottom}px`);
+    root.style.setProperty('--chat7-height', `${height}px`);
   }
 
   function scheduleViewportSync() {
@@ -157,6 +171,8 @@
     state.lastThreadSignature = '';
     document.body.classList.remove('chat-v7-body');
     document.documentElement.style.removeProperty('--chat7-height');
+    document.documentElement.style.removeProperty('--chat7-offset-top');
+    document.documentElement.style.removeProperty('--chat7-offset-bottom');
   }
 
   function goHome() {
