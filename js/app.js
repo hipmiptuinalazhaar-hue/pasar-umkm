@@ -270,379 +270,213 @@ function cacheDOM() {
    09. INITIAL DATA
    ========================================================= */
 
+function fetchWithTimeout(input, init = {}, timeoutMs = 10000) {
+  const controller = new AbortController();
+  const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+
+  return fetch(input, {
+    ...init,
+    signal: controller.signal
+  }).finally(() => {
+    window.clearTimeout(timer);
+  });
+}
+
+async function resilientFetch(input, init = {}, timeoutMs = 10000, retries = 1) {
+  let lastError = null;
+
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      return await fetchWithTimeout(input, init, timeoutMs);
+    } catch (error) {
+      lastError = error;
+      if (attempt >= retries) break;
+      await new Promise(resolve => window.setTimeout(resolve, 300));
+    }
+  }
+
+  throw lastError || new Error('Permintaan jaringan gagal.');
+}
+
 async function loadInitialData() {
-  /*
-   * 1. Pulihkan session user.
-   */
   await restoreAuthSession();
 
-     /*
-   * Ambil toko milik seller yang sedang login.
-   */
   STATE.currentStore = null;
 
   if (
     STATE.user?.role === 'seller' ||
     STATE.user?.role === 'admin'
   ) {
-    try {
-      STATE.currentStore =
-        await loadCurrentAccountStore();
-
-    } catch (error) {
-      console.error(
-        '[Pasar UMKM] Current store load error:',
-        error
-      );
-
-      STATE.currentStore = null;
-    }
+    loadCurrentAccountStore()
+      .then(store => {
+        STATE.currentStore = store;
+      })
+      .catch(error => {
+        console.error(
+          '[Pasar UMKM] Current store background load error:',
+          error
+        );
+        STATE.currentStore = null;
+      });
   }
 
+  await Promise.allSettled([
+    loadCategories(),
+    loadStores()
+  ]);
 
-  /*
-   * 2. Ambil kategori dari Neon.
-   */
-  await loadCategories();
-
-
-  /*
-   * 3. Ambil daftar UMKM dari Neon.
-   */
-  await loadStores();
-
-  /*
-   * 4. Ambil produk dan postingan publik dari Neon.
-   */
-  const [
-    productsResponse,
-    postsResponse
-  ] = await Promise.all([
-    fetch(
+  const [productsResult, postsResult] = await Promise.allSettled([
+    resilientFetch(
       `/api/products?limit=${CATALOG_PAGE_LIMIT}`,
       {
         method: 'GET',
-
-        credentials:
-          'include',
-
-        headers: {
-          Accept:
-            'application/json'
-        },
-
-        cache:
-          'no-store'
-      }
+        credentials: 'include',
+        headers: { Accept: 'application/json' },
+        cache: 'no-store'
+      },
+      10000,
+      1
     ),
-
-    fetch(
+    resilientFetch(
       '/api/posts',
       {
         method: 'GET',
-
-        credentials:
-          'include',
-
-        headers: {
-          Accept:
-            'application/json'
-        },
-
-        cache:
-          'no-store'
-      }
+        credentials: 'include',
+        headers: { Accept: 'application/json' },
+        cache: 'no-store'
+      },
+      10000,
+      1
     )
   ]);
 
-
   const feedItems = [];
 
+  if (productsResult.status === 'fulfilled') {
+    const productsResponse = productsResult.value;
 
-  // ==========================================
-  // PRODUCTS
-  // ==========================================
+    if (productsResponse.ok) {
+      const productsData = await productsResponse.json().catch(() => ({}));
 
-  if (productsResponse.ok) {
-    const productsData =
-      await productsResponse.json();
+      if (
+        productsData.ok === true &&
+        Array.isArray(productsData.products)
+      ) {
+        applyCatalogPagination(
+          CATALOG_PAGINATION.products,
+          productsData.pagination
+        );
 
-
-    if (
-      productsData.ok === true &&
-      Array.isArray(
-        productsData.products
-      )
-    ) {
-      applyCatalogPagination(
-        CATALOG_PAGINATION.products,
-        productsData.pagination
+        feedItems.push(
+          ...productsData.products.map(createPublicProductFeedPost)
+        );
+      }
+    } else {
+      console.error(
+        '[Pasar UMKM] Products bootstrap HTTP error:',
+        productsResponse.status
       );
+    }
+  } else {
+    console.error(
+      '[Pasar UMKM] Products bootstrap network error:',
+      productsResult.reason
+    );
+  }
 
-      const productPosts =
-        productsData.products.map(
-          product => ({
-            id:
-              `product-${product.id}`,
+  if (postsResult.status === 'fulfilled') {
+    const postsResponse = postsResult.value;
 
-            store: {
-              id:
-                product.store_id,
+    if (postsResponse.ok) {
+      const postsData = await postsResponse.json().catch(() => ({}));
 
-              name:
-                product.store_name ||
-                'UMKM Lokal',
+      if (
+        postsData.ok === true &&
+        Array.isArray(postsData.posts)
+      ) {
+        feedItems.push(
+          ...postsData.posts.map(post => {
+            const location = [
+              post.store_district,
+              post.store_city
+            ].filter(Boolean).join(', ') || CONFIG.CITY;
 
-              avatar:
-                product.store_logo_url ||
-                ASSETS.logo,
-
-              location:
-                CONFIG.CITY,
-
-              verified:
-                product.store_verification_status ===
-                'verified'
-            },
-
-            caption:
-              product.description ||
-              '',
-
-             createdAt:
-  product.created_at,
-
-commentsCount:
-  Number(
-    product.comments_count || 0
-  ),
-            product: {
-              id:
-                product.id,
-
-              name:
-                product.name,
-
-              image:
-                product.image_url ||
-                ASSETS.logo,
-
-              category:
-                product.category_name ||
-                '',
-
-              categoryId:
-                product.category_id ||
-                '',
-
-              price:
-                Number(
-                  product.price || 0
-                ),
-
-              stock:
-                Number(
-                  product.stock || 0
-                ),
-
-              unit:
-                product.unit ||
-                ''
-            }
+            return {
+              id: `post-${post.id}`,
+              backendId: post.id,
+              store: {
+                id: post.store_id,
+                name: post.store_name || 'UMKM Lokal',
+                avatar: post.store_logo_url || ASSETS.logo,
+                location,
+                verified: post.store_verification_status === 'verified'
+              },
+              location,
+              caption: post.caption || '',
+              createdAt: post.created_at,
+              media: {
+                type: 'image',
+                src: post.image_url,
+                alt: post.caption || `Postingan ${post.store_name || 'UMKM'}`
+              },
+              likesCount: 0,
+              commentsCount: Number(post.comments_count || 0)
+            };
           })
         );
-
-
-      feedItems.push(
-        ...productPosts
+      }
+    } else {
+      console.error(
+        '[Pasar UMKM] Posts bootstrap HTTP error:',
+        postsResponse.status
       );
     }
+  } else {
+    console.error(
+      '[Pasar UMKM] Posts bootstrap network error:',
+      postsResult.reason
+    );
   }
 
+  feedItems.sort((a, b) => (
+    new Date(b.createdAt || 0).getTime() -
+    new Date(a.createdAt || 0).getTime()
+  ));
 
-  // ==========================================
-  // POSTS
-  // ==========================================
+  DATA.posts = feedItems;
 
-  if (postsResponse.ok) {
-    const postsData =
-      await postsResponse.json();
-
-
-    if (
-      postsData.ok === true &&
-      Array.isArray(
-        postsData.posts
-      )
-    ) {
-      const publicPosts =
-        postsData.posts.map(
-          post => {
-            const location =
-              [
-                post.store_district,
-                post.store_city
-              ]
-                .filter(Boolean)
-                .join(', ') ||
-              CONFIG.CITY;
-
-
-           return {
-  id:
-    `post-${post.id}`,
-
-  backendId:
-    post.id,
-
-  store: {
-                id:
-                  post.store_id,
-
-                name:
-                  post.store_name ||
-                  'UMKM Lokal',
-
-                avatar:
-                  post.store_logo_url ||
-                  ASSETS.logo,
-
-                location,
-
-                verified:
-                  post.store_verification_status ===
-                  'verified'
-              },
-
-              location,
-
-              caption:
-                post.caption ||
-                '',
-
-              createdAt:
-                post.created_at,
-
-              media: {
-                type:
-                  'image',
-
-                src:
-                  post.image_url,
-
-                alt:
-                  post.caption ||
-                  `Postingan ${post.store_name || 'UMKM'}`
-              },
-
-              likesCount: 0,
-commentsCount:
-  Number(
-    post.comments_count || 0
-  )
-            };
-          }
-        );
-
-
-      feedItems.push(
-        ...publicPosts
-      );
-    }
-  }
-
-
-  // ==========================================
-  // SORT FEED TERBARU
-  // ==========================================
-
-  feedItems.sort(
-    (a, b) => {
-      const dateA =
-        new Date(
-          a.createdAt || 0
-        ).getTime();
-
-      const dateB =
-        new Date(
-          b.createdAt || 0
-        ).getTime();
-
-      return dateB - dateA;
-    }
-  );
-
-
-  DATA.posts =
-    feedItems;
-  /*
-   * Data marketplace lainnya seperti
-   * posts, messages, notifications,
-   * dan orders belum memakai bootstrap.
-   */
   if (!CONFIG.API_BASE_URL) {
     return;
   }
 
+  try {
+    const bootstrap = await apiRequest('/api/bootstrap');
 
-  const bootstrap =
-    await apiRequest(
-      '/api/bootstrap'
-    );
+    if (!bootstrap) {
+      return;
+    }
 
+    DATA.stories = ensureArray(bootstrap.stories);
 
-  if (!bootstrap) {
-    return;
-  }
+    if (Array.isArray(bootstrap.posts) && bootstrap.posts.length) {
+      DATA.posts = ensureArray(bootstrap.posts);
+    }
 
+    DATA.notifications = ensureArray(bootstrap.notifications);
+    DATA.messages = ensureArray(bootstrap.messages);
+    DATA.orders = ensureArray(bootstrap.orders);
 
-  DATA.stories =
-    ensureArray(
-      bootstrap.stories
-    );
+    if (bootstrap.user) {
+      STATE.user = bootstrap.user;
+    }
 
-
-  DATA.posts =
-    ensureArray(
-      bootstrap.posts
-    );
-
-
-  DATA.notifications =
-    ensureArray(
-      bootstrap.notifications
-    );
-
-
-  DATA.messages =
-    ensureArray(
-      bootstrap.messages
-    );
-
-
-  DATA.orders =
-    ensureArray(
-      bootstrap.orders
-    );
-
-
-  if (bootstrap.user) {
-    STATE.user =
-      bootstrap.user;
-  }
-
-
-  if (
-    Array.isArray(
-      bootstrap.cart
-    )
-  ) {
-    STATE.cart =
-      bootstrap.cart;
+    if (Array.isArray(bootstrap.cart)) {
+      STATE.cart = bootstrap.cart;
+    }
+  } catch (error) {
+    console.error('[Pasar UMKM] Optional bootstrap error:', error);
   }
 }
-
-
 
 /* =========================================================
    LOAD CATEGORIES
@@ -651,7 +485,7 @@ commentsCount:
 async function loadCategories() {
   try {
     const response =
-      await fetch(
+      await resilientFetch(
         '/api/categories',
         {
           method: 'GET',
@@ -780,7 +614,7 @@ async function loadStores({ append = false } = {}) {
       params.set('cursor', state.nextCursor);
     }
 
-    const response = await fetch(
+    const response = await resilientFetch(
       `/api/stores?${params.toString()}`,
       {
         method: 'GET',
@@ -1000,7 +834,7 @@ function scheduleCatalogPaginationObserver(category = null) {
 
 async function restoreAuthSession() {
   try {
-    const response = await fetch('/api/auth/me', {
+    const response = await resilientFetch('/api/auth/me', {
       method: 'GET',
       credentials: 'include',
       headers: {
@@ -6559,7 +6393,7 @@ async function openAccount() {
 
 async function loadCurrentAccountStore() {
   const response =
-    await fetch(
+    await resilientFetch(
       '/api/stores/me',
       {
         method: 'GET',
@@ -6608,7 +6442,7 @@ async function loadCurrentAccountStore() {
 
 async function loadCurrentAccountProducts() {
   const response =
-    await fetch(
+    await resilientFetch(
       '/api/products/me',
       {
         method: 'GET',
