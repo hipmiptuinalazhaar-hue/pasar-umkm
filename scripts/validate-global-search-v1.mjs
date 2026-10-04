@@ -5,6 +5,8 @@ const worker = read('src/worker-entry.js');
 const api = read('src/global-search-api.js');
 const ui = read('js/global-search-v1.js');
 const index = read('index.html');
+const app = read('js/app.js');
+const runtime = read('js/app.runtime.js');
 const pkg = JSON.parse(read('package.json'));
 
 const checks = [
@@ -20,6 +22,7 @@ const checks = [
   ['remote products hydrate navigation state', ui.includes('appData.posts.push') && ui.includes('product-${id}')],
   ['remote stores hydrate navigation state', ui.includes('appData.stores.push')],
   ['result groups are complete', ['Produk','UMKM','Pengguna','Kategori'].every(label => ui.includes(label))],
+  ['core input handler calls global search', app.includes('PasarGlobalSearch.search(query)') && runtime.includes('PasarGlobalSearch.search(query)')],
   ['global search script is loaded', index.includes('data-global-search="true"') && index.includes('js/global-search-v1.js')],
   ['global search loads after app runtime', index.indexOf('js/global-search-v1.js') > index.indexOf('js/app.runtime.js')],
   ['validator is release-gated', String(pkg.scripts?.validate || '').includes('test:global-search')]
