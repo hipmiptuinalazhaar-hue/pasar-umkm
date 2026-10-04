@@ -12623,6 +12623,14 @@ function handleSearchInput(event) {
     return;
   }
 
+  if (
+    window.PasarGlobalSearch?.version === '1.0' &&
+    typeof window.PasarGlobalSearch.search === 'function'
+  ) {
+    window.PasarGlobalSearch.search(query);
+    return;
+  }
+
   renderSearchResults(query);
 }
 
