@@ -4521,62 +4521,7 @@ ${productHTML}
           </p>
 
         </section>
-      `,"favorites");return}closeBottomSheet(),renderFeed(posts)}function openAbout(){openBottomSheet(`
-      <h2 id="sheetTitle">
-        Tentang Pasar UMKM
-      </h2>
-
-      <section class="empty-state">
-
-        <img
-          src="${escapeHTML(ASSETS.logo)}"
-          alt="Pasar UMKM"
-          class="side-menu-logo"
-        >
-
-        <strong
-          class="empty-state-title"
-          style="margin-top:16px;"
-        >
-          Pasar UMKM
-        </strong>
-
-        <p class="empty-state-text">
-          Platform digital untuk membantu masyarakat
-          menemukan, mengenal, dan mendukung UMKM lokal
-          di Lubuklinggau.
-        </p>
-
-      </section>
-
-
-      <section
-        class="side-account"
-        style="margin-top:14px;"
-      >
-
-        <p class="side-menu-footer-label">
-          Inisiatif
-        </p>
-
-        <strong class="side-menu-footer-name">
-          ${escapeHTML(CONFIG.ORGANIZATION)}
-        </strong>
-
-
-        <p
-          class="side-menu-footer-label"
-          style="margin-top:12px;"
-        >
-          Founder & Product Initiator
-        </p>
-
-        <strong class="side-menu-footer-name">
-          ${escapeHTML(CONFIG.INITIATOR)}
-        </strong>
-
-      </section>
-    `,"about")}function openHelp(){openBottomSheet(`
+      `,"favorites");return}closeBottomSheet(),renderFeed(posts)}function openAbout(){const experience=window.PasarAboutExperience;if(experience?.version==="2.0"&&experience?.revision==="2.3"&&typeof experience.open==="function"){experience.open();return}showToast("Tentang Pasar UMKM belum siap dimuat. Muat ulang halaman dan coba lagi.")}function openHelp(){openBottomSheet(`
       <h2 id="sheetTitle">
         Pusat Bantuan
       </h2>
