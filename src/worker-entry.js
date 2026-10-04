@@ -24,6 +24,7 @@ import { handleChatMediaApiV2 } from "./chat-media-api-v2.js";
 import { handleChatMessageActionApi } from "./chat-message-action-api.js";
 import { handleCommentApi } from "./comment-api.js";
 import { handlePublicCatalogApi } from "./public-catalog-api.js";
+import { handleGlobalSearchApi } from "./global-search-api.js";
 import { handleMarketplaceSafetyApi } from "./marketplace-safety-api.js";
 import { handleSellerDisputeApi } from "./seller-dispute-api.js";
 import { handleLaunchGrowthApi } from "./launch-growth-api.js";
@@ -59,7 +60,8 @@ const BOOTSTRAP_PUBLIC_READ_PATHS = new Set([
   "/api/categories",
   "/api/stores",
   "/api/products",
-  "/api/posts"
+  "/api/posts",
+  "/api/search"
 ]);
 
 function canBypassRuntimeSchemaVerification(request, url) {
@@ -283,6 +285,8 @@ async function routeRequest(request, env, ctx) {
   if (imageUploadResponse) return imageUploadResponse;
   const publicCatalogResponse = await handlePublicCatalogApi(request, env);
   if (publicCatalogResponse) return publicCatalogResponse;
+  const globalSearchResponse = await handleGlobalSearchApi(request, env);
+  if (globalSearchResponse) return globalSearchResponse;
   const notificationResponse = await handleNotificationApi(request, env);
   if (notificationResponse) return notificationResponse;
   const ratingSummaryResponse = await handleRatingSummaryV2(request, env);
