@@ -134,7 +134,6 @@ document.addEventListener('DOMContentLoaded', initializeApp);
 
 async function initializeApp() {
   cacheDOM();restoreLocalState();bindEvents();
-document.querySelector('[data-v10-lazy=reels]')&&navigate('reels');
 
   setupSplash();
   setLoading(true);
@@ -2659,7 +2658,46 @@ function runMenuAction(action) {
 }
 
 
+function openReelsComingSoon() {
+  closeSideMenu();
+
+  openBottomSheet(
+    `
+      <h2 id="sheetTitle">
+        Reels
+      </h2>
+
+      <section class="empty-state reels-coming-soon">
+        <span
+          class="empty-state-icon"
+          aria-hidden="true"
+        >
+          <i class="ph ph-film-strip"></i>
+        </span>
+
+        <strong class="empty-state-title">
+          Fitur ini segera tersedia
+        </strong>
+
+        <p class="empty-state-text">
+          Reels Pasar UMKM sedang kami sempurnakan
+          agar pengalaman video lebih stabil dan nyaman.
+        </p>
+      </section>
+    `,
+    'reels-coming-soon'
+  );
+}
+
+window.openReelsComingSoon = openReelsComingSoon;
+
+
 function navigate(target) {
+  if (target === 'reels') {
+    openReelsComingSoon();
+    return;
+  }
+
   if (
     target !== 'account' &&
     typeof leaveAccountProfile === 'function'
@@ -2688,7 +2726,7 @@ function navigate(target) {
       break;
 
     case 'reels':
-      window.PasarPerformanceV10?.openReels?.();
+      openReelsComingSoon();
       break;
 
     case 'sell':
