@@ -265,6 +265,7 @@
       const value = String(query || '').trim();
       if (value.length < MIN_LENGTH) return Promise.resolve(false);
       const requestSequence = ++sequence;
+      loading(value);
       return requestSearch(value, requestSequence);
     }
   });
