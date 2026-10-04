@@ -12653,7 +12653,7 @@ function renderSearchHint() {
       </strong>
 
       <p class="empty-state-text">
-        Cari produk, kategori, atau nama UMKM.
+        Cari produk, UMKM, pengguna, atau kategori.
       </p>
 
     </section>
